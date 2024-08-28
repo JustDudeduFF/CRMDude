@@ -1,0 +1,14 @@
+.offcanvas_div:hover{
+    box-shadow: 0 0 10px gray;
+    
+    .reports_label{
+        font-weight: bold;
+        color: blue;
+        border-bottom: 1px solid blue;
+    }
+    
+}
+
+.reports_label{
+    font-weight: 600;
+}

@@ -1,0 +1,47 @@
+.emp_div{
+    margin-bottom: 10px;
+    width: 200px;
+    border: 2px solid blueviolet;
+    padding: 8px;
+    border-radius: 10px;
+    
+
+}
+
+.emp_div:hover{
+    .emp_img{
+
+        border-radius: 100px;
+        box-shadow: 0 0 10px blueviolet;
+        border: 2px solid blueviolet
+    }
+}
+
+.emp_img{
+    cursor: pointer;
+    width: 180px;
+    transition: ease-in 0.2s;
+}
+
+
+.emplabel{
+    margin-left: 10px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+
+.empinput{
+    color: blueviolet;
+    border: 1px solid gray;
+    border-radius: 5px;
+    margin: 5px;
+    width: auto;
+    height: 35px;
+    padding: 5px;
+}
+
+.empinput:focus{
+    box-shadow: 0 0 5px blueviolet;
+    outline: none;
+    border: 1px solid blueviolet;
+}

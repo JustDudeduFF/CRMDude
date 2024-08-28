@@ -1,0 +1,162 @@
+
+div{
+    font-family: 'Outfit', 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+.slide-in{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: black;
+    transform-origin: bottom;
+}
+
+.slide-out{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: black;
+    transform-origin: top;
+}
+
+
+
+.td_hover{
+    color: #69ce5e;
+    font-weight: 200;
+    cursor: pointer;
+}
+
+.td_hover:hover{
+    color: green;
+    font-weight: bold;
+
+}
+
+
+
+#link .div-subs-option{
+    color: black;
+    font-weight: bold;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    flex: 1;
+    padding: 8px;
+    border: 1px solid gray;
+    margin: 10px;
+    
+    border-radius: 8px;
+}
+
+#link .div-subs-option:hover{
+    cursor: pointer;
+    color: white;
+    background-color: #69ce5e;
+    border: 1px solid green;
+    box-shadow: 0 0 8px gray;
+}
+
+.img_download_icon{
+    margin: 5px;
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.img_download_icon:hover{
+    border-radius: 5px;
+    box-shadow: 0 0 5px gray;
+    border: 1px solid gray;
+}
+
+.img_hover{
+    cursor: pointer;
+    border-radius: 100%;
+    margin-right: 10px;
+    margin-top: 5px;
+    float: right;
+    width: 30px;
+    height: 30px;
+    transition: 0.2s ease-in-out;
+}
+
+.img_hover:hover{
+    box-shadow: 0 0 8px blue;
+}
+
+
+.img_boldicon{
+    width: 60px;
+    height: 60px;
+    margin-left: 20px;
+    margin-top: 10px;
+}
+
+
+li:hover{
+    cursor: pointer;
+    
+    color: blue;
+}
+
+.login-div{
+    margin-top: 100px;
+    margin-right: 40px;
+}
+
+.input_login{
+    padding: 2px;
+    border: 1px solid gray;
+    border-radius: 3px;
+    font-size: 14px;
+    margin-bottom: 20px;
+    height: 30px;
+    width: 250px;
+    margin-top: 5px;
+}
+
+.input_login:focus{
+    box-shadow: 0 0 4px blue;
+    outline: none;
+    border: 2px solid blue;
+}
+
+.btn_login{
+    color: white;
+    position: absolute;
+    border-radius: 5px;
+    font-size: 20px;
+    background-color: blue;
+    border: none;
+    margin-top: 100px;
+    height: 35px;
+    width: 300px;
+    transition: 0.2s ease-in-out;
+}
+
+.btn_login:hover{
+    box-shadow: 0 0 10px blue;
+}
+
+#link{
+    text-decoration: none;
+    color: white;
+}
+
+
+.gradient_orange{
+    width: auto;
+    background: linear-gradient(to right, #ff7e5f, #feb47b);
+}
+
+.gradient_blue{
+    width: auto;
+    background: linear-gradient(to right, skyblue, violet);
+}
+
+.gradient_green{
+    width: auto;
+    background: linear-gradient(to right, green, yellow);
+}

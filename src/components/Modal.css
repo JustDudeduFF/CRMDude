@@ -1,0 +1,23 @@
+/* Modal.css */
+.modal-overlay {
+    
+    box-shadow: 0 0 10px blue;
+    border-radius: 10px;
+    position: fixed;
+    top: 10%;
+    right: 30%;
+    left: 30%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .modal-content {
+    
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    
+  }
+  

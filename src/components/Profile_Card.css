@@ -1,0 +1,18 @@
+.custom-list{
+    list-style-type: none;
+    padding: 0;
+}
+
+.list-item{
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+    font-size: 15px;
+
+}
+
+.icon{
+    margin-right: 10px;
+    width: 25px;
+    height: 25px;
+}

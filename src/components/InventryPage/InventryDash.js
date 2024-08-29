@@ -1,170 +1,274 @@
-import React, { useEffect, useState } from 'react'
-import RouterImg from './inventrydrawables/technology.png'
-import AddInventryData from './AddInventryData'
-import {ToastContainer, toast } from 'react-toastify';
+import React, { useCallback, useEffect, useState } from 'react';
+import RouterImg from './inventrydrawables/technology.png';
+import AddInventryData from './AddInventryData';
+import { ToastContainer, toast } from 'react-toastify';
 import { db } from '../../FirebaseConfig';
 import { get, ref, set } from 'firebase/database';
 
 export default function InventryDash() {
+  const [showModal, setShowModal] = useState(false);
+  const [devicetype, setDeviceType] = useState('New Stock');
+  const [makername, setMakerName] = useState('');
+  const [mac, setMac] = useState('');
+  const [serial, setSerial] = useState('');
 
-    const [showModal, setShowModal] = useState(false);
-    const [devicetype, setDeviceType] = useState('');
-    const [makername, setMakerName] = useState('');
-    const [mac, setMac] = useState('');
-    const [serial, setSerial] = useState('');
+  const [backgroundF, setBackgroundF] = useState('green');
+  const [backgroundD, setBackgroundD] = useState('');
+  const [backgroundR, setBackgroundR] = useState('');
 
-    const [getmakers, setGetMakers] = useState([]);
+  const [getmakers, setGetMakers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchDevice, setSearchDevice] = useState('');
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const refInventry = ref(db, 'Inventory');
-            const snaprefInventry = await get(refInventry);
+  const [getdevice, setGetDevice] = useState([]);
 
-            if (snaprefInventry.exists()) {
-                const Makers = [];
-                
-                snaprefInventry.forEach(childSnapshot => {
-                    Makers.push(childSnapshot.key);
-                });
+  const fetchData = useCallback(async () => {
+    const deviceRef = ref(db, `Inventory/${devicetype}`);
+    const deviceSnap = await get(deviceRef);
 
-                setGetMakers(Makers);
+    if (deviceSnap.exists()) {
+      const Makers = {};
 
-                const listmaker = document.getElementById('makerlist');
-                const limaker = document.createElement('li');
-                listmaker.append(limaker);
-                limaker.append(getmakers);
+      deviceSnap.forEach((childSnap) => {
+        const makername = childSnap.key;
+        const deviceCount = Object.keys(childSnap.val()).length;
 
-                
-            }else{
-                console.log('Data Not Found')
-            }
-        };
+        Makers[makername] = deviceCount;
+      });
 
-        fetchData();
-    }, []);
-    
-    
-
-    const inventryData = {
-        serialno: serial,
-        macno: mac,
-        makername: makername
+      const makerArray = Object.entries(Makers);
+      setGetMakers(makerArray);
+    } else {
+      console.log('snap not found');
     }
+  }, [devicetype]);
 
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-    const AddInventry = async () => {
-        const inventryRef = ref(db, `Inventory/${devicetype}/${makername}/${mac}`);
-        try{
-            await set(inventryRef, inventryData);
-            toast.success('Device Added!', {
-                autoClose:2000, 
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
+  const getDevices = (type) => {
+    setDeviceType(type);
+    setGetDevice([]);
 
-            })
-            setShowModal(false);
-        }catch(error){
-            toast.error(error, {
-                autoClose:2000, 
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            });
-            setShowModal(false);
-        }
-        
-
+    if (type === 'New Stock') {
+      setBackgroundF('green');
+      setBackgroundD('');
+      setBackgroundR('');
+    } else if (type === 'Damaged Devices') {
+      setBackgroundF('');
+      setBackgroundD('red');
+      setBackgroundR('');
+    } else {
+      setBackgroundF('');
+      setBackgroundD('');
+      setBackgroundR('yellow');
     }
+  };
 
-    
+  const fetchDevices = async (maker) => {
+    const DeviceRef = ref(db, `Inventory/${devicetype}/${maker}`);
+    const DeviceSnap = await get(DeviceRef);
+
+    if (DeviceSnap.exists()) {
+      const deviceList = [];
+
+      DeviceSnap.forEach((childSnap) => {
+        const mac = childSnap.key;
+        const serial = childSnap.val().serialno;
+
+        deviceList.push({ serial, mac });
+      });
+
+      setGetDevice(deviceList);
+    } else {
+      setGetDevice([]); // Clear device list if no devices found
+      toast.error('No devices found for this maker.', {
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+      });
+    }
+  };
+
+  const showDevices = (maker) => {
+    fetchDevices(maker);
+  };
+
+  const inventryData = {
+    serialno: serial,
+    macno: mac,
+    makername: makername,
+  };
+
+  const AddInventry = async () => {
+    const inventryRef = ref(db, `Inventory/${devicetype}/${makername}/${mac}`);
+    try {
+      await set(inventryRef, inventryData);
+      toast.success('Device Added!', {
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+      });
+      // setShowModal(false);
+    } catch (error) {
+      toast.error('Error adding device: ' + error.message, {
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+      });
+      // setShowModal(false);
+    }
+  };
+
+  const filteredMakers = getmakers.filter(([maker]) =>
+    maker.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredDevice = getdevice.filter(({ serial }) =>
+    serial.toLowerCase().includes(searchDevice.toLowerCase())
+  
+  );
+
   return (
-    <div style={{display:'flex', flexDirection:'column', marginTop:'4.5%'}}>
-        <div style={{display:'flex', flexDirection:'row', margin:'10px'}}>
-            <div style={{flex:'1'}}>
-                <h4>Inventory Details</h4>
+    <div style={{ display: 'flex', flexDirection: 'column', marginTop: '4.5%' }}>
+      <div style={{ display: 'flex', flexDirection: 'row', margin: '10px' }}>
+        <div style={{ flex: '1' }}>
+          <h4>Inventory Details</h4>
+        </div>
+        <button onClick={() => setShowModal(true)} className='btn btn-outline-primary me-2'>Add Device</button>
+        <label className='form-label me-2 mt-2'>Select Company :-</label>
+        <div className='col-md-2' style={{ float: 'right' }}>
+          <select className='form-select'>
+            <option>Choose...</option>
+          </select>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'row' }}>
+        <div style={{ flex: '1.1', marginLeft: '10px', display: 'flex', flexDirection: 'column' }}>
+          <div
+            onClick={() => getDevices('New Stock')}
+            style={{ display: 'flex', flexDirection: 'row', border: `1px solid ${backgroundF}`, borderRadius: '5px', boxShadow: `0 0 8px ${backgroundF}`, cursor: 'pointer' }}
+          >
+            <div>
+              <img alt='' style={{ width: '50px', height: '50px', margin: '5px' }} src={RouterImg}></img>
             </div>
-            <button onClick={() => setShowModal(true)} className='btn btn-outline-primary me-2'>Add Device</button>
-            <label className='form-label me-2 mt-2'>Select Company :-</label>
-            <div className='col-md-2' style={{float:'right'}}>
-                <select className='form-select'>
-                    <option>Choose...</option>
-                </select>
+            <div className='ms-2 mt-1' style={{ display: 'flex', flexDirection: 'column' }}>
+              <label className='fw-bold'>Free Device</label>
+              <label>Quantity of Device</label>
             </div>
+          </div>
+
+          <div
+            onClick={() => getDevices('Damaged Devices')}
+            style={{ display: 'flex', flexDirection: 'row', border: `1px solid ${backgroundD}`, borderRadius: '5px', boxShadow: `0 0 8px ${backgroundD}`, marginTop: '20px', cursor: 'pointer' }}
+          >
+            <div>
+              <img alt='' style={{ width: '50px', height: '50px', margin: '5px' }} src={RouterImg}></img>
+            </div>
+            <div className='ms-2 mt-1' style={{ display: 'flex', flexDirection: 'column' }}>
+              <label className='fw-bold'>Damaged Device</label>
+              <label>Quantity of Device</label>
+            </div>
+          </div>
+
+          <div
+            onClick={() => getDevices('Device on Repair')}
+            style={{ display: 'flex', flexDirection: 'row', border: `1px solid ${backgroundR}`, borderRadius: '5px', boxShadow: `0 0 8px ${backgroundR}`, marginTop: '20px', cursor: 'pointer' }}
+          >
+            <div>
+              <img alt='' style={{ width: '50px', height: '50px', margin: '5px' }} src={RouterImg}></img>
+            </div>
+            <div className='ms-2 mt-1' style={{ display: 'flex', flexDirection: 'column' }}>
+              <label className='fw-bold'>Repairing Device</label>
+              <label>Quantity of Device</label>
+            </div>
+          </div>
         </div>
 
-        <div style={{display:'flex', flexDirection:'row'}}>
-            <div style={{flex:'1.1', marginLeft:'10px', display:'flex', flexDirection:'column'}}>
-                <div style={{display:'flex', flexDirection:'row', border:'1px solid green', borderRadius:'5px', boxShadow:'0 0 8px green'}}>
-                    <div>
-                        <img alt='' style={{width:'50px', height:'50px', margin:'5px'}} src={RouterImg}></img>
-                    </div>
-                    <div className='ms-2 mt-1' style={{display:'flex', flexDirection:'column'}}>
-                        <label className='fw-bold'>Free Device</label>
-                        <label>Quantity of Device</label>
-                    </div>
+        <div className='d-flex flex-column' style={{ flex: '3', }}>
+          <div className='ms-3'>
+            <input
+              className='form-control'
+              type='search'
+              aria-label='search'
+              placeholder='Enter Device Maker name'
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <ol className="list-group list-group ms-5 mt-3">
+            {filteredMakers.map(([maker, count], index) => (
+              <li onClick={() => showDevices(maker)} key={index}>
+                <div className='col mt-2 border border-secondary rounded p-2 me-3'>
+                  <label className='form-label'>{`Device Maker :- ${maker}`}</label><br></br>
+                  <label className='form-label'>Quantity :- </label><span class="badge text-bg-secondary ms-2 mt-1">{count}</span>
                 </div>
-
-                <div style={{display:'flex', flexDirection:'row', border:'1px solid red', borderRadius:'5px', boxShadow:'0 0 8px red', marginTop:'20px'}}>
-                    <div>
-                        <img alt='' style={{width:'50px', height:'50px', margin:'5px'}} src={RouterImg}></img>
-                    </div>
-                    <div className='ms-2 mt-1' style={{display:'flex', flexDirection:'column'}}>
-                        <label className='fw-bold'>Damaged Device</label>
-                        <label>Quantity of Device</label>
-                    </div>
-                </div>
-
-                <div style={{display:'flex', flexDirection:'row', border:'1px solid yellow', borderRadius:'5px', boxShadow:'0 0 8px yellow',  marginTop:'20px'}}>
-                    <div>
-                        <img alt='' style={{width:'50px', height:'50px', margin:'5px'}} src={RouterImg}></img>
-                    </div>
-                    <div className='ms-2 mt-1' style={{display:'flex', flexDirection:'column'}}>
-                        <label className='fw-bold'>Reparing Device</label>
-                        <label>Quantity of Device</label>
-                    </div>
-                </div>
-            </div>
-
-
-            <div className='d-flex flex-column' style={{flex:'3'}}>
-                <div className='ms-3'>
-                    <input className='form-control' type='search' aria-label='search' placeholder='Enter Device Maker name'></input>
-                </div>
-                    <ol id='makerlist' className="list-group list-group ms-5 mt-3">
-                        
-                    </ol>
-            </div>
-
-            <div className='d-flex flex-column' style={{flex:'4'}}>
-            <div className='col ms-3 me-3'>
-                    <input className='form-control' type='search' aria-label='search' placeholder='Enter Device Serial No.'></input>
-                </div>
-
-                <ul className="list-group me-3">
-                <li className="list-group-item">
-                    <input className="form-check-input me-1" type="checkbox" value="" id="firstCheckbox"></input>
-                    <label className="form-check-label" htmlFor="firstCheckbox">First checkbox</label>
-                </li>
-                <li className="list-group-item">
-                    <input className="form-check-input me-1" type="checkbox" value="" id="secondCheckbox"></input>
-                    <label className="form-check-label" htmlFor="secondCheckbox">Device Serial No.</label>
-                </li>
-                <li className="list-group-item">
-                    <input className="form-check-input me-1" type="checkbox" value="" id="thirdCheckbox"></input>
-                    <label className="form-check-label" htmlFor="thirdCheckbox">Third checkbox</label>
-                </li>
-                </ul>
-            </div>
+              </li>
+            ))}
+          </ol>
         </div>
-        <ToastContainer/>
-        <AddInventryData show={showModal} makerName={(event) => setMakerName(event.target.value)} DeviceSerial={(event) => setSerial(event.target.value)} DeviceMac={(event) => setMac(event.target.value)} TypeDevice={(event) => setDeviceType(event.target.value)} AddDevice={AddInventry}/>
+
+        <div className='d-flex flex-column' style={{ flex: '4' }}>
+          <div className='col ms-3 me-3'>
+            <input
+              className='form-control'
+              type='search'
+              aria-label='search'
+              placeholder='Enter Device Serial'
+              value={searchDevice}
+              onChange={(e) => setSearchDevice(e.target.value)}
+            />
+          </div>
+          <ol className="list-group list-group ms-5 mt-3">
+            {filteredDevice.length > 0 ? (
+              filteredDevice.map(({ serial, mac }, index) => (
+                <li key={index}>
+                  <div className='col mt-2 border border-secondary rounded p-2 me-3'>
+                    <form className='row g-4'>
+                      <div className='col'>
+                      <label className='form-label'>Device Serial No.</label>
+                      <input className='form-control' value={serial} readOnly></input>
+                      </div>
+
+                      <div className='col'>
+                      <label className='form-label'>Device MAC No.</label>
+                      <input className='form-control' value={mac} readOnly></input>
+                      </div>
+
+                    </form>
+                    
+                  </div>
+                </li>
+              ))
+            ) : (
+              <li className='col mt-2 border rounded p-2 me-3'>
+                <label className='form-label'>No Devices Found</label>
+              </li>
+            )}
+          </ol>
+        </div>
+      </div>
+      <ToastContainer />
+      <AddInventryData
+        show={showModal}
+        makerName={(event) => setMakerName(event.target.value)}
+        DeviceSerial={(event) => setSerial(event.target.value)}
+        DeviceMac={(event) => setMac(event.target.value)}
+        TypeDevice={(event) => setDeviceType(event.target.value)}
+        AddDevice={AddInventry}
+        modalshow={() => setShowModal(false)}
+      />
     </div>
-
-  )
+  );
 }
-

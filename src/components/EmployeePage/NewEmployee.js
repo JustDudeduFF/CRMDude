@@ -57,8 +57,8 @@ export default function NewEmployee() {
         gmail:gmail,
         designation: designation,
         address:address,
-        dob: selectedDate.toISOString(),
-        datejoining: dateJoining.toISOString(),
+        dob: selectedDate,
+        datejoining: dateJoining,
         aadhar:aadhar,
         driving:driving,
         pan:pan,
@@ -262,24 +262,12 @@ export default function NewEmployee() {
 
             <div className='col-md-2'>
               <label className='form-label'>Date Of Birth</label>
-              <DatePicker className="form-control"
-              selected={selectedDate}
-              onChange={date => setSelectedDate(date)}
-              dateFormat="dd/MM/yyyy"c
-              isClearable
-              placeholderText="Select a date"
-              />
+              <input type='date' value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} className='form-control' ></input>
             </div>
 
             <div className='col-md-2'>
               <label className='form-label'>Date Of Joining</label>
-              <DatePicker className="form-control"
-              selected={dateJoining}
-              onChange={date => setDateJoining(date)}
-              dateFormat="dd/MM/yyyy"
-              isClearable
-              placeholderText="Select a date"
-              />
+              <input className='form-control' type='date' value={dateJoining} onChange={(event) => setDateJoining(event.target.value)}></input>
             </div>
 
             <div className='col-md-2'>

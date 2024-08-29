@@ -90,7 +90,7 @@ export default function EmloyeeDashboard() {
           {employeName.map((name, index) => (
             <li onClick={() => showEmpDetail(employemobile[index])} className="list-group-item justify-content-between align-items-start mt-2" key={index}>
               <div className='fw-light'>{name}</div>
-              <div>{employemobile[index]}</div>
+              <div>{employemobile[index]}</div> 
 
             </li>
           ))}

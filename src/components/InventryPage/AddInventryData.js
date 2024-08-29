@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import '../Modal.css'
 
 
-const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, DeviceMac}) => {
+const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, DeviceMac, modalshow}) => {
     const [isVisible, setIsVisible] = useState(true);
     const [isVisible2, setIsVisible2] = useState(false);
     const [note, setNote] = useState('Please Confirm Company');
@@ -103,8 +103,13 @@ const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, 
 
                 </div>
             </div>
+
+            <div className='d-flex flex-row'>
+            <button style={{flex:'1'}} onClick={AddDevice} className='btn btn-outline-primary'>{`${buttontext}`}</button>
+            <button onClick={modalshow} style={{flex:'1'}} className='btn btn-outline-secondary ms-2'>Cancel</button>
+            </div>
             
-            <button onClick={AddDevice} className='btn btn-outline-primary'>{`${buttontext}`}</button>
+            
 
         </div>
         

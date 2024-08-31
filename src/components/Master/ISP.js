@@ -24,7 +24,7 @@ export default function ISP() {
                         
                     });
                     setArrayIsp(IspArray);
-                    console.log(IspArray);
+                    
                 }
             
         });

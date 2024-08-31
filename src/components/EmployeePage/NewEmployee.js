@@ -1,10 +1,10 @@
-import React, {useState} from 'react'
-import DatePicker from 'react-datepicker';
+import React, {useEffect, useState} from 'react'
 import './EmpCSS.css'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { db } from '../../FirebaseConfig'
-import { set, ref, get, update } from 'firebase/database';
+import { set, ref, get, update, onValue } from 'firebase/database';
+
 
 
 
@@ -32,6 +32,7 @@ export default function NewEmployee() {
   const [usertype, setUserType] = useState('');
   const [companypermissions, setCompanyPermissions] = useState('');
 
+  const [arrayoffice, setArrayOffice] = useState([]);
 
   const [allowpaymentcollection, setAllowPaymentCollection] = useState(false);
   const [allowgeneratetickets, setAllowGenerateTickets] = useState(false);
@@ -41,6 +42,35 @@ export default function NewEmployee() {
   const [allowtransfertickets, setAllowTransferTickets] = useState(false);
   const [allowbackdateentries, setAllowBackdateEntries] = useState(false);
   const [allowinventry, setAllowinventry] = useState(false);
+
+
+  
+
+  useEffect(() => {
+    const officeRef = ref(db, `Master/Offices`);
+    const unsubscribe = onValue(officeRef, (officeSnap) => {
+      if (officeSnap.exists()) {
+        const OfficeArray = [];
+        officeSnap.forEach((ChildOffice) => {
+          const officename = ChildOffice.key;
+          OfficeArray.push(officename);
+        });
+        setArrayOffice(OfficeArray);
+        console.log(OfficeArray);
+      } else {
+        toast.error('Please Add an Office Location', {
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      }
+    });
+
+    return () => unsubscribe(); // Properly clean up the listener
+  }, []); 
 
   const handleCheckboxChange = (label, value) => {
     if (label && typeof value !== 'undefined') {
@@ -363,8 +393,17 @@ export default function NewEmployee() {
           <div className='col-md-2'>
             <label className='form-label'>Select Attendence Marking Location</label>
             <select onChange={changeMarkingOffice} value={markingoffice} className='form-select'>
-              <option>Choose...</option>
-              <option>Sigma Shahdara</option>
+              
+            {arrayoffice.length > 0 ? (
+              arrayoffice.map((office, index) => (
+                <option key={index} value={office}>
+                  {office}
+                </option>
+              ))
+            ) : (
+              <option value="">No Offices Available</option>
+            )}
+              
             </select>
           </div>
         </form>

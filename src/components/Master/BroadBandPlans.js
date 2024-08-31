@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import PlanModal from './PlanModal';
 import { db } from '../../FirebaseConfig';
-import { get, ref } from 'firebase/database';
+import { onValue, ref } from 'firebase/database';
+import { toast } from 'react-toastify';
 
 export default function BroadBandPlans() {
     const [showplanmodal, setShowPlanModal] = useState(false);
@@ -9,29 +10,43 @@ export default function BroadBandPlans() {
     const planRef = ref(db, 'Master/Broadband Plan');
 
     useEffect(() => {
-        const fetchPlans = async () => {
-            try {
-                const planSnap = await get(planRef);
-                if (planSnap.exists()) {
-                    const PlanArray = [];
-                    planSnap.forEach(childPlan => {
-                        const planname = childPlan.val().planname;
-                        const planamount = childPlan.val().planamount;
-                        const periodtime = childPlan.val().periodtime;
-                        const planperiod = childPlan.val().planperiod;
-                        const plancode = childPlan.key;
-
-                        PlanArray.push({ planname, planamount, periodtime, planperiod ,plancode });
-                    });
-                    setArrayPlan(PlanArray);
-                }
-            } catch (error) {
-                console.error("Error fetching plans:", error);
+        const fetchPlans = onValue(planRef, (planSnap) => {
+            if (planSnap.exists()) {
+                const PlanArray = [];
+                planSnap.forEach(childPlan => {
+                    const planname = childPlan.val().planname;
+                    const planamount = childPlan.val().planamount;
+                    const periodtime = childPlan.val().periodtime;
+                    const planperiod = childPlan.val().planperiod;
+                    const plancode = childPlan.key;
+    
+                    PlanArray.push({ planname, planamount, periodtime, planperiod ,plancode });
+                    
+                });
+                setArrayPlan(PlanArray);
+                
+            }else{
+                toast.error('No Data Found!', {
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined,
+                });
             }
-        };
+    
+            
+    
+        });
 
-        fetchPlans();
-    }, [planRef]);
+        return () => fetchPlans();
+    }, [])
+
+
+    
+
+    
 
     return (
         <div className='d-flex ms-3 flex-column'>
@@ -50,6 +65,7 @@ export default function BroadBandPlans() {
                         <th scope="col">Amount</th>
                         <th scope="col">Duration</th>
                         <th scope="col">Plan Code</th>
+                        <th scope='col'>No. of Users</th>
                     </tr>
                 </thead>
                 <tbody className="table-group-divider">
@@ -60,6 +76,7 @@ export default function BroadBandPlans() {
                             <td>{planamount}</td>
                             <td>{`${periodtime} ${planperiod}`}</td>
                             <td>{plancode}</td>
+                            <td></td>
                         </tr>
                     ))}
                 </tbody>

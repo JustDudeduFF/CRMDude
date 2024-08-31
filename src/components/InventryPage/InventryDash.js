@@ -80,6 +80,7 @@ export default function InventryDash() {
         deviceList.push({ serial, mac });
       });
 
+      
       setGetDevice(deviceList);
     } else {
       setGetDevice([]); // Clear device list if no devices found
@@ -212,7 +213,7 @@ export default function InventryDash() {
               <li onClick={() => showDevices(maker)} key={index}>
                 <div className='col mt-2 border border-secondary rounded p-2 me-3'>
                   <label className='form-label'>{`Device Maker :- ${maker}`}</label><br></br>
-                  <label className='form-label'>Quantity :- </label><span class="badge text-bg-secondary ms-2 mt-1">{count}</span>
+                  <label className='form-label'>Quantity :- </label><span className="badge text-bg-secondary ms-2 mt-1">{count}</span>
                 </div>
               </li>
             ))}

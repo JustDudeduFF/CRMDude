@@ -72,6 +72,8 @@ export default function EmpDetails() {
                     setUserType(snapshot.val().usertype);
                     setCompanyPermissions(snapshot.val().companypermissions);
 
+                    console.log(snapshot.val().mobile);
+
 
                     if(permissionSnapshot.exists()){
                       setAllowBackdateEntries(permissionSnapshot.val().backdateentries);

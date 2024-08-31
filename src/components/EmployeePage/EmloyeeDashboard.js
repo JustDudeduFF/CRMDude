@@ -32,6 +32,8 @@ export default function EmloyeeDashboard() {
           const mobile = childSnapshot.val().mobile;
           names.push(fullname);
           mobiles.push(mobile);
+
+          console.log(names, mobiles);
           
         });
         // Update state with the fetched names

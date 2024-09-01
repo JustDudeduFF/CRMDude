@@ -33,6 +33,7 @@ export default function NewEmployee() {
   const [companypermissions, setCompanyPermissions] = useState('');
 
   const [arrayoffice, setArrayOffice] = useState([]);
+  const [arraydesignation, setArraydesignation] = useState([]);
 
   const [allowpaymentcollection, setAllowPaymentCollection] = useState(false);
   const [allowgeneratetickets, setAllowGenerateTickets] = useState(false);
@@ -48,7 +49,9 @@ export default function NewEmployee() {
 
   useEffect(() => {
     const officeRef = ref(db, `Master/Offices`);
-    const unsubscribe = onValue(officeRef, (officeSnap) => {
+    const designationRef = ref(db, `Master/Designations`);
+
+    const unsubscribeOffice = onValue(officeRef, (officeSnap) => {
       if (officeSnap.exists()) {
         const OfficeArray = [];
         officeSnap.forEach((ChildOffice) => {
@@ -69,7 +72,31 @@ export default function NewEmployee() {
       }
     });
 
-    return () => unsubscribe(); // Properly clean up the listener
+    const unsubscribeDesignation = onValue(designationRef, (designationSnap) => {
+      if (designationSnap.exists()) {
+        const designationArray = [];
+        designationSnap.forEach((Childdesignation) => {
+          const designationname = Childdesignation.key;
+          designationArray.push(designationname);
+        });
+        setArraydesignation(designationArray);
+        console.log(designationArray);
+      } else {
+        toast.error('Please Add an designation Location', {
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      }
+    });
+
+    return () => {
+      unsubscribeOffice();       // Cleanup for office listener
+      unsubscribeDesignation();  // Cleanup for designation listener
+    };
   }, []); 
 
   const handleCheckboxChange = (label, value) => {
@@ -303,13 +330,15 @@ export default function NewEmployee() {
             <div className='col-md-2'>
               <label className='form-label'>Employee Designation</label>
               <select onChange={(event) => setDesignation(event.target.value)} value={designation} className='form-select'>
-                <option>Choose...</option>
-                <option>Admin</option>
-                <option>Accounts</option>
-                <option>Techical</option>
-                <option>Technician</option>
-                <option>Customer Service</option>
-
+              {arraydesignation.length > 0 ? (
+              arraydesignation.map((designation, index) => (
+                <option key={index} value={designation}>
+                  {designation}
+                </option>
+              ))
+            ) : (
+              <option value="">No Designation Available</option>
+            )}
 
               </select>
 

@@ -1,4 +1,4 @@
-import { get, ref, update } from 'firebase/database';
+import { get, ref, update, onValue } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -29,6 +29,9 @@ export default function EmpDetails() {
     const [designation, setDesignation] = useState('');
     const [usertype, setUserType] = useState('');
     const [companypermissions, setCompanyPermissions] = useState('');
+
+    const [arrayoffice, setArrayOffice] = useState([]);
+    const [arraydesignation, setArraydesignation] = useState([]);
 
     const [isEditing, setIsEditing] = useState(false);
 
@@ -110,6 +113,58 @@ export default function EmpDetails() {
 
         getDetails();
     }, [mobile]);
+
+    useEffect(() => {
+        const officeRef = ref(db, `Master/Offices`);
+        const designationRef = ref(db, `Master/Designations`);
+    
+        const unsubscribeOffice = onValue(officeRef, (officeSnap) => {
+          if (officeSnap.exists()) {
+            const OfficeArray = [];
+            officeSnap.forEach((ChildOffice) => {
+              const officename = ChildOffice.key;
+              OfficeArray.push(officename);
+            });
+            setArrayOffice(OfficeArray);
+            console.log(OfficeArray);
+          } else {
+            toast.error('Please Add an Office Location', {
+              autoClose: 3000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+            });
+          }
+        });
+    
+        const unsubscribeDesignation = onValue(designationRef, (designationSnap) => {
+          if (designationSnap.exists()) {
+            const designationArray = [];
+            designationSnap.forEach((Childdesignation) => {
+              const designationname = Childdesignation.key;
+              designationArray.push(designationname);
+            });
+            setArraydesignation(designationArray);
+            console.log(designationArray);
+          } else {
+            toast.error('Please Add an designation Location', {
+              autoClose: 3000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+            });
+          }
+        });
+    
+        return () => {
+          unsubscribeOffice();       // Cleanup for office listener
+          unsubscribeDesignation();  // Cleanup for designation listener
+        };
+      }, []); 
 
     const handleSave = async () => {
         try {
@@ -255,12 +310,16 @@ export default function EmpDetails() {
                                   onChange={(e) => setDesignation(e.target.value)} 
                                   disabled={!isEditing}
                               >
-                                  <option value="">{designation}</option>
-                                  <option value="Admin">Admin</option>
-                                  <option value="Manager">Manager</option>
-                                  <option value="Employee">Employee</option>
-                                  {/* Add more options as needed */}
-                              </select>
+                                  {arraydesignation.length > 0 ? (
+                                    arraydesignation.map((designation, index) => (
+                                        <option key={index} value={designation}>
+                                        {designation}
+                                        </option>
+                                    ))
+                                    ) : (
+                                    <option value="">No Designation Available</option>
+                                    )}
+                                </select>
                         </div>
 
                         <div className='col-md-2'>
@@ -306,8 +365,15 @@ export default function EmpDetails() {
                             <div className='col-md-2'>
                               <label className='form-label'>Attendence Marking Location</label>
                               <select onChange={(event) => setMarkingOffice(event.target.value)} value={markingoffice} className='form-select' disabled={!isEditing}>
-                                <option>Choose...</option>
-                                <option>Sigma Shahdara</option>
+                              {arrayoffice.length > 0 ? (
+                                arrayoffice.map((office, index) => (
+                                    <option key={index} value={office}>
+                                    {office}
+                                    </option>
+                                ))
+                                ) : (
+                                <option value="">No Offices Available</option>
+                                )}
                               </select>
                             </div>
                     </form>

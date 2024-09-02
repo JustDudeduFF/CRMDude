@@ -57,10 +57,10 @@ export default function NewUserAdd() {
 
   const [isListVisible, setIsListVisible] = useState(false);
 
-  const handleListItemClick = (value) => {
-    setDeviceSerialNumber(value)
-    setIsListVisible(false); // Optionally hide the list after selection
-  };
+  // const handleListItemClick = (value) => {
+  //   setDeviceSerialNumber(value)
+  //   setIsListVisible(false); // Optionally hide the list after selection
+  // };
 
   const serialRef = ref(db, `Inventory/New Stock/${deviceMaker}`);
 

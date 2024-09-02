@@ -3,7 +3,7 @@ import {db, storage} from '../FirebaseConfig'
 import { Timestamp } from "firebase/firestore";
 import {  uploadBytes, getDownloadURL } from "firebase/storage";
 import { ref, set, onValue } from "firebase/database";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 
 
 
@@ -53,10 +53,12 @@ export default function NewUserAdd() {
   const [arrayisp, setArrayisp] = useState([]);
   const [arraydevice, setArraydevice] = useState([]);
   const [arrayserial, setArrayserial] = useState([]);
+  const [arrayfms, setArrayfms] = useState([]);
+  
 
 
   const [isListVisible, setIsListVisible] = useState(false);
-
+  const [maxport, setMaxPort] = useState(0);
   const handleListItemClick = (value) => {
     setDeviceSerialNumber(value)
     setIsListVisible(false); // Optionally hide the list after selection
@@ -106,6 +108,7 @@ export default function NewUserAdd() {
     const planRef = ref(db, `Master/Broadband Plan`);
     const ispRef = ref(db, `Master/ISPs`);
     const deviceRef = ref(db, `Inventory/New Stock`);
+    const fmsRef = ref(db, `Master/FMS`);
 
 
     const unsubscribecolony = onValue(colonyRef, (colonySnap) => {
@@ -198,11 +201,35 @@ export default function NewUserAdd() {
       }
     });
 
+
+    const unsubscribefms = onValue(fmsRef, (fmsSnap) => {
+      if (fmsSnap.exists()) {
+        const fmsArray = [];
+        fmsSnap.forEach((Childfms) => {
+          const fmsname = Childfms.key;
+          const fmsmaxport = Childfms.val().fmsport
+          fmsArray.push({fmsname, fmsmaxport});
+        });
+        setArrayfms(fmsArray);
+        
+      } else {
+        toast.error('Please Add an fms Location', {
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      }
+    });
+
     return () => {
       unsubscribecolony();       // Cleanup for colony listener
       unsubscribeplan();  // Cleanup for plan listener
       unsubscribeisp();
       unsubscribedevice();
+      unsubscribefms();
     };
   }, []); 
 
@@ -646,11 +673,32 @@ export default function NewUserAdd() {
           <label htmlFor="validationCustom04" className="form-label">
             Connected FMS  
           </label>
-          <select onChange={(e) => setConnectedFMS(e.target.value)} className="form-select" id="validationCustom04" required>s
+          <select onChange={(e) => {
+            const selectfms = e.target.value;
+
+            setConnectedFMS(selectfms);
+
+
+            const selectedFMSObj = arrayfms.find(fms => fms.fmsname === selectfms);
+            if(selectedFMSObj){
+              setMaxPort(selectedFMSObj.fmsmaxport);
+            }else{
+              setMaxPort(0)
+            }
+
+          }} className="form-select" id="validationCustom04" required>s
             <option selected value="">  
               Choose...
             </option>
-            <option>...</option>
+            {
+              arrayfms.length > 0 ? (
+                arrayfms.map((fms, index) => (
+                  <option key={index} value={fms.fmsname}>{fms.fmsname}</option>
+                ))
+              ) : (
+                <option value=''>No FMS Available</option>
+              )
+            }
           </select>
           <div className="invalid-feedback">Please select a valid state.</div>
           
@@ -662,9 +710,26 @@ export default function NewUserAdd() {
           </label>
           <div className="input-group has-validation">
             <input
-            onChange={(e) => setConnectedPortNo(e.target.value)}
-              maxLength={2}
-              type="numbers"
+            onChange={(e) =>{
+              const selectport = e.target.value;
+
+              if(selectport > +maxport){
+                toast.error('Port No. Not Found!', {
+                  autoClose: 2000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: false,
+                  draggable: true,
+                  progress: undefined,
+                });
+                setConnectedPortNo(0);
+                
+              }else{
+                setConnectedPortNo(selectport);
+              }
+            }}
+            
+              type="number"
               className="form-control"
               id="validationCustomUsername"
               aria-describedby="inputGroupPrepend"
@@ -775,6 +840,8 @@ export default function NewUserAdd() {
       </div>
 
       <button onClick={handleSubmit} style={{margin: '20px'}} type="button" className="btn btn-success">Upload Details</button>
+
+      <ToastContainer/>
     </div>
   );
 }

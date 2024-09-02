@@ -7,6 +7,7 @@ import DeviceMakers from './DeviceMakers'
 import Designation from './Designation'
 import Company from './Company'
 import Colony from './Colony'
+import FMS from './FMS'
 
 export default function MasterDash() {
   return (
@@ -46,6 +47,9 @@ export default function MasterDash() {
             <Link id='link' to='colony' className='rounded mt-2 ms-1 me-1'>
             <li className="list-group-item shadow">Colony</li></Link>
 
+            <Link id='link' to='fms' className='rounded mt-2 ms-1 me-1'>
+            <li className="list-group-item shadow">FMS</li></Link>
+
             
             
             </ul>
@@ -61,6 +65,7 @@ export default function MasterDash() {
                     <Route path='designation' element={<Designation/>}/>
                     <Route path='company' element={<Company/>}/>
                     <Route path='colony' element={<Colony/>}/>
+                    <Route path='fms' element={<FMS/>}/>
                 </Routes>
             </div>
 

@@ -362,6 +362,9 @@ export default function EmpDetails() {
                               </div>
                             </div>
 
+
+                            
+
                             <div className='col-md-2'>
                               <label className='form-label'>Attendence Marking Location</label>
                               <select onChange={(event) => setMarkingOffice(event.target.value)} value={markingoffice} className='form-select' disabled={!isEditing}>

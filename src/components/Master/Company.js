@@ -10,7 +10,7 @@ export default function Company() {
 
     const [arraycompany, setArraycompany] = useState([]);
     const companyRef = ref(db, 'Master/companys')
-
+    
 
     useEffect(() => {
         const unsubscribecompany = onValue(companyRef, (companynap) => {

@@ -81,7 +81,6 @@ export default function NewUserAdd() {
   }, [deviceMaker]); // Make sure to include dependencies
 
   const getchSerials = () => {
-    
     setArrayserial([]);
     // Firebase call to get data
     onValue(serialRef, (snapshot) => {

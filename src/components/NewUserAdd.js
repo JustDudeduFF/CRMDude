@@ -1,9 +1,9 @@
 import React, {useState, useEffect} from "react";
 import {db, storage} from '../FirebaseConfig'
-import { Timestamp } from "firebase/firestore";
-import {  uploadBytes, getDownloadURL } from "firebase/storage";
+import {  uploadBytes, getDownloadURL, ref as dbRef } from "firebase/storage";
 import { ref, set, onValue } from "firebase/database";
 import { toast, ToastContainer } from "react-toastify";
+import { MutatingDots } from "react-loader-spinner";
 
 
 
@@ -27,7 +27,7 @@ export default function NewUserAdd() {
   const [planAmount, setPlanAmount] = useState("");
   const [securityDeposit, setSecurityDeposit] = useState("");
   const [refundableAmount, setRefundableAmount] = useState("");
-  const [activationDate, setActivationDate] = useState(null);
+  const [activationDate, setActivationDate] = useState(new Date().toISOString().split('T')[0]);
   const [expiryDate, setExpiryDate] = useState(null);
 
   // Inventory & Device Details
@@ -54,6 +54,11 @@ export default function NewUserAdd() {
   const [arraydevice, setArraydevice] = useState([]);
   const [arrayserial, setArrayserial] = useState([]);
   const [arrayfms, setArrayfms] = useState([]);
+
+  const [planDuration, setPlanDuration] = useState(0); // Duration value from Firebase
+  const [durationUnit, setDurationUnit] = useState(''); 
+
+  const [loader, setLoader] = useState(false);
   
 
 
@@ -67,6 +72,7 @@ export default function NewUserAdd() {
   const serialRef = ref(db, `Inventory/New Stock/${deviceMaker}`);
 
 
+
   useEffect(() => {
     if (deviceMaker) {
       // Fetch data only when deviceMaker is updated
@@ -75,6 +81,7 @@ export default function NewUserAdd() {
   }, [deviceMaker]); // Make sure to include dependencies
 
   const getchSerials = () => {
+    
     setArrayserial([]);
     // Firebase call to get data
     onValue(serialRef, (snapshot) => {
@@ -140,8 +147,11 @@ export default function NewUserAdd() {
         planSnap.forEach((Childplan) => {
           const planname = Childplan.val().planname;
           const planamount = Childplan.val().planamount;
-          planArray.push({planname, planamount});
+          const planperiod = Childplan.val().planperiod;
+          const periodtime = Childplan.val().periodtime;
+          planArray.push({planname, planamount, planperiod, periodtime});
         });
+        
         setArrayplan(planArray);
         
       } else {
@@ -233,17 +243,35 @@ export default function NewUserAdd() {
     };
   }, []); 
 
+  const updateExpirationDate = (newActivationDate, duration, unit) => {
+    const date = new Date(newActivationDate);
+
+    // Extend the date based on the unit from Firebase
+    if (unit === 'Months') {
+      date.setMonth(date.getMonth() + parseInt(duration));
+    } else if (unit === 'Years') {
+      date.setFullYear(date.getFullYear() + parseInt(duration));
+    } else if (unit === 'Days') {
+      date.setDate(date.getDate() + parseInt(duration));
+    }
+
+    // Format the new expiration date to YYYY-MM-DD
+    const formattedExpirationDate = date.toISOString().split('T')[0];
+    setExpiryDate(formattedExpirationDate);
+  };
+
 
 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoader(true);
 
     try {
       // Upload files to Firebase Storage
       const uploadFile = async (file, folder) => {
         if (!file) return null;
-        const storageRef = ref(storage, `${folder}/${file.name}_${Date.now()}`);
+        const storageRef = dbRef(storage, `${folder}/${file.name}_${Date.now()}`);
         await uploadBytes(storageRef, file);
         const url = await getDownloadURL(storageRef);
         return url;
@@ -270,8 +298,8 @@ export default function NewUserAdd() {
           planAmount,
           securityDeposit,
           refundableAmount,
-          activationDate: activationDate ? Timestamp.fromDate(activationDate) : null,
-          expiryDate: expiryDate ? Timestamp.fromDate(expiryDate) : null,
+          activationDate: activationDate,
+          expiryDate: expiryDate,
         },
         inventoryDeviceDetails: {
           deviceMaker,
@@ -289,19 +317,19 @@ export default function NewUserAdd() {
           addressProofURL,
           cafDocumentsURL,
         },
-        createdAt: Timestamp.now(),
+        createdAt: activationDate,
       };
 
       // Add to Firestore
-      const docRef = await set(ref(db, `Subscriber/${username}`), userData);
-      console.log("Document written with ID: ", docRef.id);
+      await set(ref(db, `Subscriber/${username}`), userData);
 
       // Reset form or show success message
-      alert("User details uploaded successfully!");
+      setLoader(false);
       // Optionally, reset all states here
     } catch (error) {
       console.error("Error adding document: ", error);
       alert("There was an error uploading the details.");
+      setLoader(false);
     }
   };
 
@@ -315,6 +343,19 @@ export default function NewUserAdd() {
 
     //Personal Details Section
     <div style={{width: '100%', display:'flex', flexDirection: 'column', marginTop: '5.5%'}}>
+      {loader &&
+          <div className="spinner-wrapper" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <MutatingDots
+            height="80"
+            width="80"
+            radius="9"
+            color="green"
+            ariaLabel="three-dots-loading"
+            wrapperStyle={{}}
+            wrapperClass=""
+          />
+        </div>
+      }
         <h2 style={{marginLeft: '20px'}}>Create User ID</h2>
         <div style={{padding: '10px', borderRadius: '5px', boxShadow:'0 0 10px skyblue', margin: '10px'}} className="UserInfo">
       <form className="row g-3 needs-validation" noValidate>
@@ -342,7 +383,7 @@ export default function NewUserAdd() {
         </div>
 
         <div className="col-md-3">
-          <label htmlFor="validationCustomUsername" className="form-label">
+          <label  className="form-label">
             Username
           </label>
           <div className="input-group has-validation">
@@ -353,15 +394,15 @@ export default function NewUserAdd() {
             onChange={(e) => setUsername(e.target.value)}
               type="text"
               className="form-control"
-              id="validationCustomUsername"
+              
               aria-describedby="inputGroupPrepend"
               required
             ></input>
-            <div className="invalid-feedback">Please choose a username.</div>
+            
           </div>
         </div>
         <div className="col-md-2">
-          <label htmlFor="validationCustomUsername" className="form-label">
+          <label  className="form-label">
             Mobile No.
           </label>
           <div className="input-group has-validation">
@@ -373,7 +414,7 @@ export default function NewUserAdd() {
               maxLength={10}
               type="numbers"
               className="form-control"
-              id="validationCustomUsername"
+              
               aria-describedby="inputGroupPrepend"
               required
             ></input>
@@ -476,7 +517,7 @@ export default function NewUserAdd() {
             Select ISP  
           </label>
           <select onChange={(e) => setIsp(e.target.value)} className="form-select" id="validationCustom04" required>s
-            <option selected value="">  
+            <option value="">  
               Choose...
             </option>
             {
@@ -506,9 +547,18 @@ export default function NewUserAdd() {
             const selectedPlanObj = arrayplan.find(plan => plan.planname === selectedPlanName);
             if (selectedPlanObj) {
               setPlanAmount(selectedPlanObj.planamount);
-            } else {
+              const periodtyp = selectedPlanObj.planperiod;
+              const periodtime = selectedPlanObj.periodtime;
+
+              setPlanDuration(periodtime);
+              setDurationUnit(periodtyp);
+
+              updateExpirationDate(activationDate, periodtime, periodtyp);
+             } else {
               setPlanAmount("");
             }
+
+            
           }}
           
           className="form-select" id="validationCustom04" required>
@@ -527,7 +577,7 @@ export default function NewUserAdd() {
         </div>
 
         <div className="col-md-2">
-          <label htmlFor="validationCustomUsername" className="form-label">
+          <label  className="form-label">
             Plan Amount
           </label>
           <div className="input-group has-validation">
@@ -536,7 +586,7 @@ export default function NewUserAdd() {
               type="text"
               value={planAmount}
               className="form-control"
-              id="validationCustomUsername"
+              
               aria-describedby="inputGroupPrepend"
               required
             ></input>
@@ -574,14 +624,18 @@ export default function NewUserAdd() {
           <label htmlFor="validationCustom04" className="form-label">
             Activation Date
           </label><br></br>
-          <input type="date" onChange={(e) => setActivationDate(e.target.value)} className="form-control"></input>
+          <input value={activationDate} type="date" onChange={(e) => {setActivationDate(e.target.value)
+          updateExpirationDate(e.target.value, planDuration, durationUnit)
+          
+            
+          }} className="form-control"></input>
           <div className="invalid-feedback">Please select a valid state.</div>
         </div>
         <div className="col-md-2">
           <label htmlFor="validationCustom04" className="form-label">
             Expiry Date
           </label><br></br>
-          <input type="date" onChange={(e) => setExpiryDate(e.target.value)} className="form-control"></input>
+          <input disabled value={expiryDate} type="date" onChange={(e) => setExpiryDate(e.target.value)} className="form-control"></input>
           <div className="invalid-feedback">Please select a valid state.</div>
         </div>
       </form>
@@ -602,7 +656,7 @@ export default function NewUserAdd() {
 
             
           } className="form-select" id="validationCustom04" required>s
-            <option selected value="">  
+            <option value="">  
               Choose...
             </option>
             {
@@ -630,7 +684,7 @@ export default function NewUserAdd() {
           onChange={(e) => setDeviceSerialNumber(e.target.value)}
           type="text"
           className="form-control"
-          id="validationCustomUsername"
+          
           aria-describedby="inputGroupPrepend"
           required
         />
@@ -687,7 +741,7 @@ export default function NewUserAdd() {
             }
 
           }} className="form-select" id="validationCustom04" required>s
-            <option selected value="">  
+            <option value="">  
               Choose...
             </option>
             {
@@ -731,7 +785,7 @@ export default function NewUserAdd() {
             
               type="number"
               className="form-control"
-              id="validationCustomUsername"
+              
               aria-describedby="inputGroupPrepend"
               required
             ></input>
@@ -741,11 +795,11 @@ export default function NewUserAdd() {
         </div>
 
         <div className="col-md-2">
-          <label htmlFor="validationCustomUsername" className="form-label">
+          <label  className="form-label">
             Connection Power Info
           </label>
           <select onChange={(e) => setConnectionPowerInfo(e.target.value)} className="form-select" id="validationCustom04" required>s
-            <option selected value="">  
+            <option value="">  
               Choose...
             </option>
             <option>Huawei OLT</option>
@@ -764,7 +818,7 @@ export default function NewUserAdd() {
             onChange={(e) => setUniqueJCNo(e.target.value)}
               type="text"
               className="form-control"
-              id="validationCustomUsername"
+              
               aria-describedby="inputGroupPrepend"
               required
             ></input>
@@ -783,7 +837,7 @@ export default function NewUserAdd() {
               maxLength={1}
               type="numbers"
               className="form-control"
-              id="validationCustomUsername"
+              
               aria-describedby="inputGroupPrepend"
               required
             ></input>
@@ -826,7 +880,7 @@ export default function NewUserAdd() {
         </div>
 
         <div className="col-md-2">
-          <label htmlFor="validationCustomUsername" className="form-label">
+          <label  className="form-label">
             CAF Documents
           </label>
           <input onChange={(e) => setCafDocuments(e.target.files[0])} type="file" className="form-control" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" aria-label="Upload"></input>

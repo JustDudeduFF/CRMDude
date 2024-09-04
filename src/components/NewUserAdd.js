@@ -74,29 +74,29 @@ export default function NewUserAdd() {
     }
   }, [deviceMaker]); // Make sure to include dependencies
 
-  // const getchSerials = () => {
-  //   setArrayserial([]);
-  //   // Firebase call to get data
-  //   onValue(serialRef, (snapshot) => {
-  //     if (snapshot.exists()) {
-  //       const Serialarray = [];
-  //       snapshot.forEach((childSnapshot) => {
-  //         const serialnumber = childSnapshot.key;
-  //         Serialarray.push(serialnumber);
-  //       });
-  //       setArrayserial(Serialarray);
-  //     } else {
-  //       toast.error('No Data Found!', {
-  //         autoClose: 3000,
-  //         hideProgressBar: false,
-  //         closeOnClick: true,
-  //         pauseOnHover: true,
-  //         draggable: true,
-  //         progress: undefined,
-  //       });
-  //     }
-  //   });
-  // };
+  const getchSerials = () => {
+    setArrayserial([]);
+    // Firebase call to get data
+    onValue(serialRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const Serialarray = [];
+        snapshot.forEach((childSnapshot) => {
+          const serialnumber = childSnapshot.key;
+          Serialarray.push(serialnumber);
+        });
+        setArrayserial(Serialarray);
+      } else {
+        toast.error('No Data Found!', {
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      }
+    });
+  };
 
   const handleDeviceMakerChange = (e) => {
     setDeviceMaker(e.target.value);

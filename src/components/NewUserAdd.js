@@ -3,7 +3,7 @@ import {db, storage} from '../FirebaseConfig'
 import {  uploadBytes, getDownloadURL, ref as dbRef } from "firebase/storage";
 import { ref, set, onValue } from "firebase/database";
 import { toast, ToastContainer } from "react-toastify";
-import { MutatingDots } from "react-loader-spinner";
+import { MutatingDots, ProgressBar } from "react-loader-spinner";
 
 
 
@@ -264,96 +264,116 @@ export default function NewUserAdd() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoader(true);
+    
 
-    try {
-      // Upload files to Firebase Storage
-      const uploadFile = async (file, folder) => {
-        if (!file) return null;
-        const storageRef = dbRef(storage, `${folder}/${file.name}_${Date.now()}`);
-        await uploadBytes(storageRef, file);
-        const url = await getDownloadURL(storageRef);
-        return url;
-      };
-
-      const identityProofURL = await uploadFile(identityProof, "identityProof");
-      const addressProofURL = await uploadFile(addressProof, "addressProof");
-      const cafDocumentsURL = await uploadFile(cafDocuments, "cafDocuments");
-
-      // Prepare data
-      const userData = {
-        company,
-        fullName,
-        username,
-        mobileNo,
-        email,
-        installationAddress,
-        colonyName,
-        state,
-        pinCode,
-        connectionDetails: {
-          isp,
-          planName,
-          planAmount,
-          securityDeposit,
-          refundableAmount,
-          activationDate: activationDate,
-          expiryDate: expiryDate,
-        },
-        inventoryDeviceDetails: {
-          deviceMaker,
-          deviceSerialNumber,
-          connectionPowerInfo,
-        },
-        fieldFiberDetails: {
-          connectedFMS,
-          connectedPortNo,
-          uniqueJCNo,
-          fiberCoreNo,
-        },
-        documents: {
-          identityProofURL,
-          addressProofURL,
-          cafDocumentsURL,
-        },
-        createdAt: activationDate,
-      };
-
-      // Add to Firestore
-      await set(ref(db, `Subscriber/${username}`), userData);
-
-      // Reset form or show success message
-      setLoader(false);
-      // Optionally, reset all states here
-    } catch (error) {
-      console.error("Error adding document: ", error);
-      alert("There was an error uploading the details.");
-      setLoader(false);
+    if(fullName === '' || username === '' || mobileNo === ''){
+      toast.error('Manadaratry Field will not be empty', {
+        autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+      })
+    }else{
+      setLoader(true);
+      try {
+        // Upload files to Firebase Storage
+        const uploadFile = async (file, folder) => {
+          if (!file) return null;
+          const storageRef = dbRef(storage, `${folder}/${file.name}_${Date.now()}`);
+          await uploadBytes(storageRef, file);
+          const url = await getDownloadURL(storageRef);
+          return url;
+        };
+  
+        const identityProofURL = await uploadFile(identityProof, "identityProof");
+        const addressProofURL = await uploadFile(addressProof, "addressProof");
+        const cafDocumentsURL = await uploadFile(cafDocuments, "cafDocuments");
+  
+        // Prepare data
+        const userData = {
+          company,
+          fullName,
+          username,
+          mobileNo,
+          email,
+          installationAddress,
+          colonyName,
+          state,
+          pinCode,
+          connectionDetails: {
+            isp,
+            planName,
+            planAmount,
+            securityDeposit,
+            refundableAmount,
+            activationDate: activationDate,
+            expiryDate: expiryDate,
+          },
+          inventoryDeviceDetails: {
+            deviceMaker,
+            deviceSerialNumber,
+            connectionPowerInfo,
+          },
+          fieldFiberDetails: {
+            connectedFMS,
+            connectedPortNo,
+            uniqueJCNo,
+            fiberCoreNo,
+          },
+          documents: {
+            identityProofURL,
+            addressProofURL,
+            cafDocumentsURL,
+          },
+          createdAt: activationDate,
+        };
+  
+        // Add to Firestore
+        await set(ref(db, `Subscriber/${username}`), userData);
+  
+        // Reset form or show success message
+        setLoader(false);
+        // Optionally, reset all states here
+      } catch (error) {
+        console.error("Error adding document: ", error);
+        alert("There was an error uploading the details.");
+        setLoader(false);
+      }
     }
+
+    
   };
 
   const filteredSerial = arrayserial.filter(serial =>
     serial.toLowerCase().includes(deviceSerialNumber.toLowerCase())
   );
+  
 
 
 
   return (
 
     //Personal Details Section
+    
     <div style={{width: '100%', display:'flex', flexDirection: 'column', marginTop: '5.5%'}}>
       {loader &&
-          <div className="spinner-wrapper" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-          <MutatingDots
+          <div className="spinner-wrapper" style={{position: 'fixed', width: '100%',top:'0' ,  height: '100%', backgroundColor: 'black', display: 'flex', justifyContent: 'center', alignItems: 'center', opacity:'0.5', zIndex:'1000'}}>
+          <div style={{width: '200px', height: '100px', position:'fixed'}}>
+          <ProgressBar
             height="80"
             width="80"
             radius="9"
-            color="green"
+            color="blue"
             ariaLabel="three-dots-loading"
             wrapperStyle={{}}
             wrapperClass=""
-          />
+          /><br></br>
+          <label style={{color:'white', fontSize:'17px'}}>Uploading Data...</label>
+          </div>
         </div>
+        
       }
         <h2 style={{marginLeft: '20px'}}>Create User ID</h2>
         <div style={{padding: '10px', borderRadius: '5px', boxShadow:'0 0 10px skyblue', margin: '10px'}} className="UserInfo">

@@ -16,7 +16,7 @@ export default function SubscriberDetails() {
             
             </div>
             <div style={{color:'green'}}>
-                <text>Recent Note :- </text><text style={{maxWidth:"max-content", height:'10px'}}>Remarks Particular Only</text>
+                <span>Recent Note :- </span><span style={{maxWidth:"max-content", height:'10px'}}>Remarks Particular Only</span>
             </div>
             <div style={{flex:'4'}}>
                 <div style={{width:'max-content', float:'right'}}>

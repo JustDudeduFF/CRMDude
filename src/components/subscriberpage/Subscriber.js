@@ -1,8 +1,8 @@
-import React from 'react'
+import React,{useEffect, useState} from 'react'
 import Demo_Icon from './drawables/photo.png'
 import Due_Icon from './drawables/rupeenew.png'
 import Cust_Ledger from './Cust_Ledger'
-import { BrowserRouter as Router, Routes,Route,Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes,Route,Link, useLocation } from 'react-router-dom';
 import Cust_PayRecpt from './Cust_PayRecpt'
 import TicketsTable from './TicketsTable';
 import InventoryTable from './InventoryTable';
@@ -13,9 +13,108 @@ import SubscriberDetails from './SubscriberDetails';
 import SubscriberLogs from './SubscriberLogs';
 
 
+import { db } from '../../FirebaseConfig'
+import { ref, get } from 'firebase/database'
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 export default function Subscriber() {
+
+
+
+
+    const location = useLocation();
+    const { username } = location.state || {};
+
+      //Use States For Fill All Details
+
+  const [company, setCompany] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [mobileNo, setMobileNo] = useState("");
+  const [email, setEmail] = useState("");
+  const [installationAddress, setInstallationAddress] = useState("");
+  const [colonyName, setColonyName] = useState("");
+  const [state, setState] = useState("");
+  const [pinCode, setPinCode] = useState("");
+
+  // Connection Details
+  const [isp, setIsp] = useState("");
+  const [planName, setPlanName] = useState("");
+  const [planAmount, setPlanAmount] = useState("");
+  const [activationDate, setActivationDate] = useState(new Date().toISOString().split('T')[0]);
+  const [expiryDate, setExpiryDate] = useState(null);
+  const [registerationdate, setRegistrationDate] = useState('');
+
+  // Inventory & Device Details
+  const [deviceMaker, setDeviceMaker] = useState("");
+  const [deviceSerialNumber, setDeviceSerialNumber] = useState("");
+  const [connectionPowerInfo, setConnectionPowerInfo] = useState("");
+
+  // Field & Fiber Details
+  const [connectedFMS, setConnectedFMS] = useState("");
+  const [connectedPortNo, setConnectedPortNo] = useState("");
+  const [uniqueJCNo, setUniqueJCNo] = useState("");
+  const [fiberCoreNo, setFiberCoreNo] = useState("");
+
+    const userRef = ref(db, `Subscriber/${username}`);
+    const planRef = ref(db, `Subscriber/${username}/connectionDetails`);
+
+    useEffect(() => {
+
+      const  fetchSusbsData = async () => {
+            const subsSnap = await get(userRef);
+            const planSnap = await get(planRef);
+
+            if(subsSnap.exists()){
+                setFullName(subsSnap.val().fullName);
+                setColonyName(subsSnap.val().colonyName);
+                setEmail(subsSnap.val().email);
+                setState(subsSnap.val().state);
+                setPinCode(subsSnap.val().pinCode);
+                setCompany(subsSnap.val().company);
+                setDeviceMaker(subsSnap.val().deviceMaker);
+                
+                setDeviceSerialNumber(subsSnap.val().deviceSerialNumber);
+                
+                setInstallationAddress(subsSnap.val().installationAddress);
+                setConnectedFMS(subsSnap.val().connectedFMS);
+                setConnectedPortNo(subsSnap.val().connectedPortNo);
+                setFiberCoreNo(subsSnap.val().fiberCoreNo);
+                setUniqueJCNo(subsSnap.val().uniqueJCNo);
+                setConnectionPowerInfo(subsSnap.val().connectionPowerInfo);
+                setRegistrationDate(subsSnap.val().createdAt);
+
+            }
+
+            if(planSnap.exists()){
+                setPlanName(planSnap.val().planName);
+                setPlanAmount(planSnap.val().planAmount);
+                setActivationDate(planSnap.val().activationDate);
+                setExpiryDate(planSnap.val().expiryDate);
+                setIsp(planSnap.val().isp);
+            }
+        }
+
+        fetchSusbsData();
+    }, [username]);
+
+
   return (
     <div style={{marginTop: '4.5%', display: 'flex', flexDirection: 'column'}}>
         <div style={{display: 'flex', flexDirection: 'row', margin: '10px'}}>
@@ -25,17 +124,17 @@ export default function Subscriber() {
             <div style={{flex:'5', display: 'flex', flexDirection: 'row'}}>
                 <div style={{flex: '2', display: 'flex', flexDirection:'column'}}>
                     <div style={{flex:'1'}}>
-                        <Link id='link' to='/dashboard/subscriber'><h2 style={{color: 'blueviolet', fontWeight:'bold'}}>Thakur Shivam Chauhan</h2></Link>
+                        <Link id='link' to='/dashboard/subscriber'><h2 style={{color: 'blueviolet', fontWeight:'bold'}}>{fullName}</h2></Link>
                         <span style={{color: 'green', marginLeft: '15px'}}>Prepaid</span><span> | </span><span style={{color: 'violet'}}>Paid</span><span> | </span><span style={{color: 'red'}}>InActive</span>
                     </div>
                     <div style={{flex: '2'}}>
                         <div style={{padding: '10px', border: '1px solid gray', display: 'flex', flexDirection :'row', margin: '8px', borderRadius: '5px', background: '#cbc4ba', color: 'white', boxShadow: '0 0 8px gray'}}>
                             <div style={{flex: '1s'}}>
                             <label style={{marginLeft:'10px', fontWeight: '550', color: 'blueviolet'}}>User ID</label><br></br>
-                            <h5 style={{color: 'black'}}>shivam@office</h5>
+                            <h5 style={{color: 'black'}}>{username}</h5>
 
                             <label style={{marginTop:'8px'}}>Registeration Date</label><br></br>
-                            <label style={{marginEnd:'8px', color: 'black'}}>01-JAN-2020</label>
+                            <label style={{marginEnd:'8px', color: 'black'}}>{registerationdate}</label>
                             </div>
                             
                             <div style={{flex: '1', marginLeft: '15px'}}>
@@ -56,20 +155,20 @@ export default function Subscriber() {
                     <div style={{display: 'flex', flexDirection: 'row', margin: '8px'}}>
                         <div style={{flex: '1'}}> 
                             <label>Active Plan</label><span className="badge text-bg-success mx-3">Edit</span>
-                            <h6 style={{color:'blue'}}>300mbps_Unlimited_3Months_1800</h6>
+                            <h6 style={{color:'blue'}}>{planName}</h6>
 
                             <label>Start Date</label>
-                            <h6 style={{color:'blue'}}>01-Jan-2024</h6>
+                            <h6 style={{color:'blue'}}>{activationDate}</h6>
 
                             <label>End Date</label><span className="badge text-bg-success mx-3">Edit</span>
-                            <h6 style={{color:'blue'}}>01-Mar-2024</h6>
+                            <h6 style={{color:'blue'}}>{expiryDate}</h6>
 
                             <label>Amount</label>
-                            <h6 style={{color:'blue'}}>2000.00</h6>
+                            <h6 style={{color:'blue'}}>{`${planAmount}.00`}</h6>
                         </div>
                         <div style={{flex: '1'}}>
                             <label>ISP</label><span className="badge text-bg-success mx-3">Edit</span>
-                            <h6 style={{color:'blue'}}>Zapbytes</h6>
+                            <h6 style={{color:'blue'}}>{isp}</h6>
 
                             <label>Data</label>
                             <h6 style={{color:'blue'}}>Unlimited</h6>
@@ -98,8 +197,8 @@ export default function Subscriber() {
                             </div>
                             <div style={{flex:'2', display:'flex', flexDirection:"column"}}>
                                 <div style={{flex:'2', marginTop:'50px', display:"flex", flexDirection:'row'}}>
-                                <button style={{marginRight:'10px'}} type="button" class="btn btn-info">Renew Subscription</button>
-                                <button  type="button" class="btn btn-outline-danger">Change Plan</button>
+                                <button style={{marginRight:'10px'}} type="button" className="btn btn-info">Renew Subscription</button>
+                                <button  type="button" className="btn btn-outline-danger">Change Plan</button>
                                 </div>
 
                                 <div style={{flex:'1'}}>
@@ -178,7 +277,7 @@ export default function Subscriber() {
             <div style={{flex:'5', display:'flex', flexDirection:'column', width:'70%'}}>
                 
                 <Routes>
-                    <Route path='/*' element={<SubscriberDetails/>}/>
+                    <Route path='/*' element={<SubscriberDetails username={username}/>}/>
                     <Route path='ledger/*' element={<Cust_Ledger/>}/>
                     <Route path='paymentreceipt/*' element={<Cust_PayRecpt/>}/>
                     <Route path='tickets/*' element={<TicketsTable/>}/>

@@ -1,23 +1,60 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import Menu from './subscriberpage/drawables/hamburger.png'
 import Profile from './subscriberpage/drawables/man.png'
 import Profile_Card from "./Profile_Card";
 import Building_Img from './subscriberpage/drawables/office-building.png'
 import Reports_Others from "./Reports_Others";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { db } from "../FirebaseConfig";
+import { ref, onValue } from "firebase/database";
 
 
 export default function Navbar() {
   const name = localStorage.getItem('Name');
   const designation = localStorage.getItem('Designation');
-  
 
+  const navigate = useNavigate();
 
-    const [isVisible, setIsVisible] = useState(false);
+  const [issearcfocused, setIsSearchFocused] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [arrayuser, setArrayUser] = useState([]);
+  const [subssearch, setSubsSearch] = useState('');
 
-    const togglevisiblty = () =>{
-        setIsVisible(!isVisible)
-    }
+  const subsref = ref(db, 'Subscriber');
+
+  useEffect(() => {
+    const fetchUsers = onValue(subsref, (userSnap)=> {
+      
+      if(userSnap.exists()){
+        const UserArray = [];
+        userSnap.forEach(Childsubs => {
+          const username = Childsubs.key;
+          const fullname = Childsubs.val().fullName;
+          const mobile = Childsubs.val().mobileNo;
+
+          UserArray.push({username, fullname, mobile});
+        });
+        setArrayUser(UserArray);
+        console.log(UserArray);
+      }
+    });
+
+    return () => fetchUsers();
+  }, []);
+
+  const handleSubsView = (username) => {
+    setIsSearchFocused(false);
+    navigate('subscriber', { state: { username } });
+  }
+
+  const togglevisiblty = () =>{
+    setIsVisible(!isVisible)
+  }
+
+  const fileredSubs = arrayuser.filter(({username, mobile}) => 
+    username.toLowerCase().includes(subssearch.toLowerCase()) ||
+    mobile.toLowerCase().includes(subssearch.toLowerCase())
+  );
 
 
   return (
@@ -29,7 +66,10 @@ export default function Navbar() {
           <form className="d-flex" role="search">
             
             <input style={{height: '40px', float:'left'}}
-              className="form-control "
+              onClick={() => setIsSearchFocused(true)}
+              
+              className="form-control"
+              onChange={(e) => setSubsSearch(e.target.value)}
               type="search"
               placeholder="Search"
               aria-label="Search"
@@ -118,6 +158,43 @@ export default function Navbar() {
             <Profile_Card/>
         )
       }
+
+      {
+        issearcfocused && (
+          <div style={{position:'fixed',right:'0',top:'10%', width:'500px', marginRight:'15%', backgroundColor:'white', padding:'5px', height:'300px', zIndex:'1000'}} className="border shadow rounded"
+          onMouseDown={(e) => e.preventDefault()} // Prevent hiding on click
+          >
+            <button className="btn-close" onClick={() => setIsSearchFocused(false)}></button>
+            <table className="table">
+              <thead className="table-primary">
+                <tr>
+                  <th scope="col">S. No.</th>
+                  <th scope="col">Full Name</th>
+                  <th scope="col">UserName</th>
+                  <th scope="col">Mobile no.</th>
+                </tr>
+              </thead>
+              <tbody className="table-group-divider">
+                {fileredSubs.map(({username, fullname, mobile}, index) => (
+                  <tr key={index}>
+                    <td>{index + 1}</td>
+                    <td>{fullname}</td>
+                    <td 
+                      style={{color:'blue', cursor:'pointer'}} 
+                      onMouseDown={() => handleSubsView(username)}
+                    >
+                      {username}
+                    </td>
+                    <td>{mobile}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      }
+      
+            
 
       
     </div>

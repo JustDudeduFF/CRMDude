@@ -3,10 +3,12 @@ import React, {useState, useEffect} from 'react'
 import LocationAnimation from './drawables/locationanimation.json'
 import { db } from '../../FirebaseConfig';
 import { ref, get } from 'firebase/database';
+import { useLocation } from 'react-router-dom';
 
-export default function SubscriberPersonal(props) {
+export default function SubscriberPersonal() {
+  const location = useLocation();
+  const {username} = location.state || {};
 
-  const {userid} = props;
   const [mobileNo, setMobileNo] = useState("");
   const [email, setEmail] = useState("");
   const [installationAddress, setInstallationAddress] = useState("");
@@ -25,31 +27,43 @@ export default function SubscriberPersonal(props) {
   const [uniqueJCNo, setUniqueJCNo] = useState("");
   const [fiberCoreNo, setFiberCoreNo] = useState("");
   
-  const userRef = ref(db, `Subscriber/${userid}`);
+  const userRef = ref(db, `Subscriber/${username}`);
+  const fieldRef = ref(db, `Subscriber/${username}/fieldFiberDetails`);
+  const inventRef = ref(db, `Subscriber/${username}/inventoryDeviceDetails`)
   useEffect(() => {
       const fetchsubsdata = async () => {
           const userSnap = await get(userRef);
+          const fieldSnap = await get(fieldRef);
+          const invetSnap = await get(inventRef);
           if(userSnap.exists()){
               setColonyName(userSnap.val().colonyName);
               setEmail(userSnap.val().email);
               setState(userSnap.val().state);
               setPinCode(userSnap.val().pinCode);
-              setDeviceMaker(userSnap.val().deviceMaker);
               setInstallationAddress(userSnap.val().installationAddress);
-              setConnectedFMS(userSnap.val().connectedFMS);
-              setConnectedPortNo(userSnap.val().connectedPortNo);
-              setFiberCoreNo(userSnap.val().fiberCoreNo);
-              setUniqueJCNo(userSnap.val().uniqueJCNo);
-              setConnectionPowerInfo(userSnap.val().connectionPowerInfo);
-              setDeviceSerialNumber(userSnap.val().deviceSerialNumber);
               setMobileNo(userSnap.val().mobileNo);
 
           }
+
+          if(fieldSnap.exists()){
+              setConnectedFMS(fieldSnap.val().connectedFMS);
+              setConnectedPortNo(fieldSnap.val().connectedPortNo);
+              setFiberCoreNo(fieldSnap.val().fiberCoreNo);
+              setUniqueJCNo(fieldSnap.val().uniqueJCNo);
+          }
+
+
+          if(invetSnap.exists()){
+              setConnectionPowerInfo(invetSnap.val().connectionPowerInfo);
+              setDeviceSerialNumber(invetSnap.val().deviceSerialNumber);
+              setDeviceMaker(invetSnap.val().deviceMaker);
+          }
+
       }
 
       fetchsubsdata();
 
-  }, [userid]);
+  }, [username]);
   return (
     <div style={{display:'flex', flexDirection:'column'}}>
         <div style={{ flex:'1', display:'flex', flexDirection:'row', padding:'8px'}}>
@@ -58,9 +72,12 @@ export default function SubscriberPersonal(props) {
             <h5 style={{fontWeight:'bold'}}>Installation Address</h5>
             <p style={{width:'250px', color:'blue'}}>{installationAddress}</p>
 
+            <h6 style={{fontWeight:'bold'}}>Colony Name</h6>
+            <p style={{color:'blue'}}>{colonyName}</p>
+            
 
             <h5 style={{fontWeight:'bold'}}>Mobile No.</h5>
-            <p style={{color:'blue'}}>{mobileNo}</p>
+            <p style={{color:'blue'}}>{`+91 ${mobileNo}`}</p>
             <p style={{color:'blue'}}>+91 7982905751</p>
 
 

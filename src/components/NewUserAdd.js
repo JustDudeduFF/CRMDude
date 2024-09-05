@@ -3,7 +3,7 @@ import {db, storage} from '../FirebaseConfig'
 import {  uploadBytes, getDownloadURL, ref as dbRef } from "firebase/storage";
 import { ref, set, onValue } from "firebase/database";
 import { toast, ToastContainer } from "react-toastify";
-import { MutatingDots, ProgressBar } from "react-loader-spinner";
+import { ProgressBar } from "react-loader-spinner";
 
 
 
@@ -29,6 +29,7 @@ export default function NewUserAdd() {
   const [refundableAmount, setRefundableAmount] = useState("");
   const [activationDate, setActivationDate] = useState(new Date().toISOString().split('T')[0]);
   const [expiryDate, setExpiryDate] = useState(null);
+  const [conectiontyp, setConnectionTyp] = useState('');
 
   // Inventory & Device Details
   const [deviceMaker, setDeviceMaker] = useState("");
@@ -310,6 +311,8 @@ export default function NewUserAdd() {
             refundableAmount,
             activationDate: activationDate,
             expiryDate: expiryDate,
+            conectiontyp: conectiontyp,
+            dueAmount: parseInt(planAmount) + parseInt(securityDeposit)
           },
           inventoryDeviceDetails: {
             deviceMaker,
@@ -656,6 +659,16 @@ export default function NewUserAdd() {
           </label><br></br>
           <input disabled value={expiryDate} type="date" onChange={(e) => setExpiryDate(e.target.value)} className="form-control"></input>
           <div className="invalid-feedback">Please select a valid state.</div>
+        </div>
+
+        <div className='col-md-3'>
+          <label className="form-label">Connection Type</label>
+          <select onChange={(e) => setConnectionTyp(e.target.value)} className="form-select">
+            <option value=''>Choose...</option>
+            <option value='FTTH'>FTTH</option>
+            <option value='EtherNet'>EtherNet</option>
+          </select>
+
         </div>
       </form>
       </div>

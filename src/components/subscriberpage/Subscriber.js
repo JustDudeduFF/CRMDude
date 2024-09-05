@@ -23,9 +23,6 @@ import { ref, get } from 'firebase/database'
 
 export default function Subscriber() {
 
-
-
-
     const location = useLocation();
     const { username } = location.state || {};
 

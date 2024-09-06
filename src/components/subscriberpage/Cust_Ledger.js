@@ -1,8 +1,51 @@
-import React from 'react'
-import Excel_Icon from './drawables/xls.png'
-import PDF_Icon from './drawables/pdf.png'
+import React, { useEffect, useState } from 'react';
+import Excel_Icon from './drawables/xls.png';
+import PDF_Icon from './drawables/pdf.png';
+import { useLocation } from 'react-router-dom';
+import { onValue, ref, off } from 'firebase/database'; // Added 'off' to unsubscribe listener
+import { db } from '../../FirebaseConfig';
 
 export default function Cust_Ledger() {
+  const location = useLocation();
+  const { userid } = location.state || {};
+
+  const [arrayledger, setArrayLedger] = useState([]);
+
+  const lederRef = ref(db, `Subscriber/${userid}/ledger`);
+
+  useEffect(() => {
+    // Firebase listener to fetch ledger data
+    const fetchledger = onValue(lederRef, (ledgerSnap) => {
+      if (ledgerSnap.exists()) {
+        const ledgerdataArray = [];
+        const debamt =[];
+        const creamt = [];
+        ledgerSnap.forEach((Childledger) => {
+          const type = Childledger.val().type;
+          const date = Childledger.val().date;
+          const particular = Childledger.val().particular;
+          const debitamount = parseFloat(Childledger.val().debitamount);
+          const creditamount = parseFloat(Childledger.val().creditamount);
+          debamt.push(debitamount);
+          creamt.push(creditamount);
+          ledgerdataArray.push({ type, date, particular, debitamount, creditamount });
+        });
+        
+        setArrayLedger(ledgerdataArray);
+      } else {
+        console.log('Data not found');
+      }
+    });
+
+    // Cleanup function to remove the listener when the component unmounts
+    return () => {
+      off(lederRef, fetchledger); // Properly remove listener
+    };
+  }, [userid]);
+
+  let runningBalance = 0;
+
+
   return (
     <>
     <div style={{flex:'1', display:'flex', flexDirection:'row'}}>
@@ -22,10 +65,10 @@ export default function Cust_Ledger() {
     <table className="table">
   <thead>
     <tr>
-      <th style={{width:'60px'}} scope="col">S. No.</th>
-      <th style={{width:'120px'}} scope="col">Type</th>
-      <th style={{width:'120px'}} scope="col">Date</th>
-      <th style={{width:'300px'}}  scope="col">Particulars</th>
+      <th scope="col">S. No.</th>
+      <th scope="col">Type</th>
+      <th scope="col">Date</th>
+      <th scope="col">Particulars</th>
       <th scope="col">Dr. Amount</th>
       <th scope="col">Cr. Amount</th>
       <th scope="col">Balance</th>
@@ -34,46 +77,31 @@ export default function Cust_Ledger() {
     </tr>
   </thead>
   <tbody className="table-group-divider">
-    <tr>
-      <th scope="row">1</th>
-      <td>Collection</td>
-      <td>01-Jan-2024</td>
-      <td>Payments Colleted By Shivam</td>
-      <td>0.00</td>
-      <td>3500.00</td>
-      <td>-3500.00</td>
-      <td>Done</td>
-    </tr>
-    <tr>
-      <th scope="row">2</th>
-      <td>Recharge</td>
-      <td>01-Jan-2024</td>
-      <td>300mbps_Unlimited_3Months_1800</td>
-      <td>2000.00</td>
-      <td>0.00</td>
-      <td>-1500.00</td>
-      <td>Done</td>
-    </tr>
-    <tr>
-      <th scope="row">3</th>
-      <td >Credit</td>
-      <td>05-Jan-2024</td>
-      <td>Security Deposite</td>
-      <td>1500.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>Done</td>
-    </tr>
-    <tr>
-      <th scope="row">4</th>
-      <td >Debit</td>
-      <td>10-Jan-2024</td>
-      <td>Security Refunded</td>
-      <td>0.00</td>
-      <td>1500.00</td>
-      <td>-1500.00</td>
-      <td>Done</td>
-    </tr>
+
+  {arrayledger.length > 0 ? (
+              arrayledger.map(({ type, date, particular, debitamount, creditamount }, index) => {
+                // Update the running balance by adding debit and subtracting credit
+                runningBalance += debitamount - creditamount;
+
+                return (
+                  <tr key={index}>
+                    <td>{index + 1}</td> {/* Correct S. No. starts from 1 */}
+                    <td>{type}</td>
+                    <td>{date}</td>
+                    <td>{particular}</td>
+                    <td>{debitamount.toFixed(2)}</td> {/* Format to 2 decimal places */}
+                    <td>{creditamount.toFixed(2)}</td> {/* Format to 2 decimal places */}
+                    <td>{runningBalance.toFixed(2)}</td> {/* Display calculated running balance */}
+                    <td>{/* Remarks can be added here if needed */}</td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan="8" style={{ textAlign: 'center' }}>No ledger data found</td>
+              </tr>
+            )}
+    
   </tbody>
 </table>
 

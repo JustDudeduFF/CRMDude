@@ -36,7 +36,7 @@ div{
 
 
 
-#link .div-subs-option{
+.div-subs-option{
     color: black;
     font-weight: bold;
     font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -48,7 +48,7 @@ div{
     border-radius: 8px;
 }
 
-#link .div-subs-option:hover{
+.div-subs-option:hover{
     cursor: pointer;
     color: white;
     background-color: #69ce5e;

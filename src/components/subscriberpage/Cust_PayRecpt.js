@@ -1,11 +1,15 @@
 import React from 'react'
 import Excel_Icon from './drawables/xls.png'
 import PDF_Icon from './drawables/pdf.png'
-import { BrowserRouter as Router, Routes,Route,Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes,Route,Link, useLocation, useNavigate } from 'react-router-dom';
 import ReceiptModify from './ReceiptModify';
 import PaymetTable from './PaymetTable';
 
 export default function Cust_PayRecpt() {
+  const location = useLocation();
+  const {userid} = location.state || {};
+
+  const navigate = useNavigate();
   return (
     <>
     <div style={{flex:'1', display:'flex', flexDirection:'row'}}>
@@ -14,8 +18,8 @@ export default function Cust_PayRecpt() {
         </div>
         <div style={{flex:'4'}}>
             <div style={{width:'max-content', float:'right'}}>
-              <Link id='link' to='collect'>
-                <button type="button" className="btn btn-outline-success">Create Receipt</button></Link>
+              
+                <button onClick={() => {navigate('collect', {state: {userid}})}} type="button" className="btn btn-outline-success">Create Receipt</button>
                 <img src={Excel_Icon} className='img_download_icon'></img>
                 <img src={PDF_Icon} className='img_download_icon'></img>
 

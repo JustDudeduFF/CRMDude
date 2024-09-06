@@ -4,11 +4,8 @@ import Excel_Icon from './drawables/xls.png'
 import PDF_Icon from './drawables/pdf.png'
 import SubscriberPersonal from './SubscriberPersonal';
 import RechargeTable from './RechargeTable';
-import { get, ref } from 'firebase/database';
-import { db } from '../../FirebaseConfig';
 
-export default function SubscriberDetails(props) {
-    const {username} = props;
+export default function SubscriberDetails() {
 
 
   return (
@@ -38,7 +35,7 @@ export default function SubscriberDetails(props) {
 
         <div style={{flex:"10"}}>
             <Routes>
-                <Route path='/' element={<SubscriberPersonal userid={username}/>} />
+                <Route path='/' element={<SubscriberPersonal />} />
                 <Route path='rechargeinfo' element={<RechargeTable/>}/>
             </Routes>
         </div>

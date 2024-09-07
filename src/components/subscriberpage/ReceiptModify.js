@@ -25,7 +25,7 @@ export default function ReceiptModify() {
 
   const receiptData = {
     source: 'Manual',
-    receiptNo: receiptNo,
+    receiptNo: `REC-${Date.now()}`,
     billingPeriod: billingPeriod,
     receiptDate: currentdate,
     paymentMode: paymentMode,
@@ -201,7 +201,7 @@ export default function ReceiptModify() {
           {(paymentMode === 'Cheque' || paymentMode === 'NEFT') && (
             <div className="col-md-3">
               <label className="form-label">Bank Name</label>
-              <input type="text" className="form-control" />
+              <input onChange={(e) => setBankName(e.target.value)} type="text" className="form-control" />
             </div>
           )}
           <div className="col-md-3">

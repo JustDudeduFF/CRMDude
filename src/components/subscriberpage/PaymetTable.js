@@ -7,6 +7,11 @@ export default function PaymetTable() {
   const location = useLocation();
   const {userid} = location.state || {};
   const [arraypayment, setArrayPayment] = useState([]);
+  const [showreceiptopt, setShowReceiptOpt] = useState(null);
+
+
+
+
   const paymentsRef = ref(db, `Subscriber/${userid}/payments`);
 
   useEffect(() => {
@@ -17,7 +22,6 @@ export default function PaymetTable() {
         paymentSnap.forEach(Childpayment => {
           const source = Childpayment.val().source;
           const receiptNo = Childpayment.val().receiptNo;
-          const billingPeriod = Childpayment.val().billingPeriod;
           const receiptDate = Childpayment.val().receiptDate;
           const paymentMode = Childpayment.val().paymentMode;
           const bankname = Childpayment.val().bankname;
@@ -27,7 +31,7 @@ export default function PaymetTable() {
           const modifiedBy = Childpayment.val().modifiedBy;
           const transactionNo = Childpayment.val().transactionNo;
           const narration = Childpayment.val().narration;
-          paymentsArray.push({source, receiptNo, billingPeriod, receiptDate, paymentMode, bankname ,amount, discount, collectedBy, modifiedBy, transactionNo, narration})
+          paymentsArray.push({source, receiptNo, receiptDate, paymentMode, bankname ,amount, discount, collectedBy, modifiedBy, transactionNo, narration})
           
         });
         setArrayPayment(paymentsArray);
@@ -59,7 +63,7 @@ export default function PaymetTable() {
         <tbody className="table-group-divider">
 
           {arraypayment.length > 0 ? (
-            arraypayment.map(({source, receiptNo, billingPeriod, receiptDate, paymentMode, bankname,amount, discount, collectedBy, modifiedBy ,transactionNo, narration}, index) => (
+            arraypayment.map(({source, receiptNo, receiptDate, paymentMode, bankname,amount, discount, collectedBy, modifiedBy ,transactionNo, narration}, index) => (
               <tr key={index}>
                 <td>{index + 1}</td>
                 <td>{source}</td>
@@ -73,7 +77,10 @@ export default function PaymetTable() {
                 <td>{collectedBy}</td>
                 <td>{modifiedBy}</td>
                 <td>{narration}</td>
+              
               </tr>
+
+              
             ))
           ) : (
             <td colSpan="8" style={{ textAlign: 'center' }}>No Payment data found</td>

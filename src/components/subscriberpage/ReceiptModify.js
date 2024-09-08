@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { db } from '../../FirebaseConfig';
 import { toast, ToastContainer } from 'react-toastify';
+import { tr } from 'date-fns/locale';
 
 export default function ReceiptModify() {
   const location = useLocation();
@@ -13,7 +14,6 @@ export default function ReceiptModify() {
   const [arrayblling, setBillingArray] = useState([]);
   const [arrayemp, setEmpArray] = useState([]);
   const [currentdate, setCurrentDate] = useState(new Date().toISOString().split('T')[0]);
-  const [receiptNo, setReceiptNo] = useState('');
   const [billingPeriod, setBillingPeriod] = useState('');
   const [paymentMode, setPaymentMode] = useState('');
   const [bankname, setBankName] = useState('');
@@ -22,6 +22,10 @@ export default function ReceiptModify() {
   const [collectedBy, setCollectedBy] = useState('');
   const [transactionNo, settransactionNo] = useState('');
   const [narration, setnarration] = useState('');
+
+  const [isdisabled, setIsDisabled] = useState(false);
+
+
 
   const receiptData = {
     source: 'Manual',
@@ -42,6 +46,7 @@ export default function ReceiptModify() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsDisabled(true);
 
     const paymentsRef = ref(db, `Subscriber/${userid}/payments`);
     const ledgerRef = ref(db, `Subscriber/${userid}/ledger`);
@@ -54,7 +59,6 @@ export default function ReceiptModify() {
     };
 
     const newPaymentKey = push(paymentsRef).key;
-    setReceiptNo(newPaymentKey);
     await set(ref(db, `Subscriber/${userid}/payments/${newPaymentKey}`), receiptData);
     await update(dueRef, newDue);
 
@@ -264,7 +268,7 @@ export default function ReceiptModify() {
             />
           </div>
           <div className="col-8">
-            <button type="submit" className="btn btn-outline-success">
+            <button type="submit" className="btn btn-outline-success" disabled={isdisabled}>
               Collect Amount
             </button>
           </div>

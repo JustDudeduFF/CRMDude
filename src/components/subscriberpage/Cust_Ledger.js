@@ -89,8 +89,8 @@ export default function Cust_Ledger() {
                     <td>{type}</td>
                     <td>{date}</td>
                     <td>{particular}</td>
-                    <td>{debitamount.toFixed(2)}</td> {/* Format to 2 decimal places */}
-                    <td>{creditamount.toFixed(2)}</td> {/* Format to 2 decimal places */}
+                    <td style={{color:'red'}}>{debitamount.toFixed(2)}</td> {/* Format to 2 decimal places */}
+                    <td style={{color:'green'}}>{creditamount.toFixed(2)}</td> {/* Format to 2 decimal places */}
                     <td>{runningBalance.toFixed(2)}</td> {/* Display calculated running balance */}
                     <td>{/* Remarks can be added here if needed */}</td>
                   </tr>

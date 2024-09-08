@@ -69,8 +69,8 @@ export default function PaymetTable() {
                 <td>{source}</td>
                 <td>{receiptNo}</td>
                 <td>{receiptDate}</td>
-                <td>{amount}</td>
-                <td>{discount}</td>
+                <td style={{color:'blue'}}>{amount}</td>
+                <td style={{color:'green'}}>{discount}</td>
                 <td>{paymentMode}</td>
                 <td>{transactionNo}</td>
                 <td>{bankname}</td>

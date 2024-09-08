@@ -82,8 +82,9 @@ export default function Subscriber() {
         }
 
         const planinfo ={
+            date: new Date().toISOString().split('T')[0],
             planName: planName,
-            planAmount: customesharge,
+            planAmount: parseInt(customesharge, 10) || parseInt(planAmount, 10),
             isp: isp,
             activationDate: renewactdate,
             expiryDate: expdate,
@@ -104,6 +105,8 @@ export default function Subscriber() {
         await set(ref(db, `Subscriber/${username}/planinfo/${planinfoKey}`), planinfo);
 
         await update(planRef, newconnectioninfo);
+
+        setShowModal(false);
 
           
 

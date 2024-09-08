@@ -1,9 +1,11 @@
 import React, {useState, useEffect} from "react";
 import {db, storage} from '../FirebaseConfig'
 import {  uploadBytes, getDownloadURL, ref as dbRef } from "firebase/storage";
-import { ref, set, onValue } from "firebase/database";
+import { ref, set, onValue, update, push } from "firebase/database";
 import { toast, ToastContainer } from "react-toastify";
 import { ProgressBar } from "react-loader-spinner";
+
+
 
 
 
@@ -108,6 +110,13 @@ export default function NewUserAdd() {
   const handleDeviceMakerChange = (e) => {
     setDeviceMaker(e.target.value);
   };
+
+  // function generateCustomUniqueKey() {
+  //   // Generate a random string and append it to the current timestamp
+  //   const randomString = Math.random().toString(36).substr(2, 9); // Random alphanumeric string
+  //   const timestamp = Date.now().toString();
+  //   return `${timestamp}_${randomString}`;
+  // }
 
 
   useEffect(() => {
@@ -266,7 +275,12 @@ export default function NewUserAdd() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    const ledgerRef = ref(db, `Subscriber/${username}/ledger`)
+    const ledgerKey = push(ledgerRef).key;
+    const ledgerKey2 = push(ledgerRef).key;
 
+    const planinfoRef = ref(db, `Subscriber/${username}/planinfo`)
+    const planinfoKey = push(planinfoRef).key;
     if(fullName === '' || username === '' || mobileNo === ''){
       toast.error('Manadaratry Field will not be empty', {
         autoClose: 3000,
@@ -330,11 +344,46 @@ export default function NewUserAdd() {
             addressProofURL,
             cafDocumentsURL,
           },
+          
+
+            
+
+          
           createdAt: activationDate,
         };
+        
+        const ledgerdata = {
+            type:'Security',
+            date:new Date().toISOString().split('T')[0],
+            particular: 'Device Security',
+            debitamount: securityDeposit,
+            creditamount: 0,
+        }
+
+        const ledgerdata2 = {
+          type:'Registaration',
+          date:new Date().toISOString().split('T')[0],
+          particular: 'New Subscriber',
+          debitamount: planAmount,
+          creditamount: 0,
+      }
+
+        const planinfo ={
+          planName: planName,
+          planAmount: planAmount,
+          isp: isp,
+          activationDate: activationDate,
+          expiryDate: expiryDate,
+          action: 'Registeration',
+          completedby: localStorage.getItem('Name')
+        }
   
         // Add to Firestore
-        await set(ref(db, `Subscriber/${username}`), userData);
+        await update(ref(db, `Subscriber/${username}`), userData);
+        await set(ref(db, `Subscriber/${username}/ledger/${ledgerKey2}`), ledgerdata2);
+        await set(ref(db, `Subscriber/${username}/ledger/${ledgerKey}`), ledgerdata);
+
+        await set(ref(db, `Subscriber/${username}/planinfo/${planinfoKey}`), planinfo);
   
         // Reset form or show success message
         setLoader(false);

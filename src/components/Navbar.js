@@ -44,6 +44,7 @@ export default function Navbar() {
 
   const handleSubsView = (username) => {
     setIsSearchFocused(false);
+    localStorage.setItem('susbsUserid',username);
     navigate('subscriber', { state: { username } });
   }
 

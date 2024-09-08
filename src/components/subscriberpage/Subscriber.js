@@ -2,7 +2,7 @@ import React,{useEffect, useState} from 'react'
 import Demo_Icon from './drawables/photo.png'
 import Due_Icon from './drawables/rupeenew.png'
 import Cust_Ledger from './Cust_Ledger'
-import { BrowserRouter as Router, Routes,Route,Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes,Route,Link, useNavigate } from 'react-router-dom';
 import Cust_PayRecpt from './Cust_PayRecpt'
 import TicketsTable from './TicketsTable';
 import InventoryTable from './InventoryTable';
@@ -15,7 +15,9 @@ import { ProgressBar } from 'react-loader-spinner';
 
 
 import { db } from '../../FirebaseConfig'
-import { ref, get } from 'firebase/database'
+import { ref, get, set, update,push, onValue } from 'firebase/database'
+import RenewalModal from './RenewalModal';
+
 
 
 
@@ -23,20 +25,21 @@ import { ref, get } from 'firebase/database'
 
 export default function Subscriber() {
 
+<<<<<<< HEAD
     const location = useLocation();
     const { username } = location.state || {};
+=======
+    const username = localStorage.getItem('susbsUserid');
+
+    const navigate = useNavigate();
+>>>>>>> fe0afee4fe5c66839400a9669b5fc1362d3dde01
 
       //Use States For Fill All Details
 
   const [company, setCompany] = useState("");
   const [userid, setUserID] = useState('');
   const [fullName, setFullName] = useState("");
-  const [mobileNo, setMobileNo] = useState("");
-  const [email, setEmail] = useState("");
-  const [installationAddress, setInstallationAddress] = useState("");
-  const [colonyName, setColonyName] = useState("");
-  const [state, setState] = useState("");
-  const [pinCode, setPinCode] = useState("");
+
 
   // Connection Details
   const [isp, setIsp] = useState("");
@@ -49,51 +52,100 @@ export default function Subscriber() {
   const [status, setStatus] = useState('Active');
   const [dueamount, setDueAmount] = useState(10);
 
-  // Inventory & Device Details
-  const [deviceMaker, setDeviceMaker] = useState("");
-  const [deviceSerialNumber, setDeviceSerialNumber] = useState("");
-  const [connectionPowerInfo, setConnectionPowerInfo] = useState("");
+  const [showmodal, setShowModal] = useState(false);
+  const [customesharge, setCustomCharge] = useState(0);
+  const [renewactdate, setRenewActDate] = useState(new Date().toISOString().split('T')[0]);
+  const [arrayplan, setArrayPlan] = useState([]);
+  const [remarks, setRemarks] = useState('');
+  const [expdate, setExpDate] = useState('');
 
-  // Field & Fiber Details
-  const [connectedFMS, setConnectedFMS] = useState("");
-  const [connectedPortNo, setConnectedPortNo] = useState("");
-  const [uniqueJCNo, setUniqueJCNo] = useState("");
-  const [fiberCoreNo, setFiberCoreNo] = useState("");
 
 
     const [loader, setLoader] = useState(false);
-    const [duecolor, setDueColor] = useState('gray');
+
 
     const userRef = ref(db, `Subscriber/${username}`);
     const planRef = ref(db, `Subscriber/${username}/connectionDetails`);
+    const plansRef = ref(db, `Master/Broadband Plan`);
+
+    const ledgerRef = ref(db, `Subscriber/${username}/ledger`);
+    const planinfoRef = ref(db, `Subscriber/${username}/planinfo`);
+
+    const ledgerKey = push(ledgerRef).key;
+    const planinfoKey = push(planinfoRef).key;
+
+    const handleSavePlan = async () => {
+        const newDue = (parseInt(dueamount, 10) || 0) + (parseInt(customesharge, 10) || parseInt(planAmount, 10));
+
+
+        const ledgerData = {
+            type:'Renewal',
+            date: new Date().toISOString().split('T')[0],
+            particular: `${planName} From ${renewactdate} to ${expdate}`,
+            debitamount: parseInt(customesharge, 10) || parseInt(planAmount, 10),
+            creditamount: 0
+        }
+
+        const planinfo ={
+            date: new Date().toISOString().split('T')[0],
+            planName: planName,
+            planAmount: parseInt(customesharge, 10) || parseInt(planAmount, 10),
+            isp: isp,
+            activationDate: renewactdate,
+            expiryDate: expdate,
+            action: 'Renewal',
+            completedby: localStorage.getItem('Name'),
+            remarks: remarks
+          }
+
+          const newconnectioninfo = {
+            activationDate: renewactdate,
+            expiryDate: expdate,
+            planAmount: parseInt(customesharge, 10) || parseInt(planAmount, 10),
+            dueAmount: newDue
+          }
+
+        await set(ref(db, `Subscriber/${username}/ledger/${ledgerKey}`), ledgerData);
+
+        await set(ref(db, `Subscriber/${username}/planinfo/${planinfoKey}`), planinfo);
+
+        await update(planRef, newconnectioninfo);
+
+        setShowModal(false);
+
+          
+
+
+          
+    }
 
     useEffect(() => {
+        
         setLoader(true);
       const  fetchSusbsData = async () => {
         
             const subsSnap = await get(userRef);
-            const planSnap = await get(planRef);
 
             if(subsSnap.exists()){
                 setFullName(subsSnap.val().fullName);
-                setColonyName(subsSnap.val().colonyName);
-                setEmail(subsSnap.val().email);
-                setState(subsSnap.val().state);
-                setPinCode(subsSnap.val().pinCode);
                 setCompany(subsSnap.val().company);
-                setDeviceMaker(subsSnap.val().deviceMaker);
                 setUserID(subsSnap.val().username);
-                setDeviceSerialNumber(subsSnap.val().deviceSerialNumber);
-                
-                setInstallationAddress(subsSnap.val().installationAddress);
-                setConnectedFMS(subsSnap.val().connectedFMS);
-                setConnectedPortNo(subsSnap.val().connectedPortNo);
-                setFiberCoreNo(subsSnap.val().fiberCoreNo);
-                setUniqueJCNo(subsSnap.val().uniqueJCNo);
-                setConnectionPowerInfo(subsSnap.val().connectionPowerInfo);
                 setRegistrationDate(subsSnap.val().createdAt);
 
             }
+
+
+            
+            setLoader(false);
+
+            
+        }
+        fetchSusbsData();
+        
+    }, [username]);
+
+    useEffect(() => {
+        const fetchconnectionInfo = onValue(planRef, (planSnap => {
 
             if(planSnap.exists()){
                 setPlanName(planSnap.val().planName);
@@ -102,14 +154,40 @@ export default function Subscriber() {
                 setExpiryDate(planSnap.val().expiryDate);
                 setIsp(planSnap.val().isp);
                 setDueAmount(planSnap.val().dueAmount);
+            }else{
+                console.log(`Data Not Found`)
             }
+
             setLoader(false);
 
-            
+        }));
+
+        return () => fetchconnectionInfo();
+    }, [username])
+
+    useEffect(() => {
+        const fetchPlans = async () => {
+            const planSnap = await get(plansRef);
+            if(planSnap.exists()){
+                const planArray = [];
+                planSnap.forEach(Childplan => {
+                    const planname = Childplan.val().planname;
+                    const planperiod = Childplan.val().planperiod;
+                    const periodtime = Childplan.val().periodtime;
+
+                    planArray.push({planname, periodtime, planperiod});
+                });
+                setArrayPlan(planArray);
+            }
+
         }
-        fetchSusbsData();
+
+
         
-    }, [username]);
+
+        return () => fetchPlans(); 
+                        
+    }, [plansRef]);
 
 
     useEffect(() => {
@@ -137,6 +215,34 @@ export default function Subscriber() {
           calculateDaysBetween();
         }
       }, [activationDate, expiryDate]); 
+
+      const getperiod = (dateValue) => {
+        const currentplan = planName;
+
+        const selectePlanObj = arrayplan.find(plan => plan.planname === currentplan);
+
+        if(selectePlanObj){
+            const planperiod = selectePlanObj.planperiod;
+            const periodtime = selectePlanObj.periodtime;
+
+            const date = new Date(dateValue);
+
+// Extend the date based on the unit from Firebase
+            if (planperiod === 'Months') {
+            date.setMonth(date.getMonth() + parseInt(periodtime));
+            } else if (planperiod === 'Years') {
+            date.setFullYear(date.getFullYear() + parseInt(periodtime));
+            } else if (planperiod === 'Days') {
+            date.setDate(date.getDate() + parseInt(periodtime));
+            }
+
+            // Format the new expiration date to YYYY-MM-DD
+            const formattedExpirationDate = date.toISOString().split('T')[0];
+            setExpDate(formattedExpirationDate);
+        }
+        
+
+    }
 
     
 
@@ -239,7 +345,7 @@ export default function Subscriber() {
                             </div>
                             <div style={{flex:'2', display:'flex', flexDirection:"column"}}>
                                 <div style={{flex:'2', marginTop:'50px', display:"flex", flexDirection:'row'}}>
-                                <button style={{marginRight:'10px'}} type="button" className="btn btn-info">Renew Subscription</button>
+                                <button onClick={() => setShowModal(true)} style={{marginRight:'10px'}} type="button" className="btn btn-info">Renew Subscription</button>
                                 <button  type="button" className="btn btn-outline-danger">Change Plan</button>
                                 </div>
 
@@ -259,22 +365,35 @@ export default function Subscriber() {
 
                 </div>
                 </div>
+
+                <RenewalModal modalShow={() => setShowModal(false)} show={showmodal} planName = {planName} planAmount={planAmount} isp={isp} 
+                        handleMin={expiryDate}
+                        handleAmount={(e) => setCustomCharge(e.target.value)}
+                        handleActivation={(e) => {
+                            const newActivationDate = e.target.value;
+                            setRenewActDate(newActivationDate);
+                            getperiod(newActivationDate);
+                        }}
+                        handleexpiry={expdate}
+                        handleRemarks={(e) => setRemarks(e.target.value)}
+                        savePlan={handleSavePlan}
+                    />
         </div>
         <div style={{flex:'5', display:'flex', flexDirection:'row'}}>
             <div style={{flex:'1', display:'flex', flexDirection:'column'}}>
                 
-                <Link id='link' to='ledger'>
-                <div className='div-subs-option'>
+                
+                <div onClick={() => {navigate('ledger', {state: {userid}})}} className='div-subs-option'>
                     <label>Ledger</label>
                 </div>
-                </Link>
+                
 
 
-                <Link id='link' to='paymentreceipt'>
-                <div className='div-subs-option'>
+                
+                <div onClick={() => {navigate('paymentreceipt', {state: {userid}})}} className='div-subs-option'>
                     <label>Payments Receipts</label>
                 </div>
-                </Link>
+                
                 
 
                 <Link id='link' to='tickets'>
@@ -316,7 +435,7 @@ export default function Subscriber() {
 
 
 
-            <div style={{flex:'5', display:'flex', flexDirection:'column', width:'70%'}}>
+            <div style={{flex:'5', display:'flex', flexDirection:'column', width:'70%', height:'50vh'}}>
                 
                 <Routes>
                     <Route path='/*' element={<SubscriberDetails/>}/>
@@ -331,6 +450,8 @@ export default function Subscriber() {
                     
                     
                 </Routes>
+
+                {/*  */}
                
                 
             </div>

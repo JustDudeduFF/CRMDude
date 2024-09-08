@@ -1,5 +1,5 @@
-import React from 'react'
-import { BrowserRouter as Router, Routes,Route,Link, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react'
+import { BrowserRouter as Router, Routes,Route,Link } from 'react-router-dom';
 import Excel_Icon from './drawables/xls.png'
 import PDF_Icon from './drawables/pdf.png'
 import SubscriberPersonal from './SubscriberPersonal';
@@ -7,8 +7,7 @@ import RechargeTable from './RechargeTable';
 
 export default function SubscriberDetails() {
 
-    const location = useLocation();
-    const { username } = location.state || {};
+
   return (
     
     <>
@@ -36,7 +35,7 @@ export default function SubscriberDetails() {
 
         <div style={{flex:"10"}}>
             <Routes>
-                <Route path='/' state={{ username: username }} element={<SubscriberPersonal/>} />
+                <Route path='/' element={<SubscriberPersonal />} />
                 <Route path='rechargeinfo' element={<RechargeTable/>}/>
             </Routes>
         </div>

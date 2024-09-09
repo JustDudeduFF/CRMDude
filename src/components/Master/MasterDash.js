@@ -8,6 +8,7 @@ import Designation from './Designation'
 import Company from './Company'
 import Colony from './Colony'
 import FMS from './FMS'
+import TicketConcerns from './TicketConcerns'
 
 export default function MasterDash() {
   return (
@@ -33,6 +34,9 @@ export default function MasterDash() {
 
             <Link id='link' to='designation' className='rounded mt-2 ms-1 me-1'>
             <li className="list-group-item shadow">Designations</li></Link>
+
+            <Link id='link' to='ticketconcern' className='rounded mt-2 ms-1 me-1'>
+            <li className="list-group-item shadow">Ticket Concerns</li></Link>
             
             </ul>
             </div>
@@ -66,6 +70,7 @@ export default function MasterDash() {
                     <Route path='company' element={<Company/>}/>
                     <Route path='colony' element={<Colony/>}/>
                     <Route path='fms' element={<FMS/>}/>
+                    <Route path='ticketconcern' element={<TicketConcerns/>}/>
                 </Routes>
             </div>
 

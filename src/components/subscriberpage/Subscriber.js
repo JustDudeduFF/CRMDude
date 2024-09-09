@@ -25,14 +25,9 @@ import RenewalModal from './RenewalModal';
 
 export default function Subscriber() {
 
-<<<<<<< HEAD
-    const location = useLocation();
-    const { username } = location.state || {};
-=======
     const username = localStorage.getItem('susbsUserid');
 
     const navigate = useNavigate();
->>>>>>> fe0afee4fe5c66839400a9669b5fc1362d3dde01
 
       //Use States For Fill All Details
 
@@ -75,6 +70,7 @@ export default function Subscriber() {
     const planinfoKey = push(planinfoRef).key;
 
     const handleSavePlan = async () => {
+        setLoader(true);
         const newDue = (parseInt(dueamount, 10) || 0) + (parseInt(customesharge, 10) || parseInt(planAmount, 10));
 
 
@@ -112,6 +108,7 @@ export default function Subscriber() {
         await update(planRef, newconnectioninfo);
 
         setShowModal(false);
+        setLoader(false);
 
           
 
@@ -451,7 +448,7 @@ export default function Subscriber() {
                     
                 </Routes>
 
-                {/*  */}
+
                
                 
             </div>

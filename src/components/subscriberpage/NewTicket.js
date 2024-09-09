@@ -1,9 +1,27 @@
-import React, {useState} from 'react'
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import { onValue, ref } from 'firebase/database';
+import React, {useEffect, useState} from 'react';
+import { db } from '../../FirebaseConfig';
 
 export default function NewTicket() {
     const [selectedDate, setSelectedDate] = useState(null);
+    const [arrayconcern, setArrayConcern] = useState([]);
+    const concernRef = ref(db, `Master/Tickets`);
+
+    useEffect(() => {
+      const fetchconcerns = onValue(concernRef, (concernSnap => {
+        if(concernSnap.exists()){
+          const concernArray = [];
+          concernSnap.forEach(Childconcern => {
+            const concername = Childconcern.key;
+
+            concernArray.push(concername);
+          });
+          setArrayConcern(concernArray);
+        }
+      }))
+
+      return () => fetchconcerns();
+    }, [])
   return (
     <div style={{display:'flex', flexDirection:'column'}}>
         <div style={{flex:'1', margin:'20px', padding:'10px', borderRadius:'5px', boxShadow:'0 0 10px blue'}}>
@@ -15,21 +33,24 @@ export default function NewTicket() {
           <div className="col-md-2">
             <label for="inputPassword4" className="form-label">Ticket Concern</label>
             <select id="inputState" className="form-select">
-              <option selected>Choose...</option>
-              <option>...</option>
+
+              {
+                arrayconcern.length > 0 ? (
+                  arrayconcern.map((concern, index) => (
+                    <option key={index}>{concern}</option>
+                  ))
+                ) : (
+                  <option value=''>No Concern Availabale</option>
+                )
+              }
             </select>
           </div>
           <div className="col-md-2">
           <label htmlFor="validationCustom04" className="form-label">
             Ticket Date
-          </label><br></br>
-              <DatePicker className="form-control"
-                selected={selectedDate}
-                onChange={date => setSelectedDate(date)}
-                dateFormat="dd/MM/yyyy"c
-                isClearable
-                placeholderText="Select a date"
-                />
+          </label>
+          <input className='form-control'></input>
+              
         </div>
           
           <div className="col-md-2">

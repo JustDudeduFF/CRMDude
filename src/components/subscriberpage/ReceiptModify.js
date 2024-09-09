@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { db } from '../../FirebaseConfig';
 import { toast, ToastContainer } from 'react-toastify';
-import { tr } from 'date-fns/locale';
+
 
 export default function ReceiptModify() {
   const location = useLocation();

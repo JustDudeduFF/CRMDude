@@ -1,7 +1,41 @@
-import React from 'react'
+import { onValue, ref } from 'firebase/database'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { db } from '../../FirebaseConfig';
 
 export default function TicketTable() {
+  const username = localStorage.getItem('susbsUserid');
+
+  const ticketRef = ref(db, `Susbcriber/${username}/Tickets`);
+  const [arrayticket, setArrayTicket] = useState([]);
+
+
+  useEffect(() => {
+    const fetchTicketsdata = onValue(ticketRef, (ticketSnap => {
+
+      if(ticketSnap.exists()){
+        const ticketArray = [];
+        ticketSnap.forEach(Childticket => {
+          const ticketno = Childticket.val().ticketno;
+          const source = Childticket.val().source;
+          const generatedate = Childticket.val().generatedate;
+          const ticketconcern = Childticket.val().ticketconcern;
+          const assignto = Childticket.val().assignto;
+          const description = Childticket.val().description;
+          const assigntime = Childticket.val().assigntime;
+          const assigndate = Childticket.val().assigndate;
+          const status = Childticket.val().status;
+          const closedate = Childticket.val().closedate;
+          const closetime = Childticket.val().closetime;
+
+          ticketArray.push({ticketno, source, generatedate, ticketconcern, assignto, description, assigntime, assigndate, status});
+        });
+        setArrayTicket(ticketArray);
+      }
+    }))
+
+    return () => fetchTicketsdata();
+  }, [username])
   return (
     <div>
 
@@ -25,25 +59,35 @@ export default function TicketTable() {
                     </tr>
                 </thead>
                 <tbody className='table-group-divider'>
-                <tr>
-                <td style={{color:'green ',  cursor:'pointer'}} className="btn" data-bs-toggle="dropdown" aria-expanded="false">7890</td>
-                <ul className="dropdown-menu">
-                  <li><Link className='dropdown-item' style={{color:'black'}} id='link' to='modifyticket'>Update Ticket</Link></li>
-                  <li><a className="dropdown-item" to="#">Cancel Ticket</a></li>
-                  <li><a className="dropdown-item" to="#">Download Receipt</a></li>
-                </ul>
-                    <td>Manual</td>
-                    <td>01-Jan-2024</td>
-                    <td>Shivam Chauhan</td>
-                    <td>Vishal Kumar</td>
-                    <td>01-Jan-2024  01:20:30</td>
-                    <td>Vishal Kumar</td>
-                    <td>01-Jan-2024  05:20:30</td>
-                    <td>4:00 Hours</td>
-                    <td>Completed</td>
-                    <td>Remarks</td>
-                    
-                </tr>
+
+                  {
+                    arrayticket.length > 0 ? (
+                      arrayticket.map(({ticketno, source, generatedate, ticketconcern, assignto, description, assigntime, assigndate, status}, index) => (
+                        <tr>
+                        <td style={{color:'green ',  cursor:'pointer'}} className="btn" data-bs-toggle="dropdown" aria-expanded="false">{ticketno}</td>
+                        <ul className="dropdown-menu">
+                          <li><Link className='dropdown-item' style={{color:'black'}} id='link' to='modifyticket'>Update Ticket</Link></li>
+                          <li><a className="dropdown-item" to="#">Cancel Ticket</a></li>
+                          <li><a className="dropdown-item" to="#">Download Receipt</a></li>
+                        </ul>
+                            <td>{source}</td>
+                            <td>{generatedate}</td>
+                            <td>Shivam Chauhan</td>
+                            <td>{assignto}</td>
+                            <td>{`${assigndate} ${assigntime}`}</td>
+                            <td>{closeby}</td>
+                            <td>{closetime}</td>
+                            <td>{tat}</td>
+                            <td>{status}</td>
+                            <td>{description}</td>
+                            
+                        </tr>
+                      ))
+                    ) : (
+                      <td colSpan="8" style={{ textAlign: 'center' }}>No Tickets Availabale</td>
+                    )
+                  }
+                
                 </tbody>
 
                 </table>

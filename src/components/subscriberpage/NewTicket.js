@@ -59,20 +59,40 @@ export default function NewTicket() {
 
 
     const generateTicket = async () => {
+      const ticketno = `TIC-${Date.now()}`
+      const assigntime = currenttime.toLocaleTimeString();
+
       const ticketdata = {
         source: 'Manual',
-        ticketno: `TIC-${Date.now()}`,
+        ticketno: ticketno,
         generatedate: new Date().toISOString().split('T')[0],
         ticketconcern: ticketconcern,
         assignto: assignemp,
         description: description,
-        assigntime: currenttime.toLocaleTimeString(),
-        assigndate: new Date().toISOString().split('T')[0]
+        assigntime: assigntime,
+        assigndate: new Date().toISOString().split('T')[0],
+        status: 'Pending'
       }
 
-      const ticketRef = ref(db, `Subscriber/${username}/Tickets/${ticketdata.ticketno}`);
+      const globalticketdata = {
+        ticketno: ticketno,
+        source: 'Manual',
+        generatedate: new Date().toISOString().split('T')[0],
+        ticketconcern: ticketconcern,
+        assignto: assignemp,
+        description: description,
+        assigntime: assigntime,
+        assigndate: new Date().toISOString().split('T')[0],
+        status: 'Pending'
+      }
+
+      const ticketRef = ref(db, `Subscriber/${username}/Tickets/${ticketno}`);
+      const globalticketRef = ref(db, `Global Tickets/Pending/${ticketno}`);
+
+
       try{
         await set(ticketRef, ticketdata);
+        await set(globalticketRef, globalticketdata);
         navigate(-1);
 
 

@@ -1,10 +1,65 @@
-import React, {useState} from 'react'
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import { ref, onValue, update } from 'firebase/database';
+import React, {useEffect, useState} from 'react'
+import { useLocation } from 'react-router-dom';
+import { db } from '../../FirebaseConfig';
+
 
 
 export default function ModifyTicket() {
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [closeby, setCloseBy] = useState('');
+  const [status, setStatus] = useState('');
+  const [currenttime, setCurrentTime] = useState(new Date())
+  const [arrayemp, setArrayEmp] = useState([]);
+  const location = useLocation();
+  const username = localStorage.getItem('susbsUserid');
+  const {ticket} = location.state || {};
+
+  const empRef = ref(db, `users`);
+
+  const handleCloseTicket = async () => {
+    const ticketRef = ref(db, `Subscriber/${username}/Tickets/${ticket.ticketno}`);
+    const newticketdata = {
+      closedate: new Date().toISOString().split('T')[0],
+      closeby: closeby,
+      closetime: currenttime.toLocaleTimeString(),
+      status: status
+    }
+
+    try{
+      await update(ticketRef, newticketdata);
+    }catch(error){
+      console.log(`Error :- ${error}`);
+    }
+  }
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    const fetchemp = onValue(empRef, (empSnap => {
+      if(empSnap.exists()){
+        const empArray = [];
+        empSnap.forEach(ChildEmp => {
+          const empname = ChildEmp.val().fullname;
+          empArray.push(empname);
+        });
+        setArrayEmp(empArray);
+      }
+    }));
+
+    return () => {
+      fetchemp();
+      clearInterval(timer);
+    }
+    
+  }, [username])
+
+
+  
+
+
+  
   return (
     <div style={{flex:'1',display:'flex', flexDirection:'column'}}>
 
@@ -12,29 +67,29 @@ export default function ModifyTicket() {
     <div style={{ flex:'1', display:'flex', flexDirection:'column'}}>
         <div style={{flex:'1', margin:'20px', padding:'10px', borderRadius:'5px'}}>
         <form className="row g-3">
-          <div className="col-md-1">
-            <label for="inputEmail4" className="form-label">Ticket No.</label>
-            <input type="email" className="form-control" id="inputEmail4" value='Auto' readOnly></input>
+          <div className="col-md-2">
+            <label className="form-label">Ticket No.</label>
+            <input type="email" className="form-control" id="inputEmail4" defaultValue={ticket.ticketno} readOnly></input>
           </div>
           <div className="col-md-2">
-            <label for="inputPassword4" className="form-label">Ticket Concern</label>
-            <input type="email" className="form-control" id="inputEmail4" value='Internet Not Working' readOnly></input>
+            <label className="form-label">Ticket Concern</label>
+            <input type="email" className="form-control" id="inputEmail4" defaultValue={ticket.ticketconcern} readOnly></input>
           </div>
           <div className="col-md-2">
-          <label htmlFor="validationCustom04" className="form-label">
+          <label className="form-label">
             Ticket Generation Date
           </label><br></br>
-          <input type="email" className="form-control" id="inputEmail4" value='01-Jan-2024' readOnly></input>
+          <input type="email" className="form-control" id="inputEmail4" defaultValue={ticket.assigndate} readOnly></input>
         </div>
           
           <div className="col-md-2">
-            <label for="inputZip" className="form-label">Assigned To</label><span style={{marginLeft:'20px', cursor:'pointer'}} class="badge text-bg-success">Change</span> 
-            <input type="email" className="form-control" id="inputEmail4" value='Shivam Sharma' readOnly></input>
+            <label className="form-label">Assigned To</label><span style={{marginLeft:'20px', cursor:'pointer'}} className="badge text-bg-success">Change</span> 
+            <input type="email" className="form-control" id="inputEmail4" defaultValue={ticket.assignto} readOnly></input>
             
           </div>
           <div className="col-md-8">
-            <label for="inputCity" className="form-label">Description or Brief</label><span style={{marginLeft:'20px', cursor:'pointer'}} class="badge text-bg-success">modify</span> 
-            <input type="text" className="form-control" id="inputCity" value='Customer Ke Device ma WAN Nahi aarha ha' readOnly></input>
+            <label className="form-label">Description or Brief</label>
+            <input type="text" className="form-control" id="inputCity" defaultValue={ticket.description} readOnly></input>
           </div>
             
         </form>
@@ -45,36 +100,39 @@ export default function ModifyTicket() {
       <div style={{flex:'1'}}>
         <form className='row g-3'>
         <div className="col-md-2">
-            <label for="inputZip" className="form-label">Action On Ticket</label>
-            <select id="inputState" className="form-select">
-              <option selected>Completed</option>
-              <option>Temporary Closed</option>
+            <label className="form-label">Action On Ticket</label>
+            <select onChange={(e) => setStatus(e.target.value)} className="form-select">
+              <option value=''>Choose...</option>
+              <option value='Completed'>Completed</option>
+              <option value='Temporary Closed'>Temporary Closed</option>
             </select>
           </div>
 
           <div className="col-md-2">
-            <label for="inputZip" className="form-label">Completed By</label>
-            <select id="inputState" className="form-select">
-              <option selected>Employee Names...</option>
-              <option>Employee</option>
+            <label className="form-label">Completed By</label>
+            <select onChange={(e) => setCloseBy(e.target.value)}className="form-select">
+              <option value=''>Choose...</option>
+              {
+                arrayemp.length > 0 ? (
+                  arrayemp.map((empname, index) => (
+                    <option key={index} defaultValue={empname}>{empname}</option>
+                  ))
+                ) : (
+                  <option defaultValue=''>No Employee Availabale</option>
+                )
+              }
             </select>
           </div>
           <div className="col-md-2">
-            <label for="inputZip" className="form-label">Closing Date</label>
-            <DatePicker className="form-control"
-                selected={selectedDate}
-                onChange={date => setSelectedDate(date)}
-                dateFormat="dd/MM/yyyy"c
-                isClearable
-                placeholderText="Select a date"
-                />
+            <label className="form-label">Closing Date</label>
+            <input type='date' className='form-control' defaultValue={new Date().toISOString().split('T')[0]}></input>
           </div>
           <div className="col-md-8">
-            <label for="inputZip" className="form-label">RCA</label>
-            <input type="email" className="form-control" id="inputEmail4" placeholder='You Take Action On Ticket'></input>
+            <label className="form-label">RCA</label>
+            <input type="text" className="form-control"placeholder='You Take Action On Ticket'></input>
           </div>
         </form>
-        <button style={{marginTop:'20px'}} type="button" class="btn btn-outline-success">Close Ticket</button>
+        <button onClick={handleCloseTicket} style={{marginTop:'20px'}} type="button" className="btn btn-outline-success">Close Ticket</button>
 
       </div>
     </div>

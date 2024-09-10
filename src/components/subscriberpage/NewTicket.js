@@ -48,7 +48,7 @@ export default function NewTicket() {
           });
           setArrayEmp(empArray);
         }
-      }))
+      }));
 
       return () => {fetchconcerns();
         fetchemp();
@@ -63,27 +63,33 @@ export default function NewTicket() {
       const assigntime = currenttime.toLocaleTimeString();
 
       const ticketdata = {
+        generatedBy: localStorage.getItem('Name'),
         source: 'Manual',
         ticketno: ticketno,
-        generatedate: new Date().toISOString().split('T')[0],
         ticketconcern: ticketconcern,
         assignto: assignemp,
         description: description,
         assigntime: assigntime,
         assigndate: new Date().toISOString().split('T')[0],
-        status: 'Pending'
+        status: 'Pending',
+        closedate: '',
+        closeby: '',
+        closetime: '',
       }
 
       const globalticketdata = {
+        generatedBy: localStorage.getItem('Name'),
         ticketno: ticketno,
         source: 'Manual',
-        generatedate: new Date().toISOString().split('T')[0],
         ticketconcern: ticketconcern,
         assignto: assignemp,
         description: description,
         assigntime: assigntime,
         assigndate: new Date().toISOString().split('T')[0],
-        status: 'Pending'
+        status: 'Pending',
+        closedate: '',
+        closeby: '',
+        closetime: '',
       }
 
       const ticketRef = ref(db, `Subscriber/${username}/Tickets/${ticketno}`);

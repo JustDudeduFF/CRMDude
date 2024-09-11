@@ -42,7 +42,7 @@ export default function PaymetTable() {
   }, [userid]);
   return (
     <div>
-      <div style={{width:'82vw',overflowY:'auto', overflow:'hidden', scrollbarWidth:'none'}}>
+      <div style={{width:'82vw',overflowY:'auto', overflow:'hidden'}}>
       <table style={{width:'max-content'}} className="table">
         <thead>
           <tr>
@@ -54,10 +54,10 @@ export default function PaymetTable() {
             <th style={{width:'100px'}} scope="col">Discount</th>
             <th style={{width:'180px'}} scope="col">Payment Mode</th>
             <th style={{width:'150px'}} scope="col">Cheque or Transaction No.</th>
-            <th scope="col">Bank Name</th>
-            <th scope="col">Collected By</th>
-            <th scope="col">Modified By</th>
-            <th scope="col">Narration</th>
+            <th style={{width:'150px'}} scope="col">Bank Name</th>
+            <th style={{width:'150px'}} scope="col">Collected By</th>
+            <th style={{width:'150px'}} scope="col">Modified By</th>
+            <th style={{width:'150px'}} scope="col">Narration</th>
           </tr>
         </thead>
         <tbody className="table-group-divider">

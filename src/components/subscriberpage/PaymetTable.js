@@ -55,9 +55,15 @@ export default function PaymetTable() {
             <th style={{width:'180px'}} scope="col">Payment Mode</th>
             <th style={{width:'150px'}} scope="col">Cheque or Transaction No.</th>
             <th style={{width:'150px'}} scope="col">Bank Name</th>
+<<<<<<< HEAD
             <th style={{width:'150px'}} scope="col">Collected By</th>
             <th style={{width:'150px'}} scope="col">Modified By</th>
             <th style={{width:'150px'}} scope="col">Narration</th>
+=======
+            <th scope="col">Collected By</th>
+            <th scope="col">Modified By</th>
+            <th scope="col">Narration</th>
+>>>>>>> 6b4aaff34a0799d25b216ba7c1bd008d39a1cc36
           </tr>
         </thead>
         <tbody className="table-group-divider">

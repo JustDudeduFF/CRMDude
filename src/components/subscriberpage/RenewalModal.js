@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import '../Modal.css'
 
 
 
 
 
-const RenewalModal = ({show, planName, planAmount, isp, modalShow, handleActivation, handleAmount, handleRemarks, handleexpiry, handleMin, savePlan}) => {
+const RenewalModal = ({show, planName, planAmount, isp, modalShow, handleActivation, handleAmount, handleRemarks, handleexpiry, handleMin, savePlan, renewbtn}) => {
     
     
     if(!show) return null;
@@ -60,7 +60,7 @@ const RenewalModal = ({show, planName, planAmount, isp, modalShow, handleActivat
             </div>
 
             <div className='d-flex flex-row'>
-            <button style={{flex:'1'}} onClick={savePlan} className='btn btn-outline-info'>Save</button>
+            <button style={{flex:'1'}} onClick={savePlan} className='btn btn-outline-info' disabled={renewbtn}>Save</button>
             <button onClick={modalShow} style={{flex:'1'}} className='btn btn-outline-secondary ms-2'>Cancel</button>
             </div>
             

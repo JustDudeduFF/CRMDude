@@ -377,6 +377,8 @@ export default function NewUserAdd() {
           action: 'Registeration',
           completedby: localStorage.getItem('Name')
         }
+
+
   
         // Add to Firestore
         await update(ref(db, `Subscriber/${username}`), userData);

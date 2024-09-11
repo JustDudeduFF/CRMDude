@@ -17,10 +17,18 @@ export default function InventryDash() {
   const [backgroundR, setBackgroundR] = useState('');
 
   const [getmakers, setGetMakers] = useState([]);
+  const [arraycategory, setArrayCategory] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchDevice, setSearchDevice] = useState('');
+  const [searchcategory, setSearcCategory] = useState('');
+  const [currentmaker, setCurrentMaker] = useState('');
 
   const [getdevice, setGetDevice] = useState([]);
+  const [devicecategry, setDeviceCategry] = useState('');
+
+  const capitalizeFirstLetter = (str) => {
+    return str.replace(/\b\w/g, (char) => char.toUpperCase())
+  }
 
   const fetchData = useCallback(async () => {
     const deviceRef = ref(db, `Inventory/${devicetype}`);
@@ -44,6 +52,7 @@ export default function InventryDash() {
   }, [devicetype]);
 
   useEffect(() => {
+    
     fetchData();
   }, [fetchData]);
 
@@ -66,8 +75,28 @@ export default function InventryDash() {
     }
   };
 
-  const fetchDevices = async (maker) => {
-    const DeviceRef = ref(db, `Inventory/${devicetype}/${maker}`);
+  const fetchcategory = useCallback(async (maker) => {
+    const categoryRef = ref(db, `Inventory/${devicetype}/${maker}`);
+    const categorySnap = await get(categoryRef);
+
+    if(categorySnap.exists()){
+      const Category = {};
+
+      categorySnap.forEach((childSnap) => {
+        const categoryname = childSnap.key;
+        const deviceCount = Object.keys(childSnap.val()).length;
+
+        Category[categoryname] = deviceCount;
+      });
+
+      const categoryArray = Object.entries(Category);
+      setArrayCategory(categoryArray);
+    }else{
+      alert('No any Category');
+    }
+  })
+  const fetchDevices = async (category) => {
+    const DeviceRef = ref(db, `Inventory/${devicetype}/${currentmaker}/${category}`);
     const DeviceSnap = await get(DeviceRef);
 
     if (DeviceSnap.exists()) {
@@ -96,7 +125,8 @@ export default function InventryDash() {
   };
 
   const showDevices = (maker) => {
-    fetchDevices(maker);
+    fetchcategory(maker);
+    
   };
 
   const inventryData = {
@@ -106,7 +136,7 @@ export default function InventryDash() {
   };
 
   const AddInventry = async () => {
-    const inventryRef = ref(db, `Inventory/${devicetype}/${makername}/${mac}`);
+    const inventryRef = ref(db, `Inventory/${devicetype}/${makername}/${devicecategry}/${mac}`);
     try {
       await set(inventryRef, inventryData);
       toast.success('Device Added!', {
@@ -140,7 +170,12 @@ export default function InventryDash() {
   
   );
 
+  const filteredCategory = arraycategory.filter(( [category] ) =>
+    category.toLowerCase().includes(searchcategory.toLowerCase())
+  
+  );
   return (
+    
     <div style={{ display: 'flex', flexDirection: 'column', marginTop: '4.5%' }}>
       <div style={{ display: 'flex', flexDirection: 'row', margin: '10px' }}>
         <div style={{ flex: '1' }}>
@@ -197,7 +232,7 @@ export default function InventryDash() {
           </div>
         </div>
 
-        <div className='d-flex flex-column' style={{ flex: '3', }}>
+        <div className='d-flex flex-column' style={{ flex: '2'}}>
           <div className='ms-3'>
             <input
               className='form-control'
@@ -210,9 +245,33 @@ export default function InventryDash() {
           </div>
           <ol className="list-group list-group ms-5 mt-3">
             {filteredMakers.map(([maker, count], index) => (
-              <li onClick={() => showDevices(maker)} key={index}>
+              <li onClick={() => {showDevices(maker); setCurrentMaker(maker)}} key={index}>
                 <div className='col mt-2 border border-secondary rounded p-2 me-3'>
                   <label className='form-label'>{`Device Maker :- ${maker}`}</label><br></br>
+                  <label className='form-label'>Category :- </label><span className="badge text-bg-secondary ms-2 mt-1">{count}</span>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+
+        <div className='d-flex flex-column' style={{ flex: '2'}}>
+          <div className='ms-3'>
+            <input
+              className='form-control'
+              type='search'
+              aria-label='search'
+              placeholder='Enter Device Category Name'
+              value={searchcategory}
+              onChange={(e) => setSearcCategory(e.target.value)}
+            />
+          </div>
+          <ol className="list-group list-group ms-5 mt-3">
+            {filteredCategory.map(([category, count], index) => (
+              <li onClick={() => fetchDevices(category)} key={index}>
+                <div className='col mt-2 border border-secondary rounded p-2 me-3'>
+                  <label className='form-label'>{`Device Category :- ${category}`}</label><br></br>
                   <label className='form-label'>Quantity :- </label><span className="badge text-bg-secondary ms-2 mt-1">{count}</span>
                 </div>
               </li>
@@ -220,7 +279,12 @@ export default function InventryDash() {
           </ol>
         </div>
 
-        <div className='d-flex flex-column' style={{ flex: '4' }}>
+        
+
+
+
+        
+        <div className='d-flex flex-column' style={{ flex: '3' }}>
           <div className='col ms-3 me-3'>
             <input
               className='form-control'
@@ -262,6 +326,7 @@ export default function InventryDash() {
       </div>
       <ToastContainer />
       <AddInventryData
+        devicetype={(e) => setDeviceCategry(e.target.value)}
         show={showModal}
         makerName={(event) => setMakerName(event.target.value)}
         DeviceSerial={(event) => setSerial(event.target.value)}

@@ -75,6 +75,7 @@ export default function NewTicket() {
         closedate: '',
         closeby: '',
         closetime: '',
+        rac: ''
       }
 
       const globalticketdata = {
@@ -90,6 +91,7 @@ export default function NewTicket() {
         closedate: '',
         closeby: '',
         closetime: '',
+        rac: ''
       }
 
       const ticketRef = ref(db, `Subscriber/${username}/Tickets/${ticketno}`);

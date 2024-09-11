@@ -1,12 +1,36 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import '../Modal.css'
+import { ref, get } from 'firebase/database';
+import { db } from '../../FirebaseConfig';
 
 
-const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, DeviceMac, modalshow}) => {
+const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, DeviceMac, modalshow, devicetype}) => {
     const [isVisible, setIsVisible] = useState(true);
     const [isVisible2, setIsVisible2] = useState(false);
     const [note, setNote] = useState('Please Confirm Company');
     const [buttontext, setButtonText] = useState('Add Device');
+    const [arraymakerm, setArrayMaker] = useState([]);
+
+    useEffect(() => {
+        const fetchmakername = async() => {
+            const makerRef = ref(db, `Master/dMakers`);
+            const makerSnap = await get(makerRef);
+      
+            if(makerSnap.exists()){
+              const makerArray = [];
+              makerSnap.forEach(Childname => {
+                const makername = Childname.key;
+                makerArray.push(makername);
+              });
+              setArrayMaker(makerArray);
+            }
+          }
+
+          return () => {
+            fetchmakername();
+          }
+    }, [])
+
     
 
     
@@ -35,10 +59,15 @@ const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, 
             <div className='d-flex flex-row bg-info rounded'>
                 <div className='m-2 d-flex flex-column col-md-3'>
                     <span className='ms-2'>
-                        Add Device
+                        Device Type
                     </span>
-                    <select className='form-select'>
-                        <option>Choose...</option>
+                    <select onChange={devicetype} className='form-select'>
+                        <option value=''>Choose...</option>
+                        <option value='ONT'>ONT</option>
+                        <option value='ONU'>ONU</option>
+                        <option value='Router'>Router</option>
+
+
                     </select>
                 </div>
 
@@ -69,7 +98,18 @@ const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, 
                                 <form className='row g-3 mt-2 mb-3'>
                                 <div className='col-md-4'>
                                     <label className='form-label ms-1'>Device Maker Name</label>
-                                    <input onChange={makerName} className='form-control'></input>
+                                    <select onChange={makerName} className='form-select'>
+                                        <option value=''>Choose...</option>
+                                        {
+                                            arraymakerm.length > 0 ? (
+                                                arraymakerm.map((makername, index) => (
+                                                    <option key={index} value={makername}>{makername}</option>
+                                                ))
+                                            ) : (
+                                                <option value=''>No Maker Availabale</option>
+                                            )
+                                        }
+                                    </select>
                             </div>
 
                                 <div className='col-md-4'>

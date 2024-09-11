@@ -42,7 +42,7 @@ export default function PaymetTable() {
   }, [userid]);
   return (
     <div>
-      <div style={{width:'82vw',overflowY:'auto', overflow:'hidden'}}>
+      <div style={{ overflowX:'auto'}}>
       <table style={{width:'max-content'}} className="table">
         <thead>
           <tr>
@@ -55,21 +55,15 @@ export default function PaymetTable() {
             <th style={{width:'180px'}} scope="col">Payment Mode</th>
             <th style={{width:'150px'}} scope="col">Cheque or Transaction No.</th>
             <th style={{width:'150px'}} scope="col">Bank Name</th>
-<<<<<<< HEAD
             <th style={{width:'150px'}} scope="col">Collected By</th>
             <th style={{width:'150px'}} scope="col">Modified By</th>
             <th style={{width:'150px'}} scope="col">Narration</th>
-=======
-            <th scope="col">Collected By</th>
-            <th scope="col">Modified By</th>
-            <th scope="col">Narration</th>
->>>>>>> 6b4aaff34a0799d25b216ba7c1bd008d39a1cc36
+
           </tr>
         </thead>
         <tbody className="table-group-divider">
-
           {arraypayment.length > 0 ? (
-            arraypayment.map(({source, receiptNo, receiptDate, paymentMode, bankname,amount, discount, collectedBy, modifiedBy ,transactionNo, narration}, index) => (
+            arraypayment.slice().reverse().map(({source, receiptNo, receiptDate, paymentMode, bankname,amount, discount, collectedBy, modifiedBy ,transactionNo, narration}, index) => (
               <tr key={index}>
                 <td>{index + 1}</td>
                 <td>{source}</td>
@@ -83,7 +77,6 @@ export default function PaymetTable() {
                 <td>{collectedBy}</td>
                 <td>{modifiedBy}</td>
                 <td>{narration}</td>
-              
               </tr>
 
               

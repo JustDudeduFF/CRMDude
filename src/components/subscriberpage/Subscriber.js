@@ -54,6 +54,8 @@ export default function Subscriber() {
   const [remarks, setRemarks] = useState('');
   const [expdate, setExpDate] = useState('');
 
+  const [renewbtn, setRenewBtn] = useState(true);
+
 
 
     const [loader, setLoader] = useState(false);
@@ -71,6 +73,7 @@ export default function Subscriber() {
 
     const handleSavePlan = async () => {
         setLoader(true);
+        setRenewBtn(true);
         const newDue = (parseInt(dueamount, 10) || 0) + (parseInt(customesharge, 10) || parseInt(planAmount, 10));
 
 
@@ -106,7 +109,6 @@ export default function Subscriber() {
         await set(ref(db, `Subscriber/${username}/planinfo/${planinfoKey}`), planinfo);
 
         await update(planRef, newconnectioninfo);
-
         setShowModal(false);
         setLoader(false);
 
@@ -367,12 +369,14 @@ export default function Subscriber() {
                         handleMin={expiryDate}
                         handleAmount={(e) => setCustomCharge(e.target.value)}
                         handleActivation={(e) => {
+                            setRenewBtn(false);
                             const newActivationDate = e.target.value;
                             setRenewActDate(newActivationDate);
                             getperiod(newActivationDate);
                         }}
                         handleexpiry={expdate}
                         handleRemarks={(e) => setRemarks(e.target.value)}
+                        renewbtn={renewbtn}
                         savePlan={handleSavePlan}
                     />
         </div>

@@ -10,6 +10,7 @@ export default function ModifyTicket() {
   const [status, setStatus] = useState('');
   const [currenttime, setCurrentTime] = useState(new Date())
   const [arrayemp, setArrayEmp] = useState([]);
+  const [rac, setRAC] = useState('');
   const location = useLocation();
   const username = localStorage.getItem('susbsUserid');
   const {ticket} = location.state || {};
@@ -22,7 +23,8 @@ export default function ModifyTicket() {
       closedate: new Date().toISOString().split('T')[0],
       closeby: closeby,
       closetime: currenttime.toLocaleTimeString(),
-      status: status
+      status: status,
+      rac: rac
     }
 
     try{
@@ -129,7 +131,7 @@ export default function ModifyTicket() {
           </div>
           <div className="col-md-8">
             <label className="form-label">RCA</label>
-            <input type="text" className="form-control"placeholder='You Take Action On Ticket'></input>
+            <input onChange={(e) => setRAC(e.target.value)} type="text" className="form-control" placeholder='You Take Action On Ticket'></input>
           </div>
         </form>
         <button onClick={handleCloseTicket} style={{marginTop:'20px'}} type="button" className="btn btn-outline-success">Close Ticket</button>

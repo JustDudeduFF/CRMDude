@@ -71,6 +71,7 @@ export default function TicketTable() {
                         {/* <th scope='col'>TAT</th> */}
                         <th scope='col'>Current Status</th>
                         <th scope='col'>Description</th>
+                        <th style={{width:'200px'}} scope='col'>RAC</th>
                         
                     </tr>
                 </thead>

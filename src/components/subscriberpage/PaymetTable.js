@@ -1,6 +1,6 @@
 import { get, ref } from 'firebase/database';
 import React, { useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { db } from '../../FirebaseConfig';
 
 export default function PaymetTable() {
@@ -42,17 +42,17 @@ export default function PaymetTable() {
   }, [userid]);
   return (
     <div>
-      <div style={{overflowY:'auto'}}>
-      <table className="table">
+      <div style={{width:'82vw',overflowY:'auto', overflow:'hidden', scrollbarWidth:'none'}}>
+      <table style={{width:'max-content'}} className="table">
         <thead>
           <tr>
-            <th scope="col">S. No.</th>
-            <th scope="col">Source</th>
-            <th scope="col">Receipt No.</th>
-            <th scope="col">Receipt Date</th>
-            <th scope="col">Amount</th>
-            <th scope="col">Discount</th>
-            <th scope="col">Payment Mode</th>
+            <th style={{width:'60px'}} scope="col">S. No.</th>
+            <th style={{width:'120px'}} scope="col">Source</th>
+            <th style={{width:'180px'}} scope="col">Receipt No.</th>
+            <th style={{width:'120px'}} scope="col">Receipt Date</th>
+            <th style={{width:'100px'}} scope="col">Amount</th>
+            <th style={{width:'100px'}} scope="col">Discount</th>
+            <th style={{width:'180px'}} scope="col">Payment Mode</th>
             <th style={{width:'150px'}} scope="col">Cheque or Transaction No.</th>
             <th scope="col">Bank Name</th>
             <th scope="col">Collected By</th>

@@ -54,7 +54,7 @@ export default function PaymetTable() {
             <th style={{width:'100px'}} scope="col">Discount</th>
             <th style={{width:'180px'}} scope="col">Payment Mode</th>
             <th style={{width:'150px'}} scope="col">Cheque or Transaction No.</th>
-            <th scope="col">Bank Name</th>
+            <th style={{width:'150px'}} scope="col">Bank Name</th>
             <th scope="col">Collected By</th>
             <th scope="col">Modified By</th>
             <th scope="col">Narration</th>

@@ -1,21 +1,51 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+
+import React, { useEffect, useState } from 'react';
+import { ref, onValue } from 'firebase/database';
+import { db } from '../../FirebaseConfig';
+import { useNavigate } from 'react-router-dom';
+
 
 export default function InventorysTable() {
+    const username = localStorage.getItem('susbsUserid');
+    const inventryRef = ref(db, `Subscriber/${username}/Inventory`);
+    const navigate = useNavigate();
+
+    const [arrayinventry, setArrayInventry] = useState([]);
+
+    useEffect(() => {
+        const fetchInventry = onValue(inventryRef, (inventrySnap => {
+            if(inventrySnap.exists()){
+                const invenryArray = [];
+                inventrySnap.forEach(Childinv => {
+                    const productcode = Childinv.key;
+                    const amount = Childinv.val().amount;
+                    const date = Childinv.val().date;
+                    const deviceSerialNumber = Childinv.val().deviceSerialNumber;
+                    const devicename = Childinv.val().devicename;
+                    const modifiedBy = Childinv.val().modifiedby;
+                    const remarks = Childinv.val().remarks;
+                    const status = Childinv.val().status;
+                    invenryArray.push({productcode, amount, date, deviceSerialNumber, devicename, modifiedBy, remarks, status});
+                });
+
+                setArrayInventry(invenryArray);
+            }
+        }));
+
+        return () => fetchInventry();
+    }, [username]);
+
   return (
     <div>
         <div style={{overflowY:'auto'}}>
                 <table style={{ borderCollapse:'collapse'}} className="table">
                 <thead>
                     <tr>
-                        <th style={{width:'120px'}} scope="col">Product Code</th>
+                        <th style={{width:'120px'}} scope='col'>Product Code</th>
                         <th style={{width:'120px'}} scope="col">Date</th>
-                        <th style={{width:'120px'}} scope="col">Store</th>
-                        <th style={{width:'160px'}}  scope="col">Product Name</th>
-                        <th style={{width:'160px'}}  scope="col">Product Serial No.</th>
-                        <th style={{width:'120px'}} scope="col">Quantity</th>
+                        <th style={{width:'160px'}} scope="col">Product Name</th>
+                        <th style={{width:'160px'}} scope="col">Product Serial No.</th>
                         <th style={{width:'90px'}} scope="col">Amount</th>
-                        <th style={{width:'70px'}} scope="col">Tax</th>
                         <th style={{width:'120px'}}>Remarks</th>
                         <th style={{width:'130px'}}>Modify By</th>
                         <th style={{width:'90px'}}>Status</th>
@@ -23,21 +53,24 @@ export default function InventorysTable() {
                     </tr>
                 </thead>
                 <tbody className='table-group-divider'>
-                <tr>
-                    <td><Link style={{color:'red', cursor:'pointer', fontWeight:'bold'}} id='link' to='modinvent'>SGMHW</Link></td>
-                    <td>01-Jan-2024</td>
-                    <td>Sigma Shop</td>
-                    <td>Huawei ONT Dual Band</td>
-                    <td>48575333AD768EA</td>
-                    <td>1</td>
-                    <td>1500.00</td>
-                    <td>0.00</td>
-                    <td>Device On Security</td>
-                    <td>Shivam Chauhan</td>
-                    <td>Activated</td>
-                    
-                    
-                </tr>
+                    {arrayinventry.length > 0 ? (
+                        arrayinventry.map(({productcode, amount, date, deviceSerialNumber, devicename, modifiedBy, remarks, status}, index) => (
+                            <tr className='rounded' style={{border:status === 'Activated' ? '1px solid green' : '1px solid red'}} key={index}>
+                                <td onClick={() => navigate('modinvent', {state: {productcode: productcode}})}>{productcode}</td>
+                                <td>{date}</td>
+                                <td>{devicename}</td>
+                                <td>{deviceSerialNumber}</td>
+                                <td>{`${amount}.00`}</td>
+                                <td>{remarks}</td>
+                                <td>{modifiedBy}</td>
+                                <td style={{color:status === 'Activated' ? 'green' : 'red'}}>{status}</td>
+                            </tr>
+                        ))
+                    ) : (
+                        <td colSpan="8" style={{ textAlign: 'center' }}>No Inventory data found</td>
+                    )
+                }
+                
                 </tbody>
 
                 </table>

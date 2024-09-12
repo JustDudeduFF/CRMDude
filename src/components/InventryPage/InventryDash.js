@@ -26,11 +26,15 @@ export default function InventryDash() {
   const [getdevice, setGetDevice] = useState([]);
   const [devicecategry, setDeviceCategry] = useState('');
 
-  const capitalizeFirstLetter = (str) => {
-    return str.replace(/\b\w/g, (char) => char.toUpperCase())
-  }
+  const [selectedindex, setSelectedIndex] = useState(null);
+  const [indexcategory, setIndexCategory] = useState(null);
+
 
   const fetchData = useCallback(async () => {
+    setGetMakers([]);
+    setArrayCategory([]);
+    setGetDevice([]);
+    
     const deviceRef = ref(db, `Inventory/${devicetype}`);
     const deviceSnap = await get(deviceRef);
 
@@ -76,6 +80,8 @@ export default function InventryDash() {
   };
 
   const fetchcategory = useCallback(async (maker) => {
+    setArrayCategory([]);
+    setGetDevice([]);
     const categoryRef = ref(db, `Inventory/${devicetype}/${maker}`);
     const categorySnap = await get(categoryRef);
 
@@ -133,6 +139,7 @@ export default function InventryDash() {
     serialno: serial,
     macno: mac,
     makername: makername,
+    devicecategry: devicecategry
   };
 
   const AddInventry = async () => {
@@ -245,8 +252,8 @@ export default function InventryDash() {
           </div>
           <ol className="list-group list-group ms-5 mt-3">
             {filteredMakers.map(([maker, count], index) => (
-              <li onClick={() => {showDevices(maker); setCurrentMaker(maker)}} key={index}>
-                <div className='col mt-2 border border-secondary rounded p-2 me-3'>
+              <li onClick={() => {showDevices(maker); setCurrentMaker(maker); setSelectedIndex(index)}} key={index}>
+                <div style={{boxShadow:selectedindex === index ? '0 0 10px blue' : '0 0 10px gray'}} className='col mt-2 border border-secondary rounded p-2 me-3'>
                   <label className='form-label'>{`Device Maker :- ${maker}`}</label><br></br>
                   <label className='form-label'>Category :- </label><span className="badge text-bg-secondary ms-2 mt-1">{count}</span>
                 </div>
@@ -269,8 +276,8 @@ export default function InventryDash() {
           </div>
           <ol className="list-group list-group ms-5 mt-3">
             {filteredCategory.map(([category, count], index) => (
-              <li onClick={() => fetchDevices(category)} key={index}>
-                <div className='col mt-2 border border-secondary rounded p-2 me-3'>
+              <li onClick={() => {fetchDevices(category); setIndexCategory(index)}} key={index}>
+                <div style={{boxShadow: indexcategory === index ? '0 0 10px blue' : '0 0 10px gray'}} className='col mt-2 border border-secondary rounded p-2 me-3'>
                   <label className='form-label'>{`Device Category :- ${category}`}</label><br></br>
                   <label className='form-label'>Quantity :- </label><span className="badge text-bg-secondary ms-2 mt-1">{count}</span>
                 </div>

@@ -37,6 +37,7 @@ export default function NewUserAdd() {
   const [deviceMaker, setDeviceMaker] = useState("");
   const [deviceSerialNumber, setDeviceSerialNumber] = useState("");
   const [connectionPowerInfo, setConnectionPowerInfo] = useState("");
+  const [category, setCategory] = useState('');
 
   // Field & Fiber Details
   const [connectedFMS, setConnectedFMS] = useState("");
@@ -57,6 +58,7 @@ export default function NewUserAdd() {
   const [arraydevice, setArraydevice] = useState([]);
   const [arrayserial, setArrayserial] = useState([]);
   const [arrayfms, setArrayfms] = useState([]);
+  const [arraycategory, setArrayCategory] = useState([]);
 
   const [planDuration, setPlanDuration] = useState(0); // Duration value from Firebase
   const [durationUnit, setDurationUnit] = useState(''); 
@@ -72,16 +74,42 @@ export default function NewUserAdd() {
     setIsListVisible(false); // Optionally hide the list after selection
   };
 
-  const serialRef = ref(db, `Inventory/New Stock/${deviceMaker}`);
+  const serialRef = ref(db, `Inventory/New Stock/${deviceMaker}/${category}`);
+  const categoryRef = ref(db, `Inventory/New Stock/${deviceMaker}`)
 
 
 
   useEffect(() => {
     if (deviceMaker) {
       // Fetch data only when deviceMaker is updated
-      getchSerials();
+      getCategory();
     }
   }, [deviceMaker]); // Make sure to include dependencies
+
+  const getCategory =() => {
+    setArrayCategory([]);
+    setArrayserial([]);
+
+    onValue(categoryRef, (categorySnap => {
+      if(categorySnap.exists()){
+        const categoryArray = [];
+        categorySnap.forEach(Childcategory => {
+          const categoryname = Childcategory.key;
+          categoryArray.push(categoryname);
+        });
+        setArrayCategory(categoryArray);
+      }else {
+        toast.error('No Data Found!', {
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      }
+    }));
+  }
 
   const getchSerials = () => {
     setArrayserial([]);
@@ -281,6 +309,9 @@ export default function NewUserAdd() {
 
     const planinfoRef = ref(db, `Subscriber/${username}/planinfo`)
     const planinfoKey = push(planinfoRef).key;
+
+    const subsInvRef = ref(db, `Subscriber/${username}/Inventory`);
+    const invetoryKey = push(subsInvRef).key;
     if(fullName === '' || username === '' || mobileNo === ''){
       toast.error('Manadaratry Field will not be empty', {
         autoClose: 3000,
@@ -378,16 +409,27 @@ export default function NewUserAdd() {
           completedby: localStorage.getItem('Name')
         }
 
+        const inventrydata = {
+          devicename: `${deviceMaker} ${category}`,
+          date: new Date().toISOString().split('T')[0],
+          deviceSerialNumber : deviceSerialNumber,
+          remarks: securityDeposit === '0' || null ? 'Free to Use' : 'Device On Security',
+          amount: securityDeposit,
+          status: 'Activated',
+          modifiedby: localStorage.getItem('Name')
+
+        }
+
 
   
         // Add to Firestore
         await update(ref(db, `Subscriber/${username}`), userData);
         await set(ref(db, `Subscriber/${username}/ledger/${ledgerKey2}`), ledgerdata2);
         await set(ref(db, `Subscriber/${username}/ledger/${ledgerKey}`), ledgerdata);
-
+        await set(ref(db, `Subscriber/${username}/Inventory/${invetoryKey}`), inventrydata);
         await set(ref(db, `Subscriber/${username}/planinfo/${planinfoKey}`), planinfo);
   
-        // Reset form or show success message
+        // Reset form or show success message 
         setLoader(false);
         // Optionally, reset all states here
       } catch (error) {
@@ -754,7 +796,23 @@ export default function NewUserAdd() {
           </select>
           <div className="invalid-feedback">Please select a valid state.</div>
           
-        </div><br></br>
+        </div>
+
+
+        <div className="col-md-3">
+          <label className="form-label">Select Category</label>
+          <select onClick={() => getchSerials()} onChange={(e) => setCategory(e.target.value)} className="form-select">
+            <option value=''>Choose...</option>
+            {arraycategory.length > 0 ? (
+              arraycategory.map((category, index) => (
+                <option value={category} key={index}>{category}</option>
+              ))
+            ) : (
+              <option value=''>No Category Available</option>
+            )}
+            </select> 
+
+        </div>
       
         <div className="col-md-3">
       <label htmlFor="validationCustom01" className="form-label">

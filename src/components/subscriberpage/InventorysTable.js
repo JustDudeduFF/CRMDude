@@ -55,8 +55,14 @@ export default function InventorysTable() {
                 <tbody className='table-group-divider'>
                     {arrayinventry.length > 0 ? (
                         arrayinventry.map(({productcode, amount, date, deviceSerialNumber, devicename, modifiedBy, remarks, status}, index) => (
-                            <tr className='rounded' style={{border:status === 'Activated' ? '1px solid green' : '1px solid red'}} key={index}>
-                                <td onClick={() => navigate('modinvent', {state: {productcode: productcode}})}>{productcode}</td>
+                            <tr key={index}>
+                                <td style={{color:'green', cursor:'pointer'}} onClick={() => {
+                                    if(status === 'Activated'){
+                                        navigate('modinvent', {state: {productcode: productcode}});
+                                    }else{
+                                        alert('Now Modifiable');
+                                    }
+                                }}>{productcode}</td>
                                 <td>{date}</td>
                                 <td>{devicename}</td>
                                 <td>{deviceSerialNumber}</td>

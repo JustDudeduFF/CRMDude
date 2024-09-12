@@ -2,7 +2,6 @@ import { get, ref, set, update } from 'firebase/database';
 import React, { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { db } from '../../FirebaseConfig';
-import { toast } from 'react-toastify';
 
 
 export default function InventryModify() {
@@ -58,7 +57,8 @@ export default function InventryModify() {
       const data = {
         macno: serialno,
         devicecategry: words[1],
-        makername:words[0]
+        makername:words[0],
+        serialno:''
       }
       await set(StockRef, data);
     }else if(inatinventry === 'Non Repairable'){
@@ -66,7 +66,8 @@ export default function InventryModify() {
       const data = {
         macno: serialno,
         devicecategry: words[1],
-        makername:words[0]
+        makername:words[0],
+        serialno:''
       }
       await set(StockRef, data);
     }else{

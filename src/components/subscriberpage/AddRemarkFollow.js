@@ -1,61 +1,105 @@
 
-import React, {useState} from 'react'
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import { get, ref, set } from 'firebase/database';
+import React, {useEffect, useState} from 'react'
+import { db } from '../../FirebaseConfig';
+
 export default function AddRemarkFollow(props) {
-    
     const {mode} = props
     const isVisible = mode === 'follow';
-    const [selectedDate, setSelectedDate] = useState(null);
+    const username = localStorage.getItem('subsUserid');
+
+    const [followupdate, setFollowUpDate] = useState('');
+    const [arrayconcern, setArrayConcern] = useState([]);
+    const [description, setDescription] = useState('');
+    const ConcernRef = ref(db, `Master/RMConcern`);
+
+    useEffect(() => {
+      const fetchconcern = async () => {
+        const concernSnap = await get(ConcernRef);
+        if(concernSnap.exists()){
+          const concernArray = [];
+          concernSnap.forEach(child => {
+            const concernname = child.key;
+            concernArray.push(concernname);
+          });
+          setArrayConcern(concernArray);
+
+        }
+      }
+
+      return () => fetchconcern();
+    }, [])
+
+    const savedata = async() => {
+      const remarkno = Date.now();
+      const remarkRef = ref(db, `Subscriber/${username}/Remarks`);
+      const type = mode === 'follow' ? 'Follow Up' : 'Remarks';
+
+      if(mode === 'follow'){
+
+      }else{
+        const remarkdata = {
+          remarkno: remarkno,
+          type: type,
+          date: new Date().toISOString().split('T')[0],
+          description: description,
+          modifiedby: localStorage.getItem('Name'),
+          modifiedon: new Date().toISOString().split('T')[0]
+        }
+
+        try{
+          await set(remarkRef, remarkdata);
+        }catch(error){
+          alert(`Failed :- ${error}`)
+        }
+      }
+
+    }
+
   return (
     <div style={{display:'flex', flexDirection:'column'}}>
       <div style={{flex:'1', margin:'20px', padding:'10px', border:mode === 'remark'? '1px solid skyblue' :'1px solid blue' , borderRadius:'5px', boxShadow:mode === 'remark' ? '0 0 10px skyblue' : '0 0 10px blue'}}>
       <form className="row g-3">
           <div className="col-md-1">
-            <label for="inputEmail4" className="form-label">Action ID</label>
-            <input type="email" className="form-control" id="inputEmail4" value='Auto' readOnly></input>
+            <label className="form-label">Action ID</label>
+            <input type="email" className="form-control" value='Auto' readOnly></input>
           </div>
           <div className='col-md-2'>
             <label className='form-label'>Action Type</label>
-            <input type="text" className="form-control" id="inputEmail4" value={`${mode === 'remark' ? 'Remark' : 'Follow Up'} `} readOnly></input>
+            <input type="text" className="form-control" value={`${mode === 'remark' ? 'Remark' : 'Follow Up'} `} readOnly></input>
           </div>
           
           <div className="col-md-2">
-          <label htmlFor="validationCustom04" className="form-label">
+          <label className="form-label">
             Action Date
-          </label><br></br>
-              <DatePicker className="form-control"
-                selected={selectedDate}
-                onChange={date => setSelectedDate(date)}
-                dateFormat="dd/MM/yyyy"c
-                isClearable
-                placeholderText="Select a date"
-                />
+          </label>
+          <input className='form-control' type='date' value={new Date().toISOString().split('T')[0]}></input>
         </div>
           {
             isVisible && 
                (
                 <div className="col-md-2">
-                <label htmlFor="validationCustom04" className="form-label">
+                <label className="form-label">
                     Assign Date
-                </label><br></br>
-                    <DatePicker className="form-control"
-                        selected={selectedDate}
-                        onChange={date => setSelectedDate(date)}
-                        dateFormat="dd/MM/yyyy"c
-                        isClearable
-                        placeholderText="Select a date"
-                        />
+                </label>
+                <input className='form-control' type='date' onChange={(e) => setFollowUpDate(e.target.value)}></input>
                 </div>
                )
                }
 
           <div className='col-md-2'>
-            <label className='form-label'>Follow Up Particular</label>
-            <select id="inputState" className="form-select">
-              <option selected>Reacharge</option>
-              <option>Complaint</option>
-              <option>Other</option>
+            <label className='form-label'>{mode === 'follow' ? 'Follow Up Particular' : 'Remark Particular'}</label>
+            <select className="form-select">
+              <option value='' disabled>Choose...</option>
+              {
+                arrayconcern.length > 0 ? (
+                  arrayconcern.map((concern, index) => (
+                    <option key={index} value={concern}>{concern}</option>
+                  ))
+                ) : (
+                  <option value=''>No Concern Availabale</option>
+                )
+              }
               
             </select>
           </div>
@@ -63,13 +107,13 @@ export default function AddRemarkFollow(props) {
         
 
         <div className="col-md-8">
-            <label for="inputPassword4" className="form-label">Description</label>
-            <input type="text" className="form-control" id="inputCity"></input>
+            <label className="form-label">Description</label>
+            <input onChange={(e) => setDescription(e.target.value)} type="text" className="form-control"></input>
           </div>
           
          
           <div className="col-8">
-            <button type="button" className={`btn ${mode === 'remark' ? 'btn-outline-info' : 'btn-outline-primary'}`}>{`${mode === 'remark'? 'Add Remark' : 'Add Follow Up'}`}</button>
+            <button onClick={savedata} type="button" className={`btn ${mode === 'remark' ? 'btn-outline-info' : 'btn-outline-primary'}`}>{`${mode === 'remark'? 'Add Remark' : 'Add Follow Up'}`}</button>
           </div>
         </form>
 

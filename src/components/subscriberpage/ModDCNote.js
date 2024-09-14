@@ -15,44 +15,51 @@ export default function ModDCNote() {
   const [remarks, setRemarks] = useState('');
   const [notetype, setNoteType] = useState('');
   const [date, setDate] = useState('');
+  const [dueAmount, setDueAmount] = useState('');
+
+
+  const [newamount, setNewAmount] = useState('');
 
   const noteRef = ref(db, `Subscriber/${username}/dcnotes/${noteno}`);
+  const dueRef = ref(db, `Subscriber/${username}/connectionDetails`);
+
+
 
   useEffect(() => {
     const fetchdata = async () => {
       const noteSnap = await get(noteRef);
+      const dueSnap = await get(dueRef);
 
       setParticular(noteSnap.val().notefor);
       setAmount(noteSnap.val().amount);
       setDate(noteSnap.val().notedate);
       setRemarks(noteSnap.val().remarks);
       setNoteType(noteSnap.val().notetype);
+      setDueAmount(dueSnap.val().dueAmount);
 
-      
     }
 
     return () => fetchdata();
   }, [noteno]);
 
   const updatenote = async() => {
-      const dueRef = ref(db, `Subscriber/${username}/connectionDetails`);
+      
       const ledgerRef = ref(db, `Subscriber/${username}/ledger/${noteno}`);
       const dbRef = ref(db, `Subscriber/${username}/dcnotes/${noteno}`);
-      const dueSnap = await get(dueRef);
-      const dueAmount = dueSnap.val().dueAmount;
+
 
       const updatenote = {
         remarks: remarks,
-        amount: parseInt(amount),
+        amount: parseInt(newamount),
       }
 
       const updateledger = {
-        creditamount: notetype === 'Debit Note' ? '0' : amount,
-        debitamount: notetype === 'Debit Note' ? amount : '0'
+        creditamount: notetype === 'Debit Note' ? '0' : newamount,
+        debitamount: notetype === 'Debit Note' ? newamount : '0'
       }
 
       const newdue = {
-        dueAmount: notetype === 'Debit Note' ? parseInt(dueAmount) + parseInt(amount) : parseInt(dueAmount) - parseInt(amount)
+        dueAmount: notetype === 'Debit Note' ? (parseInt(dueAmount) - parseInt(amount)) + parseInt(newamount) : (parseInt(dueAmount) - parseInt(amount)) - parseInt(newamount)
       }
 
       try{
@@ -91,7 +98,7 @@ export default function ModDCNote() {
           
           <div className="col-md-3">
             <label className="form-label">Amount</label>
-            <input onChange={(e) => setAmount(e.target.value)} defaultValue={amount} type="number" className="form-control"></input>
+            <input onChange={(e) => setNewAmount(e.target.value)} defaultValue={amount} type="number" className="form-control"></input>
           </div>
           
           

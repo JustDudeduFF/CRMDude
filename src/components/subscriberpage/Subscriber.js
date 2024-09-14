@@ -85,7 +85,7 @@ export default function Subscriber() {
         }
 
         const planinfo ={
-            date: new Date().toISOString().split('T')[0],
+            compeletedate: new Date().toISOString().split('T')[0],
             planName: planName,
             planAmount: parseInt(customesharge, 10) || parseInt(planAmount, 10),
             isp: isp,

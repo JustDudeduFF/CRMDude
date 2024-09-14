@@ -54,7 +54,7 @@ export default function DebitCreditsTable() {
 
                   {
                     arraynotes.length > 0 ? (
-                      arraynotes.map(({noteno, notetype, notedate, notefor, amount, modifiedBy, modifiedon, remarks}, index) => (
+                      arraynotes.slice().reverse().map(({noteno, notetype, notedate, notefor, amount, modifiedBy, modifiedon, remarks}, index) => (
                         <tr key={index}>
                           <td onClick={() => navigate('modnote', {state: {noteno: noteno}})} style={{color:notetype === 'Debit Note' ? 'red' : 'green', cursor:'pointer', fontWeight:'bold'}}>{noteno}</td>
                           <td>{notetype}</td>

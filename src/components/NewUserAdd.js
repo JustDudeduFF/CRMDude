@@ -4,12 +4,15 @@ import {  uploadBytes, getDownloadURL, ref as dbRef } from "firebase/storage";
 import { ref, set, onValue, update, push } from "firebase/database";
 import { toast, ToastContainer } from "react-toastify";
 import { ProgressBar } from "react-loader-spinner";
+import { useNavigate } from "react-router-dom";
 
 
 
 
 
 export default function NewUserAdd() {
+
+  const navigate = useNavigate();
 
   //Use States For Fill All Details
 
@@ -426,6 +429,7 @@ export default function NewUserAdd() {
   
         // Reset form or show success message 
         setLoader(false);
+        navigate(-1);
         // Optionally, reset all states here
       } catch (error) {
         console.error("Error adding document: ", error);

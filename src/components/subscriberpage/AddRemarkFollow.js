@@ -2,15 +2,19 @@
 import { get, ref, set } from 'firebase/database';
 import React, {useEffect, useState} from 'react'
 import { db } from '../../FirebaseConfig';
+import { useNavigate } from 'react-router-dom';
 
 export default function AddRemarkFollow(props) {
     const {mode} = props
     const isVisible = mode === 'follow';
-    const username = localStorage.getItem('subsUserid');
+    const username = localStorage.getItem('susbsUserid');
+    const empid = localStorage.getItem('contact');
+    const navigate = useNavigate();
 
     const [followupdate, setFollowUpDate] = useState('');
     const [arrayconcern, setArrayConcern] = useState([]);
     const [description, setDescription] = useState('');
+    const [remarkparticular, setRemarkParticular] = useState('');
     const ConcernRef = ref(db, `Master/RMConcern`);
 
     useEffect(() => {
@@ -32,25 +36,59 @@ export default function AddRemarkFollow(props) {
 
     const savedata = async() => {
       const remarkno = Date.now();
-      const remarkRef = ref(db, `Subscriber/${username}/Remarks`);
+      const remarkRef = ref(db, `Subscriber/${username}/Remarks/${remarkno}`);
+      const myfollowRef = ref(db, `users/${empid}/MyFollows/${remarkno}`);
       const type = mode === 'follow' ? 'Follow Up' : 'Remarks';
 
-      if(mode === 'follow'){
-
+      if(remarkparticular === ''){
+        alert('Select Concern of Follow up or Remark');
       }else{
-        const remarkdata = {
-          remarkno: remarkno,
-          type: type,
-          date: new Date().toISOString().split('T')[0],
-          description: description,
-          modifiedby: localStorage.getItem('Name'),
-          modifiedon: new Date().toISOString().split('T')[0]
-        }
-
-        try{
-          await set(remarkRef, remarkdata);
-        }catch(error){
-          alert(`Failed :- ${error}`)
+        if(mode === 'follow'){
+          const followdata = {
+            particular:remarkparticular,
+            remarkno: remarkno,
+            type: type,
+            date: new Date().toISOString().split('T')[0],
+            description: description,
+            modifiedby: localStorage.getItem('Name'),
+            modifiedon: new Date().toISOString().split('T')[0],
+            followupdate: followupdate
+          }
+  
+          const userdata = {
+            followupno: remarkno,
+            date: new Date().toISOString().split('T')[0],
+            particular:remarkparticular,
+            followupdate: followupdate,
+            description: description
+            
+          }
+  
+          try{
+            await set(remarkRef, followdata);
+            await set(myfollowRef, userdata);
+            navigate(-1);
+          }catch(error){
+            alert(`Failed: ${error}`);
+          }
+        }else{
+          const remarkdata = {
+            particular:remarkparticular,
+            remarkno: remarkno,
+            type: type,
+            date: new Date().toISOString().split('T')[0],
+            description: description,
+            modifiedby: localStorage.getItem('Name'),
+            modifiedon: new Date().toISOString().split('T')[0],
+            followupdate: ''
+          }
+  
+          try{
+            await set(remarkRef, remarkdata);
+            navigate(-1);
+          }catch(error){
+            alert(`Failed: ${error}`)
+          }
         }
       }
 
@@ -89,8 +127,8 @@ export default function AddRemarkFollow(props) {
 
           <div className='col-md-2'>
             <label className='form-label'>{mode === 'follow' ? 'Follow Up Particular' : 'Remark Particular'}</label>
-            <select className="form-select">
-              <option value='' disabled>Choose...</option>
+            <select onChange={(e) => setRemarkParticular(e.target.value)} className="form-select">
+              <option value=''>Choose...</option>
               {
                 arrayconcern.length > 0 ? (
                   arrayconcern.map((concern, index) => (

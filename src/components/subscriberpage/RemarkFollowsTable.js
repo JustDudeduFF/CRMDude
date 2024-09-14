@@ -1,11 +1,12 @@
-import { child, onValue, ref } from 'firebase/database';
+import { onValue, ref } from 'firebase/database';
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { db } from '../../FirebaseConfig';
 
 export default function () {
-  const username = localStorage.getItem('subsUserid');
+  const username = localStorage.getItem('susbsUserid');
   const [arrayremark, setArrayRemark] = useState([]);
+  const navigate = useNavigate();
 
   const remarkRef = ref(db, `Subscriber/${username}/Remarks`);
 
@@ -18,10 +19,10 @@ export default function () {
           const type = child.val().type;
           const date = child.val().date;
           const description = child.val().description;
-          const modifiedBy = child.val().modifiedBy;
+          const modifiedBy = child.val().modifiedby;
           const modifiedon = child.val().modifiedon;
-          const assigndate = child.val().assigndate;
-          remarkArray.push({remarkno, type, date, description, modifiedon, modifiedBy});
+          const followupdate = child.val().followupdate;
+          remarkArray.push({remarkno, type, date, description, modifiedon, modifiedBy, followupdate});
         });
         setArrayRemark(remarkArray);
       }
@@ -48,13 +49,19 @@ export default function () {
                 <tbody className='table-group-divider'>
 
                   {arrayremark.length > 0 ? (
-                    arrayremark.map(({remarkno, type, date, description, modifiedon, modifiedBy, assigndate}, index) => (
+                    arrayremark.map(({remarkno, type, date, description, modifiedon, modifiedBy, followupdate}, index) => (
                       <tr key={index}>
-                    <td><Link style={{color:'red', cursor:'pointer', fontWeight:'bold'}} id='link' to='modremfollow'>{remarkno}</Link></td>
+                    <td onClick={() => 
+                      {if(type === 'Follow Up'){
+                        navigate('modremfollow', {state: {remarkno: remarkno}});
+                      }else{
+                        alert('Remarks Are Not Modifiable');
+                      }}
+                    } style={{color:type === 'Follow Up' ? 'blue' : 'skyblue', cursor:'pointer', fontWeight:'bold'}}>{remarkno}</td>
                     <td>{type}</td>
                     <td>{date}</td>
                     <td>{description}</td>
-                    <td>{assigndate}</td>
+                    <td>{followupdate}</td>
                     <td>{modifiedBy}</td>
                     <td>{modifiedon}</td>
                     

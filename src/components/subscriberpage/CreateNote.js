@@ -41,8 +41,6 @@ export default function CreateNote(props) {
       const dueSnap = await get(dueRef);
       const dueAmount = dueSnap.val().dueAmount;
 
-      const ledgerRef = ref(db, `Subscriber/${username}/ledger`);
-      const ledgerkey = push(ledgerRef).key;
 
 
 
@@ -72,7 +70,7 @@ export default function CreateNote(props) {
 
       try{
         await update(dueRef, newdue);
-        await set(ref(db, `Subscriber/${username}/ledger/${ledgerkey}`), ledgerdata);
+        await set(ref(db, `Subscriber/${username}/ledger/${note}`), ledgerdata);
         await set(ref(db, `Subscriber/${username}/dcnotes/${note}`), debitdata);
         navigate(-1);
       }catch(error){

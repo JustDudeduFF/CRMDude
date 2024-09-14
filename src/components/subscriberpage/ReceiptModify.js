@@ -1,4 +1,4 @@
-import { get, ref, push, set, update } from 'firebase/database';
+import { get, ref, set, update } from 'firebase/database';
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { db } from '../../FirebaseConfig';
@@ -25,22 +25,10 @@ export default function ReceiptModify() {
 
   const [isdisabled, setIsDisabled] = useState(false);
 
+  const paymentkey = Date.now();
+  
 
 
-  const receiptData = {
-    source: 'Manual',
-    receiptNo: `REC-${Date.now()}`,
-    billingPeriod: billingPeriod,
-    receiptDate: currentdate,
-    paymentMode: paymentMode,
-    bankname: bankname,
-    amount: amount,
-    discount: discount,
-    collectedBy: collectedBy,
-    transactionNo: transactionNo,
-    modifiedBy: localStorage.getItem('Name'),
-    narration: narration,
-  };
 
   const billingRef = ref(db, `Subscriber/${userid}/planinfo`);
 
@@ -48,8 +36,24 @@ export default function ReceiptModify() {
     e.preventDefault();
     setIsDisabled(true);
 
-    const paymentsRef = ref(db, `Subscriber/${userid}/payments`);
-    const ledgerRef = ref(db, `Subscriber/${userid}/ledger`);
+    const newLedgerKey2 = Date.now();
+
+    const receiptData = {
+      source: 'Manual',
+      receiptNo: `REC-${paymentkey}`,
+      billingPeriod: billingPeriod,
+      receiptDate: currentdate,
+      paymentMode: paymentMode,
+      bankname: bankname,
+      amount: amount,
+      discount: discount,
+      collectedBy: collectedBy,
+      transactionNo: transactionNo,
+      modifiedBy: localStorage.getItem('Name'),
+      narration: narration,
+      discountkey:newLedgerKey2
+    };
+
     const dueRef = ref(db, `Subscriber/${userid}/connectionDetails`);
     const dueSnap = await get(dueRef);
     const dueAmount = parseInt(dueSnap.val().dueAmount);
@@ -57,13 +61,9 @@ export default function ReceiptModify() {
     const newDue = {
       dueAmount: dueAmount - (parseInt(amount) + parseInt(discount)),
     };
-
-    const newPaymentKey = push(paymentsRef).key;
-    await set(ref(db, `Subscriber/${userid}/payments/${newPaymentKey}`), receiptData);
+    await set(ref(db, `Subscriber/${userid}/payments/${paymentkey}`), receiptData);
     await update(dueRef, newDue);
 
-    const newLedgerKey = push(ledgerRef).key;
-    const newLedgerKey2 = push(ledgerRef).key;
     const ledgerData = {
       type: 'Payment Collection',
       date: currentdate,
@@ -82,10 +82,10 @@ export default function ReceiptModify() {
     
     if (discount === null || discount === '0') {
       // If discount is null or 0, push only one ledger entry
-      await set(ref(db, `Subscriber/${userid}/ledger/${newLedgerKey}`), ledgerData);
+      await set(ref(db, `Subscriber/${userid}/ledger/${paymentkey}`), ledgerData);
     } else {
       // If discount has a value other than null or 0, push both ledger entries
-      await set(ref(db, `Subscriber/${userid}/ledger/${newLedgerKey}`), ledgerData);
+      await set(ref(db, `Subscriber/${userid}/ledger/${paymentkey}`), ledgerData);
       await set(ref(db, `Subscriber/${userid}/ledger/${newLedgerKey2}`), ledgerData2);
     }
     

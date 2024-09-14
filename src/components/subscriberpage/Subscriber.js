@@ -15,7 +15,7 @@ import { ProgressBar } from 'react-loader-spinner';
 
 
 import { db } from '../../FirebaseConfig'
-import { ref, get, set, update,push, onValue } from 'firebase/database'
+import { ref, get, set, update, onValue } from 'firebase/database'
 import RenewalModal from './RenewalModal';
 
 
@@ -65,11 +65,10 @@ export default function Subscriber() {
     const planRef = ref(db, `Subscriber/${username}/connectionDetails`);
     const plansRef = ref(db, `Master/Broadband Plan`);
 
-    const ledgerRef = ref(db, `Subscriber/${username}/ledger`);
-    const planinfoRef = ref(db, `Subscriber/${username}/planinfo`);
+    
 
-    const ledgerKey = push(ledgerRef).key;
-    const planinfoKey = push(planinfoRef).key;
+    const ledgerKey = Date.now();
+    const planinfoKey = Date.now();
 
     const handleSavePlan = async () => {
         setLoader(true);

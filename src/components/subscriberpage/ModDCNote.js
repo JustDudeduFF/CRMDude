@@ -1,4 +1,4 @@
-import { get, ref } from 'firebase/database';
+import { get, ref, update } from 'firebase/database';
 import React, {useEffect, useState} from 'react'
 import { useLocation } from 'react-router-dom'
 import { db } from '../../FirebaseConfig';
@@ -34,14 +34,36 @@ export default function ModDCNote() {
     return () => fetchdata();
   }, [noteno]);
 
-  // const updatenote = async() => {
-  //     const dueRef = ref(db, `Subscriber/${username}/connectionDetails`);
-  //     const dueSnap = await get(dueRef);
-  //     const dueAmount = dueSnap.val().dueAmount;
+  const updatenote = async() => {
+      const dueRef = ref(db, `Subscriber/${username}/connectionDetails`);
+      const ledgerRef = ref(db, `Subscriber/${username}/ledger/${noteno}`);
+      const dbRef = ref(db, `Subscriber/${username}/dcnotes/${noteno}`);
+      const dueSnap = await get(dueRef);
+      const dueAmount = dueSnap.val().dueAmount;
 
-  //     const updatenote = 
+      const updatenote = {
+        remarks: remarks,
+        amount: parseInt(amount),
+      }
 
-  // }
+      const updateledger = {
+        creditamount: notetype === 'Debit Note' ? '0' : amount,
+        debitamount: notetype === 'Debit Note' ? amount : '0'
+      }
+
+      const newdue = {
+        dueAmount: notetype === 'Debit Note' ? parseInt(dueAmount) + parseInt(amount) : parseInt(dueAmount) - parseInt(amount)
+      }
+
+      try{
+        await update(dueRef, newdue);
+        await update(ledgerRef, updateledger);
+        await update(dbRef, updatenote);
+      }catch(error){
+        alert("Failed :-", error);
+      }
+
+  }
 
 
   return (
@@ -78,7 +100,7 @@ export default function ModDCNote() {
             <input defaultValue={remarks} onChange={(e) => setRemarks(e.target.value)} type="text" className="form-control"></input>
           </div>
           <div className="col-8">
-            <button  type="button" className='btn btn-outline-secondary'>Update Note</button>
+            <button onClick={updatenote} type="button" className='btn btn-outline-secondary'>Update Note</button>
           </div>
         </form>
 

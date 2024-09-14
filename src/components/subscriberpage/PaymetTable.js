@@ -7,7 +7,7 @@ export default function PaymetTable() {
   const location = useLocation();
   const {userid} = location.state || {};
   const [arraypayment, setArrayPayment] = useState([]);
-  const [showreceiptopt, setShowReceiptOpt] = useState(null);
+
 
 
 
@@ -31,7 +31,8 @@ export default function PaymetTable() {
           const modifiedBy = Childpayment.val().modifiedBy;
           const transactionNo = Childpayment.val().transactionNo;
           const narration = Childpayment.val().narration;
-          paymentsArray.push({source, receiptNo, receiptDate, paymentMode, bankname ,amount, discount, collectedBy, modifiedBy, transactionNo, narration})
+          const discountkey = Childpayment.val().discountkey;
+          paymentsArray.push({source, receiptNo, receiptDate, paymentMode, bankname ,amount, discount, collectedBy, modifiedBy, transactionNo, narration, discountkey})
           
         });
         setArrayPayment(paymentsArray);
@@ -63,7 +64,7 @@ export default function PaymetTable() {
         </thead>
         <tbody className="table-group-divider">
           {arraypayment.length > 0 ? (
-            arraypayment.slice().reverse().map(({source, receiptNo, receiptDate, paymentMode, bankname,amount, discount, collectedBy, modifiedBy ,transactionNo, narration}, index) => (
+            arraypayment.slice().reverse().map(({source, receiptNo, receiptDate, paymentMode, bankname,amount, discount, collectedBy, modifiedBy ,transactionNo, narration, discountkey}, index) => (
               <tr key={index}>
                 <td>{index + 1}</td>
                 <td>{source}</td>

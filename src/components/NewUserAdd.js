@@ -75,7 +75,9 @@ export default function NewUserAdd() {
   };
 
   const serialRef = ref(db, `Inventory/New Stock/${deviceMaker}/${category}`);
-  const categoryRef = ref(db, `Inventory/New Stock/${deviceMaker}`)
+  const categoryRef = ref(db, `Inventory/New Stock/${deviceMaker}`);
+
+  const ledgerkey = Date.now();
 
 
 
@@ -302,16 +304,8 @@ export default function NewUserAdd() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    const ledgerRef = ref(db, `Subscriber/${username}/ledger`)
-    const ledgerKey = push(ledgerRef).key;
-    const ledgerKey2 = push(ledgerRef).key;
+    const onekey = Date.now();
 
-    const planinfoRef = ref(db, `Subscriber/${username}/planinfo`)
-    const planinfoKey = push(planinfoRef).key;
-
-    const subsInvRef = ref(db, `Subscriber/${username}/Inventory`);
-    const invetoryKey = push(subsInvRef).key;
     if(fullName === '' || username === '' || mobileNo === ''){
       toast.error('Manadaratry Field will not be empty', {
         autoClose: 3000,
@@ -416,7 +410,8 @@ export default function NewUserAdd() {
           remarks: securityDeposit === '0' || null ? 'Free to Use' : 'Device On Security',
           amount: securityDeposit,
           status: 'Activated',
-          modifiedby: localStorage.getItem('Name')
+          modifiedby: localStorage.getItem('Name'),
+          ledgerkey: onekey
 
         }
 
@@ -424,10 +419,10 @@ export default function NewUserAdd() {
   
         // Add to Firestore
         await update(ref(db, `Subscriber/${username}`), userData);
-        await set(ref(db, `Subscriber/${username}/ledger/${ledgerKey2}`), ledgerdata2);
-        await set(ref(db, `Subscriber/${username}/ledger/${ledgerKey}`), ledgerdata);
-        await set(ref(db, `Subscriber/${username}/Inventory/${invetoryKey}`), inventrydata);
-        await set(ref(db, `Subscriber/${username}/planinfo/${planinfoKey}`), planinfo);
+        await set(ref(db, `Subscriber/${username}/ledger/${onekey}`), ledgerdata2);
+        await set(ref(db, `Subscriber/${username}/ledger/${ledgerkey}`), ledgerdata);
+        await set(ref(db, `Subscriber/${username}/Inventory/${onekey}`), inventrydata);
+        await set(ref(db, `Subscriber/${username}/planinfo/${onekey}`), planinfo);
   
         // Reset form or show success message 
         setLoader(false);

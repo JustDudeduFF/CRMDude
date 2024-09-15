@@ -368,9 +368,30 @@ export default function NewUserAdd() {
             fiberCoreNo,
           },
           documents: {
-            identityProofURL,
-            addressProofURL,
-            cafDocumentsURL,
+            addressProof: {
+              source: 'Manual',
+              date: new Date().toISOString().split('T')[0],
+              Uploadedby: localStorage.getItem('Name'),
+              documentname: 'Address Proof',
+              url: addressProofURL
+
+            },
+            identityProof: {
+              source: 'Manual',
+              date: new Date().toISOString().split('T')[0],
+              Uploadedby: localStorage.getItem('Name'),
+              documentname: 'Identity Proof',
+              url: identityProofURL
+
+            },
+            cafDocuments: {
+              source: 'Manual',
+              date: new Date().toISOString().split('T')[0],
+              Uploadedby: localStorage.getItem('Name'),
+              documentname: 'CAF Form',
+              url: cafDocumentsURL
+
+            }
           },
           
 

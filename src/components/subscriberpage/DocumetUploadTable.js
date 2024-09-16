@@ -1,34 +1,38 @@
 import React, { useEffect, useState } from 'react'
 import DeleteIcon from './drawables/trash.png'
 import ExpandIcon from './drawables/eye.png'
-import { get, ref } from 'firebase/database';
+import { onValue, ref } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
-import { add } from 'date-fns';
+
 
 export default function DocumetUploadTable() {
   const username = localStorage.getItem('susbsUserid');
 
-  const [address, setAddress] = useState('');
-  const [identity, setIdentity] = useState('');
-  const [caf, setCaf] = useState('');
+  const [arraydocument, setArrayDocument] = useState([]);
 
-  const docsArray = [];
+
+
+
+
 
   const docRef = ref(db, `Subscriber/${username}/documents`);
 
     useEffect(() => {
-      const fetchdocs = async() => {
-        const docSnap = await get(docRef);
-        
-        if(docSnap.exists){
-          const address = docSnap.val().addressProofURL;
-          const caf = docSnap.val().cafDocumentsURL;
-          const identity = docSnap.val().identityProofURL;
-          docsArray.push({address, caf, identity});
-        }else{
-          alert('There is No Any Document');
+      const fetchdocs = onValue(docRef, (docSnap => {
+        if(docSnap.exists()){
+          const docsArray = [];
+          docSnap.forEach(childs => {
+            const source = childs.val().source;
+            const date = childs.val().date;
+            const modifiedby = childs.val().modifiedby;
+            const documentname = childs.val().documentname;
+            const url = childs.val().url;
+
+            docsArray.push({source, date, modifiedby, documentname, url});
+          });
+          setArrayDocument(docsArray);
         }
-      }
+      }))
 
       fetchdocs();
     }, [docRef]);
@@ -53,14 +57,20 @@ export default function DocumetUploadTable() {
                 <tbody className='table-group-divider'>
 
                   {
-                    docsArray.length > 0 ? (
-                      docsArray.map(({caf, address, identity}, index) => (
+                    arraydocument.length > 0 ? (
+                      arraydocument.map(({source, date, modifiedby, documentname, url}, index) => (
                         <tr key={index}>
-                          <td>{}</td>
+                          <td>{source}</td>
+                          <td>{documentname}</td>
+                          <td>{date}</td>
+                          <td>{modifiedby}</td>
+                          <td><a href={url} target='_blank' rel="noreferrer">
+                          <img className='me-5' src={ExpandIcon} alt='delete' style={{width:'30px', cursor:'pointer'}}></img>
+                          </a>  <img src={DeleteIcon} alt='delete' style={{width:'30px', cursor:'pointer'}}></img></td>
                         </tr>
                       ))
                     ) : (
-                      <td colSpan={8} style={{textAlign:'center'}}>No Data Found</td>
+                      <tr></tr>
                     )
                   }
                 

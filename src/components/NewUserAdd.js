@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from "react";
 import {db, storage} from '../FirebaseConfig'
 import {  uploadBytes, getDownloadURL, ref as dbRef } from "firebase/storage";
-import { ref, set, onValue, update, push } from "firebase/database";
+import { ref, set, onValue, update } from "firebase/database";
 import { toast, ToastContainer } from "react-toastify";
 import { ProgressBar } from "react-loader-spinner";
 import { useNavigate } from "react-router-dom";
@@ -371,26 +371,25 @@ export default function NewUserAdd() {
             addressProof: {
               source: 'Manual',
               date: new Date().toISOString().split('T')[0],
-              Uploadedby: localStorage.getItem('Name'),
+              modifiedby: localStorage.getItem('Name'),
               documentname: 'Address Proof',
               url: addressProofURL
-
             },
-            identityProof: {
-              source: 'Manual',
-              date: new Date().toISOString().split('T')[0],
-              Uploadedby: localStorage.getItem('Name'),
-              documentname: 'Identity Proof',
-              url: identityProofURL
 
-            },
             cafDocuments: {
               source: 'Manual',
               date: new Date().toISOString().split('T')[0],
-              Uploadedby: localStorage.getItem('Name'),
-              documentname: 'CAF Form',
+              modifiedby: localStorage.getItem('Name'),
+              documentname: 'Caf Proof',
               url: cafDocumentsURL
+            },
 
+            identityProof: {
+              source: 'Manual',
+              date: new Date().toISOString().split('T')[0],
+              modifiedby: localStorage.getItem('Name'),
+              documentname: 'Identity Proof',
+              url: identityProofURL
             }
           },
           
@@ -443,10 +442,10 @@ export default function NewUserAdd() {
   
         // Add to Firestore
         await update(ref(db, `Subscriber/${username}`), userData);
-        await set(ref(db, `Subscriber/${username}/ledger/${onekey}`), ledgerdata2);
-        await set(ref(db, `Subscriber/${username}/ledger/${ledgerkey}`), ledgerdata);
+        await set(ref(db, `Subscriber/${username}/ledger/${ledgerkey}`), ledgerdata2);
+        await set(ref(db, `Subscriber/${username}/ledger/${onekey}`), ledgerdata);
         await set(ref(db, `Subscriber/${username}/Inventory/${onekey}`), inventrydata);
-        await set(ref(db, `Subscriber/${username}/planinfo/${onekey}`), planinfo);
+        await set(ref(db, `Subscriber/${username}/planinfo/${ledgerkey}`), planinfo);
   
         // Reset form or show success message 
         setLoader(false);

@@ -1,12 +1,61 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Action_Icon from './subscriberpage/drawables/info.png'
 import More_Info from './subscriberpage/drawables/info-new.png'
 import Router_Img from './subscriberpage/drawables/wireless-router.png'
 import Rupee_Icon from './subscriberpage/drawables/rupee.png'
 import DueRupee_Icon from './subscriberpage/drawables/rupeenew.png'
 import Tickets_Icon from './subscriberpage/drawables/complain.png'
+import {db} from '../FirebaseConfig'
+import { ref } from 'firebase/database';
+import { onValue } from 'firebase/database'
 
 export default function DashFirstDiv() {
+
+    const [openticktes, setOpenTickets] = useState(0);
+    const [unassignedtickets, setUnassignedTickets] = useState(0);
+    const [closedtickets, setCloseTickets] = useState(0);
+    const [cancelticket, setCancelTickets] = useState(0);
+
+
+    const pendingticktes = ref(db, `Global Tickets`);
+    const dueRef = ref(db, `Subscriber`);
+
+    useEffect(() => {
+        const fetchPendingtickets = onValue(pendingticktes, (ticketsSnap => {
+            if(ticketsSnap.exists()){
+                let open = 0;
+                let unassigned = 0;
+                let closed = 0;
+                let cancel = 0;
+                
+                ticketsSnap.forEach(child => {
+                    const ticketno = child.val().status;
+                    if(ticketno === 'Pending'){
+                        open++;
+                    }else if(ticketno === 'Completed'){
+                        closed++
+                    }else if(ticketno === 'Canceled'){
+                        cancel++;
+                    }else{
+                        unassigned++
+                    }
+
+                });
+                setOpenTickets(open);
+                setCloseTickets(closed);
+                setCancelTickets(cancel);
+                setUnassignedTickets(unassigned);
+            }
+        }));
+
+        const fetchAllDue = onValue()
+
+        return () => fetchPendingtickets(dueRef, (dueSnap => {
+            
+        }));
+    });
+
+
     
   return (
     <div style={{width: '100%', display:'flex', flexDirection: 'row', marginTop: '4%', padding: '20px'}}>
@@ -225,7 +274,7 @@ export default function DashFirstDiv() {
                         <img alt='' className='img_boldicon' src={Tickets_Icon}></img>
                         </div>
                         <div style={{flex: '3', marginTop: '10px'}}>
-                            <h3 style={{borderBottom: '2px solid brown'}}>21</h3>
+                            <h3 style={{borderBottom: '2px solid brown', cursor:'pointer'}}>{openticktes}</h3>
                             <label style={{color: 'brown'}}>Current Open Tickets</label>
                         </div>
                         
@@ -233,15 +282,15 @@ export default function DashFirstDiv() {
                     </div>
                     <div style={{flex: '1', display: 'flex', flexDirection: 'row', marginTop: '30px'}}>
                         <div style={{border: '1px solid gray', flex: '1', padding: '5px'}}>
-                            <h5>3</h5>
+                            <h5>{unassignedtickets}</h5>
                             <label style={{color: 'gray'}} >Unassigned Tickets</label>
                         </div>
                         <div style={{border: '1px solid gray', flex: '1', padding: '5px'}}>
-                        <h5>5</h5>
+                        <h5>{cancelticket}</h5>
                         <label style={{color: 'red'}} >Cancelled Tickets</label>
                         </div>
                         <div style={{border: '1px solid gray', flex: '1', padding: '5px'}}>
-                        <h5>202</h5>
+                        <h5>{closedtickets}</h5>
                         <label style={{color: 'blue'}} >Closed Tickets</label>
                         </div>
 

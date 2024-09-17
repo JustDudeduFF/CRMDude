@@ -91,11 +91,12 @@ export default function NewTicket() {
         closedate: '',
         closeby: '',
         closetime: '',
-        rac: ''
+        rac: '',
+        userid: username
       }
 
       const ticketRef = ref(db, `Subscriber/${username}/Tickets/${ticketno}`);
-      const globalticketRef = ref(db, `Global Tickets/Pending/${ticketno}`);
+      const globalticketRef = ref(db, `Global Tickets/${ticketno}`);
 
 
       try{

@@ -1,4 +1,4 @@
-import { onValue, ref, remove } from 'firebase/database'
+import { onValue, ref, update } from 'firebase/database'
 import React, { useEffect, useState } from 'react'
 import { db } from '../../FirebaseConfig';
 import { useNavigate } from 'react-router-dom';
@@ -83,20 +83,32 @@ export default function TicketTable() {
                         <td style={{color:'green ',  cursor:'pointer'}} className="btn" data-bs-toggle="dropdown" aria-expanded="false">{ticketno}</td>
                         <ol className="dropdown-menu">
                           <li onClick={() => {
-                            const ticketdata = {
-                              assigndate : `${assigndate} ${assigntime}`,
-                              ticketconcern: ticketconcern,
-                              assignto: assignto,
-                              description: description,
-                              ticketno: ticketno
-                              
+                            if(status === 'Completed'){
+                              alert('Ticket is Closed');
+                            }else{
+                              const ticketdata = {
+                                assigndate : `${assigndate} ${assigntime}`,
+                                ticketconcern: ticketconcern,
+                                assignto: assignto,
+                                description: description,
+                                ticketno: ticketno
+                                
+                              }
+                              navigate('modifyticket', {state: {ticket : ticketdata}} );
                             }
-                            navigate('modifyticket', {state: {ticket : ticketdata}} );
                           }} className='dropdown-item'>Update Ticket</li>
-                          <li className='dropdown-item'>Cancel Ticket</li>
-                          <li onClick={() => 
-                            {remove(ref(db, `Subscriber/${username}/Tickets/${ticketno}`))}
-                          } className='dropdown-item'>Delete Ticket</li>
+                          <li onClick={() => {
+                            const globalref = ref(db, `Global Tickets/${ticketno}`);
+                            const ticketref = ref(db, `Subscriber/${username}/Tickets/${ticketno}`);
+
+                            const data = {
+                              status: 'Canceled'
+                            }
+
+                            update(globalref, data);
+                            update(ticketref, data);
+                          }} className='dropdown-item'>Cancel Ticket</li>
+                          
                         </ol>
                             <td>{source}</td>
                             <td>{`${assigndate} ${assigntime}`}</td>

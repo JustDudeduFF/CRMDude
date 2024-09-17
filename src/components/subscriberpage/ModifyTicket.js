@@ -19,6 +19,7 @@ export default function ModifyTicket() {
 
   const handleCloseTicket = async () => {
     const ticketRef = ref(db, `Subscriber/${username}/Tickets/${ticket.ticketno}`);
+    const globaltickets = ref(db, `Global Tickets/${ticket.ticketno}`);
     const newticketdata = {
       closedate: new Date().toISOString().split('T')[0],
       closeby: closeby,
@@ -29,6 +30,7 @@ export default function ModifyTicket() {
 
     try{
       await update(ticketRef, newticketdata);
+      await update(globaltickets, newticketdata);
     }catch(error){
       console.log(`Error :- ${error}`);
     }

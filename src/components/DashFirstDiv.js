@@ -16,6 +16,8 @@ export default function DashFirstDiv() {
     const [closedtickets, setCloseTickets] = useState(0);
     const [cancelticket, setCancelTickets] = useState(0);
 
+    const [arryadue, setDueArray] = useState(0);
+
 
     const pendingticktes = ref(db, `Global Tickets`);
     const dueRef = ref(db, `Subscriber`);
@@ -48,11 +50,22 @@ export default function DashFirstDiv() {
             }
         }));
 
-        const fetchAllDue = onValue()
-
-        return () => fetchPendingtickets(dueRef, (dueSnap => {
+        const fetchAllDue = onValue(dueRef, (dueSnap) => {
+            const dueArray = [];
             
-        }));
+            dueSnap.forEach(childSnap => {
+                const dueAmount = childSnap.child('connectionDetails').val().dueAmount;
+                dueArray.push(dueAmount);
+            });
+            
+            const totalDue = dueArray.reduce((acc, current) => acc + current, 0);
+            setDueArray(totalDue);  // Assuming setDueArray is setting the total amount, not the array
+        });
+        
+
+        return () => {fetchPendingtickets();
+            fetchAllDue();
+        }
     });
 
 
@@ -252,7 +265,7 @@ export default function DashFirstDiv() {
                     </div>
                     <div style={{flex: '1', display: 'flex', flexDirection: 'row', marginTop: '30px'}}>
                         <div style={{border: '1px solid gray', flex: '1', padding: '5px'}}>
-                            <h5>$21213.0</h5>
+                            <h5>{`$${arryadue}.0`}</h5>
                             <label style={{color: 'gray'}} >Total Due Amount</label>
                         </div>
                         <div style={{border: '1px solid gray', flex: '1', padding: '5px'}}>

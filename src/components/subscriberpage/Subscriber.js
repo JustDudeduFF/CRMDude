@@ -17,6 +17,7 @@ import { ProgressBar } from 'react-loader-spinner';
 import { db } from '../../FirebaseConfig'
 import { ref, get, set, update, onValue } from 'firebase/database'
 import RenewalModal from './RenewalModal';
+import PlanChangeModal from './PlanChangeModal';
 
 
 
@@ -48,6 +49,7 @@ export default function Subscriber() {
   const [dueamount, setDueAmount] = useState(10);
 
   const [showmodal, setShowModal] = useState(false);
+  const [showplanchange, setPlanChange] = useState(false);
   const [customesharge, setCustomCharge] = useState(0);
   const [renewactdate, setRenewActDate] = useState(new Date().toISOString().split('T')[0]);
   const [arrayplan, setArrayPlan] = useState([]);
@@ -344,7 +346,10 @@ export default function Subscriber() {
                             <div style={{flex:'2', display:'flex', flexDirection:"column"}}>
                                 <div style={{flex:'2', marginTop:'50px', display:"flex", flexDirection:'row'}}>
                                 <button onClick={() => setShowModal(true)} style={{marginRight:'10px'}} type="button" className="btn btn-info">Renew Subscription</button>
-                                <button  type="button" className="btn btn-outline-danger">Change Plan</button>
+                                <button onClick={() => {
+
+                                    setPlanChange(true);
+                                }}  type="button" className="btn btn-outline-danger">Change Plan</button>
                                 </div>
 
                                 <div style={{flex:'1'}}>
@@ -378,6 +383,21 @@ export default function Subscriber() {
                         renewbtn={renewbtn}
                         savePlan={handleSavePlan}
                     />
+
+                <PlanChangeModal modalShow={() => setPlanChange(false)} show={showplanchange} 
+                                        handleMin={expiryDate}
+                                        handleAmount={(e) => setCustomCharge(e.target.value)}
+                                        handleActivation={(e) => {
+                                            setRenewBtn(false);
+                                            const newActivationDate = e.target.value;
+                                            setRenewActDate(newActivationDate);
+                                            getperiod(newActivationDate);
+                                        }}
+                                        handleexpiry={expdate}
+                                        handleRemarks={(e) => setRemarks(e.target.value)}
+                                        renewbtn={renewbtn}
+                                        savePlan={handleSavePlan}
+                                    />
         </div>
         <div style={{flex:'5', display:'flex', flexDirection:'row'}}>
             <div style={{flex:'1', display:'flex', flexDirection:'column'}}>

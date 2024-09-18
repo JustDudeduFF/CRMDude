@@ -50,13 +50,24 @@ export default function Subscriber() {
 
   const [showmodal, setShowModal] = useState(false);
   const [showplanchange, setPlanChange] = useState(false);
+
+
   const [customesharge, setCustomCharge] = useState(0);
   const [renewactdate, setRenewActDate] = useState(new Date().toISOString().split('T')[0]);
   const [arrayplan, setArrayPlan] = useState([]);
   const [remarks, setRemarks] = useState('');
   const [expdate, setExpDate] = useState('');
 
+  const [customesharge1, setCustomCharge1] = useState(0);
+  const [renewactdate1, setRenewActDate1] = useState(new Date().toISOString().split('T')[0]);
+  const [arrayplan1, setArrayPlan1] = useState([]);
+  const [remarks1, setRemarks1] = useState('');
+  const [expdate1, setExpDate1] = useState('');
+
+
+
   const [renewbtn, setRenewBtn] = useState(true);
+  const [renewbtn1, setRenewBtn1] = useState(true);
 
 
 
@@ -118,6 +129,8 @@ export default function Subscriber() {
 
           
     }
+
+    
 
     useEffect(() => {
         
@@ -239,6 +252,7 @@ export default function Subscriber() {
             // Format the new expiration date to YYYY-MM-DD
             const formattedExpirationDate = date.toISOString().split('T')[0];
             setExpDate(formattedExpirationDate);
+            setExpDate1(formattedExpirationDate);
         }
         
 
@@ -385,18 +399,18 @@ export default function Subscriber() {
                     />
 
                 <PlanChangeModal modalShow={() => setPlanChange(false)} show={showplanchange} 
-                                        handleMin={expiryDate}
+                                        handleMin={activationDate}
                                         handleAmount={(e) => setCustomCharge(e.target.value)}
                                         handleActivation={(e) => {
                                             setRenewBtn(false);
                                             const newActivationDate = e.target.value;
-                                            setRenewActDate(newActivationDate);
+                                            setRenewActDate1(newActivationDate);
                                             getperiod(newActivationDate);
                                         }}
-                                        handleexpiry={expdate}
+                                        handleexpiry={expdate1}
                                         handleRemarks={(e) => setRemarks(e.target.value)}
-                                        renewbtn={renewbtn}
-                                        savePlan={handleSavePlan}
+                                        renewbtn={renewbtn1}
+                                        savePlan={handleChangePlan}
                                     />
         </div>
         <div style={{flex:'5', display:'flex', flexDirection:'row'}}>

@@ -162,7 +162,7 @@ export default function Navbar() {
 
       {
         issearcfocused && (
-          <div style={{position:'fixed',right:'0',top:'10%', width:'500px', marginRight:'15%', backgroundColor:'white', padding:'5px', height:'300px', zIndex:'1000'}} className="border shadow rounded"
+          <div style={{position:'fixed',right:'0',top:'10%', width:'500px', marginRight:'15%', backgroundColor:'white', padding:'5px', height:'300px', zIndex:'1000', overflow:'hidden', overflowY:'auto'}} className="border shadow rounded"
           onMouseDown={(e) => e.preventDefault()} // Prevent hiding on click
           >
             <button className="btn-close" onClick={() => setIsSearchFocused(false)}></button>

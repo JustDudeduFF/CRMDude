@@ -5,7 +5,9 @@ import { db } from '../../FirebaseConfig';
 
 
 
-const PlanChangeModal = ({show, modalShow, handleMin}) => {
+const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
+
+    const username = localStorage.getItem('susbsUserid');
 
     const [arrayplan, setArrayPlan] = useState([]);
     const [arrayisp, setArrayIsp] = useState([]);
@@ -60,10 +62,12 @@ const PlanChangeModal = ({show, modalShow, handleMin}) => {
        fetchisp();
     }, []);
 
+    const ledgerKey = Date.now();
+
 
 
     const savePlan = async () => {
-        setLoader(true);
+        const planinfoKey = Date.now();
         setRenewBtn(true);
         const newDue = (parseInt(dueamount, 10) || 0) + (parseInt(customecharge, 10) || parseInt(planamount, 10));
         // Add disabled Amount
@@ -80,7 +84,7 @@ const PlanChangeModal = ({show, modalShow, handleMin}) => {
         const planinfo ={
             compeletedate: new Date().toISOString().split('T')[0],
             planName: planName,
-            planAmount: parseInt(customesharge1, 10) || parseInt(planamount, 10),
+            planAmount: parseInt(customecharge, 10) || parseInt(planamount, 10),
             isp: isp,
             activationDate: activationDate,
             expiryDate: expirydate,
@@ -91,12 +95,12 @@ const PlanChangeModal = ({show, modalShow, handleMin}) => {
 
           const newconnectioninfo = {
             activationDate: activationDate,
-            expiryDate: expdate1,
+            expiryDate: expirydate,
             planAmount: parseInt(customecharge, 10) || parseInt(planamount, 10),
             dueAmount: newDue
           }
 
-        if(planName === '' || planAmount === ''){
+        if(planName === '' || planamount === ''){
             alert('something went wrong');
         }else{
             await set(ref(db, `Subscriber/${username}/ledger/${ledgerKey}`), ledgerData);

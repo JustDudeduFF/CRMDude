@@ -58,20 +58,32 @@ export default function Subscriber() {
   const [remarks, setRemarks] = useState('');
   const [expdate, setExpDate] = useState('');
 
-  const [customesharge1, setCustomCharge1] = useState(0);
-  const [renewactdate1, setRenewActDate1] = useState(new Date().toISOString().split('T')[0]);
-  const [arrayplan1, setArrayPlan1] = useState([]);
-  const [remarks1, setRemarks1] = useState('');
-  const [expdate1, setExpDate1] = useState('');
+
 
 
 
   const [renewbtn, setRenewBtn] = useState(true);
-  const [renewbtn1, setRenewBtn1] = useState(true);
+
 
 
 
     const [loader, setLoader] = useState(false);
+
+    function convertExcelDateSerial(input) {
+        const excelDateSerialPattern = /^\d+$/; // matches only digits (Excel date serial number)
+        if (excelDateSerialPattern.test(input)) {
+          const excelDateSerial = parseInt(input, 10);
+          const baseDate = new Date("1900-01-01");
+          const date = new Date(baseDate.getTime() + excelDateSerial * 86400000);
+      
+          const day = date.getDate().toString().padStart(2, "0");
+          const month = (date.getMonth() + 1).toString().padStart(2, "0");
+          const year = date.getFullYear();
+          return `${year}-${month}-${day}`;
+        } else {
+          return input; // return original input if it's not a valid Excel date serial number
+        }
+      }
 
 
     const userRef = ref(db, `Subscriber/${username}`);
@@ -163,8 +175,8 @@ export default function Subscriber() {
             if(planSnap.exists()){
                 setPlanName(planSnap.val().planName);
                 setPlanAmount(planSnap.val().planAmount);
-                setActivationDate(planSnap.val().activationDate);
-                setExpiryDate(planSnap.val().expiryDate);
+                setActivationDate(convertExcelDateSerial(planSnap.val().activationDate));
+                setExpiryDate(convertExcelDateSerial(planSnap.val().expiryDate));
                 setIsp(planSnap.val().isp);
                 setDueAmount(planSnap.val().dueAmount);
             }else{
@@ -204,10 +216,10 @@ export default function Subscriber() {
 
 
     useEffect(() => {
-        if (activationDate && expiryDate) {
             const calculateDaysBetween = () => {
             const start = new Date();
             const end = new Date(expiryDate);
+            console.log(end);
       
             // Calculate the difference in time
             const timeDiff = end.getTime() - start.getTime();
@@ -223,11 +235,11 @@ export default function Subscriber() {
       
             setRemainDays(daysDiff);
             
-          };
+          };    
         
           calculateDaysBetween();
-        }
-      }, [activationDate, expiryDate]); 
+        
+      }, [expiryDate]); 
 
       const getperiod = (dateValue) => {
         const currentplan = planName;
@@ -252,7 +264,7 @@ export default function Subscriber() {
             // Format the new expiration date to YYYY-MM-DD
             const formattedExpirationDate = date.toISOString().split('T')[0];
             setExpDate(formattedExpirationDate);
-            setExpDate1(formattedExpirationDate);
+
         }
         
 
@@ -327,7 +339,7 @@ export default function Subscriber() {
                             <h6 style={{color:'blue'}}>{expiryDate}</h6>
 
                             <label>Amount</label>
-                            <h6 style={{color:'blue'}}>{`${planAmount}.00`}</h6>
+                            <h6 style={{color:'blue'}}>{`${parseInt(planAmount)}.00`}</h6>
                         </div>
                         <div style={{flex: '1'}}>
                             <label>ISP</label><span className="badge text-bg-success mx-3">Edit</span>
@@ -400,17 +412,10 @@ export default function Subscriber() {
 
                 <PlanChangeModal modalShow={() => setPlanChange(false)} show={showplanchange} 
                                         handleMin={activationDate}
-                                        handleAmount={(e) => setCustomCharge(e.target.value)}
-                                        handleActivation={(e) => {
-                                            setRenewBtn(false);
-                                            const newActivationDate = e.target.value;
-                                            setRenewActDate1(newActivationDate);
-                                            getperiod(newActivationDate);
-                                        }}
-                                        handleexpiry={expdate1}
-                                        handleRemarks={(e) => setRemarks(e.target.value)}
-                                        renewbtn={renewbtn1}
-                                        savePlan={handleChangePlan}
+                                        
+                                        
+                                        
+                                        
                                     />
         </div>
         <div style={{flex:'5', display:'flex', flexDirection:'row'}}>

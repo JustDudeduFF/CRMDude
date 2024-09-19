@@ -16,11 +16,71 @@ export default function DashFirstDiv() {
     const [closedtickets, setCloseTickets] = useState(0);
     const [cancelticket, setCancelTickets] = useState(0);
 
+    const [dueArrayWeek, setDueArrayWeek] = useState(0);
+    const [dueArrayMonth, setDueArrayMonth] = useState(0);
+    const [dueArrayToday, setDueArrayToday] = useState(0);
+
+    const [expireArrayWeek, setExpireArrayWeek] = useState('...');
+    const [expireArrayToday, setExpireArrayToday] = useState('...');
+    const [expireArrayTommorow, setExpireArrayTommorow] = useState('...');
+    const [expireArrayMonth, setExpireArrayMonth] = useState('...');
+
     const [arryadue, setDueArray] = useState(0);
 
 
     const pendingticktes = ref(db, `Global Tickets`);
     const dueRef = ref(db, `Subscriber`);
+
+    function convertExcelDateSerial(input) {
+        const excelDateSerialPattern = /^\d+$/; // matches only digits (Excel date serial number)
+        if (excelDateSerialPattern.test(input)) {
+          const excelDateSerial = parseInt(input, 10);
+          const baseDate = new Date("1900-01-01");
+          const date = new Date(baseDate.getTime() + excelDateSerial * 86400000);
+      
+          const day = date.getDate().toString().padStart(2, "0");
+          const month = (date.getMonth() + 1).toString().padStart(2, "0");
+          const year = date.getFullYear();
+          return `${year}-${month}-${day}`;
+        } else {
+          return input; // return original input if it's not a valid Excel date serial number
+        }
+      }
+
+    function isSameISOWeek(dueDate, currentDate) {
+        const dueWeek = getISOWeek(dueDate);
+        const currentWeek = getISOWeek(currentDate);
+        return dueWeek === currentWeek && dueDate.getFullYear() === currentDate.getFullYear();
+    }
+    
+    // Helper function to get the ISO week number (1-52)
+    function getISOWeek(date) {
+        const tempDate = new Date(date);
+        tempDate.setHours(0, 0, 0, 0);
+        tempDate.setDate(tempDate.getDate() + 4 - (tempDate.getDay() || 7)); // ISO week starts on Monday
+        const yearStart = new Date(tempDate.getFullYear(), 0, 1);
+        return Math.ceil((((tempDate - yearStart) / 86400000) + 1) / 7);
+    }
+
+    function isSameDay(dueDate, currentDate) {
+        return (
+            dueDate.getFullYear() === currentDate.getFullYear() &&
+            dueDate.getMonth() === currentDate.getMonth() &&
+            dueDate.getDate() === currentDate.getDate()
+        );
+    }
+
+    // Helper function to check if a date is tomorrow
+function isTomorrowDay(dueDate, currentDate) {
+    const tomorrow = new Date(currentDate);
+    tomorrow.setDate(currentDate.getDate() + 1); // Set to tomorrow
+
+    return (
+        dueDate.getFullYear() === tomorrow.getFullYear() &&
+        dueDate.getMonth() === tomorrow.getMonth() &&
+        dueDate.getDate() === tomorrow.getDate()
+    );
+}
 
     useEffect(() => {
         const fetchPendingtickets = onValue(pendingticktes, (ticketsSnap => {
@@ -50,23 +110,107 @@ export default function DashFirstDiv() {
             }
         }));
 
-        const fetchAllDue = onValue(dueRef, (dueSnap) => {
-            const dueArray = [];
-            
-            dueSnap.forEach(childSnap => {
-                const dueAmount = childSnap.child('connectionDetails').val().dueAmount;
-                dueArray.push(dueAmount);
-            });
-            
-            const totalDue = dueArray.reduce((acc, current) => acc + current, 0);
-            setDueArray(totalDue);  // Assuming setDueArray is setting the total amount, not the array
-        });
-        
+    const fetchAllDue = onValue(dueRef, (dueSnap) => {
+    const currentDate = new Date();
+    const dueArray = [];
+    const dueArrayMonth = [];
+    const dueArrayWeek = [];
+    const dueArrayToday = [];
+    dueSnap.forEach(childSnap => {
+        const dueAmount = childSnap.child('connectionDetails').val().dueAmount;
+        dueArray.push(dueAmount);
+        const dueDateTimestamp = convertExcelDateSerial(childSnap.child('connectionDetails').val().activationDate); // Assuming you store the due date timestamp here
 
-        return () => {fetchPendingtickets();
-            fetchAllDue();
+            const totalDue = dueArray.reduce((acc, current) => acc + current, 0);
+            setDueArray(totalDue); 
+
+
+
+        if (dueDateTimestamp) {
+            const dueDate = new Date(dueDateTimestamp);
+            
+            // For month comparison
+            const isSameMonth = dueDate.getFullYear() === currentDate.getFullYear() && dueDate.getMonth() === currentDate.getMonth();
+            if (isSameMonth) {
+                dueArrayMonth.push(dueAmount);
+            }
+            
+            // For week comparison (ISO week calculation)
+            const isSameWeek = isSameISOWeek(dueDate, currentDate);
+            if (isSameWeek) {
+                dueArrayWeek.push(dueAmount);
+            }
+
+            // For today's comparison
+            const isToday = isSameDay(dueDate, currentDate);
+            if (isToday) {
+                dueArrayToday.push(dueAmount);
+            }
         }
     });
+    
+    // Total dues for the current month
+    const totalDueMonth = dueArrayMonth.reduce((acc, current) => acc + current, 0);
+    
+    // Total dues for the current week
+    const totalDueWeek = dueArrayWeek.reduce((acc, current) => acc + current, 0);
+
+    const totalDueToday = dueArrayToday.reduce((acc, current) => acc + current, 0);
+    
+    // Set the total dues (you can store them separately)
+    setDueArrayMonth(totalDueMonth);
+    setDueArrayWeek(totalDueWeek);
+    setDueArrayToday(totalDueToday);
+});
+
+    const fetchExpiredUser = onValue(dueRef, expiredSnap => {
+        const currentDate = new Date();
+        const expireTodayArray = [];
+        const expireTommorowArray = [];
+        const expireWeekArray = [];
+        const expireArrayMonth = [];
+        expiredSnap.forEach(childSnap => {
+            const expireDate = convertExcelDateSerial(childSnap.child('connectionDetails').val().expiryDate);
+            const username = childSnap.val().username;
+
+
+            if (expireDate){
+                const expDate = new Date(expireDate);
+
+                const isSameMonth = expDate.getFullYear() === currentDate.getFullYear() && expDate.getMonth() === currentDate.getMonth();
+                if (isSameMonth) {
+                    expireArrayMonth.push(username);
+                }
+
+                const isSameWeek = isSameISOWeek(expDate, currentDate);
+                if (isSameWeek) {
+                    expireWeekArray.push(username);
+                }  
+
+                // For today's comparison
+                const isToday = isSameDay(expDate, currentDate);
+                if (isToday) {
+                    expireTodayArray.push(username);
+                }
+
+                // For tomorrow's comparison
+                const isTomorrow = isTomorrowDay(expDate, currentDate);
+                if (isTomorrow) {
+                    expireTommorowArray.push(username);
+                }
+            }
+        });
+
+        setExpireArrayToday(expireTodayArray.length);
+        setExpireArrayTommorow(expireTommorowArray.length);
+        setExpireArrayWeek(expireWeekArray.length);
+        setExpireArrayMonth(expireArrayMonth.length);
+    })
+
+return () => {fetchPendingtickets();
+    fetchAllDue();
+}
+});
 
 
     
@@ -159,42 +303,46 @@ export default function DashFirstDiv() {
             </div>
             <div style={{width: '500px',  marginLeft: '20px', flex:'1', display:'flex', flexDirection: 'column'}}>
             <div style={{borderRadius: '5px', border: '1px solid gray',flex: '1'}}>
-            <img alt='' className='img_hover' src={More_Info}></img>
-                <h3 style={{marginLeft: '10px'}}>Expired Users</h3>
+            
+                <h3 style={{marginLeft: '10px'}}>Expiring Users</h3>
                 <table className="table">
                 <thead className='table-primary'>
                     <tr>
-                    <th scope="col">Customer ID</th>
-                    <th scope="col">FullName</th>
-                    <th scope="col">Remain Days</th>
+                    
+                    <th scope="col">Days</th>
+                    <th scope="col">Quantity</th>
                     <th scope="col">Handle</th>
                     </tr>
                 </thead>
                 <tbody className="table-group-divider">
                     <tr>
-                    <th scope="row">shivam@office</th>
-                    <td>Chetan Chauhan</td>
-                    <td>1</td>
+                    
+                    <td>Today</td>
+                    <td>{expireArrayToday}</td>
                     <td><img alt='' style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
                     </tr>
                     <tr>
-                    <th scope="row">shivam@office</th>
-                    <td>Chetan Chauhan</td>
-                    <td>1</td>
+                    
+                    <td>Tomorrow</td>
+                    <td>{expireArrayTommorow}</td>
                     <td><img alt='' style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
                     </tr>
+
                     <tr>
-                    <th scope="row">shivam@office</th>
-                    <td>Chetan Chauhan</td>
-                    <td>1</td>
+                    <td>This Week</td>
+                    <td>{expireArrayWeek}</td>
                     <td><img alt='' style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
                     </tr>
+
+                    
                     <tr>
-                    <th scope="row">shivam@office</th>
-                    <td>Chetan Chauhan</td>
-                    <td>1</td>
+                    <td>This Month</td>
+                    <td>{expireArrayMonth}</td>
                     <td><img alt='' style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
                     </tr>
+                    
+                    
+                    
                     
                    
                 </tbody>
@@ -257,7 +405,7 @@ export default function DashFirstDiv() {
                         <img alt='' className='img_boldicon' src={DueRupee_Icon}></img>
                         </div>
                         <div style={{flex: '3', marginTop: '10px'}}>
-                            <h3>$21654.00</h3>
+                            <h3>{`$${dueArrayMonth}.00`}</h3>
                             <label style={{color: 'red'}}>Month Due Amount</label>
                         </div>
                         
@@ -269,11 +417,11 @@ export default function DashFirstDiv() {
                             <label style={{color: 'gray'}} >Total Due Amount</label>
                         </div>
                         <div style={{border: '1px solid gray', flex: '1', padding: '5px'}}>
-                        <h5>$21213.0</h5>
+                        <h5>{`$${dueArrayWeek}.00`}</h5>
                         <label style={{color: 'red'}} >Weekly Due</label>
                         </div>
                         <div style={{border: '1px solid gray', flex: '1', padding: '5px'}}>
-                        <h5>$21213.0</h5>
+                        <h5>{`$${dueArrayToday}.00`}</h5>
                         <label style={{color: 'blue'}} >Today's Due Amount</label>
                         </div>
 

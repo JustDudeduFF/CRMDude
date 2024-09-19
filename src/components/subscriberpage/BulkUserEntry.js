@@ -1,4 +1,4 @@
-import { ref, set } from 'firebase/database';
+import { ref, set, remove, update } from 'firebase/database';
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { db } from '../../FirebaseConfig';
@@ -15,6 +15,13 @@ const removeUndefinedValues = (obj) => {
   return obj;
 };
 
+
+const deleteRef = async() => {
+  const reference = ref(db, 'Subscriber/');
+  await remove(reference);
+  
+  
+}
 export default function BulkUserEntry() {
   const [fileData, setFileData] = useState([]);
 
@@ -40,6 +47,7 @@ export default function BulkUserEntry() {
   const uploadToFirebase = (event) => {
     event.preventDefault(); // Prevent page reload
 
+    const ledgerkey = Date.now();
     fileData.forEach((row) => {
       // Map each row of Excel data to the userData structure
       const userData = {
@@ -75,6 +83,7 @@ export default function BulkUserEntry() {
           uniqueJCNo: row.uniqueJCNo,
           fiberCoreNo: row.fiberCoreNo,
         },
+
         documents: {
           addressProof: {
             source: 'Manual',
@@ -101,13 +110,23 @@ export default function BulkUserEntry() {
         createdAt: row.REGDATE,
       };
 
+      const ledgerdata = {
+        type:'Migration',
+        date: new Date().toISOString().split('T')[0],
+        particular: `Migration Due Amount`,
+        debitamount: row.BALANCENUMERIC,
+        creditamount: 0
+      }
+
       // Remove undefined values before sending data to Firebase
       const cleanedUserData = removeUndefinedValues(userData);
 
       // Store user under their username
       const userRef = ref(db, 'Subscriber/' + row.BBUSERNAME);
+      const ledgerRef = ref(db, `Subscriber/${row.BBUSERNAME}/ledger/${ledgerkey}` );
       set(userRef, cleanedUserData)
         .then(() => {
+          update(ledgerRef, ledgerdata);
           console.log(`Data for ${row.BBUSERNAME} uploaded successfully!`);
         })
         .catch((error) => {
@@ -129,6 +148,7 @@ export default function BulkUserEntry() {
         <button type="submit" className="btn btn-success">
           Upload Data
         </button>
+        <button className='btn btn-danger' onClick={deleteRef}>Delete all Subscriber</button>
       </form>
     </div>
   );

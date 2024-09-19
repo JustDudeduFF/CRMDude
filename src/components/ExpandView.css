@@ -1,0 +1,27 @@
+.modal-body{
+    box-shadow: 0 0 10px gray;
+    border-radius: 10px;
+    position: fixed;
+    top: 10%;
+    right: 10%;
+    left: 10%;
+    bottom: 10%;
+    background: white;
+   
+    
+}
+
+.modal-data {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    
+  }
+
+.modal-inner{
+    display: flex;
+    flex-direction: row;
+    background: white;
+}

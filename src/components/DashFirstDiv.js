@@ -8,6 +8,7 @@ import Tickets_Icon from './subscriberpage/drawables/complain.png'
 import {db} from '../FirebaseConfig'
 import { ref } from 'firebase/database';
 import { onValue } from 'firebase/database'
+import DashExpandView from './DashExpandView'
 
 export default function DashFirstDiv() {
 
@@ -24,6 +25,9 @@ export default function DashFirstDiv() {
     const [expireArrayToday, setExpireArrayToday] = useState('...');
     const [expireArrayTommorow, setExpireArrayTommorow] = useState('...');
     const [expireArrayMonth, setExpireArrayMonth] = useState('...');
+
+    const [showExpanView, setShowExpandView] = useState(false);
+    const [expandDataType, setExpandDataType] = useState('');
 
     const [arryadue, setDueArray] = useState(0);
 
@@ -71,16 +75,16 @@ export default function DashFirstDiv() {
     }
 
     // Helper function to check if a date is tomorrow
-function isTomorrowDay(dueDate, currentDate) {
-    const tomorrow = new Date(currentDate);
-    tomorrow.setDate(currentDate.getDate() + 1); // Set to tomorrow
+    function isTomorrowDay(dueDate, currentDate) {
+        const tomorrow = new Date(currentDate);
+        tomorrow.setDate(currentDate.getDate() + 1); // Set to tomorrow
 
-    return (
-        dueDate.getFullYear() === tomorrow.getFullYear() &&
-        dueDate.getMonth() === tomorrow.getMonth() &&
-        dueDate.getDate() === tomorrow.getDate()
-    );
-}
+        return (
+            dueDate.getFullYear() === tomorrow.getFullYear() &&
+            dueDate.getMonth() === tomorrow.getMonth() &&
+            dueDate.getDate() === tomorrow.getDate()
+        );
+    }
 
     useEffect(() => {
         const fetchPendingtickets = onValue(pendingticktes, (ticketsSnap => {
@@ -319,26 +323,29 @@ return () => {fetchPendingtickets();
                     
                     <td>Today</td>
                     <td>{expireArrayToday}</td>
-                    <td><img alt='' style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
+                    <td><img alt='expand view' onClick={() => {
+                        setExpandDataType('Expiring Today');
+                        setShowExpandView(true);
+                    }} style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
                     </tr>
                     <tr>
                     
                     <td>Tomorrow</td>
                     <td>{expireArrayTommorow}</td>
-                    <td><img alt='' style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
+                    <td><img alt='expand view' style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
                     </tr>
 
                     <tr>
                     <td>This Week</td>
                     <td>{expireArrayWeek}</td>
-                    <td><img alt='' style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
+                    <td><img alt='expand view' style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
                     </tr>
 
                     
                     <tr>
                     <td>This Month</td>
                     <td>{expireArrayMonth}</td>
-                    <td><img alt='' style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
+                    <td><img alt='expand view' style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
                     </tr>
                     
                     
@@ -348,7 +355,7 @@ return () => {fetchPendingtickets();
                 </tbody>
                 </table>
             </div>
-
+            <DashExpandView show={showExpanView} datatype={expandDataType} modalShow={() => setShowExpandView(false)}/>
             <div style={{borderRadius: '5px',flex: '1', marginTop: '15px', boxShadow: '0 0 7px violet'}}>
                 <img alt='' className='img_boldicon' src={Router_Img}></img>
                 <label style={{marginLeft: '20px', fontSize: '25px'}}>New Installations</label> 

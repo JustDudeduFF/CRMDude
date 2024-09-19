@@ -204,6 +204,7 @@ export default function DashFirstDiv() {
                 }
             }
         });
+        
 
         setExpireArrayToday(expireTodayArray.length);
         setExpireArrayTommorow(expireTommorowArray.length);
@@ -332,20 +333,29 @@ return () => {fetchPendingtickets();
                     
                     <td>Tomorrow</td>
                     <td>{expireArrayTommorow}</td>
-                    <td><img alt='expand view' style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
+                    <td><img alt='expand view' onClick={() => {
+                        setExpandDataType('Expiring Tomorrow');
+                        setShowExpandView(true);
+                    }}  style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
                     </tr>
 
                     <tr>
                     <td>This Week</td>
                     <td>{expireArrayWeek}</td>
-                    <td><img alt='expand view' style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
+                    <td><img alt='expand view' onClick={() => {
+                        setExpandDataType('Expiring Week');
+                        setShowExpandView(true);
+                    }} style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
                     </tr>
 
                     
                     <tr>
                     <td>This Month</td>
                     <td>{expireArrayMonth}</td>
-                    <td><img alt='expand view' style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
+                    <td><img alt='expand view' onClick={() => {
+                        setExpandDataType('Expiring Month');
+                        setShowExpandView(true);
+                    }} style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
                     </tr>
                     
                     

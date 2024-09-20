@@ -51,6 +51,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
             setHeading(datatype); // Set the heading from datatype prop
             const words = datatype.split(' ');
             const word = words[1]; // Get the second word
+            const datafor = words[0];
 
             try {
                 const currentDate = new Date();
@@ -58,14 +59,16 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
 
                 dataSnap.forEach((childSnap) => {
                     const expiryDateSerial = convertExcelDateSerial(childSnap.child('connectionDetails').val().expiryDate);
+                    const activationDateSerial = convertExcelDateSerial(childSnap.child('connectionDetails').val().activationDate);
                     const username = childSnap.val().username;
                     const fullName = childSnap.val().fullName;
                     const mobile = childSnap.val().mobileNo;
                     const installationAddress = childSnap.val().installationAddress;
                     const planAmount = childSnap.child('connectionDetails').val().planAmount;
                     const planName = childSnap.child('connectionDetails').val().planName;
+                    const dueAmount = childSnap.child('connectionDetails').val().dueAmount;
 
-                    if (expiryDateSerial) {
+                    if(datafor === 'Expiring'){
                         const expDate = expiryDateSerial;
                         const isSameMonth = expDate.getFullYear() === currentDate.getFullYear() && expDate.getMonth() === currentDate.getMonth();
                         if (word === 'Today' && isSameDay(expDate, currentDate)) {
@@ -77,7 +80,23 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                         } else if (word === 'Month' && isSameMonth) {
                             dataArray.push({ username, expiredDate: expDate.toISOString().split('T')[0], fullName, mobile, installationAddress, planAmount, planName });
                         }
+                    }else if(datafor === 'Due'){
+                        const expDate = activationDateSerial;
+                        const isSameMonth = expDate.getFullYear() === currentDate.getFullYear() && expDate.getMonth() === currentDate.getMonth();
+                        if (word === 'Today' && isSameDay(expDate, currentDate) && dueAmount > 0) {
+                            dataArray.push({ username, expiredDate: expDate.toISOString().split('T')[0], fullName, mobile, installationAddress, planAmount: dueAmount, planName });
+                        } else if (word === 'Tomorrow' && isTomorrowDay(expDate, currentDate) && dueAmount > 0) {
+                            dataArray.push({ username, expiredDate: expDate.toISOString().split('T')[0], fullName, mobile, installationAddress, planAmount: dueAmount, planName });
+                        } else if (word === 'Week' && isSameISOWeek(expDate, currentDate) && dueAmount > 0) {
+                            dataArray.push({ username, expiredDate: expDate.toISOString().split('T')[0], fullName, mobile, installationAddress, planAmount: dueAmount, planName });
+                        } else if (word === 'Month' && isSameMonth && dueAmount > 0) {
+                            dataArray.push({ username, expiredDate: expDate.toISOString().split('T')[0], fullName, mobile, installationAddress, planAmount: dueAmount, planName });
+                        }else if(word === 'All' && dueAmount > 0){
+                            dataArray.push({ username, expiredDate: expDate.toISOString().split('T')[0], fullName, mobile, installationAddress, planAmount: dueAmount, planName });
+                        }
                     }
+                        
+                    
                 });
 
                 setArrayData(dataArray);
@@ -114,8 +133,8 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                                 <th>Mobile No.</th>
                                 <th>Installation Address</th>
                                 <th>Plan Name</th>
-                                <th>Plan Amount</th>
-                                <th>Expiry Date</th>
+                                <th>{heading.split(' ')[0] === 'Expiring' ? 'Plan Amount' : 'Due Amount'}</th>
+                                <th>{heading.split(' ')[0] === 'Expiring' ? 'Expiry Date' : 'Activate Date'}</th>
                             </tr>
                         </thead>
                         <tbody>

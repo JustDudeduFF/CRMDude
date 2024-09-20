@@ -417,11 +417,15 @@ return () => {fetchPendingtickets();
                     
                 </div>
                 <div style={{flex: '1', border: '1px solid gray', marginBottom: '10px', borderRadius: '5px', padding: '10px', display: 'flex', flexDirection: 'column'}}>
-                    <div style={{display: 'flex', flexDirection: 'row'}}>
+                    <div onClick={() => {
+                        setExpandDataType('Due Month');
+                        setShowExpandView(true);
+                        }} 
+                        style={{display: 'flex', flexDirection: 'row'}}>
                         <div style={{flex: '1'}}>
                         <img alt='' className='img_boldicon' src={DueRupee_Icon}></img>
                         </div>
-                        <div style={{flex: '3', marginTop: '10px'}}>
+                        <div style={{flex: '3', marginTop: '10px', cursor:'pointer'}}>
                             <h3>{`$${dueArrayMonth}.00`}</h3>
                             <label style={{color: 'red'}}>Month Due Amount</label>
                         </div>
@@ -429,15 +433,24 @@ return () => {fetchPendingtickets();
                         
                     </div>
                     <div style={{flex: '1', display: 'flex', flexDirection: 'row', marginTop: '30px'}}>
-                        <div style={{border: '1px solid gray', flex: '1', padding: '5px'}}>
-                            <h5>{`$${arryadue}.0`}</h5>
+                        <div onClick={() => {
+                        setExpandDataType('Due All');
+                        setShowExpandView(true);
+                        }}  style={{border: '1px solid gray', flex: '1', padding: '5px', cursor:'pointer'}}>
+                            <h5>{`$${arryadue}.00`}</h5>
                             <label style={{color: 'gray'}} >Total Due Amount</label>
                         </div>
-                        <div style={{border: '1px solid gray', flex: '1', padding: '5px'}}>
+                        <div onClick={() => {
+                        setExpandDataType('Due Week');
+                        setShowExpandView(true);
+                        }}  style={{border: '1px solid gray', flex: '1', padding: '5px', cursor:'pointer'}}>
                         <h5>{`$${dueArrayWeek}.00`}</h5>
                         <label style={{color: 'red'}} >Weekly Due</label>
                         </div>
-                        <div style={{border: '1px solid gray', flex: '1', padding: '5px'}}>
+                        <div onClick={() => {
+                        setExpandDataType('Due Today');
+                        setShowExpandView(true);
+                        }}  style={{border: '1px solid gray', flex: '1', padding: '5px', cursor:'pointer'}}>
                         <h5>{`$${dueArrayToday}.00`}</h5>
                         <label style={{color: 'blue'}} >Today's Due Amount</label>
                         </div>

@@ -21,6 +21,7 @@
   }
 
 .modal-inner{
+   
     display: flex;
     flex-direction: row;
     background: white;

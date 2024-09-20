@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import './ExpandView.css';
 import { onValue, ref } from 'firebase/database';
 import { db } from '../FirebaseConfig';
+import ExcelIcon from './subscriberpage/drawables/xls.png'
 
 const DashExpandView = ({ show, datatype, modalShow }) => {
     const [heading, setHeading] = useState('');
@@ -98,8 +99,10 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
         <div className="modal-body">
             <div className="modal-data">
                 <div className="modal-inner">
-                    <h4>{heading}</h4>
-                    <button className="btn-close" onClick={modalShow}></button>
+                    <h4 style={{flex:'1'}}>{heading}</h4>
+                    <img src={ExcelIcon} alt='excel' className='img_download_icon'></img>
+                    <button style={{right:'5%'}} className="btn-close" onClick={modalShow}></button>
+                    
                 </div>
                 <div style={{ overflow: 'hidden', height: '80vh', overflowY: 'auto' }}>
                     <table className="table">

@@ -1,12 +1,23 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import './ExpandView.css';
 import { onValue, ref } from 'firebase/database';
+import * as XLSX from 'xlsx';
 import { db } from '../FirebaseConfig';
 import ExcelIcon from './subscriberpage/drawables/xls.png'
 
 const DashExpandView = ({ show, datatype, modalShow }) => {
     const [heading, setHeading] = useState('');
     const [arrayData, setArrayData] = useState([]);
+
+    //Download All Data to Excel File
+
+    const downloadExcel =()=> {
+        const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.json_to_sheet(arrayData);
+
+        XLSX.utils.book_append_sheet(workbook, worksheet, heading);
+        XLSX.writeFile(workbook, `${heading} Data.xlsx`);
+    }
 
     // Function to convert Excel date serial number to a Date object
     function convertExcelDateSerial(input) {
@@ -119,7 +130,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
             <div className="modal-data">
                 <div className="modal-inner">
                     <h4 style={{flex:'1'}}>{heading}</h4>
-                    <img src={ExcelIcon} alt='excel' className='img_download_icon'></img>
+                    <img onClick={downloadExcel} src={ExcelIcon} alt='excel' className='img_download_icon'></img>
                     <button style={{right:'5%'}} className="btn-close" onClick={modalShow}></button>
                     
                 </div>

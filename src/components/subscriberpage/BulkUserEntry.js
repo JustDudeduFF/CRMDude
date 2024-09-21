@@ -17,7 +17,7 @@ const removeUndefinedValues = (obj) => {
 
 
 const deleteRef = async() => {
-  const reference = ref(db, 'Subscriber/');
+  const reference = ref(db, 'Master/Broadband Plan/expiryDate');
   await remove(reference);
   
   
@@ -42,6 +42,32 @@ export default function BulkUserEntry() {
       reader.readAsArrayBuffer(file);
     }
   };
+
+
+  const uploadPlansData = (event) => {
+    event.preventDefault();
+
+    fileData.forEach((row) => {
+      const planData = {
+        planname: row.PLANNAME,
+        planamount: row.AMOUNT,
+        planperiod: row.PERIOD,
+        periodtime: row.TIME
+
+      }
+
+      const planRef = ref(db , `Master/Broadband Plan/${Date.now()}`);
+      
+        set(planRef, planData).then(() => {
+          console.log('Plan Uploaded')
+        }).catch((error) => {
+          console.log(`Failed Upload: ${error}`);
+        });
+      
+    });
+
+    
+  }
 
   // Upload parsed data to Firebase Realtime Database
   const uploadToFirebase = (event) => {
@@ -137,7 +163,7 @@ export default function BulkUserEntry() {
 
   return (
     <div style={{ marginTop: '6%' }} className="ms-3">
-      <form className="column g-3" onSubmit={uploadToFirebase}>
+      <form className="column g-3">
         <label className="form-lable">Select Excel File of Users</label>
         <input
           className="form-control"
@@ -145,8 +171,12 @@ export default function BulkUserEntry() {
           accept=".xlsx, .xls"
           onChange={handleFileUpload}
         ></input>
-        <button type="submit" className="btn btn-success">
-          Upload Data
+        <button onClick={uploadToFirebase} className="btn btn-success">
+          Upload Subscriber
+        </button>
+
+        <button onClick={uploadPlansData} className="btn btn-success">
+          Upload Plans
         </button>
         <button className='btn btn-danger' onClick={deleteRef}>Delete all Subscriber</button>
       </form>

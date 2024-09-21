@@ -68,7 +68,6 @@ export default function Navbar() {
             
             <input style={{height: '40px', float:'left'}}
               onClick={() => setIsSearchFocused(true)}
-              
               className="form-control"
               onChange={(e) => setSubsSearch(e.target.value)}
               type="search"

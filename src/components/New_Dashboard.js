@@ -10,6 +10,7 @@ import EmployeeDashboard from './EmployeePage/EmloyeeDashboard';
 import InventryDash from './InventryPage/InventryDash';
 import MasterDash from './Master/MasterDash';
 import BulkUserEntry from './subscriberpage/BulkUserEntry';
+import LeadDash from './LeadManagment/LeadDash';
 
 function New_Dashboard() {  // Renamed to PascalCase
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ function New_Dashboard() {  // Renamed to PascalCase
           <Route path='/inventry/*' element={<InventryDash/>}/>
           <Route path='/master/*' element={<MasterDash/>}/>
           <Route path='/bulkuser/*' element={<BulkUserEntry/>}/>
+          <Route path='/leadmanagment/*' element={<LeadDash/>}/>
         </Routes>
       </AnimatePresence>
     </div>

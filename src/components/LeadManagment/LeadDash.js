@@ -17,6 +17,8 @@ import { onValue, ref } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
 import { isToday, isThisWeek, isThisMonth, subDays } from 'date-fns';
 import CreateEnquiry from './CreateEnquiry';
+import ExpandLeads from './ExpandLeads';
+import ExpandIcon from '../subscriberpage/drawables/expand-arrows.png'
 
 ChartJS.register(
   CategoryScale,
@@ -32,6 +34,7 @@ ChartJS.register(
 export default function LeadDash() {
   const [show, setShow] = useState(false);
   const [show1, setShow1] = useState(false);
+  const [shoeExpand, setShowExpand] = useState(false);
   const [arrayleads, setArrayLeads] = useState([]);
   const [filteredLeads, setFilteredLeads] = useState([]);
   const [filterType, setFilterType] = useState('All Time');
@@ -189,6 +192,7 @@ export default function LeadDash() {
       </div>
       <CreateLeadForm showModal={show} modalClose={() => setShow(false)} />
       <CreateEnquiry showModal1={show1} modalClose1={() => setShow1(false)} />
+        <ExpandLeads showExpand={shoeExpand} closeExpand={() => setShowExpand(false)}/>
       <div className='container mt-3'>
         <div className='d-flex justify-content-between align-items-center mb-2'>
           <div className='d-flex flex-row'>
@@ -222,15 +226,18 @@ export default function LeadDash() {
           <div className='col-md-6 mb-4'>
             <div className='card'>
               <div className='card-body'>
-                <h6>Your lead stats are showing below</h6>
+                <div className='d-flex flex-row'>
+                <h6 style={{flex:'1'}}>Your lead stats are showing below</h6>
+                <img onClick={() => setShowExpand(true)} style={{width:'25px', height:'25px', float:'right', cursor:'pointer'}} src={ExpandIcon}></img>
+                </div>
                 <div className='row'>
                   <div className='col-6'>
                     <p>Enquiries</p>
-                    <h5>{leadCountByType.enquiry || 0}</h5>
+                    <h5 style={{color:'brown'}}>{leadCountByType.enquiry || 0}</h5>
                   </div>
                   <div className='col-6'>
                     <p>Leads</p>
-                    <h5>{leadCountByType.lead || 0}</h5>
+                    <h5 style={{color:'blue'}}>{leadCountByType.lead || 0}</h5>
                   </div>
                 </div>
               </div>

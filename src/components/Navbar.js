@@ -7,6 +7,7 @@ import Reports_Others from "./Reports_Others";
 import { Link, useNavigate } from "react-router-dom";
 import { db } from "../FirebaseConfig";
 import { ref, onValue } from "firebase/database";
+import UserProfile from './subscriberpage/drawables/user.png'
 
 
 export default function Navbar() {
@@ -81,7 +82,7 @@ export default function Navbar() {
               </div>
               <div style={{display:'flex', flexDirection:'row'}}>
                 <div style={{marginLeft:"20px"}}>
-                <img onClick={togglevisiblty}  className="shadow bg-secondary-subtle" style={{width: '50px', height: '50px', borderRadius: '100%', cursor: 'pointer'}} src={Profile}></img>
+                <img onClick={togglevisiblty}  className="shadow bg-secondary-subtle" style={{width: '50px', height: '50px', borderRadius: '100%', cursor: 'pointer'}} src={UserProfile}></img>
                 </div>
                 <div style={{display:'flex', flexDirection:'column'}}>
                 <label style={{marginLeft: '10px', width:'150px'}}>{name}</label>

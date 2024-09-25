@@ -18,6 +18,7 @@ export default function CreateLeadForm({ showModal, modalClose }) {
     leadsource: muDesignation === 'Sales' ? 'sales_team' : 'employee',
     generatename: myMobile,
     type:'lead'
+    
   });
 
   const companyRef = ref(db, 'Master/companys');

@@ -170,8 +170,8 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                                     <td>{new Date(Enquiry_LeadDate).toLocaleDateString()}</td>
                                     <td>{Status}</td>
                                     <td>
-                                        {/* Actions Column (Edit/Delete/View dropdown or icons) */}
-                                        <button>Edit</button>
+                                        
+                                        <button></button>
                                         <button>Delete</button>
                                     </td>
                                 </tr>

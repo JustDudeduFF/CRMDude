@@ -136,7 +136,7 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                             >
                                 <option>All</option>
                                 <option value="enquiry">Enquiry</option>
-                                <option value="leads">Leads</option>
+                                <option value="lead">Leads</option>
                             </select>
                         </div>
                     </form>
@@ -162,17 +162,16 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {filterData.map(({ FirstName, LastName, Mobile, Address, Enquiry_LeadDate, LeadSource, Status }, index) => (
+                            {filterData.map(({ FirstName, LastName, Mobile, Address, Enquiry_LeadDate, LeadSource, Status, Type }, index) => (
                                 <tr key={index}>
                                     <td>{`${FirstName} ${LastName}`}</td>
-                                    <td>{`${Mobile} ${Address}`}</td>
+                                    <td>{`"${Mobile}" : "${Address}"`}</td>
                                     <td>{LeadSource}</td>
                                     <td>{new Date(Enquiry_LeadDate).toLocaleDateString()}</td>
                                     <td>{Status}</td>
                                     <td>
-                                        
-                                        <button></button>
-                                        <button>Delete</button>
+                                        <button className='btn btn-outline-success me-3'>{Type === 'enquiry' ? 'Convert to Lead' : 'Assign'}</button>
+                                        <button className='btn btn-danger'>Cancel</button>
                                     </td>
                                 </tr>
                             ))}

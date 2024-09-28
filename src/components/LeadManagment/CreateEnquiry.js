@@ -13,7 +13,7 @@ export default function CreateEnquiry({ showModal1, modalClose1 }) {
     phone: '',
     en_concern: '',
     date: new Date().toISOString().split('T')[0],
-    leadsource: 'enquiry',
+    leadsource: 'office',
     generatename: myMobile,
     type: 'enquiry'
   });

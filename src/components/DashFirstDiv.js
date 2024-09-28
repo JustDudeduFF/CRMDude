@@ -9,6 +9,7 @@ import {db} from '../FirebaseConfig'
 import { ref } from 'firebase/database';
 import { onValue } from 'firebase/database'
 import DashExpandView from './DashExpandView'
+import ExpandIcon from './subscriberpage/drawables/expand-arrows.png'
 
 export default function DashFirstDiv() {
 
@@ -223,7 +224,7 @@ return () => {fetchPendingtickets();
     <div style={{width: '100%', display:'flex', flexDirection: 'row', marginTop: '4%', padding: '20px'}}>
         
             <div style={{ borderRadius: '5px', border: '1px solid gray', flex:'1'}}>
-            <img alt='' className='img_hover' src={More_Info}></img>
+            <img alt='' style={{width:'20px', height:'20px',float:'right', marginTop:'5px', marginRight:'8px', cursor:'pointer'}} src={ExpandIcon}></img>
                 <h3 style={{marginLeft: '10px'}}>Daily Attendence Logs</h3>
                 <table className="table">
                     <thead className='table-primary'>

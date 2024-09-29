@@ -10,6 +10,7 @@ import { ref } from 'firebase/database';
 import { onValue } from 'firebase/database'
 import DashExpandView from './DashExpandView'
 import ExpandIcon from './subscriberpage/drawables/expand-arrows.png'
+import ExpandTickets from './ExpandTickets'
 
 export default function DashFirstDiv() {
 
@@ -29,6 +30,9 @@ export default function DashFirstDiv() {
 
     const [showExpanView, setShowExpandView] = useState(false);
     const [expandDataType, setExpandDataType] = useState('');
+
+    const [showTicketExpand, setShowTicketExpand] = useState(false);
+    const [ticketsType, setTicketType] = useState('');
 
     const [arryadue, setDueArray] = useState(0);
 
@@ -367,6 +371,7 @@ return () => {fetchPendingtickets();
                 </table>
             </div>
             <DashExpandView show={showExpanView} datatype={expandDataType} modalShow={() => setShowExpandView(false)}/>
+                <ExpandTickets viewShow={showTicketExpand} ticketType={ticketsType} closeView={() => setShowTicketExpand(false)}/>
             <div style={{borderRadius: '5px',flex: '1', marginTop: '15px', boxShadow: '0 0 7px violet'}}>
                 <img alt='' className='img_boldicon' src={Router_Img}></img>
                 <label style={{marginLeft: '20px', fontSize: '25px'}}>New Installations</label> 
@@ -465,7 +470,9 @@ return () => {fetchPendingtickets();
                         <div style={{flex: '1'}}>
                         <img alt='' className='img_boldicon' src={Tickets_Icon}></img>
                         </div>
-                        <div style={{flex: '3', marginTop: '10px'}}>
+                        <div onClick={() => {setShowTicketExpand(true);
+                            setTicketType('Open Tickets')
+                        }} style={{flex: '3', marginTop: '10px'}}>
                             <h3 style={{borderBottom: '2px solid brown', cursor:'pointer'}}>{openticktes}</h3>
                             <label style={{color: 'brown'}}>Current Open Tickets</label>
                         </div>

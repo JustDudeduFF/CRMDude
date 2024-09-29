@@ -133,6 +133,17 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                         </select>
                     </div>
 
+                    <div className='col-md-3'>
+                        <label className='form-label'>Select Tickets Status</label>
+                        <select className='form-select'>
+                            <option>Open Tickets</option>
+                            <option>Closed Tickets</option>
+                            <option>Pending Tickets</option>
+                            <option>Unassigned Tickets</option>
+                        </select>
+                        
+                    </div>
+
                 </form>
                 <img
                     onClick={downloadExcel}

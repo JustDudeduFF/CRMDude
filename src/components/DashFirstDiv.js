@@ -470,9 +470,10 @@ return () => {fetchPendingtickets();
                         <div style={{flex: '1'}}>
                         <img alt='' className='img_boldicon' src={Tickets_Icon}></img>
                         </div>
-                        <div onClick={() => {setShowTicketExpand(true);
+                        <div style={{flex: '3', marginTop: '10px'}}>
+                            <img alt='Expand View' onClick={() => {setShowTicketExpand(true);
                             setTicketType('Open Tickets')
-                        }} style={{flex: '3', marginTop: '10px'}}>
+                        }} style={{width:'20px', height:'20px',float:'right', marginTop:'5px', marginRight:'8px', cursor:'pointer'}} src={ExpandIcon}></img>
                             <h3 style={{borderBottom: '2px solid brown', cursor:'pointer'}}>{openticktes}</h3>
                             <label style={{color: 'brown'}}>Current Open Tickets</label>
                         </div>

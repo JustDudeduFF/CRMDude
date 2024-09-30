@@ -44,7 +44,8 @@ export default function NewTicket() {
           const empArray = [];
           empSnap.forEach(ChildEmp => {
             const empname = ChildEmp.val().fullname;
-            empArray.push(empname);
+            const empmobile = ChildEmp.key;
+            empArray.push({empname, empmobile});
           });
           setArrayEmp(empArray);
         }
@@ -160,8 +161,8 @@ export default function NewTicket() {
               <option value=''>Choose...</option>
               {
                 arrayemp.length > 0 ? (
-                  arrayemp.map((empname, index) => (
-                    <option key={index} value={empname}>{empname}</option>
+                  arrayemp.map(({empname, empmobile}, index) => (
+                    <option key={index} value={empmobile}>{empname}</option>
                   ))
                 ) : (
                   <option value=''>No Employee Availabale</option>

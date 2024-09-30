@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import './SmallModal.css'; // Add your styles here
-import { onValue, ref } from 'firebase/database';
+import { get, onValue, ref, update } from 'firebase/database';
 import { db } from '../FirebaseConfig';
 
-const PasswordModal = ({ show, ticketno, closeModal}) => {
+const SmallModal = ({ show, ticketno, closeModal}) => {
     const [arrayemp, setEmpArray] = useState([]);
+    const [assignemp, setAssignEmp] = useState('');
     const empRef = ref(db, `users`);
 
     useEffect(() => {
@@ -20,37 +21,63 @@ const PasswordModal = ({ show, ticketno, closeModal}) => {
         })
 
         return () => fetchUsers();
-    })
+    });
+
+    const assignTicket = async(event) => {
+        event.preventDefault();
+        const ticketRef = ref(db, `Global Tickets/${ticketno}`);
+        const ticketSnap = await get(ticketRef);
+        if(ticketSnap.hasChild('assigndata')){
+            const assigndata = {
+                assigndate: new Date().toISOString().split('T')[0],
+                assigntime: new Date().toLocaleTimeString(),
+                assignto: assignemp
+            }
+            update(ticketRef, assigndata).then(() => {
+                closeModal();
+                alert(`${ticketno} is now assigned to ${assignemp}`)
+            });
+        }else{
+            const assigndata = {
+                assignto: assignemp
+            }
+
+            update(ticketRef, assigndata).then(() => {
+                closeModal();
+                alert(`${ticketno} is now assigned to ${assignemp}`)
+            })
+        }
+    }
   if (!show) return null;
 
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <div className='d-flex flex-row'>
-        <h4 style={{flex:'1'}}>Assign Ticket to Technician</h4>
-        <button onClick={closeModal} className='btn-close'></button>
-        </div>
-        <p style={{color:'blue'}}>{`Ticket Id : ${ticketno}`}</p>
-        <div>
-            <label className='form-label'>Employee Names</label>
-            <select className='form-select mb-3'>
-                {
-                    arrayemp.length > 0 ? (
-                        arrayemp.map(({empname, empmobile}, index) => (
-                            <option key={index} value={empname}>{empname}</option>
-                        ))
-                    ) : (
-                        <option value=''>No Data Available!</option>
-                    )
-                }
-
-            </select>
-            </div>
-        
-        <button className='btn btn-success' onClick={closeModal}>Assign Ticket</button>
+      <div className='d-flex flex-row'>
+      <h4 style={{flex:'1'}}>Assign Ticket to Technician</h4>
+      <button onClick={closeModal} className='btn-close'></button>
       </div>
+      <p style={{color:'blue'}}>{`Ticket Id : ${ticketno}`}</p>
+      <div>
+          <label className='form-label'>Employee Names</label>
+          <select onChange={(e) => setAssignEmp(e.target.value)} className='form-select mb-3'>
+              {
+                  arrayemp.length > 0 ? (
+                      arrayemp.map(({empname, empmobile}, index) => (
+                          <option key={index} value={empmobile}>{empname}</option>
+                      ))
+                  ) : (
+                      <option value=''>No Data Available!</option>
+                  )
+              }
+
+          </select>
+          </div>
+      
+      <button className='btn btn-success' onClick={assignTicket}>Assign Ticket</button>
+    </div>
     </div>
   );
 };
 
-export default PasswordModal;
+export default SmallModal;

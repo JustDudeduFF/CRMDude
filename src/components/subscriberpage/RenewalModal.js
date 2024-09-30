@@ -10,8 +10,8 @@ const RenewalModal = ({show, planName, planAmount, isp, modalShow, handleActivat
     
     if(!show) return null;
     return(
-       <div className='modal-overlay'>
-        <div className='modal-content d-flex flex-column'>
+       <div className='modal-overlay1'>
+        <div className='modal-content1 d-flex flex-column'>
         <h5>Renew Customer Plan</h5>
             <div className='d-flex flex-row bg-success rounded'>
                 <div className='m-2 d-flex flex-column col-md-5'>

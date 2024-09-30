@@ -17,7 +17,7 @@ const removeUndefinedValues = (obj) => {
 
 
 const deleteRef = async() => {
-  const reference = ref(db, 'Leadmanagment');
+  const reference = ref(db, 'Subscriber');
   await remove(reference);
   
   

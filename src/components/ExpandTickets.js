@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import './ExpandView.css';
-import { onValue, ref } from 'firebase/database';
+import { onValue, ref, get } from 'firebase/database';
 import * as XLSX from 'xlsx';
 import { db } from '../FirebaseConfig';
 import ExcelIcon from './subscriberpage/drawables/xls.png';
 import { isThisMonth, isThisWeek, isToday, subDays, parseISO } from 'date-fns';
 import SmallModal from './SmallModal'
+import CloseTicketModal from './CloseTicketModal';
 
 
 const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
@@ -16,7 +17,9 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
     const [filterData, setFilteredData] = useState([]);
 
     const [showsmallModal, setShowSmallModal] = useState(false);
-    const [ticketno, setTicketno] = useState('');
+    const [ticketclosemodal, setTicketCloseModal] = useState(false);
+    const [ticketno, setTicketno] = useState([]);
+
 
     // Download All Data to Excel File
     const downloadExcel = () => {
@@ -28,34 +31,64 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
 
     const fetchExpandData = useCallback(() => {
         const pendingTicketsRef = ref(db, `Global Tickets`);
-        onValue(pendingTicketsRef, (dataSnap) => {
-            setHeading(ticketType); // Set the heading from ticketType prop
-
-            try {
-                const dataArray = [];
-                dataSnap.forEach((childSnap) => {
-                    const { userid, source, generatedBy, assigndate, assigntime, assignto, description, ticketconcern, status } = childSnap.val();
-
-                    // Only include tickets that are not 'Completed'
-                    if (status !== 'Completed') {
-                        dataArray.push({
-                            Ticketno:childSnap.key,
-                            subsID: userid,
+        const usersRef = ref(db, `users`);
+    
+        // Step 1: Fetch all users and store them in a lookup object
+        get(usersRef).then((userSnap) => {
+            const usersLookup = {};
+            userSnap.forEach((childSnap) => {
+                const userId = childSnap.key;
+                const { fullname } = childSnap.val();
+                usersLookup[userId] = fullname; // Create a dictionary with userid -> fullname
+            });
+    
+            // Step 2: Fetch tickets
+            onValue(pendingTicketsRef, (dataSnap) => {
+                setHeading(ticketType); // Set the heading from ticketType prop
+    
+                try {
+                    const dataArray = [];
+    
+                    dataSnap.forEach((childSnap) => {
+                        const {
+                            userid,
                             source,
-                            createby: generatedBy,
-                            creationdate: assigndate,
-                            Time: assigntime,
-                            Assign_to: assignto,
-                            Description: description,
-                            Concern: ticketconcern,
-                            Status: status,
-                        });
-                    }
-                });
-                setArrayData(dataArray);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
+                            generatedBy,
+                            assigndate,
+                            assigntime,
+                            assignto, // This is actually the userid of the assigned person
+                            description,
+                            ticketconcern,
+                            status
+                        } = childSnap.val();
+    
+                        // Only include tickets that are not 'Completed'
+                        if (status !== 'Completed') {
+                            const assignedPersonName = usersLookup[assignto] || assignto; // Lookup user name or fallback to userid
+    
+                            // Push the ticket with the user's name instead of userid
+                            dataArray.push({
+                                Ticketno: childSnap.key,
+                                subsID: userid,
+                                source,
+                                createby: generatedBy,
+                                creationdate: assigndate,
+                                Time: assigntime,
+                                Assign_to: assignedPersonName, // Use user's name from lookup
+                                Description: description,
+                                Concern: ticketconcern,
+                                Status: status,
+                            });
+                        }
+                    });
+    
+                    setArrayData(dataArray);
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                }
+            });
+        }).catch((error) => {
+            console.error('Error fetching users:', error);
         });
     }, [ticketType]);
 
@@ -130,6 +163,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                             </select>
                         </div>
                         <SmallModal show={showsmallModal} ticketno={ticketno} closeModal={() => setShowSmallModal(false)}/>
+                        <CloseTicketModal show={ticketclosemodal} ticketno={ticketno} closeModal={() => setTicketCloseModal(false)}/>
                         <div className='col-md-3'>
                             <label className='form-label'>Select Ticket Status</label>
                             <select
@@ -137,9 +171,9 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                 className='form-select'
                             >
                                 <option value="All">All Tickets</option>
-                                <option value="Open">Open Tickets</option>
+                                <option value="Pending">Open Tickets</option>
                                 <option value="Completed">Closed Tickets</option>
-                                <option value="Pending">Pending Tickets</option>
+                                <option value="Open">Pending Tickets</option>
                                 <option value="Unassigned">Unassigned Tickets</option>
                             </select>
                         </div>
@@ -182,8 +216,8 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                     <td>{createby}</td>
                                     <td>{`"${creationdate}" at "${Time}"`}</td>
                                     <td>
-                                        <button onClick={() => {setShowSmallModal(true); setTicketno(Ticketno)}} className='btn btn-outline-success me-3' >{Status === 'unassigned' ? 'Assign' : 'Re Assign'}</button>
-                                        <button className='btn btn-danger'>{Status === 'Pending' ? 'Open Now' : 'Close it'}</button>
+                                        <button onClick={() => {setShowSmallModal(true); setTicketno({Ticketno, subsID})}} className='btn btn-outline-success me-3' >{Status === 'unassigned' ? 'Assign' : 'Re Assign'}</button>
+                                        <button onClick={() => {setTicketCloseModal(true); setTicketno({Ticketno, subsID});}} className='btn btn-danger'>{Status === 'Open' ? 'Re-Open' : 'Close it'}</button>
                                     </td>
                                 </tr>
                             ))}

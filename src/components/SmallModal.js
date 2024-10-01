@@ -25,7 +25,8 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
 
     const assignTicket = async(event) => {
         event.preventDefault();
-        const ticketRef = ref(db, `Global Tickets/${ticketno}`);
+        const ticketRef = ref(db, `Subscriber/${ticketno.subsID}/Tickets/${ticketno.Ticketno}`);
+        const globalTicketsRef = ref(db, `Global Tickets/${ticketno.Ticketno}`);
         const ticketSnap = await get(ticketRef);
         if(ticketSnap.hasChild('assigndata')){
             const assigndata = {
@@ -33,10 +34,10 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
                 assigntime: new Date().toLocaleTimeString(),
                 assignto: assignemp
             }
-            update(ticketRef, assigndata).then(() => {
-                closeModal();
-                alert(`${ticketno} is now assigned to ${assignemp}`)
-            });
+            update(globalTicketsRef, assigndata);
+            update(ticketRef, assigndata);
+            closeModal();
+            alert(`${ticketno.Ticketno} is now assigned to ${assignemp}`)
         }else{
             const assigndata = {
                 assignto: assignemp
@@ -44,7 +45,7 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
 
             update(ticketRef, assigndata).then(() => {
                 closeModal();
-                alert(`${ticketno} is now assigned to ${assignemp}`)
+                alert(`${ticketno.Ticketno} is now assigned to ${assignemp}`)
             })
         }
     }
@@ -57,10 +58,11 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
       <h4 style={{flex:'1'}}>Assign Ticket to Technician</h4>
       <button onClick={closeModal} className='btn-close'></button>
       </div>
-      <p style={{color:'blue'}}>{`Ticket Id : ${ticketno}`}</p>
+      <p style={{color:'blue'}}>{`Ticket Id : ${ticketno.Ticketno}`}</p>
       <div>
           <label className='form-label'>Employee Names</label>
           <select onChange={(e) => setAssignEmp(e.target.value)} className='form-select mb-3'>
+            <option value=''>Choose...</option>
               {
                   arrayemp.length > 0 ? (
                       arrayemp.map(({empname, empmobile}, index) => (

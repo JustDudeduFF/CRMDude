@@ -23,6 +23,11 @@ export default function DashFirstDiv() {
     const [dueArrayMonth, setDueArrayMonth] = useState(0);
     const [dueArrayToday, setDueArrayToday] = useState(0);
 
+    const [revenueMonth, setRevenueMonth] = useState(0);
+    const [revenueToday, setRevenueToday] = useState(0);
+    const [revenueCash, setRevenueCash] = useState(0);
+    const [revenueOnline, setRevenueOnline] = useState(0);
+
     const [expireArrayWeek, setExpireArrayWeek] = useState('...');
     const [expireArrayToday, setExpireArrayToday] = useState('...');
     const [expireArrayTommorow, setExpireArrayTommorow] = useState('...');
@@ -128,7 +133,7 @@ export default function DashFirstDiv() {
     dueSnap.forEach(childSnap => {
         const dueAmount = childSnap.child('connectionDetails').val().dueAmount;
         dueArray.push(dueAmount);
-        const dueDateTimestamp = convertExcelDateSerial(childSnap.child('connectionDetails').val().activationDate); // Assuming you store the due date timestamp here
+        const dueDateTimestamp = convertExcelDateSerial(childSnap.child('connectionDetails').val().activationDate);
 
             const totalDue = dueArray.reduce((acc, current) => acc + current, 0);
             setDueArray(totalDue); 
@@ -170,6 +175,55 @@ export default function DashFirstDiv() {
     setDueArrayMonth(totalDueMonth);
     setDueArrayWeek(totalDueWeek);
     setDueArrayToday(totalDueToday);
+});
+
+const fetchRevenue = onValue(dueRef, (revenueSnap) => {
+    const currentDate = new Date();
+    const MonthArray = [];
+    const CashArray = [];
+    const TodayArray = [];
+    const OnlineArray = [];
+    revenueSnap.forEach((childSnap) => {
+        const monthData = childSnap.child('payments');
+        monthData.forEach((newChild) => {
+            const {receiptDate, paymentMode, amount} = newChild.val();
+
+            if(receiptDate) {
+                const date = new Date(receiptDate);
+                const isSameMonth = date.getFullYear() === currentDate.getFullYear() && date.getMonth() === currentDate.getMonth();
+                if(isSameMonth) {
+                    MonthArray.push(parseInt(amount));
+                }
+
+                const isToday = isSameDay(date, currentDate);
+                if(isToday) {
+                    TodayArray.push(parseInt(amount));
+                }
+
+                const isCash = paymentMode === 'Cash';
+                if(isSameMonth && isCash) {
+                    CashArray.push(parseInt(amount));
+                }
+
+                const isOnline = paymentMode !== 'Cash';
+                if(isSameMonth && isOnline) {
+                    OnlineArray.push(parseInt(amount));
+                }
+            }
+
+        });
+    });
+
+    
+    const totalMonthRevenue = MonthArray.reduce((acc, current) => acc + current, 0);
+    const totaltodayRevenue = TodayArray.reduce((acc, current) => acc + current, 0);
+    const totalcashRevenue = CashArray.reduce((acc, current) => acc + current, 0);
+    const totalonlineRevenue = OnlineArray.reduce((acc, current) => acc + current, 0);
+    setRevenueOnline(totalonlineRevenue);
+    setRevenueCash(totalcashRevenue);
+    setRevenueToday(totaltodayRevenue);
+    setRevenueMonth(totalMonthRevenue);
+
 });
 
     const fetchExpiredUser = onValue(dueRef, expiredSnap => {
@@ -218,7 +272,7 @@ export default function DashFirstDiv() {
     })
 
 return () => {fetchPendingtickets();
-    fetchAllDue();
+    fetchAllDue(); fetchExpiredUser(); fetchRevenue();
 }
 });
 
@@ -400,22 +454,23 @@ return () => {fetchPendingtickets();
                             <img alt='' className='img_boldicon' src={Rupee_Icon}></img>
                         </div>
                         <div style={{flex:'3', marginTop: '10px'}}>
-                            <h3>$122455.00</h3>
+                            <img style={{width:'20px', height:'20px',float:'right', marginTop:'5px', marginRight:'8px', cursor:'pointer'}} src={ExpandIcon}></img>
+                            <h3>{`$${revenueMonth}.00`}</h3>
                             <label style={{color: 'gray'}}>This Month Revenue</label>
                         </div> 
 
                     </div>
                     <div style={{flex: '1', display: 'flex', flexDirection: 'row', marginTop: '30px'}}>
                         <div style={{border: '1px solid gray', flex: '1', padding: '5px'}}>
-                            <h5>$21213.0</h5>
+                            <h5>{`$${revenueToday}.00`}</h5>
                             <label style={{color: 'gray'}} >Today's Revenue</label>
                         </div>
                         <div style={{border: '1px solid gray', flex: '1', padding: '5px'}}>
-                        <h5>$21213.0</h5>
+                        <h5>{`$${revenueCash}.00`}</h5>
                         <label style={{color: 'red'}} >Cash Collection</label>
                         </div>
                         <div style={{border: '1px solid gray', flex: '1', padding: '5px'}}>
-                        <h5>$21213.0</h5>
+                        <h5>{`$${revenueOnline}.00`}</h5>
                         <label style={{color: 'green'}} >Online Collection</label>
                         </div>
 

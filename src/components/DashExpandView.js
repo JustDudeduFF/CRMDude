@@ -156,7 +156,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                                         <td>{fullName}</td>
                                         <td>{username}</td>
                                         <td>{mobile}</td>
-                                        <td>{installationAddress}</td>
+                                        <td style={{maxWidth:'250px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{installationAddress}</td>
                                         <td>{planName}</td>
                                         <td>{planAmount}</td>
                                         <td>{expiredDate}</td>

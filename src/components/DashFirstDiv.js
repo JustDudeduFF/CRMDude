@@ -105,7 +105,7 @@ export default function DashFirstDiv() {
                         open++;
                     }else if(ticketno === 'Completed'){
                         closed++
-                    }else if(ticketno === 'Canceled'){
+                    }else if(ticketno === 'Open'){
                         cancel++;
                     }else{
                         unassigned++
@@ -487,7 +487,7 @@ return () => {fetchPendingtickets();
                         </div>
                         <div style={{border: '1px solid gray', flex: '1', padding: '5px'}}>
                         <h5>{cancelticket}</h5>
-                        <label style={{color: 'red'}} >Cancelled Tickets</label>
+                        <label style={{color: 'red'}} >Pending Tickets</label>
                         </div>
                         <div style={{border: '1px solid gray', flex: '1', padding: '5px'}}>
                         <h5>{closedtickets}</h5>

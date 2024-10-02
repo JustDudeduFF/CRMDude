@@ -42,7 +42,7 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
             const assigndata = {
                 assignto: assignemp
             }
-
+            update(globalTicketsRef, assigndata);
             update(ticketRef, assigndata).then(() => {
                 closeModal();
                 alert(`${ticketno.Ticketno} is now assigned to ${assignemp}`)

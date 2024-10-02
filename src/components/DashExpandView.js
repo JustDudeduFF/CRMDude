@@ -1,14 +1,17 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import './ExpandView.css';
-import { onValue, ref } from 'firebase/database';
+import { onValue, ref, set, update, get } from 'firebase/database';
 import * as XLSX from 'xlsx';
 import { db } from '../FirebaseConfig';
 import ExcelIcon from './subscriberpage/drawables/xls.png'
+import QuickCollection from './QuickCollection';
 
 const DashExpandView = ({ show, datatype, modalShow }) => {
     const [heading, setHeading] = useState('');
     const [arrayData, setArrayData] = useState([]);
-
+    const [arrayplan, setArrayPlan] = useState([]);
+    const [showmodal, setShowModal] = useState(false);
+    const [collectdata, setCollectData] = useState([]);
     //Download All Data to Excel File
 
     const downloadExcel =()=> {
@@ -117,11 +120,91 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
         });
     }, [datatype]);
 
+    const fetchPlans = useCallback(() => {
+        const planRef = ref(db, `Master/Broadband Plan`);
+        onValue(planRef, (planSnap) => {
+            const planArray = [];
+            planSnap.forEach((childSnap) => {
+                const {planname, planamount, planperiod, periodtime} = childSnap.val();
+                planArray.push({
+                    planname, planamount, planperiod, periodtime
+                });
+            });
+            setArrayPlan(planArray);
+        });
+    }, []);
+
     useEffect(() => {
         if (show) {
             fetchExpandData();
+            fetchPlans();
         }
-    }, [show, fetchExpandData]); // Dependency on `show` and `fetchExpandData`
+    }, [show, fetchExpandData, fetchPlans]); // Dependency on `show` and `fetchExpandData`
+
+    const handleSavePlan = async (username, expireDate, planAmount, planName) => {
+        if (heading.split(' ')[0] === 'Expiring') {
+            const dueRef = ref(db, `Subscriber/${username}/connectionDetails`);
+        const dueSnap = await get(dueRef);
+        const dueamount = dueSnap.child('dueAmount').val();
+        const isp = dueSnap.child('isp').val();
+        const selectedPlanObj = arrayplan.find(plan => plan.planname === planName);
+
+        if (selectedPlanObj) {
+            const planperiod = selectedPlanObj.planperiod;
+            const periodtime = selectedPlanObj.periodtime;
+
+            const date = new Date(expireDate);
+            if (planperiod === 'Months') {
+                date.setMonth(date.getMonth() + parseInt(periodtime));
+            } else if (planperiod === 'Years') {
+                date.setFullYear(date.getFullYear() + parseInt(periodtime));
+            } else if (planperiod === 'Days') {
+                date.setDate(date.getDate() + parseInt(periodtime));
+            }
+
+            const formattedExpirationDate = date.toISOString().split('T')[0];
+            const expdate = formattedExpirationDate;
+            const newDue = parseInt(dueamount) + parseInt(planAmount);
+            const renewactdate = new Date(expireDate);
+            renewactdate.setDate(renewactdate.getDate() + 1);
+            const formattedRenewActDate = renewactdate.toISOString().split('T')[0];
+
+            const ledgerData = {
+                type: 'Renewal',
+                date: new Date().toISOString().split('T')[0],
+                particular: `${planName} From ${formattedRenewActDate} to ${expdate}`,
+                debitamount: parseInt(planAmount),
+                creditamount: 0,
+            };
+
+            const planinfo = {
+                compeletedate: new Date().toISOString().split('T')[0],
+                planName: planName,
+                planAmount: parseInt(planAmount),
+                isp: isp,
+                activationDate: formattedRenewActDate,
+                expiryDate: expdate,
+                action: 'Renewal',
+                completedby: localStorage.getItem('Name'),
+                remarks: 'Quick Renew',
+            };
+
+            const newconnectioninfo = {
+                activationDate: formattedRenewActDate,
+                expiryDate: expdate,
+                dueAmount: newDue,
+            };
+
+            await set(ref(db, `Subscriber/${username}/ledger/${Date.now()}`), ledgerData);
+            await set(ref(db, `Subscriber/${username}/planinfo/${Date.now()}`), planinfo);
+            await update(dueRef, newconnectioninfo);
+
+            console.log('done updated')
+        }
+        }else if (heading.split(' ')[0] === 'Due') {
+            setShowModal(true);
+        }
+    };
 
     if (!show) return null;
 
@@ -134,6 +217,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                     <button style={{right:'5%'}} className="btn-close" onClick={modalShow}></button>
                     
                 </div>
+                <QuickCollection show={showmodal} closeModal={() => setShowModal(false)} collectdata={collectdata}/>
                 <div style={{ overflow: 'hidden', height: '80vh', overflowY: 'auto' }}>
                     <table className="table">
                         <thead>
@@ -153,13 +237,17 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                                 arrayData.map(({ username, expiredDate, fullName, mobile, installationAddress, planAmount, planName }, index) => (
                                     <tr key={index}>
                                         <td>{index + 1}</td>
-                                        <td>{fullName}</td>
+                                        <td style={{maxWidth:'900px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{fullName}</td>
                                         <td>{username}</td>
                                         <td>{mobile}</td>
                                         <td style={{maxWidth:'250px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{installationAddress}</td>
-                                        <td>{planName}</td>
+
+                                        <td style={{maxWidth:'180px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{planName}</td>
                                         <td>{planAmount}</td>
                                         <td>{expiredDate}</td>
+                                        <td>
+                                            <button onClick={() =>{ handleSavePlan(username, expiredDate, planAmount, planName); setCollectData({username, fullName, planAmount})}} className='btn btn-outline-success'>{heading.split(' ')[0] === 'Expiring' ? 'Renew' : 'Collect'}</button>
+                                        </td>
                                     </tr>
                                 ))
                             ) : (

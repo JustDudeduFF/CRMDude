@@ -107,7 +107,7 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
 
             await set(ref(db, `Subscriber/${username}/planinfo/${planinfoKey}`), planinfo);
 
-            await update(planRef, newconnectioninfo);
+            await update(ref(db, `Subscriber/${username}/connectionDetails`), newconnectioninfo);
             
         }
 
@@ -140,8 +140,8 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
     
     if(!show) return null;
     return(
-       <div className='modal-overlay'>
-        <div className='modal-content d-flex flex-column'>
+       <div className='modal-overlay1'>
+        <div className='modal-content1 d-flex flex-column'>
         <h5>Renew Customer Plan</h5>
             <div className='d-flex flex-row bg-success rounded'>
                 <div className='m-2 d-flex flex-column col-md-5'>

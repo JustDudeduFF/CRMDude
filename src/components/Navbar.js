@@ -6,7 +6,7 @@ import Building_Img from './subscriberpage/drawables/office-building.png'
 import Reports_Others from "./Reports_Others";
 import { Link, useNavigate } from "react-router-dom";
 import { db } from "../FirebaseConfig";
-import { ref, onValue } from "firebase/database";
+import { ref, onValue, get } from "firebase/database";
 import UserProfile from './subscriberpage/drawables/user.png'
 
 
@@ -24,8 +24,8 @@ export default function Navbar() {
   const subsref = ref(db, 'Subscriber');
 
   useEffect(() => {
-    const fetchUsers = onValue(subsref, (userSnap)=> {
-      
+    const fetchUsers = async () => {
+      const userSnap = await get(subsref);
       if(userSnap.exists()){
         const UserArray = [];
         userSnap.forEach(Childsubs => {
@@ -38,10 +38,11 @@ export default function Navbar() {
         setArrayUser(UserArray);
         console.log(UserArray);
       }
-    });
+    }
 
-    return () => fetchUsers();
-  }, []);
+    fetchUsers();
+  }, [])
+    
 
   const handleSubsView = (username) => {
     setIsSearchFocused(false);
@@ -182,7 +183,7 @@ export default function Navbar() {
                     <td>{fullname}</td>
                     <td 
                       style={{color:'blue', cursor:'pointer'}} 
-                      onMouseDown={() => handleSubsView(username)}
+                      onClick={() => handleSubsView(username)}
                     >
                       {username}
                     </td>

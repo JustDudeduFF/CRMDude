@@ -142,104 +142,93 @@ export default function Subscriber() {
           
     }
 
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoader(true);
+    
+                // Fetch Subscriber Data
+                const subsSnap = await get(userRef);
+                if (subsSnap.exists()) {
+                    setFullName(subsSnap.val().fullName);
+                    setCompany(subsSnap.val().company);
+                    setUserID(subsSnap.val().username);
+                    setRegistrationDate(subsSnap.val().createdAt);
+                }
+    
+                // Fetch Available Plans
+                const planSnap = await get(plansRef);
+                if (planSnap.exists()) {
+                    const planArray = [];
+                    planSnap.forEach((childPlan) => {
+                        const planname = childPlan.val().planname;
+                        const planperiod = childPlan.val().planperiod;
+                        const periodtime = childPlan.val().periodtime;
+                        planArray.push({ planname, periodtime, planperiod });
+                    });
+                    setArrayPlan(planArray);
+                }
+    
+                // Setup real-time connection info listener
+                const unsubscribe = onValue(planRef, (planSnap) => {
+                    if (planSnap.exists()) {
+                        setPlanName(planSnap.val().planName);
+                        setPlanAmount(planSnap.val().planAmount);
+                        setActivationDate(convertExcelDateSerial(planSnap.val().activationDate));
+                        setExpiryDate(convertExcelDateSerial(planSnap.val().expiryDate));
+                        setIsp(planSnap.val().isp);
+                        setDueAmount(planSnap.val().dueAmount);
+                    } else {
+                        console.log('Connection Data Not Found');
+                    }
+                });
+    
+                return unsubscribe;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            } finally {
+                setLoader(false);
+            }
+        };
+    
+        fetchData();
+    
+        return () => {
+            // Cleanup real-time listener on component unmount
+            fetchData?.();
+        };
+    }, [username]);
+    
+    // Separate useEffect to calculate remaining days when expiryDate is updated
+    useEffect(() => {
+        if (expiryDate) {
+            const calculateDaysBetween = () => {
+                const start = new Date();
+                const end = new Date(expiryDate);
+    
+                // Calculate the difference in time
+                const timeDiff = end.getTime() - start.getTime();
+    
+                // Convert time difference from milliseconds to days
+                const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    
+                if (daysDiff < 0) {
+                    setStatus('Inactive');
+                } else {
+                    setStatus('Active');
+                }
+    
+                setRemainDays(daysDiff);
+            };
+    
+            calculateDaysBetween();
+        }
+    }, [expiryDate]);
     
 
-    useEffect(() => {
-        
-        setLoader(true);
-      const  fetchSusbsData = async () => {
-        
-            const subsSnap = await get(userRef);
-
-            if(subsSnap.exists()){
-                setFullName(subsSnap.val().fullName);
-                setCompany(subsSnap.val().company);
-                setUserID(subsSnap.val().username);
-                setRegistrationDate(subsSnap.val().createdAt);
-
-            }
 
 
-            
-            setLoader(false);
 
-            
-        }
-        fetchSusbsData();
-        
-    }, [username]);
-
-    useEffect(() => {
-        const fetchconnectionInfo = onValue(planRef, (planSnap => {
-
-            if(planSnap.exists()){
-                setPlanName(planSnap.val().planName);
-                setPlanAmount(planSnap.val().planAmount);
-                setActivationDate(convertExcelDateSerial(planSnap.val().activationDate));
-                setExpiryDate(convertExcelDateSerial(planSnap.val().expiryDate));
-                setIsp(planSnap.val().isp);
-                setDueAmount(planSnap.val().dueAmount);
-            }else{
-                console.log(`Data Not Found`)
-            }
-
-            setLoader(false);
-
-        }));
-
-        return () => fetchconnectionInfo();
-    }, [username])
-
-    useEffect(() => {
-        const fetchPlans = async () => {
-            const planSnap = await get(plansRef);
-            if(planSnap.exists()){
-                const planArray = [];
-                planSnap.forEach(Childplan => {
-                    const planname = Childplan.val().planname;
-                    const planperiod = Childplan.val().planperiod;
-                    const periodtime = Childplan.val().periodtime;
-
-                    planArray.push({planname, periodtime, planperiod});
-                });
-                setArrayPlan(planArray);
-            }
-
-        }
-
-
-        
-
-        return () => fetchPlans(); 
-                        
-    }, [plansRef]);
-
-
-    useEffect(() => {
-            const calculateDaysBetween = () => {
-            const start = new Date();
-            const end = new Date(expiryDate);
-            console.log(end);
-      
-            // Calculate the difference in time
-            const timeDiff = end.getTime() - start.getTime();
-      
-            // Convert time difference from milliseconds to days
-            const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-            if(daysDiff < 0){
-                setStatus('Inactive')
-            }else{
-                setStatus("Active");
-            }
-      
-            setRemainDays(daysDiff);
-            
-          };    
-        
-          calculateDaysBetween();
-        
-      }, [expiryDate]); 
 
       const getperiod = (dateValue) => {
         const currentplan = planName;

@@ -4,14 +4,17 @@ import { onValue, ref, set, update, get } from 'firebase/database';
 import * as XLSX from 'xlsx';
 import { db } from '../FirebaseConfig';
 import ExcelIcon from './subscriberpage/drawables/xls.png'
-import QuickCollection from './QuickCollection';
+import { useNavigate } from 'react-router-dom';
+import { toast, ToastContainer } from "react-toastify";
+import { ProgressBar } from 'react-loader-spinner';
 
 const DashExpandView = ({ show, datatype, modalShow }) => {
+    const navigate = useNavigate();
     const [heading, setHeading] = useState('');
     const [arrayData, setArrayData] = useState([]);
     const [arrayplan, setArrayPlan] = useState([]);
-    const [showmodal, setShowModal] = useState(false);
-    const [collectdata, setCollectData] = useState([]);
+    const [loader, setLoader] = useState(false);
+
     //Download All Data to Excel File
 
     const downloadExcel =()=> {
@@ -142,6 +145,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
     }, [show, fetchExpandData, fetchPlans]); // Dependency on `show` and `fetchExpandData`
 
     const handleSavePlan = async (username, expireDate, planAmount, planName) => {
+        setLoader(true);
         if (heading.split(' ')[0] === 'Expiring') {
             const dueRef = ref(db, `Subscriber/${username}/connectionDetails`);
         const dueSnap = await get(dueRef);
@@ -198,11 +202,29 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
             await set(ref(db, `Subscriber/${username}/ledger/${Date.now()}`), ledgerData);
             await set(ref(db, `Subscriber/${username}/planinfo/${Date.now()}`), planinfo);
             await update(dueRef, newconnectioninfo);
-
-            console.log('done updated')
+            setLoader(false);
+            toast.success('Plan Renewed!', {
+                autoClose: 1000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            })
+        }else{
+            setLoader(false);
+            toast.error('Plan Not Found!', {
+                autoClose: 1000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            });
         }
         }else if (heading.split(' ')[0] === 'Due') {
-            setShowModal(true);
+            localStorage.setItem('susbsUserid', username)
+            navigate('subscriber/paymentreceipt/collect', { state: { username } });
         }
     };
 
@@ -215,9 +237,25 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                     <h4 style={{flex:'1'}}>{heading}</h4>
                     <img onClick={downloadExcel} src={ExcelIcon} alt='excel' className='img_download_icon'></img>
                     <button style={{right:'5%'}} className="btn-close" onClick={modalShow}></button>
-                    
+                    <ToastContainer style={{marginTop:'4%'}}/>
+                    {loader &&
+                        <div className="spinner-wrapper" style={{position: 'fixed', width: '100%',top:'0' ,  height: '100%', backgroundColor: 'black', display: 'flex', justifyContent: 'center', alignItems: 'center', opacity:'0.5', zIndex:'900'}}>
+                        <div style={{width: '200px', height: '100px', position:'fixed'}}>
+                        <ProgressBar
+                            height="80"
+                            width="80"
+                            radius="9"
+                            color="blue"
+                            ariaLabel="three-dots-loading"
+                            wrapperStyle={{}}
+                            wrapperClass=""
+                        /><br></br>
+                        <label style={{color:'white', fontSize:'17px'}}>Loading Data...</label>
+                        </div>
+                        </div>
+                        
+                    }
                 </div>
-                <QuickCollection show={showmodal} closeModal={() => setShowModal(false)} collectdata={collectdata}/>
                 <div style={{ overflow: 'hidden', height: '80vh', overflowY: 'auto' }}>
                     <table className="table">
                         <thead>
@@ -246,7 +284,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                                         <td>{planAmount}</td>
                                         <td>{expiredDate}</td>
                                         <td>
-                                            <button onClick={() =>{ handleSavePlan(username, expiredDate, planAmount, planName); setCollectData({username, fullName, planAmount})}} className='btn btn-outline-success'>{heading.split(' ')[0] === 'Expiring' ? 'Renew' : 'Collect'}</button>
+                                            <button onClick={() =>{ handleSavePlan(username, expiredDate, planAmount, planName);}} className='btn btn-outline-success'>{heading.split(' ')[0] === 'Expiring' ? 'Renew' : 'Collect'}</button>
                                         </td>
                                     </tr>
                                 ))

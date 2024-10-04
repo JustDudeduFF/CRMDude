@@ -1,13 +1,12 @@
 import { get, ref, set, update } from 'firebase/database';
 import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { db } from '../../FirebaseConfig';
 import { toast, ToastContainer } from 'react-toastify';
 
 
 export default function ReceiptModify() {
-  const location = useLocation();
-  const { userid } = location.state || {};
+  const userid = localStorage.getItem('susbsUserid');
 
   const navigate = useNavigate();
 
@@ -35,74 +34,86 @@ export default function ReceiptModify() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsDisabled(true);
-
-    const newLedgerKey2 = Date.now();
-
-    const receiptData = {
-      source: 'Manual',
-      receiptNo: `REC-${paymentkey}`,
-      billingPeriod: billingPeriod,
-      receiptDate: currentdate,
-      paymentMode: paymentMode,
-      bankname: bankname,
-      amount: amount,
-      discount: discount,
-      collectedBy: collectedBy,
-      transactionNo: transactionNo,
-      modifiedBy: localStorage.getItem('Name'),
-      narration: narration,
-      discountkey:newLedgerKey2
-    };
-
-    const dueRef = ref(db, `Subscriber/${userid}/connectionDetails`);
-    const dueSnap = await get(dueRef);
-    const dueAmount = parseInt(dueSnap.val().dueAmount);
-
-    const newDue = {
-      dueAmount: dueAmount - (parseInt(amount) + parseInt(discount)),
-    };
-    await set(ref(db, `Subscriber/${userid}/payments/${paymentkey}`), receiptData);
-    await update(dueRef, newDue);
-
-    const ledgerData = {
-      type: 'Payment Collection',
-      date: currentdate,
-      particular: `From ${billingPeriod}`,
-      debitamount: 0,
-      creditamount: parseFloat(amount),
-    };
-
-    const ledgerData2 = {
-      type: 'Discount',
-      date: currentdate,
-      particular: 'Payment Discount',
-      debitamount: 0,
-      creditamount: parseFloat(discount)
-    };
-    
-    if (discount === null || discount === '0') {
-      // If discount is null or 0, push only one ledger entry
-      await set(ref(db, `Subscriber/${userid}/ledger/${paymentkey}`), ledgerData);
-    } else {
-      // If discount has a value other than null or 0, push both ledger entries
-      await set(ref(db, `Subscriber/${userid}/ledger/${paymentkey}`), ledgerData);
-      await set(ref(db, `Subscriber/${userid}/ledger/${newLedgerKey2}`), ledgerData2);
+  
+    try {
+      const newLedgerKey2 = Date.now();
+  
+      const receiptData = {
+        source: 'Manual',
+        receiptNo: `REC-${paymentkey}`,
+        billingPeriod: billingPeriod,
+        receiptDate: currentdate,
+        paymentMode: paymentMode,
+        bankname: bankname,
+        amount: amount,
+        discount: discount,
+        collectedBy: collectedBy,
+        transactionNo: transactionNo,
+        modifiedBy: localStorage.getItem('Name'),
+        narration: narration,
+        discountkey: newLedgerKey2,
+        authorized: false
+      };
+  
+      const dueRef = ref(db, `Subscriber/${userid}/connectionDetails`);
+      const dueSnap = await get(dueRef);
+  
+      if (!dueSnap.exists() || dueSnap.val().dueAmount === undefined) {
+        console.error('dueAmount does not exist');
+        toast.error('dueAmount does not exist');
+        setIsDisabled(false); // Re-enable button if an error occurs
+        return;
+      }
+  
+      const dueAmount = parseInt(dueSnap.val().dueAmount);
+      const newDue = {
+        dueAmount: dueAmount - (parseInt(amount) + parseInt(discount)),
+      };
+  
+      await set(ref(db, `Subscriber/${userid}/payments/${paymentkey}`), receiptData);
+      await update(dueRef, newDue);
+  
+      const ledgerData = {
+        type: 'Payment Collection',
+        date: currentdate,
+        particular: `From ${billingPeriod}`,
+        debitamount: 0,
+        creditamount: parseFloat(amount),
+      };
+  
+      const ledgerData2 = {
+        type: 'Discount',
+        date: currentdate,
+        particular: 'Payment Discount',
+        debitamount: 0,
+        creditamount: parseFloat(discount),
+      };
+  
+      if (discount === null || discount === '0') {
+        await set(ref(db, `Subscriber/${userid}/ledger/${paymentkey}`), ledgerData);
+      } else {
+        await set(ref(db, `Subscriber/${userid}/ledger/${paymentkey}`), ledgerData);
+        await set(ref(db, `Subscriber/${userid}/ledger/${newLedgerKey2}`), ledgerData2);
+      }
+  
+      toast.success('Payment Collected!', {
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+  
+      navigate(-1);
+    } catch (error) {
+      console.error('Error during form submission:', error);
+      toast.error('An error occurred during submission.');
+    } finally {
+      setIsDisabled(false);
     }
-    
-    
-
-    toast.success('Payment Collected!', {
-      autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-    });
-
-    navigate(-1);
-    
   };
+  
 
   useEffect(() => {
     const fetchbillingperiod = async () => {

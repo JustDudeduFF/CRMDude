@@ -11,6 +11,7 @@ import { onValue } from 'firebase/database'
 import DashExpandView from './DashExpandView'
 import ExpandIcon from './subscriberpage/drawables/expand-arrows.png'
 import ExpandTickets from './ExpandTickets'
+import ExpandRevenue from './ExpandRevenue'
 
 export default function DashFirstDiv() {
 
@@ -38,6 +39,8 @@ export default function DashFirstDiv() {
 
     const [showTicketExpand, setShowTicketExpand] = useState(false);
     const [ticketsType, setTicketType] = useState('');
+
+    const [showrevenueexpand, setRevenueExpand] = useState(false);
 
     const [arryadue, setDueArray] = useState(0);
 
@@ -425,7 +428,8 @@ return () => {fetchPendingtickets();
                 </table>
             </div>
             <DashExpandView show={showExpanView} datatype={expandDataType} modalShow={() => setShowExpandView(false)}/>
-                <ExpandTickets viewShow={showTicketExpand} ticketType={ticketsType} closeView={() => setShowTicketExpand(false)}/>
+            <ExpandTickets viewShow={showTicketExpand} ticketType={ticketsType} closeView={() => setShowTicketExpand(false)}/>
+            <ExpandRevenue show={showrevenueexpand} modalShow={() => setRevenueExpand(false)}/>
             <div style={{borderRadius: '5px',flex: '1', marginTop: '15px', boxShadow: '0 0 7px violet'}}>
                 <img alt='' className='img_boldicon' src={Router_Img}></img>
                 <label style={{marginLeft: '20px', fontSize: '25px'}}>New Installations</label> 
@@ -454,7 +458,7 @@ return () => {fetchPendingtickets();
                             <img alt='' className='img_boldicon' src={Rupee_Icon}></img>
                         </div>
                         <div style={{flex:'3', marginTop: '10px'}}>
-                            <img style={{width:'20px', height:'20px',float:'right', marginTop:'5px', marginRight:'8px', cursor:'pointer'}} src={ExpandIcon}></img>
+                            <img onClick={() => {setRevenueExpand(true)}} style={{width:'20px', height:'20px',float:'right', marginTop:'5px', marginRight:'8px', cursor:'pointer'}} src={ExpandIcon}></img>
                             <h3>{`$${revenueMonth}.00`}</h3>
                             <label style={{color: 'gray'}}>This Month Revenue</label>
                         </div> 

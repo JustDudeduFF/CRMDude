@@ -18,7 +18,6 @@ export default function ISP() {
                         const ispname = childIsp.val().ispname;
                         const ispcode = childIsp.key;
                         const ispdate = childIsp.val().ispdate;
-                        
 
                         IspArray.push({ ispname, ispcode, ispdate});
                         

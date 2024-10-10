@@ -1,10 +1,12 @@
-import { onValue, ref } from 'firebase/database';
+import { onValue, ref, set } from 'firebase/database';
 import React, { useCallback, useEffect, useState } from 'react'
 import { db } from '../../FirebaseConfig';
+import { toast } from 'react-toastify';
 
 const ModalRoom = ({show, closeModal}) => {
 
-
+    const [officename, setOfiiceName] = useState('');
+    const [roomname, setRoomName] = useState('');
     const [arrayoffice, setArrayOffice] = useState([]);
 
     const officeRef = ref(db, `Master/Offices`);
@@ -23,7 +25,26 @@ const ModalRoom = ({show, closeModal}) => {
     });
 
     const handleClick = () => {
-        closeModal();
+        const rackRef = ref(db, `Rack Info/${officename}/${roomname}`);
+        const RoomData = {
+            roomname:roomname, 
+            officename:officename,
+            creationdate:new Date().toISOString().split('')[0],
+            createby:localStorage.getItem('contact')
+        }
+
+        set(rackRef, RoomData).then(() => {
+            toast.success('Server Room Added!', {
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            });
+            closeModal();
+        })
+        
     }
 
     useEffect(() => {
@@ -41,7 +62,7 @@ const ModalRoom = ({show, closeModal}) => {
             <form className='row g-3'>
                 <div className='col-md-6'>
                     <label className='form-label'>Office Name</label>
-                    <select className='form-select'>
+                    <select onChange={(e) => setOfiiceName(e.target.value)} className='form-select'>
                         <option value=''>Choose...</option>
                         {
                             arrayoffice.length > 0 ? (
@@ -56,7 +77,7 @@ const ModalRoom = ({show, closeModal}) => {
                 </div>
                 <div className='col-md-6'>
                     <label className='form-label'>Enter Room Name</label>
-                    <input type='text' className='form-control'>
+                    <input onChange={(e) => setRoomName(e.target.value)} type='text' className='form-control'>
 
                     </input>
                 </div>

@@ -1,6 +1,6 @@
 /* Modal.css */
 .modal-overlay {
-    
+    z-index: 900;
     box-shadow: 0 0 10px blue;
     border-radius: 10px;
     position: fixed;

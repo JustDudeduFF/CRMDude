@@ -11,6 +11,7 @@ import InventryDash from './InventryPage/InventryDash';
 import MasterDash from './Master/MasterDash';
 import BulkUserEntry from './subscriberpage/BulkUserEntry';
 import LeadDash from './LeadManagment/LeadDash';
+import RackDashBoard from './NetworkRack/RackDashBoard';
 
 function New_Dashboard() {  // Renamed to PascalCase
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ function New_Dashboard() {  // Renamed to PascalCase
           <Route path='/master/*' element={<MasterDash/>}/>
           <Route path='/bulkuser/*' element={<BulkUserEntry/>}/>
           <Route path='/leadmanagment/*' element={<LeadDash/>}/>
+          <Route path='/networkrack/*' element={<RackDashBoard/>}/>
         </Routes>
       </AnimatePresence>
     </div>

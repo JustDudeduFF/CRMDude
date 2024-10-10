@@ -77,8 +77,8 @@ export default function FMS() {
                         <td>{index + 1}</td>
                         <td>{fmscode}</td>
                         <td>{fmsname}</td>
-                        <td>{fmsport}</td>
                         <td>{fmscolor}</td>
+                        <td>{fmsport}</td>
                         
                     </tr>
                 ))

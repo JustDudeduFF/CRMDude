@@ -4,36 +4,18 @@ import { db } from '../../FirebaseConfig';
 import RackDataModal from './RackDataModal';
 import { useLocation } from 'react-router-dom';
 import './Rack.css'
+import PONPort from './drawables/port.png'
+import EthernetPort from './drawables/ethernet.png'
 
 export default function RackView() {
     const location = useLocation();
     const {roomarray} = location.state || {};
-    const [isRack, setIsRack] = useState(false);
+    const [isRack, setIsRack] = useState(true);
     const [showModal, setShowModal] = useState(false);
 
     const [rackData, setRackData] = useState(null);
 
 
-  useEffect(() => {
-    const rackRef = ref(db, `Rack Info/${roomarray[0].officename}/${roomarray[0].roomname}/Racks`); // Adjust this path based on where you store your racks
-    onValue(rackRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        setIsRack(true);
-        // Assuming there is only one rack for now, you can handle multiple later
-        snapshot.forEach((childSnap) => {
-          const firstRack = Object.values(childSnap.val())[0];
-          setRackData(firstRack);
-        })
-      }else{
-        setIsRack(false);
-      }
-    });
-  }, []);
-
-  if (!rackData) {
-    return <div>Loading rack data...</div>;
-  }
 
     const addRack = () => {
         setShowModal(true);
@@ -42,36 +24,51 @@ export default function RackView() {
     <div>
       {
         isRack ? (
-          <div className="container">
-          <h2>Rack: {rackData.rack_name}</h2>
-          <p>Location: {rackData.location}</p>
-          <p>Description: {rackData.description}</p>
-    
-          <div className="rack-layout">
-            {rackData.devices && rackData.devices.map((device, deviceIndex) => (
-              <div key={deviceIndex} className="device">
-                <h3>Device {deviceIndex + 1} ({device.device_type})</h3>
-                <p>Serial No: {device.serial_no}</p>
-                <p>Model: {device.model}</p>
-                <p>IP Address: {device.ip_address}</p>
-    
-                <div className="ports">
-                  {device.ports && device.ports.map((port, portIndex) => (
-                    <div key={portIndex} className="port">
-                      <h4>Port {port.port_no}</h4>
-                      <p>Uplink: {port.uplink ? 'Yes' : 'No'}</p>
-                      <p>SFP: {port.sfp ? 'Yes' : 'No'}</p>
-                      <p>Speed: {port.speed}</p>
-                      <p>Connected To: {port.connected_to}</p>
-                      <p>Connected Port: {port.connected_port}</p>
-                    </div>
-                  ))}
-                </div>
+            <div className='d-flex flex-column wd-100 p-2'>
+              <div className='d-flex flex-w'>
+                <h5 style={{flex:'1'}}>OfficeName</h5>
+                <button onClick={addRack} className='btn btn-primary'> + Add Rack</button>
               </div>
-            ))}
-          </div>
-        </div>
+              <div className='d-flex flex-row'>
+                {/* Rack Layout Below */}
 
+                <div style={{display:'flex', flexDirection:'column', width:'25%', border:'1px solid gray', height:'100%', padding:'10px', borderRadius:'5px'}}>
+
+                  <div style={{display:'flex', flexDirection:'row', height:'35px', border:'1px solid gray'}}>
+
+                    {/* PONs Layout */}
+                    <div style={{display:'flex', flexDirection:'row', marginLeft:'5px', marginTop:'2px'}}>
+                      <div style={{width:'30px', height:'30px', display:'flex', flexDirection:'column'}}>
+                        <img src={PONPort} style={{width:'22px', height:'22px'}}></img>
+                        <span style={{fontSize:'8px', width:'22px', textAlign:'center', fontFamily:'initial'}}>1</span>
+                      </div>
+
+                      <div style={{width:'30px', height:'30px', display:'flex', flexDirection:'column'}}>
+                        <img src={PONPort} style={{width:'22px', height:'22px'}}></img>
+                        <span style={{fontSize:'8px', width:'22px', textAlign:'center', fontFamily:'initial'}}>1</span>
+                      </div>
+
+                      <div style={{width:'30px', height:'30px', display:'flex', flexDirection:'column'}}>
+                        <img src={PONPort} style={{width:'22px', height:'22px'}}></img>
+                        <span style={{fontSize:'8px', width:'22px', textAlign:'center', fontFamily:'initial'}}>1</span>
+                      </div>
+
+                      <div style={{width:'30px', height:'30px', display:'flex', flexDirection:'column'}}>
+                        <img src={PONPort} style={{width:'22px', height:'22px'}}></img>
+                        <span style={{fontSize:'8px', width:'22px', textAlign:'center', fontFamily:'initial'}}>1</span>
+                      </div>
+                    </div>
+
+                    {/* Uplink Layout */}
+                    <div style={{display:'flex', flexDirection:'row'}}>
+                      {/* For SFP SLOT */}
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
         ) : (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', marginTop:'350px' }}>
                 <button onClick={addRack} className='btn btn-primary'> + Add Rack</button>

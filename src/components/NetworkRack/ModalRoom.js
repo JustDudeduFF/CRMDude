@@ -51,7 +51,7 @@ const ModalRoom = ({show, closeModal}) => {
         if (show) {
             fetchOffice();
         }
-    }, [show, fetchOffice]);
+    }, [show]);
 
     if (!show) return null;
   return (

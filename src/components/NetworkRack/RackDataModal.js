@@ -57,7 +57,7 @@ export default function RackDataModal({show, RackRef}) {
     const rackId = `rack_${Date.now()}`;
 
     // Write rack data to Firebase
-    set(ref(db, `Rack Info/${officename}/${roomname}/` + rackId), {
+    set(ref(db, `Rack Info/${officename}/${roomname}/Racks/${rackId}`), {
       rack_name: rackName,
       location: location,
       description: description,

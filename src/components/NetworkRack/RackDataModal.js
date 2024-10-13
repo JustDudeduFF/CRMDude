@@ -15,6 +15,13 @@ export default function RackDataModal({ show, RackRef, closeModal, count }) {
   const [sfpRange, setSfpRange] = useState('');
   const [ethernetRange, setEthernetRange] = useState('');
 
+
+  const [isethernet, setIsEthernet] = useState(false);
+  const [swethernetrange, setSWEthernetRange] = useState(0);
+  const [swsfpsrange, setSWSfpsRange] = useState(0);
+  const [swmanufacture, setSWManufacture] = useState('');
+
+
   
 
 
@@ -188,55 +195,74 @@ export default function RackDataModal({ show, RackRef, closeModal, count }) {
 
 
 
-          {
-            device === 'Switch' && (
+          {device === 'Switch' && (
+            <>
               <div className='col-md-6'>
-                <label className='form-label'>Is have Ethernet Ports</label>
+                <label className='form-label'>Manufacture Name</label>
+                <input
+                  className='form-control'
+                  type='text'
+                  value={swmanufacture}
+                  onChange={(e) => setSWManufacture(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className='col-md-6'>
+                <label className='form-label'>have Ethernet Ports?</label>
                 <select
                   className='form-select'
-                  value={ethernetRange}
-                  onChange={(e) => setEthernetRange(e.target.value)}
+                  value={isethernet}
+                  onChange={(e) => setIsEthernet(e.target.value)}
                   required
                 >
                   <option value=''>Choose...</option>
-                  <option value='true'>Yes</option>
-                  <option value='false'>No</option>
+                  <option value={true}>Yes</option>
+                  <option value=''>No</option>
                 </select>
-
-
-                {
-                  isVisible && (
-                    <div className='col-md-6'>
-                      <label className='form-label'>Select Ethernet Range</label>
-                      <select className='form-select'>
-                        <option value=''>Choose...</option>
-                        <option value='8'>1-8</option>
-                        <option value='16'>1-16</option>
-                        <option value='32'>1-32</option>
-                        <option value='64'>1-64</option>
-                        
-                      </select>
-                    </div>
-                    
-                  )
-                }
-
-                <div className='col-md-3'>
-                  <label className='form-label'>Select SFP Port Range</label>
-                  <select className='form-select'>
-                        <option value=''>Choose...</option>
-                        <option value='8'>1-4</option>
-                        <option value='16'>1-8</option>
-                        <option value='32'>1-16</option>
-                        <option value='64'>1-32</option>
-                      </select>
-                </div>
-
               </div>
 
-              
-            )
-          }
+              {
+                isethernet && (
+                  <div className='col-md-6'>
+                    <label className='form-label'>Ethernet Range</label>
+                    <select
+                      className='form-select'
+                      value={swethernetrange}
+                      onChange={(e) => setSWEthernetRange(e.target.value)}
+                      required
+                    >
+                      <option value=''>Choose...</option>
+                      <option value='8'>1-8</option>
+                      <option value='16'>1-16</option>
+                      <option value='32'>1-32</option>
+                    </select>
+                  </div>
+                )
+              }
+
+              <div className='col-md-6'>
+                <label className='form-label'>SFP Range</label>
+                <select
+                  className='form-select'
+                  value={swsfpsrange}
+                  onChange={(e) => setSWSfpsRange(e.target.value)}
+                  required
+                >
+                  <option value=''>Choose...</option>
+                  <option value='4'>1-4</option>
+                  <option value='8'>1-8</option>
+                </select>
+              </div>
+
+
+              <div className='col-md-8'>
+                <button type='submit' className='btn btn-outline-success'>
+                  Add OLT
+                </button>
+              </div>
+            </>
+          )}
         </form>
       </div>
     </div>

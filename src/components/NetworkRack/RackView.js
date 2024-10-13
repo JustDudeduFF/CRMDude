@@ -1,81 +1,124 @@
 import React, { useState, useEffect } from 'react';
-import { ref, onValue } from 'firebase/database';
+import { ref, get, onValue } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
 import RackDataModal from './RackDataModal';
 import { useLocation } from 'react-router-dom';
-import './Rack.css'
-import PONPort from './drawables/port.png'
-import EthernetPort from './drawables/ethernet.png'
+import './Rack.css';
+import SYOLT from './SYOLT';
+import Switch from './Switch';
 
 export default function RackView() {
     const location = useLocation();
-    const {roomarray} = location.state || {};
-    const [isRack, setIsRack] = useState(true);
+    const { roomarray } = location.state || {};
+    const [isRack, setIsRack] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [counts, setCounts] = useState(0);
 
-    const [rackData, setRackData] = useState(null);
+    const officename = roomarray[0].officename;
+    const roomname = roomarray[0].roomname;
+    const rackRef = ref(db, `Rack Info/${officename}/${roomname}`);
+
+    const [oltDevices, setOltDevices] = useState([]); // Array to store OLT devices
+    const [switchDevices, setSwitchDevices] = useState([]); // Array to store Switch devices
 
 
+    const fetchRackNewRef = async () => {
+      try {
+        const rackRef = ref(db, `Rack Info/${officename}/${roomname}`); // Ensure you define officename and roomname
+        const snapshot = await get(rackRef);
+
+        if (snapshot.exists()) {
+          // The number of child nodes is the count of devices
+          const deviceCount = snapshot.size; // Get the size of the snapshot (number of children)
+          setCounts(deviceCount - 4);
+        } else {
+          setCounts(0); // No devices found
+        }
+      } catch (error) {
+        console.error('Error fetching devices count:', error);
+      }
+    };
+
+    const fetchRackDevices = async () => {
+        try {
+            onValue(rackRef, (snapshot) => {
+              if (snapshot.exists()) {
+                const devicesData = snapshot.val();
+
+                // Initialize arrays to hold devices
+                const olts = [];
+                const switches = [];
+
+                // Loop through the devices (e.g., 0, 1, 2, ...) and classify them
+                Object.keys(devicesData).forEach((deviceKey) => {
+                    const deviceData = devicesData[deviceKey];
+
+                    if (deviceData.device === 'OLT') {
+                        olts.push({
+                            ponRange: parseInt(deviceData.ponRange, 10),
+                            sfpRange: parseInt(deviceData.sfpRange, 10),
+                            ethernetRange: parseInt(deviceData.ethernetRange, 10),
+                        });
+                    } else if (deviceData.device === 'Switch') {
+                        switches.push({
+                            ethernetRange: parseInt(deviceData.ethernetRange, 10),
+                            sfpRange: parseInt(deviceData.sfpRange, 10),
+                        });
+                    }
+                });
+
+                // Update state with the classified devices
+                setOltDevices(olts);
+                setSwitchDevices(switches);
+                setIsRack(true);
+            } else {
+                console.log('No devices found');
+            }
+            })
+
+            
+        } catch (error) {
+            console.error('Error fetching rack devices:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchRackDevices();
+    }, []); // Only run on mount
 
     const addRack = () => {
+        fetchRackNewRef();
         setShowModal(true);
     }
-  return (
-    <div>
-      {
-        isRack ? (
-            <div className='d-flex flex-column wd-100 p-2'>
-              <div className='d-flex flex-w'>
-                <h5 style={{flex:'1'}}>OfficeName</h5>
-                <button onClick={addRack} className='btn btn-primary'> + Add Rack</button>
-              </div>
-              <div className='d-flex flex-row'>
-                {/* Rack Layout Below */}
 
-                <div style={{display:'flex', flexDirection:'column', width:'25%', border:'1px solid gray', height:'100%', padding:'10px', borderRadius:'5px'}}>
-
-                  <div style={{display:'flex', flexDirection:'row', height:'35px', border:'1px solid gray'}}>
-
-                    {/* PONs Layout */}
-                    <div style={{display:'flex', flexDirection:'row', marginLeft:'5px', marginTop:'2px'}}>
-                      <div style={{width:'30px', height:'30px', display:'flex', flexDirection:'column'}}>
-                        <img src={PONPort} style={{width:'22px', height:'22px'}}></img>
-                        <span style={{fontSize:'8px', width:'22px', textAlign:'center', fontFamily:'initial'}}>1</span>
-                      </div>
-
-                      <div style={{width:'30px', height:'30px', display:'flex', flexDirection:'column'}}>
-                        <img src={PONPort} style={{width:'22px', height:'22px'}}></img>
-                        <span style={{fontSize:'8px', width:'22px', textAlign:'center', fontFamily:'initial'}}>1</span>
-                      </div>
-
-                      <div style={{width:'30px', height:'30px', display:'flex', flexDirection:'column'}}>
-                        <img src={PONPort} style={{width:'22px', height:'22px'}}></img>
-                        <span style={{fontSize:'8px', width:'22px', textAlign:'center', fontFamily:'initial'}}>1</span>
-                      </div>
-
-                      <div style={{width:'30px', height:'30px', display:'flex', flexDirection:'column'}}>
-                        <img src={PONPort} style={{width:'22px', height:'22px'}}></img>
-                        <span style={{fontSize:'8px', width:'22px', textAlign:'center', fontFamily:'initial'}}>1</span>
-                      </div>
+    return (
+        <div>
+            {isRack ? (
+                <div className='d-flex flex-column wd-100 p-2'>
+                    <div className='d-flex flex-row'>
+                        <h5 style={{ flex: '1' }}>OfficeName</h5>
+                        <button onClick={addRack} className='btn btn-primary'> + Add Rack</button>
                     </div>
-
-                    {/* Uplink Layout */}
-                    <div style={{display:'flex', flexDirection:'row'}}>
-                      {/* For SFP SLOT */}
+                    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                        {/* Render OLT components */}
+                        <div className='d-flex flex-column'>
+                          {oltDevices.map((olt, index) => (
+                              <SYOLT key={`olt-${index}`} show={true} pons={olt.ponRange} sfps={olt.sfpRange} ethernet={olt.ethernetRange} />
+                          ))}
+                          {/* Render Switch components */}
+                          {switchDevices.map((sw, index) => (
+                              <Switch key={`switch-${index}`} show={true} ethernet={sw.ethernetRange} sfps={sw.sfpRange} />
+                          ))}
+                        </div>
                     </div>
-                  </div>
-
+                    <RackDataModal closeModal={() => setShowModal(false)} show={showModal} RackRef={roomarray} />
                 </div>
-
-              </div>
-            </div>
-        ) : (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', marginTop:'350px' }}>
-                <button onClick={addRack} className='btn btn-primary'> + Add Rack</button>
-                <RackDataModal show={showModal} RackRef={roomarray}/>
-            </div>
-        )
-    }
-    </div>
-  )
+            ) : (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', marginTop: '350px' }}>
+                    <button onClick={addRack} className='btn btn-primary'> + Add Rack</button>
+                    <RackDataModal closeModal={() => setShowModal(false)} show={showModal} RackRef={roomarray} count={counts}/>
+                </div>
+            )}
+        </div>
+    );
 }

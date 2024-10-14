@@ -36,9 +36,9 @@ export default function RackDashBoard() {
         return () => fetchRooms();
     });
 
-    const showRackView = () => {
-        navigate('rackview', {state:{roomarray:roomarray}});
-    }
+    const showRackView = (officename, roomname) => {
+        navigate('rackview', { state: { officename, roomname } });
+      };
   return (
     <div style={{marginTop:'4.5%', display:'flex', flexDirection:'column', padding:'10px'}}>
         <div className='d-flex flex-row'>
@@ -52,7 +52,7 @@ export default function RackDashBoard() {
                 <h5>Server Room Names</h5>
                 <ol className="list-group list-group">
                 {roomarray.map(({officename, roomname}, index) => (
-                    <li onClick={showRackView} className="list-group-item justify-content-between align-items-start" key={index}>
+                    <li onClick={() => showRackView(officename, roomname)} className="list-group-item justify-content-between align-items-start" key={index}>
                     <div className='fw-light'>{officename}</div>
                     <div>{roomname}</div> 
 

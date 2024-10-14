@@ -5,10 +5,9 @@ import EthernetPort from './drawables/ethernet.png'
 import { get, onValue, ref, set } from 'firebase/database'
 import { db } from '../../FirebaseConfig'
 
-const SYOLT =({pons, sfps, ethernet, show, deviceIndex, roomRef}) => {
+const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) => {
 
-  const officename = roomRef[0].officename;
-  const roomname = roomRef[0].roomname;
+  
 
 
     const PON_RANGE = pons; // Set PON range dynamically
@@ -23,10 +22,13 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, roomRef}) => {
     const [showModal2, setShowModal2] = useState(false);
     const [showModal3, setShowModal3] = useState(false);
     const [selectedPON, setSelectedPON] = useState(null);
+    const [selectedSFP, setSelectedSFP] = useState(null);
     const [ponDetails, setPONDetails] = useState({ connectedTo: '', connectedPort: '' });
+    const [sfpDetails, setSFPDetails] = useState({connectedTo:'', connectedPort:''})
     const [arrayfms, setArrayFMS] = useState([]);
     const [arrayolt, setArrayOlt] = useState([]);
     const [arrayswitch, setArraySwitch] = useState([]);
+
 
     const [fmsmaxrange, setFmsMaxRange] = useState(0);
     const [fmskey, setFmsKey] = useState(undefined);
@@ -40,6 +42,13 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, roomRef}) => {
       e.preventDefault(); // Prevent the default right-click menu
       setSelectedPON(index + 1); // Set the selected PON (index starts from 1)
       setShowModal(true); // Show the modal
+    };
+
+    //Handle Right Click on SFP
+    const handleSFPRightClick = (e, index) => {
+      e.preventDefault(); // Prevent the default right-click menu
+      setSelectedSFP(index + 1); // Set the selected PON (index starts from 1)
+      setShowModal2(true); // Show the modal
     };
 
     // Handle form submission to save PON details
@@ -64,10 +73,11 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, roomRef}) => {
       const connectedPort = snapshot.child('connectedPort').val();
       alert(`That Port is Already Connected to ${connectedTo} with Port ${connectedPort}`);
      }else{
-      if (ponDetails.connectedPort > fmsmaxrange && (!ponDetails.connectedTo || ponDetails.connectedTo === '')) {
+      if (parseInt(ponDetails.connectedPort) > fmsmaxrange || (!ponDetails.connectedTo || ponDetails.connectedTo === '')) {
         alert(`Port Number ${ponDetails.connectedPort} does not exist in FMS`);
       }else{
         try{
+          
           await set(ref(db,  `Rack Info/${officename}/${roomname}/${deviceIndex}/PONs/${selectedPON}`), oltPort);
           await set(ref(db,  `Rack Info/${officename}/${roomname}/${fmskey}/Ports/${ponDetails.connectedPort}`), FmsPort);
           setShowModal(false);
@@ -109,8 +119,9 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, roomRef}) => {
                 FMSArray.push({ fmsrange, fmsname, serialNo, devicekey });
               }else if(device === 'Switch'){
                 SwitchArray.push({swisp, swethernetrange, swsfpsrange});
-              }else if(device === 'OLT'){
-                OltArray.push({ethernetRange, sfpRange, manufacturer, oltType})
+              }else if(device === 'OLT' && parseInt(devicekey) === deviceIndex){
+                
+                OltArray.push({ethernetRange, sfpRange, manufacturer, oltType, serialNo});
               }
             });
 
@@ -135,14 +146,18 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, roomRef}) => {
             <div style={{display:'flex', flexDirection:'column', width:'max-content', border:'1px solid black', height:'max-content', padding:'10px', borderRadius:'15px', marginTop:'35px', backgroundColor:'orange', boxShadow:'0 0 10px gray'}}>
                   <div style={{display:'flex', flexDirection:'row', width:'850px', height:'92px', border:'1px solid black', paddingBottom:'5px', alignItems:'center', backgroundColor:'whitesmoke', borderRadius:'5px'}}>
 
-                    <div className='d-flex flex-column ms-1'>
-                      <span style={{fontSize:'12px'}}>Company Name</span>
-                      <span style={{fontSize:'12px'}}>Serial No.</span>
-                      <span style={{fontSize:'12px'}}>Model</span>
-                    </div>
+                  {
+                    arrayolt.map(({manufacturer, serialNo, oltType}, index) => (
+                      <div key={index} className='d-flex flex-column ms-1'>
+                        <span style={{fontSize:'12px'}}>{manufacturer}</span>
+                        <span style={{fontSize:'12px'}}>{oltType}</span>
+                        <span style={{fontSize:'12px'}}>{serialNo}</span>
+                      </div>
+                    ))
+                  }
 
                     {/* PONs Layout */}
-                    <div style={{display:'flex', flexDirection:'row', marginLeft:'8px', flex:'1'}}>
+                    <div style={{display:'flex', flexDirection:'row', marginLeft:'-3px', flex:'1'}}>
                     <div style={{display:'flex', flexDirection:'row', marginLeft:'5px', marginTop:'2px'}}>
                     {Array.from({ length: PON_RANGE }).map((_, index) => (
                         <div key={index} style={{width:'30px', height:'30px', display:'flex', flexDirection:'column', marginLeft:'5px', marginTop:'2px'}}  onContextMenu={(e) => handlePONRightClick(e, index)}>
@@ -160,7 +175,7 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, roomRef}) => {
                       {/* For SFP SLOT */}
                       <div style={{display:'flex', flexDirection:'row', marginLeft:'10px', flex:'1'}}>
                       {Array.from({ length: SFP_RANGE }).map((_, index) => (
-                       <div key={index} style={{ width: '40px', height: '40px', display: 'flex', flexDirection: 'column' }}>
+                       <div key={index} style={{ width: '40px', height: '40px', display: 'flex', flexDirection: 'column' }} onContextMenu={(e) => handleSFPRightClick(e, index)}>
                        <div style={{width:'32px', height:'32px', backgroundColor:'black', borderRadius:'3px'}}></div>
                        <span style={{ fontSize: '9px', width: '32px', textAlign: 'center', fontFamily: 'initial' }}>
                        GE {index + 1}
@@ -282,6 +297,7 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, roomRef}) => {
                 const setSelectedFMS = arrayfms.find(fms => fms.fmsname === selectedfms);
                 if (setSelectedFMS) {
                   setFmsMaxRange(parseInt(setSelectedFMS.fmsrange));
+                  alert(setSelectedFMS.fmsrange);
                   setFmsKey(setSelectedFMS.devicekey);
                 }else{
                   setFmsMaxRange(0);
@@ -307,6 +323,59 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, roomRef}) => {
                 className="form-control"
                 value={ponDetails.connectedPort}
                 onChange={(e) => setPONDetails({ ...ponDetails, connectedPort: e.target.value })}
+              />
+            </div>
+            <Button variant="primary" onClick={savePONDetails}>
+              Save Details
+            </Button>
+          </form>
+       
+      </Modal>
+
+      {/* Modal for Editing SFP Details */}
+      <Modal show={showModal2} onHide={() => setShowModal2(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit SFP {selectedSFP} Details</Modal.Title>
+              
+        </Modal.Header>
+        
+        
+          <form>
+            <div className="mb-3">
+              <label className="form-label">Connected To</label>
+              <select onChange={(e) => {
+                const selectedDevice = e.target.value;
+                setSFPDetails({ ...sfpDetails, connectedTo: selectedDevice });
+
+                const setSelectedFMS = arrayfms.find(fms => fms.fmsname === selectedDevice);
+                if (setSelectedFMS) {
+                  setFmsMaxRange(parseInt(setSelectedFMS.fmsrange));
+                  setFmsKey(setSelectedFMS.devicekey);
+                }else{
+                  setFmsMaxRange(0);
+                  setFmsKey(undefined);
+                }
+              }} className='form-select'>
+                <option value=''>Choose...</option>
+                {
+                  
+                  arrayfms+arrayolt+arrayswitch.length > 0 ? (
+                    arrayfms+arrayolt+arrayswitch.map(({ fmsname, serialNo, swisp, manufacturer, oltType }, index) => (
+                      <option key={index} value={fmsname}>{`${fmsname} : ${serialNo} : ${swisp} : ${manufacturer} : ${oltType}` }</option>
+                    ))
+                  ) : (
+                    <option>Please Add FMS</option>
+                  )
+                }
+              </select>
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Connected Port</label>
+              <input
+                type="number"
+                className="form-control"
+                value={ponDetails.connectedPort}
+                onChange={(e) => setSFPDetails({ ...sfpDetails, connectedPort: e.target.value })}
               />
             </div>
             <Button variant="primary" onClick={savePONDetails}>

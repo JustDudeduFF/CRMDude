@@ -10,13 +10,15 @@ import FMS from './FMS'
 
 export default function RackView() {
     const location = useLocation();
-    const { roomarray } = location.state || {};
+    const { officename } = location.state || {};
+    const { roomname } = location.state || {};
     const [isRack, setIsRack] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [counts, setCounts] = useState(0);
 
-    const officename = roomarray[0].officename;
-    const roomname = roomarray[0].roomname;
+    
+
+    
     const rackRef = ref(db, `Rack Info/${officename}/${roomname}`);
 
     const [oltDevices, setOltDevices] = useState([]); // Array to store OLT devices
@@ -55,34 +57,41 @@ export default function RackView() {
                 // Loop through the devices (e.g., 0, 1, 2, ...) and classify them
                 Object.keys(devicesData).forEach((deviceKey) => {
                     const deviceData = devicesData[deviceKey];
+                    if (!deviceData) {
+                        setIsRack(false);
+                    }else{
+                        if (deviceData.device === 'OLT') {
+                            olts.push({
+                                deviceKey: deviceData.deviceKey,
+                                ponRange: parseInt(deviceData.ponRange, 10),
+                                sfpRange: parseInt(deviceData.sfpRange, 10),
+                                ethernetRange: parseInt(deviceData.ethernetRange, 10),
+                            });
+                        } else if (deviceData.device === 'Switch') {
+                            switches.push({
+                                deivcekey: deviceData.key,
+                                swethernetrange: parseInt(deviceData.swethernetrange, 10),
+                                swsfpsrange: parseInt(deviceData.swsfpsrange, 10),
+                            });
+                        } else if (deviceData.device === 'FMS') {
+                            fms.push({
+                                deivcekey: deviceData.key,
+                                fmsname:deviceData.fmsname,
+                                fmsrange: parseInt(deviceData.fmsrange, 10)
+                            })
+                        }
 
-                    if (deviceData.device === 'OLT') {
-                        olts.push({
-                            deviceKey: deviceData.deviceKey,
-                            ponRange: parseInt(deviceData.ponRange, 10),
-                            sfpRange: parseInt(deviceData.sfpRange, 10),
-                            ethernetRange: parseInt(deviceData.ethernetRange, 10),
-                        });
-                    } else if (deviceData.device === 'Switch') {
-                        switches.push({
-                            deivcekey: deviceData.key,
-                            swethernetrange: parseInt(deviceData.swethernetrange, 10),
-                            swsfpsrange: parseInt(deviceData.swsfpsrange, 10),
-                        });
-                    } else if (deviceData.device === 'FMS') {
-                        fms.push({
-                            deivcekey: deviceData.key,
-                            fmsname:deviceData.fmsname,
-                            fmsrange: parseInt(deviceData.fmsrange, 10)
-                        })
+                        setIsRack(true);
                     }
+
+                    
                 });
 
                 // Update state with the classified devices
                 setOltDevices(olts);
                 setSwitchDevices(switches);
                 setFmsDevices(fms)
-                setIsRack(true);
+                
             } else {
                 console.log('No devices found');
             }
@@ -108,14 +117,14 @@ export default function RackView() {
             {isRack ? (
                 <div className='d-flex flex-column wd-100 p-2'>
                     <div className='d-flex flex-row'>
-                        <h5 style={{ flex: '1' }}>OfficeName</h5>
+                        <h5 style={{ flex: '1' }}>{officename}</h5>
                         <button onClick={addRack} className='btn btn-primary'> + Add Rack</button>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                         {/* Render OLT components */}
                         <div className='d-flex flex-column'>
                           {oltDevices.map((olt, index) => (
-                              <SYOLT key={`olt-${index}`} show={true} pons={olt.ponRange} sfps={olt.sfpRange} ethernet={olt.ethernetRange} deviceIndex={olt.deviceKey} roomRef={roomarray} />
+                              <SYOLT key={`olt-${index}`} show={true} pons={olt.ponRange} sfps={olt.sfpRange} ethernet={olt.ethernetRange} deviceIndex={olt.deviceKey} officename={officename} roomname={roomname} />
                           ))}
                           {/* Render Switch components */}
                           {switchDevices.map((sw, index) => (
@@ -127,12 +136,12 @@ export default function RackView() {
                           ))}
                         </div>
                     </div>
-                    <RackDataModal closeModal={() => setShowModal(false)} show={showModal} RackRef={roomarray} count={counts} />
+                    <RackDataModal closeModal={() => setShowModal(false)} show={showModal} officename={officename} roomname={roomname} count={counts} />
                 </div>
             ) : (
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', marginTop: '350px' }}>
                     <button onClick={addRack} className='btn btn-primary'> + Add Rack</button>
-                    <RackDataModal closeModal={() => setShowModal(false)} show={showModal} RackRef={roomarray} count={counts}/>
+                    <RackDataModal closeModal={() => setShowModal(false)} show={showModal} officename={officename} roomname={roomname} count={counts}/>
                 </div>
             )}
         </div>

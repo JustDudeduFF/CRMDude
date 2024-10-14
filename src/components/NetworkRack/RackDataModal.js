@@ -3,9 +3,8 @@ import React, { useState } from 'react';
 import { db } from '../../FirebaseConfig';
 
 
-export default function RackDataModal({ show, RackRef, closeModal, count }) {
-  const officename = RackRef[0].officename;
-  const roomname = RackRef[0].roomname;
+export default function RackDataModal({ show, officename, roomname, closeModal, count }) {
+  
 
   const [device, setDevice] = useState('');
   const [serialNo, setSerialNo] = useState('');

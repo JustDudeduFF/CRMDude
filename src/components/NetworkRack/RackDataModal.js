@@ -1,7 +1,7 @@
-import { get, ref, set } from 'firebase/database';
+import { ref, set } from 'firebase/database';
 import React, { useState } from 'react';
 import { db } from '../../FirebaseConfig';
-import { isVisible } from '@testing-library/user-event/dist/utils';
+
 
 export default function RackDataModal({ show, RackRef, closeModal, count }) {
   const officename = RackRef[0].officename;
@@ -20,6 +20,11 @@ export default function RackDataModal({ show, RackRef, closeModal, count }) {
   const [swethernetrange, setSWEthernetRange] = useState(0);
   const [swsfpsrange, setSWSfpsRange] = useState(0);
   const [swmanufacture, setSWManufacture] = useState('');
+  const [swisp, setSWIsp] = useState('');
+
+
+  const [fmsname, setFMSName] = useState('');
+  const [fmsrange, setFMSRange] = useState(0);
 
 
   
@@ -35,11 +40,10 @@ export default function RackDataModal({ show, RackRef, closeModal, count }) {
 
     
 
-    // Generate PON structure based on range
-    const ponStructure = generatePonStructure(ponRange);
+    
 
     // Construct Rack data
-    const RackData = {
+    const OLTData = {
       device,
       serialNo,
       manufacturer,
@@ -47,35 +51,69 @@ export default function RackDataModal({ show, RackRef, closeModal, count }) {
       ponRange,
       sfpRange,
       ethernetRange,
-      PONs: ponStructure,
+      deviceKey:count
     };
+
+
+    const SwitchData = {
+      device,
+      serialNo,
+      swmanufacture,
+      swisp,
+      swethernetrange,
+      swsfpsrange,
+      deviceKey:count
+    }
+
+
+    const FMSData = {
+      serialNo,
+      device,
+      fmsname,
+      fmsrange,
+      deviceKey:count
+
+    }
+
+
 
     // Firebase reference
     const newRef = ref(db, `Rack Info/${officename}/${roomname}/${count}`);
 
     // Save data to Firebase
     try {
-      await set(newRef, RackData);
-      alert('OLT Added');
-      closeModal(); // Close modal on success
+      if (device === 'OLT') {
+        await set(newRef, OLTData);
+        alert('OLT Added');
+        closeModal();
+      }else if (device === 'Switch') {
+        await set(newRef, SwitchData);
+        alert('OLT Added');
+        closeModal();
+      }else if (device === 'FMS') {
+        await set(newRef, FMSData);
+        alert('OLT Added');
+        closeModal();
+      }
+       // Close modal on success
     } catch (error) {
       console.error('Error saving data:', error);
     }
   };
 
   // Generate PON structure based on selected range
-  const generatePonStructure = (range) => {
-    const ponCount = parseInt(range, 10);
-    const ponData = {};
-    for (let i = 0; i < ponCount; i++) {
-      ponData[i] = {
-        connectedTo: '', 
-        connectedPort:'',
-        pon:i+1
-      };
-    }
-    return ponData;
-  };
+  // const generatePonStructure = (range) => {
+  //   const ponCount = parseInt(range, 10);
+  //   const ponData = {};
+  //   for (let i = 0; i < ponCount; i++) {
+  //     ponData[i] = {
+  //       connectedTo: '', 
+  //       connectedPort:'',
+  //       pon:i+1
+  //     };
+  //   }
+  //   return ponData;
+  // };
 
   if (!show) return null;
 
@@ -209,6 +247,17 @@ export default function RackDataModal({ show, RackRef, closeModal, count }) {
               </div>
 
               <div className='col-md-6'>
+                <label className='form-label'>ISP Name</label>
+                <input
+                  className='form-control'
+                  type='text'
+                  value={swisp}
+                  onChange={(e) => setSWIsp(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className='col-md-6'>
                 <label className='form-label'>have Ethernet Ports?</label>
                 <select
                   className='form-select'
@@ -252,6 +301,50 @@ export default function RackDataModal({ show, RackRef, closeModal, count }) {
                   <option value=''>Choose...</option>
                   <option value='4'>1-4</option>
                   <option value='8'>1-8</option>
+                </select>
+              </div>
+
+
+              <div className='col-md-8'>
+                <button type='submit' className='btn btn-outline-success'>
+                  Add OLT
+                </button>
+              </div>
+            </>
+          )}
+
+
+          {device === 'FMS' && (
+            <>
+              <div className='col-md-6'>
+                <label className='form-label'>FMS Name</label>
+                <input
+                  className='form-control'
+                  type='text'
+                  value={fmsname}
+                  onChange={(e) => setFMSName(e.target.value)}
+                  required
+                />
+              </div>
+
+              
+
+              
+
+              
+
+              <div className='col-md-6'>
+                <label className='form-label'>Ports Range</label>
+                <select
+                  className='form-select'
+                  value={fmsrange}
+                  onChange={(e) => setFMSRange(e.target.value)}
+                  required
+                >
+                  <option value=''>Choose...</option>
+                  <option value='12'>1-12</option>
+                  <option value='24'>1-24</option>
+                  <option value='48'>1-48</option>
                 </select>
               </div>
 

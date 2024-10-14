@@ -1,7 +1,7 @@
 import React from 'react'
 import OpticalPort from './drawables/optical.png'
 
-const FMS = ({fmsport, show}) => {
+const FMS = ({fmsport, show, fmsname}) => {
     const PORT_RANGE = fmsport;
     const isTwoRows = PORT_RANGE > 24; // Determines if two rows are needed
     

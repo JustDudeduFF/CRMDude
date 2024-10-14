@@ -6,6 +6,7 @@ import { useLocation } from 'react-router-dom';
 import './Rack.css';
 import SYOLT from './SYOLT';
 import Switch from './Switch';
+import FMS from './FMS'
 
 export default function RackView() {
     const location = useLocation();
@@ -20,6 +21,7 @@ export default function RackView() {
 
     const [oltDevices, setOltDevices] = useState([]); // Array to store OLT devices
     const [switchDevices, setSwitchDevices] = useState([]); // Array to store Switch devices
+    const [fmsDevices, setFmsDevices] = useState([]);
 
 
     const fetchRackNewRef = async () => {
@@ -48,6 +50,7 @@ export default function RackView() {
                 // Initialize arrays to hold devices
                 const olts = [];
                 const switches = [];
+                const fms = [];
 
                 // Loop through the devices (e.g., 0, 1, 2, ...) and classify them
                 Object.keys(devicesData).forEach((deviceKey) => {
@@ -55,21 +58,30 @@ export default function RackView() {
 
                     if (deviceData.device === 'OLT') {
                         olts.push({
+                            deviceKey: deviceData.deviceKey,
                             ponRange: parseInt(deviceData.ponRange, 10),
                             sfpRange: parseInt(deviceData.sfpRange, 10),
                             ethernetRange: parseInt(deviceData.ethernetRange, 10),
                         });
                     } else if (deviceData.device === 'Switch') {
                         switches.push({
-                            ethernetRange: parseInt(deviceData.ethernetRange, 10),
-                            sfpRange: parseInt(deviceData.sfpRange, 10),
+                            deivcekey: deviceData.key,
+                            swethernetrange: parseInt(deviceData.swethernetrange, 10),
+                            swsfpsrange: parseInt(deviceData.swsfpsrange, 10),
                         });
+                    } else if (deviceData.device === 'FMS') {
+                        fms.push({
+                            deivcekey: deviceData.key,
+                            fmsname:deviceData.fmsname,
+                            fmsrange: parseInt(deviceData.fmsrange, 10)
+                        })
                     }
                 });
 
                 // Update state with the classified devices
                 setOltDevices(olts);
                 setSwitchDevices(switches);
+                setFmsDevices(fms)
                 setIsRack(true);
             } else {
                 console.log('No devices found');
@@ -103,15 +115,19 @@ export default function RackView() {
                         {/* Render OLT components */}
                         <div className='d-flex flex-column'>
                           {oltDevices.map((olt, index) => (
-                              <SYOLT key={`olt-${index}`} show={true} pons={olt.ponRange} sfps={olt.sfpRange} ethernet={olt.ethernetRange} />
+                              <SYOLT key={`olt-${index}`} show={true} pons={olt.ponRange} sfps={olt.sfpRange} ethernet={olt.ethernetRange} deviceIndex={olt.deviceKey} roomRef={roomarray} />
                           ))}
                           {/* Render Switch components */}
                           {switchDevices.map((sw, index) => (
-                              <Switch key={`switch-${index}`} show={true} ethernet={sw.ethernetRange} sfps={sw.sfpRange} />
+                              <Switch key={`switch-${index}`} show={true} ethernet={sw.swethernetrange} sfps={sw.swsfpsrange} />
+                          ))}
+                          {/* Render FMS components */}
+                          {fmsDevices.map((fms, index) => (
+                              <FMS key={`switch-${index}`} show={true} fmsport={fms.fmsrange} />
                           ))}
                         </div>
                     </div>
-                    <RackDataModal closeModal={() => setShowModal(false)} show={showModal} RackRef={roomarray} />
+                    <RackDataModal closeModal={() => setShowModal(false)} show={showModal} RackRef={roomarray} count={counts} />
                 </div>
             ) : (
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', marginTop: '350px' }}>

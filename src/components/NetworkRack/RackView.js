@@ -18,9 +18,6 @@ export default function RackView() {
 
     
 
-    
-    const rackRef = ref(db, `Rack Info/${officename}/${roomname}`);
-
     const [oltDevices, setOltDevices] = useState([]); // Array to store OLT devices
     const [switchDevices, setSwitchDevices] = useState([]); // Array to store Switch devices
     const [fmsDevices, setFmsDevices] = useState([]);
@@ -43,10 +40,11 @@ export default function RackView() {
       }
     };
 
-    const fetchRackDevices = async () => {
-        try {
-            onValue(rackRef, (snapshot) => {
-              if (snapshot.exists()) {
+
+    useEffect(() => {
+        const rackRef = ref(db, `Rack Info/${officename}/${roomname}`);
+        const fetchRackDevices = onValue(rackRef, (snapshot) => {
+            if (snapshot.exists()) {
                 const devicesData = snapshot.val();
 
                 // Initialize arrays to hold devices
@@ -62,6 +60,8 @@ export default function RackView() {
                     }else{
                         if (deviceData.device === 'OLT') {
                             olts.push({
+                                officename: officename,
+                                roomname: roomname,
                                 deviceKey: deviceData.deviceKey,
                                 ponRange: parseInt(deviceData.ponRange, 10),
                                 sfpRange: parseInt(deviceData.sfpRange, 10),
@@ -69,12 +69,16 @@ export default function RackView() {
                             });
                         } else if (deviceData.device === 'Switch') {
                             switches.push({
+                                officename: officename,
+                                roomname: roomname,
                                 deivcekey: deviceData.key,
                                 swethernetrange: parseInt(deviceData.swethernetrange, 10),
                                 swsfpsrange: parseInt(deviceData.swsfpsrange, 10),
                             });
                         } else if (deviceData.device === 'FMS') {
                             fms.push({
+                                officename: officename,
+                                roomname: roomname,
                                 deivcekey: deviceData.key,
                                 fmsname:deviceData.fmsname,
                                 fmsrange: parseInt(deviceData.fmsrange, 10)
@@ -92,20 +96,13 @@ export default function RackView() {
                 setSwitchDevices(switches);
                 setFmsDevices(fms)
                 
-            } else {
-                console.log('No devices found');
             }
-            })
-
             
-        } catch (error) {
-            console.error('Error fetching rack devices:', error);
-        }
-    };
 
-    useEffect(() => {
-        fetchRackDevices();
-    }, []); // Only run on mount
+        });
+
+        return () => fetchRackDevices();
+    }, [officename, roomname]); // Only run on mount
 
     const addRack = () => {
         fetchRackNewRef();
@@ -124,7 +121,7 @@ export default function RackView() {
                         {/* Render OLT components */}
                         <div className='d-flex flex-column'>
                           {oltDevices.map((olt, index) => (
-                              <SYOLT key={`olt-${index}`} show={true} pons={olt.ponRange} sfps={olt.sfpRange} ethernet={olt.ethernetRange} deviceIndex={olt.deviceKey} officename={officename} roomname={roomname} />
+                              <SYOLT key={`olt-${index}`} show={true} pons={olt.ponRange} sfps={olt.sfpRange} ethernet={olt.ethernetRange} deviceIndex={olt.deviceKey} officename={olt.officename} roomname={olt.roomname} />
                           ))}
                           {/* Render Switch components */}
                           {switchDevices.map((sw, index) => (

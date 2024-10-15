@@ -231,9 +231,9 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
     if (!show) return null;
 
     return (
-        <div className="modal-body">
-            <div className="modal-data">
-                <div className="modal-inner">
+        <div className="modal-body1">
+            <div className="modal-data1">
+                <div className="modal-inner1">
                     <h4 style={{flex:'1'}}>{heading}</h4>
                     <img onClick={downloadExcel} src={ExcelIcon} alt='excel' className='img_download_icon'></img>
                     <button style={{right:'5%'}} className="btn-close" onClick={modalShow}></button>

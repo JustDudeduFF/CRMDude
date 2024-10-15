@@ -1,4 +1,4 @@
-.modal-body{
+.modal-body1{
     z-index: 1000;
     box-shadow: 0 0 10px gray;
     border-radius: 10px;
@@ -12,7 +12,7 @@
     
 }
 
-.modal-data {
+.modal-data1 {
     display: flex;
     flex-direction: column;
     background: white;
@@ -21,8 +21,7 @@
     
   }
 
-.modal-inner{
-   
+.modal-inner1{
     display: flex;
     flex-direction: row;
     background: white;

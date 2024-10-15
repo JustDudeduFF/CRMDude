@@ -71,7 +71,7 @@ export default function RackView() {
                             switches.push({
                                 officename: officename,
                                 roomname: roomname,
-                                deivcekey: deviceData.key,
+                                deviceKey: deviceData.deviceKey,
                                 swethernetrange: parseInt(deviceData.swethernetrange, 10),
                                 swsfpsrange: parseInt(deviceData.swsfpsrange, 10),
                             });
@@ -79,7 +79,7 @@ export default function RackView() {
                             fms.push({
                                 officename: officename,
                                 roomname: roomname,
-                                deivcekey: deviceData.key,
+                                deviceKey: deviceData.deviceKey,
                                 fmsname:deviceData.fmsname,
                                 fmsrange: parseInt(deviceData.fmsrange, 10)
                             })
@@ -129,7 +129,7 @@ export default function RackView() {
                           ))}
                           {/* Render FMS components */}
                           {fmsDevices.map((fms, index) => (
-                              <FMS key={`switch-${index}`} show={true} fmsport={fms.fmsrange} />
+                              <FMS key={`switch-${index}`} show={true} fmsport={fms.fmsrange} officename={fms.officename} roomname={fms.roomname} deviceIndex={fms.deviceKey}/>
                           ))}
                         </div>
                     </div>

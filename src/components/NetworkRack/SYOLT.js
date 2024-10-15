@@ -4,7 +4,6 @@ import { Modal, Button } from 'react-bootstrap'
 import EthernetPort from './drawables/ethernet.png'
 import { get, onValue, ref, set } from 'firebase/database'
 import { db } from '../../FirebaseConfig'
-import { se } from 'date-fns/locale'
 
 const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) => {
 
@@ -234,7 +233,7 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
                 OltArray.push({ethernetRange, sfpRange, manufacturer, oltType, serialNo});
               }
 
-              if (device === 'OLT'){
+              if (device === 'OLT' && !deviceIndex){
                 alloltdata.push({oltType, devicekey, serialNo, sfpRange});
               }
 
@@ -605,7 +604,7 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
       </Modal>
 
 
-      {/* Modal for Editing SFP Details */}
+      {/* Modal for Editing Ethernet Details */}
       <Modal show={showModal3} onHide={() => setShowModal3(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Edit Ethernet {selectedEth} Details</Modal.Title>

@@ -24,8 +24,8 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
     const [selectedPON, setSelectedPON] = useState(null);
     const [selectedSFP, setSelectedSFP] = useState(null);
     const [selectedEth, setSelectedEth] = useState(null);
-    const [ponDetails, setPONDetails] = useState({ connectedTo: '', connectedPort: '' });
-    const [sfpDetails, setSFPDetails] = useState({connectedTo:'', connectedPort:''});
+    const [ponDetails, setPONDetails] = useState({ connectedTo: '', connectedPort: '', assignedArea:'' });
+    const [sfpDetails, setSFPDetails] = useState({connectedTo:'', connectedPort:'', assignedArea:''});
     const [ethDetails, setEthDetails] = useState({connectedTo:'', connectedPort:''});
     const [arrayfms, setArrayFMS] = useState([]);
     const [arrayolt, setArrayOlt] = useState([]);
@@ -33,6 +33,8 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
     const [oltdata, setOldData] = useState([]);
     const [selectDevice, setSelectDevice] = useState([]);
     const [deviceselect, setDeviceSelect] = useState('');
+
+    const [showAux, setShowAux] = useState(false);
 
 
 
@@ -98,7 +100,7 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
           try{
             
             await set(ref(db,  `Rack Info/${officename}/${roomname}/${deviceIndex}/Ethernet/${selectedEth}`), oltPort);
-            await set(ref(db,  `Rack Info/${officename}/${roomname}/${fmskey}/Ports/${ethDetails.connectedPort}`), FmsPort);
+            await set(ref(db,  `Rack Info/${officename}/${roomname}/${fmskey}/Ethernet/${ethDetails.connectedPort}`), FmsPort);
             setShowModal(false);
             alert(`Ethernet ${selectedEth} Details are Saved to Device ID ${fmskey} on Port ${ethDetails.connectedPort}`);
   
@@ -126,6 +128,7 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
         connectedTo : deviceIndex,
         connectedPort: selectedSFP,
         portType: 'SFP',
+        assignedArea: sfpDetails.assignedArea
   
        }
 
@@ -169,6 +172,7 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
       connectedTo : deviceIndex,
       connectedPort: selectedPON,
       portType: 'PON',
+      assignedArea: ponDetails.assignedArea
 
      }
      
@@ -502,6 +506,16 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
                 onChange={(e) => setPONDetails({ ...ponDetails, connectedPort: e.target.value })}
               />
             </div>
+
+            <div className="mb-3">
+              <label className="form-label">Assigned Area/Name</label>
+              <input
+                type="text"
+                className="form-control"
+                value={ponDetails.assignedArea}
+                onChange={(e) => setPONDetails({ ...ponDetails, assignedArea: e.target.value })}
+              />
+            </div>
             <Button variant="primary" onClick={savePONDetails}>
               Save Details
             </Button>
@@ -594,6 +608,16 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
                 className="form-control"
                 value={sfpDetails.connectedPort}
                 onChange={(e) => setSFPDetails({ ...sfpDetails, connectedPort: e.target.value })}
+              />
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label">Assigned Area/Name</label>
+              <input
+                type="text"
+                className="form-control"
+                value={sfpDetails.assignedArea}
+                onChange={(e) => setSFPDetails({ ...sfpDetails, assignedArea: e.target.value })}
               />
             </div>
             <Button variant="primary" onClick={saveSFPDetails}>

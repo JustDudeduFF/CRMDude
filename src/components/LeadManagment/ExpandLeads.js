@@ -108,9 +108,9 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
     if (!showExpand) return null;
 
     return (
-        <div className="modal-body">
-            <div className="modal-data">
-                <div className="modal-inner">
+        <div className="modal-body1">
+            <div className="modal-data1">
+                <div className="modal-inner1">
                     <h4 style={{ flex: '1' }}>{heading}</h4>
                     <form style={{ flex: '2' }} className="row g-3">
                         <div className="col-md-3">

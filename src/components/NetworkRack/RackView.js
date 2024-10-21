@@ -125,7 +125,7 @@ export default function RackView() {
                           ))}
                           {/* Render Switch components */}
                           {switchDevices.map((sw, index) => (
-                              <Switch key={`switch-${index}`} show={true} ethernet={sw.swethernetrange} sfps={sw.swsfpsrange} />
+                              <Switch key={`switch-${index}`} show={true} ethernet={sw.swethernetrange} sfps={sw.swsfpsrange} officename={sw.officename} roomname={sw.roomname} deviceIndex={sw.deviceKey}/>
                           ))}
                           {/* Render FMS components */}
                           {fmsDevices.map((fms, index) => (

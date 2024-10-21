@@ -18,6 +18,7 @@ import { db } from '../../FirebaseConfig'
 import { ref, get, set, update, onValue } from 'firebase/database'
 import RenewalModal from './RenewalModal';
 import PlanChangeModal from './PlanChangeModal';
+import { toast, ToastContainer } from 'react-toastify';
 
 
 
@@ -57,6 +58,8 @@ export default function Subscriber() {
   const [arrayplan, setArrayPlan] = useState([]);
   const [remarks, setRemarks] = useState('');
   const [expdate, setExpDate] = useState('');
+
+  const [renew, setRenew] = useState(false);
 
 
 
@@ -142,6 +145,12 @@ export default function Subscriber() {
           
     }
 
+
+    const handleRenew = async () => {
+        setShowModal(true);
+    }
+
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -165,6 +174,12 @@ export default function Subscriber() {
                         const planperiod = childPlan.val().planperiod;
                         const periodtime = childPlan.val().periodtime;
                         planArray.push({ planname, periodtime, planperiod });
+
+                        if (planname === planName){
+                            setRenew(true);
+                        }else{
+                            setRenew(false);
+                        }
                     });
                     setArrayPlan(planArray);
                 }
@@ -278,6 +293,7 @@ export default function Subscriber() {
           /><br></br>
           <label style={{color:'white', fontSize:'17px'}}>Fetching Data...</label>
           </div>
+          <ToastContainer/>
         </div>
         
       }
@@ -360,7 +376,7 @@ export default function Subscriber() {
                             </div>
                             <div style={{flex:'2', display:'flex', flexDirection:"column"}}>
                                 <div style={{flex:'2', marginTop:'50px', display:"flex", flexDirection:'row'}}>
-                                <button onClick={() => setShowModal(true)} style={{marginRight:'10px'}} type="button" className="btn btn-info">Renew Subscription</button>
+                                <button onClick={handleRenew} style={{marginRight:'10px'}} type="button" className="btn btn-info" disabled = {renew}>Renew Subscription</button>
                                 <button onClick={() => {
 
                                     setPlanChange(true);

@@ -13,7 +13,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
     const [heading, setHeading] = useState('');
     const [arrayData, setArrayData] = useState([]);
     const [filterPeriod, setFilterPeriod] = useState('All Time');
-    const [filterStatus, setFilterStatus] = useState('All'); // New state for status filter
+    const [filterStatus, setFilterStatus] = useState('Open'); // New state for status filter
     const [filterData, setFilteredData] = useState([]);
 
     const [showsmallModal, setShowSmallModal] = useState(false);
@@ -63,8 +63,8 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                         } = childSnap.val();
     
                         // Only include tickets that are not 'Completed'
-                        if (status !== 'Completed') {
-                            const assignedPersonName = usersLookup[assignto] || assignto; // Lookup user name or fallback to userid
+                        
+                        const assignedPersonName = usersLookup[assignto] || assignto; // Lookup user name or fallback to userid
     
                             // Push the ticket with the user's name instead of userid
                             dataArray.push({
@@ -79,7 +79,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                 Concern: ticketconcern,
                                 Status: status,
                             });
-                        }
+                        
                     });
     
                     setArrayData(dataArray);
@@ -170,8 +170,8 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                 onChange={(e) => setFilterStatus(e.target.value)}
                                 className='form-select'
                             >
-                                <option value="All">All Tickets</option>
                                 <option value="Pending">Open Tickets</option>
+                                <option value="All">All Tickets</option>
                                 <option value="Completed">Closed Tickets</option>
                                 <option value="Open">Pending Tickets</option>
                                 <option value="Unassigned">Unassigned Tickets</option>

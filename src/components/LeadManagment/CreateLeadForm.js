@@ -5,6 +5,7 @@ import { db } from '../../FirebaseConfig';
 export default function CreateLeadForm({ showModal, modalClose }) {
   const muDesignation = localStorage.getItem('Designation');
   const myMobile = localStorage.getItem('contact');
+  const [arrayemp, setEmpArray] = useState([]);
 
   const [arraycompany, setArrayCompany] = useState([]);
   const [formData, setFormData] = useState({
@@ -14,14 +15,18 @@ export default function CreateLeadForm({ showModal, modalClose }) {
     address: '',
     phone: '',
     companyName: '',
+    assignedto: '',
     date: new Date().toISOString().split('T')[0],
     leadsource: muDesignation === 'Sales' ? 'sales_team' : 'employee',
     generatename: myMobile,
-    type:'lead'
+    type:'lead',
+    status: 'assigned'
+  
     
   });
 
   const companyRef = ref(db, 'Master/companys');
+  const empRef = ref(db, `users`);
 
   useEffect(() => {
     const fetchCompany = onValue(companyRef, (companySnap) => {
@@ -35,8 +40,20 @@ export default function CreateLeadForm({ showModal, modalClose }) {
       }
     });
 
+
+    const fetchUsers = onValue(empRef, (empSnap) => {
+      const nameArray = [];
+      empSnap.forEach((child) => {
+          const empname = child.val().fullname;
+          const empmobile = child.val().mobile;
+
+          nameArray.push({empname, empmobile});
+      });
+      setEmpArray(nameArray);
+  });
+
     // Cleanup function to detach Firebase listener on unmount
-    return () => fetchCompany();
+    return () => {fetchCompany(); fetchUsers()};
   }, []);
 
   const handleInputChange = (e) => {
@@ -55,7 +72,7 @@ export default function CreateLeadForm({ showModal, modalClose }) {
     }
 
     const leadKey = Date.now();
-    const leadRef = ref(db, `Leadmanagment/leads`);
+    const leadRef = ref(db, `Leadmanagment`);
 
     const checkLeadExist = async () => {
       const leadSnap = await get(leadRef);
@@ -68,7 +85,7 @@ export default function CreateLeadForm({ showModal, modalClose }) {
         if (listPhone.includes(formData.phone)) {
           alert('That Contact No. is Already in Leads');
         } else {
-          set(ref(db, `Leadmanagment/leads/${leadKey}`), formData)
+          set(ref(db, `Leadmanagment/${leadKey}`), formData)
             .then(() => {
               modalClose();
               console.log('Lead data uploaded successfully');
@@ -79,7 +96,7 @@ export default function CreateLeadForm({ showModal, modalClose }) {
         }
       } else {
         // In case there are no leads yet, simply add the new lead
-        set(ref(db, `Leadmanagment/leads/${leadKey}`), formData)
+        set(ref(db, `Leadmanagment/${leadKey}`), formData)
           .then(() => {
             modalClose();
             console.log('Lead data uploaded successfully');
@@ -182,6 +199,22 @@ export default function CreateLeadForm({ showModal, modalClose }) {
               )}
             </select>
           </div>
+
+          <div>
+                <label className='form-label'>Employee Names</label>
+                <select onChange={handleInputChange} value={formData.assignedto} name='assignedto' className='form-select'>
+                    <option value=''>Choose...</option>
+                    {
+                        arrayemp.length > 0 ? (
+                            arrayemp.map(({empname, empmobile}, index) => (
+                                <option key={index} value={empmobile}>{empname}</option>
+                            ))
+                        ) : (
+                            <option value=''>No Data Available!</option>
+                        )
+                    }
+                </select>
+            </div>
           <button type="submit" className="btn btn-dark w-100">
             Submit
           </button>

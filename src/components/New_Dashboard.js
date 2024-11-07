@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import Navbar from './Navbar';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import LayoutDash from './LayoutDash';
+import DashFirstDiv from './DashFirstDiv';
 import NewUserAdd from './NewUserAdd';
 import Subscriber from './subscriberpage/Subscriber';  
 import { AnimatePresence } from 'framer-motion';
@@ -12,6 +12,7 @@ import MasterDash from './Master/MasterDash';
 import BulkUserEntry from './subscriberpage/BulkUserEntry';
 import LeadDash from './LeadManagment/LeadDash';
 import RackDashBoard from './NetworkRack/RackDashBoard';
+import PayrollandAttendence from './PayoutandAttendence/PayrollandAttendence';
 
 function New_Dashboard() {  // Renamed to PascalCase
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ function New_Dashboard() {  // Renamed to PascalCase
       <Navbar />
       <AnimatePresence mode='wait'>
         <Routes>
-          <Route path='/*' element={<LayoutDash />} />
+          <Route path='/*' element={<DashFirstDiv/>} />
           <Route path='/adduser/*' element={<NewUserAdd />} />
           <Route path='/subscriber/*' element={<Subscriber />} />
           <Route path='/employees/*' element={<EmployeeDashboard />} />
@@ -36,6 +37,7 @@ function New_Dashboard() {  // Renamed to PascalCase
           <Route path='/bulkuser/*' element={<BulkUserEntry/>}/>
           <Route path='/leadmanagment/*' element={<LeadDash/>}/>
           <Route path='/networkrack/*' element={<RackDashBoard/>}/>
+          <Route path='/payrollandattendence/*' element={<PayrollandAttendence/>}/>
         </Routes>
       </AnimatePresence>
     </div>

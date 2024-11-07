@@ -6,8 +6,8 @@ const PasswordModal = ({ show, onClose, changePassword, changePassword2 }) => {
   if (!show) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
+    <div className="modal-overlay1">
+      <div className="modal-content1">
         <h2>Welcome</h2>
         <p>Please Create Your Password</p>
         <div>

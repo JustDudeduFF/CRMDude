@@ -52,8 +52,8 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
   if (!show) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
+    <div className="modal-background">
+      <div className="modal-data">
       <div className='d-flex flex-row'>
       <h4 style={{flex:'1'}}>Assign Ticket to Technician</h4>
       <button onClick={closeModal} className='btn-close'></button>

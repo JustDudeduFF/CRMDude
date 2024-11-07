@@ -19,6 +19,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
     const [showsmallModal, setShowSmallModal] = useState(false);
     const [ticketclosemodal, setTicketCloseModal] = useState(false);
     const [ticketno, setTicketno] = useState([]);
+    const [isCompleted, setIsCompleted] = useState(false);
 
 
     // Download All Data to Excel File
@@ -167,7 +168,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                         <div className='col-md-3'>
                             <label className='form-label'>Select Ticket Status</label>
                             <select
-                                onChange={(e) => setFilterStatus(e.target.value)}
+                                onChange={(e) => {setFilterStatus(e.target.value); setIsCompleted(e.target.value === 'Completed')}}
                                 className='form-select'
                             >
                                 <option value="Pending">Open Tickets</option>
@@ -216,8 +217,8 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                     <td>{createby}</td>
                                     <td>{`"${creationdate}" at "${Time}"`}</td>
                                     <td>
-                                        <button onClick={() => {setShowSmallModal(true); setTicketno({Ticketno, subsID})}} className='btn btn-outline-success me-3' >{Status === 'unassigned' ? 'Assign' : 'Re Assign'}</button>
-                                        <button onClick={() => {setTicketCloseModal(true); setTicketno({Ticketno, subsID});}} className='btn btn-danger'>{Status === 'Open' ? 'Re-Open' : 'Close it'}</button>
+                                        <button onClick={() => {setShowSmallModal(true); setTicketno({Ticketno, subsID})}} className='btn btn-outline-success me-3' disabled={isCompleted}>{Status === 'unassigned' ? 'Assign' : 'Re Assign'}</button>
+                                        <button onClick={() => {setTicketCloseModal(true); setTicketno({Ticketno, subsID});}} className='btn btn-danger' disabled={isCompleted}>{Status === 'Open' ? 'Re-Open' : 'Close it'}</button>
                                     </td>
                                 </tr>
                             ))}

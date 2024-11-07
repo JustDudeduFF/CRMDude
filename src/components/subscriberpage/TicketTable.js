@@ -7,73 +7,52 @@ export default function TicketTable() {
   const username = localStorage.getItem('susbsUserid');
   const navigate = useNavigate();
 
-  const ticketRef = ref(db, `Subscriber/${username}/Tickets`);
+  const [usersLookup, setUsersLookup] = useState({});
   const [arrayticket, setArrayTicket] = useState([]);
 
   useEffect(() => {
-    // Fetch all user data once and store in a lookup object
-    const usersRef = ref(db, `users`);
+    const fetchUsers = async () => {
+      try {
+        const userSnap = await get(ref(db, 'users'));
+        const lookup = {};
+        userSnap.forEach((childSnap) => {
+          const userId = childSnap.key;
+          const { fullname } = childSnap.val();
+          lookup[userId] = fullname || 'Unknown User';
+        });
+        setUsersLookup(lookup);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+    
+    fetchUsers();
+  }, []);
 
-    get(usersRef).then((userSnap) => {
-      const usersLookup = {};
-      userSnap.forEach((childSnap) => {
-        const userId = childSnap.key;
-        const { fullname } = childSnap.val();
-        usersLookup[userId] = fullname || 'Unknown User'; // Store userId -> fullname mapping
+  useEffect(() => {
+    const ticketRef = ref(db, `Subscriber/${username}/Tickets`);
+    
+    const unsubscribe = onValue(ticketRef, (ticketSnap) => {
+      if (!ticketSnap.exists()) {
+        setArrayTicket([]);
+        return;
+      }
+
+      const ticketArray = [];
+      ticketSnap.forEach((Childticket) => {
+        const ticket = Childticket.val();
+        ticketArray.push({
+          ...ticket,
+          assignto: usersLookup[ticket.assignto] || 'Not Assigned',
+          closeby: usersLookup[ticket.closeby] || ticket.closeby,
+        });
       });
-
-      // Fetch ticket data
-      const fetchTickets = onValue(ticketRef, (ticketSnap) => {
-        if (ticketSnap.exists()) {
-          const ticketArray = [];
-
-          ticketSnap.forEach((Childticket) => {
-            const ticketno = Childticket.val().ticketno;
-            const source = Childticket.val().source;
-            const ticketconcern = Childticket.val().ticketconcern;
-            const assignto = Childticket.val().assignto; // This is the userId of the assigned person
-            const description = Childticket.val().description;
-            const assigntime = Childticket.val().assigntime;
-            const assigndate = Childticket.val().assigndate;
-            const status = Childticket.val().status;
-            const closeby = Childticket.val().closeby;
-            const closetime = Childticket.val().closetime;
-            const closedate = Childticket.val().closedate;
-            const rac = Childticket.val().rac;
-
-            // Replace assignto with the user's full name from the usersLookup
-            const assignedPersonName = usersLookup[assignto] || 'Not Assigned';
-            const closePersonName = usersLookup[closeby] || closeby; // Fallback if not found
-            
-            ticketArray.push({
-              ticketno,
-              source,
-              ticketconcern,
-              assignto: assignedPersonName, // Store the name instead of userId
-              description,
-              assigntime,
-              assigndate,
-              status,
-              closeby: closePersonName,
-              closetime,
-              closedate,
-              rac,
-            });
-          });
-          
-          // Update state with ticket data
-          setArrayTicket(ticketArray);
-        }
-      });
-
-      return () => {
-        // Clean up the Firebase listener
-        fetchTickets();
-      };
-    }).catch((error) => {
-      console.error('Error fetching user data:', error);
+      
+      setArrayTicket(ticketArray);
     });
-  }, [ticketRef, username]);
+
+    return () => unsubscribe();
+  }, [username, usersLookup]);
 
   return (
     <div>

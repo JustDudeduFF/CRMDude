@@ -4,12 +4,15 @@ import * as XLSX from 'xlsx';
 import { onValue, ref } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
 import { isThisMonth, isThisWeek, isToday, subDays, parseISO } from 'date-fns';
+import AssignedLead from './AssignedLead';
 
 export default function ExpandLeads({ showExpand, closeExpand }) {
     const [arrayData, setArrayData] = useState([]);
     const [filterPeriod, setFilterPeriod] = useState('All Time');
     const [datatype, setDataType] = useState('All');
     const [filterData, setFilteredData] = useState([]);
+    const [showAssignedLead, setShowAssignedLead] = useState(false);
+    const [leadID, setLeadID] = useState('');
 
     const heading = 'Lead and Enquiry Data';
 
@@ -23,7 +26,7 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
 
     // Fetch data from Firebase
     const fetchdata = useCallback(() => {
-        const dataRef = ref(db, 'Leadmanagment/leads');
+        const dataRef = ref(db, 'Leadmanagment');
         onValue(dataRef, (dataSnap) => {
             try {
                 const dataArray = [];
@@ -38,6 +41,7 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                     const Mobile = childSnap.val().phone;
                     const Address = childSnap.val().address;
                     const Status = childSnap.val().status;
+                    const leadID = childSnap.key;
 
                     dataArray.push({
                         FirstName,
@@ -49,6 +53,7 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                         Mobile,
                         Address,
                         Status,
+                        leadID
                     });
                 });
                 setArrayData(dataArray);
@@ -128,6 +133,11 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                             </select>
                         </div>
 
+                        <AssignedLead show={showAssignedLead} closeModal={(e) => {
+                            e.preventDefault();
+                            setShowAssignedLead(false);
+                        }} leadID={leadID}/>
+
                         <div className="col-md-3">
                             <label className="form-label">Select Data Type</label>
                             <select
@@ -162,7 +172,7 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {filterData.map(({ FirstName, LastName, Mobile, Address, Enquiry_LeadDate, LeadSource, Status, Type }, index) => (
+                            {filterData.map(({ FirstName, LastName, Mobile, Address, Enquiry_LeadDate, LeadSource, Status, Type, leadID }, index) => (
                                 <tr key={index}>
                                     <td>{`${FirstName} ${LastName}`}</td>
                                     <td>{`"${Mobile}" : "${Address}"`}</td>
@@ -170,9 +180,9 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                                     <td>{new Date(Enquiry_LeadDate).toLocaleDateString()}</td>
                                     <td>{Status}</td>
                                     <td>
-                                        <button className='btn btn-outline-success me-3'>{Type === 'enquiry' ? 'Convert to Lead' : 'Assign'}</button>
+                                        <button onClick={() => {setShowAssignedLead(true); setLeadID(leadID)}} className='btn btn-outline-success me-3'>{Type === 'enquiry' ? 'Convert to Lead' : 'Re-Assign'}</button>
                                         <button className='btn btn-danger'>Cancel</button>
-                                    </td>
+                                    </td>   
                                 </tr>
                             ))}
                         </tbody>

@@ -138,7 +138,8 @@ export default function ReceiptModify() {
         const employeeArray = [];
         empSnap.forEach((Childemp) => {
           const empName = Childemp.val().fullname;
-          employeeArray.push(empName);
+          const empId = Childemp.key;
+          employeeArray.push({empName, empId});
         });
         setEmpArray(employeeArray);
       } else {
@@ -246,8 +247,8 @@ export default function ReceiptModify() {
             <select onChange={(e) => setCollectedBy(e.target.value)} className="form-select">
               <option value="">Choose...</option>
               {arrayemp.length > 0 ? (
-                arrayemp.map((empName, index) => (
-                  <option key={index} value={empName}>
+                arrayemp.map(({empName, empId}, index) => (
+                  <option key={index} value={empId}>
                     {empName}
                   </option>
                 ))

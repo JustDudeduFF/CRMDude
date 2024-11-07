@@ -415,7 +415,7 @@ export default function Subscriber() {
                         savePlan={handleSavePlan}
                     />
 
-                <PlanChangeModal modalShow={() => setPlanChange(false)} show={showplanchange} 
+                <PlanChangeModal modalShow={() => setPlanChange(false)} show={showplanchange} dueamount={dueamount}
                                         handleMin={activationDate}
                                         
                                         

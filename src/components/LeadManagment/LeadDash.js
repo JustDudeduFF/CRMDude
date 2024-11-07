@@ -40,7 +40,7 @@ export default function LeadDash() {
   const [filterType, setFilterType] = useState('All Time');
   const [selectedCompany, setSelectedCompany] = useState('All'); // State for selected company
 
-  const leadRef = ref(db, `Leadmanagment/leads`);
+  const leadRef = ref(db, `Leadmanagment`);
 
   useEffect(() => {
     const fetchLeads = onValue(leadRef, (leadSnap) => {

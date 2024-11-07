@@ -1,11 +1,25 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import '../Modal.css'
 
 
 
 
 
-const RenewalModal = ({show, planName, planAmount, isp, modalShow, handleActivation, handleAmount, handleRemarks, handleexpiry, handleMin, savePlan, renewbtn}) => {
+const RenewalModal = ({
+  show,
+  planName,
+  planAmount,
+  isp,
+  modalShow,
+  handleActivation,
+  handleAmount,
+  handleRemarks,
+  handleExpiry,
+  handleMin,
+  savePlan,
+  renewBtn
+}) => {
     
     
     if(!show) return null;
@@ -48,7 +62,12 @@ const RenewalModal = ({show, planName, planAmount, isp, modalShow, handleActivat
 
                     <div className='col-md-3'>
                         <label className='form-label'>Expiry Date</label>
-                        <input defaultValue={handleexpiry} type='date' className='form-control'></input>
+                        <input
+                            value={handleExpiry}
+                            onChange={(e) => handleExpiry(e.target.value)}
+                            type='date'
+                            className='form-control'
+                        />
                     </div>
 
                     <div className='col-md-9'>
@@ -60,7 +79,7 @@ const RenewalModal = ({show, planName, planAmount, isp, modalShow, handleActivat
             </div>
 
             <div className='d-flex flex-row'>
-            <button style={{flex:'1'}} onClick={savePlan} className='btn btn-outline-info' disabled={renewbtn}>Save</button>
+            <button style={{flex:'1'}} onClick={savePlan} className='btn btn-outline-info' disabled={renewBtn}>Save</button>
             <button onClick={modalShow} style={{flex:'1'}} className='btn btn-outline-secondary ms-2'>Cancel</button>
             </div>
             
@@ -72,5 +91,19 @@ const RenewalModal = ({show, planName, planAmount, isp, modalShow, handleActivat
     );
 };
 
+RenewalModal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  planName: PropTypes.string.isRequired,
+  planAmount: PropTypes.number.isRequired,
+  isp: PropTypes.string.isRequired,
+  modalShow: PropTypes.func.isRequired,
+  handleActivation: PropTypes.func.isRequired,
+  handleAmount: PropTypes.func.isRequired,
+  handleRemarks: PropTypes.func.isRequired,
+  handleExpiry: PropTypes.func.isRequired,
+  handleMin: PropTypes.string.isRequired,
+  savePlan: PropTypes.func.isRequired,
+  renewBtn: PropTypes.bool.isRequired
+};
 
 export default  RenewalModal;

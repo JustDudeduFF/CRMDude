@@ -69,6 +69,7 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
     const savePlan = async () => {
         const planinfoKey = Date.now();
         setRenewBtn(true);
+        console.log(dueamount, customecharge, planamount);
         const newDue = (parseInt(dueamount, 10) || 0) + (parseInt(customecharge, 10) || parseInt(planamount, 10));
         // Add disabled Amount
 
@@ -110,6 +111,12 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
             await update(ref(db, `Subscriber/${username}/connectionDetails`), newconnectioninfo);
             
         }
+
+
+        setPlanAmount('');
+        setCustomCharge('');
+        setPlanName('');
+        setIsp('');
 
           
 
@@ -168,7 +175,6 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
                         }} 
                         
                         className='form-control' 
-                        readOnly
                     >
                         <option value=''>Choose...</option>
                         {
@@ -211,7 +217,11 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
                 <form className='row g-3 mb-4 mt-2'>
                     <div className='col-md-3'>
                         <label className='form-label'>Custom Charges</label>
-                        <input onChange={(e) => setCustomCharge(e.target.value)} value={planamount} className='form-control'></input>
+                        <input 
+                            onChange={(e) => setCustomCharge(e.target.value)} 
+                            value={customecharge}
+                            className='form-control'
+                        />
                     </div>
 
                     <div className='col-md-3'>
@@ -237,7 +247,7 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
 
             <div className='d-flex flex-row'>
             <button style={{flex:'1'}} onClick={savePlan} className='btn btn-outline-info' disabled={renewbtn}>Save</button>
-            <button onClick={modalShow} style={{flex:'1'}} className='btn btn-outline-secondary ms-2'>Cancel</button>
+            <button onClick={() => {modalShow(); setPlanAmount(''); setCustomCharge(''); setPlanName(''); setIsp('');}  } style={{flex:'1'}} className='btn btn-outline-secondary ms-2'>Cancel</button>
             </div>
             
             

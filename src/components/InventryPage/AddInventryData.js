@@ -54,8 +54,8 @@ const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, 
 
     }
     return(
-       <div className='modal-overlay'>
-        <div className='modal-content d-flex flex-column'>
+       <div className='modal-overlay1'>
+        <div className='modal-content1 d-flex flex-column'>
             <div className='d-flex flex-row bg-info rounded'>
                 <div className='m-2 d-flex flex-column col-md-3'>
                     <span className='ms-2'>

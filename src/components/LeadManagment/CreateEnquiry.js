@@ -1,12 +1,18 @@
-import { get, onValue, ref, set } from 'firebase/database';
-import React, { useEffect, useState } from 'react';
+import { get, onValue, ref, set, query, orderByChild, equalTo } from 'firebase/database';
+import React, { useEffect, useState, useMemo } from 'react';
 import { db } from '../../FirebaseConfig';
+import { debounce } from 'lodash';
+
+
 
 export default function CreateEnquiry({ showModal1, modalClose1 }) {
   const myMobile = localStorage.getItem('contact');
+  
 
   const [arraycompany, setArrayCompany] = useState([]);
-  const [formData, setFormData] = useState({
+  
+
+  const INITIAL_FORM_STATE = {
     firstName: '',
     lastName: '',
     address: '',
@@ -15,13 +21,17 @@ export default function CreateEnquiry({ showModal1, modalClose1 }) {
     date: new Date().toISOString().split('T')[0],
     leadsource: 'office',
     generatename: myMobile,
-    type: 'enquiry'
-  });
+    type: 'enquiry',
+    status: 'pending'
+  };
+
+  const [formData, setFormData] = useState(INITIAL_FORM_STATE);
 
   const companyRef = ref(db, 'Master/RMConcern');
+  
 
   useEffect(() => {
-    const fetchCompany = onValue(companyRef, (companySnap) => {
+    const unsubscribe = onValue(companyRef, (companySnap) => {
       if (companySnap.exists()) {
         const companyArray = [];
         companySnap.forEach((childs) => {
@@ -32,16 +42,15 @@ export default function CreateEnquiry({ showModal1, modalClose1 }) {
       }
     });
 
-    // Cleanup function to detach Firebase listener on unmount
-    return () => fetchCompany();
+    return () => unsubscribe();
   }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData(prevData => ({
+      ...prevData,
       [name]: value,
-    });
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -52,43 +61,36 @@ export default function CreateEnquiry({ showModal1, modalClose1 }) {
     }
 
     const leadKey = Date.now();
-    const leadRef = ref(db, `Leadmanagment/leads`);
+    const phoneQuery = ref(db, 'Leadmanagment');
+    const phoneCheck = query(phoneQuery, orderByChild('phone'), equalTo(formData.phone));
 
     const checkLeadExist = async () => {
-      const leadSnap = await get(leadRef);
-      if (leadSnap.exists()) {
-        const listPhone = [];
-        leadSnap.forEach((child) => {
-          const list = child.val().phone;
-          listPhone.push(list);
-        });
-        if (listPhone.includes(formData.phone)) {
+      try {
+        const snapshot = await get(phoneCheck);
+        if (snapshot.exists()) {
           alert('That Contact No. is Already in Leads');
-        } else {
-          set(ref(db, `Leadmanagment/leads/${leadKey}`), formData)
-            .then(() => {
-              modalClose1();
-              console.log('Lead data uploaded successfully');
-            })
-            .catch((error) => {
-              console.error('Error uploading data:', error);
-            });
+          return;
         }
-      } else {
-        // In case there are no leads yet, simply add the new lead
-        set(ref(db, `Leadmanagment/leads/${leadKey}`), formData)
-          .then(() => {
-            modalClose1();
-            console.log('Lead data uploaded successfully');
-          })
-          .catch((error) => {
-            console.error('Error uploading data:', error);
-          });
+        
+        await set(ref(db, `Leadmanagment/${leadKey}`), formData);
+        modalClose1();
+        console.log('Lead data uploaded successfully');
+      } catch (error) {
+        console.error('Error handling lead:', error);
       }
     };
 
     checkLeadExist();
   };
+
+  const memoizedCompanyOptions = useMemo(() => 
+    arraycompany.map((companyname, index) => (
+      <option value={companyname} key={index}>
+        {companyname}
+      </option>
+    )),
+    [arraycompany]
+  );
 
   if (!showModal1) return null;
 
@@ -157,17 +159,10 @@ export default function CreateEnquiry({ showModal1, modalClose1 }) {
               required
             >
               <option value="">Select an option</option>
-              {arraycompany.length > 0 ? (
-                arraycompany.map((companyname, index) => (
-                  <option value={companyname} key={index}>
-                    {companyname}
-                  </option>
-                ))
-              ) : (
-                <option value="">No Data Available!</option>
-              )}
+              {memoizedCompanyOptions}
             </select>
           </div>
+          
           <button type="submit" className="btn btn-dark w-100">
             Submit
           </button>

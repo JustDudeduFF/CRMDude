@@ -53,6 +53,10 @@ export default function Loginlayout() {
         
         const name = snapshot.val().fullname;
         const designation = snapshot.val().designation;
+        const permissions = snapshot.child('permissions').val();
+
+        console.log(permissions);
+        
         if(snapshot.hasChild('pass')){
           const fetchPass = snapshot.val().pass;
           if(fetchPass === password){
@@ -60,6 +64,8 @@ export default function Loginlayout() {
           localStorage.setItem('contact', contact);
           localStorage.setItem('Name', name);
           localStorage.setItem('Designation', designation);
+          localStorage.setItem('Permssions', permissions);
+          
           navigate('/dashboard');
           }else{
             alert('Password Not Matched');

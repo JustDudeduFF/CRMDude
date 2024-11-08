@@ -20,22 +20,65 @@ export default function Navbar() {
   const [isVisible, setIsVisible] = useState(false);
   const [arrayuser, setArrayUser] = useState([]);
   const [subssearch, setSubsSearch] = useState('');
+  const [companyUserCount, setCompanyUserCount] = useState({});
+  const [expiredUserCount, setExpiredUserCount] = useState({});
 
   const subsref = ref(db, 'Subscriber');
 
+  function convertExcelDateSerial(input) {
+    const excelDateSerialPattern = /^\d+$/; // matches only digits (Excel date serial number)
+    if (excelDateSerialPattern.test(input)) {
+      const excelDateSerial = parseInt(input, 10);
+      const baseDate = new Date("1900-01-01");
+      const date = new Date(baseDate.getTime() + excelDateSerial * 86400000);
+  
+      const day = date.getDate().toString().padStart(2, "0");
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
+      const year = date.getFullYear();
+      return `${year}-${month}-${day}`;
+    } else {
+      return input; // return original input if it's not a valid Excel date serial number
+    }
+  }
+
   useEffect(() => {
     const fetchUsers = async () => {
+
+      const currentDate = new Date().toISOString().split('T')[0];
       const userSnap = await get(subsref);
       if(userSnap.exists()){
         const UserArray = [];
+        const companyCount = {};
+        const expiredCount = {};
+
         userSnap.forEach(Childsubs => {
           const username = Childsubs.key;
           const fullname = Childsubs.val().fullName;
           const mobile = Childsubs.val().mobileNo;
+          const company = Childsubs.val().company;
+          const expiryDate = Childsubs.val().connectionDetails.expiryDate;
 
-          UserArray.push({username, fullname, mobile});
+          const expdate = convertExcelDateSerial(expiryDate);
+
+
+
+          UserArray.push({username, fullname, mobile, company});
+
+          if (companyCount[company]) {
+            if(expdate > currentDate){
+              companyCount[company]++;
+            }
+            if(expdate < currentDate){
+              expiredCount[company]++
+            }
+          } else {
+            companyCount[company] = 1;
+          }
         });
+
         setArrayUser(UserArray);
+        setCompanyUserCount(companyCount);
+        setExpiredUserCount(expiredCount);
         console.log(UserArray);
       }
     }
@@ -59,6 +102,7 @@ export default function Navbar() {
     mobile.toLowerCase().includes(subssearch.toLowerCase())
   );
 
+  const uniqueCompanies = [...new Set(arrayuser.map(user => user.company))]; // Get unique company names
 
   return (
     <div>
@@ -124,27 +168,16 @@ export default function Navbar() {
             </div>
             <div className="modal-body">
             <ol className="list-group list-group-numbered">
-                <li className="list-group-item d-flex justify-content-between align-items-start">
+                {uniqueCompanies.map((company, index) => (
+                  <li key={index} className="list-group-item d-flex justify-content-between align-items-start">
                     <div className="ms-2 me-auto">
-                    <div className="fw-bold">Company Name</div>
-                    Active Users :- 
+                      <div className="fw-bold">{company}</div>
+                      Active Users: {companyUserCount[company] || 0}
                     </div>
-                    <span className="badge text-bg-primary rounded-pill">14</span>
-                </li>
-                <li className="list-group-item d-flex justify-content-between align-items-start">
-                    <div className="ms-2 me-auto">
-                    <div className="fw-bold">Company Name</div>
-                    Active Users :- 
-                    </div>
-                    <span className="badge text-bg-primary rounded-pill">14</span>
-                </li>
-                <li className="list-group-item d-flex justify-content-between align-items-start">
-                    <div className="ms-2 me-auto">
-                    <div className="fw-bold">Company Name</div>
-                    Active Users :- 
-                    </div>
-                    <span className="badge text-bg-primary rounded-pill">14</span>
-                </li>
+                    <span className="badge text-bg-primary rounded-pill">{expiredUserCount[company] || 0}</span>
+                  </li>
+                ))}
+                
                 </ol>
             </div>
             <div className="modal-footer">

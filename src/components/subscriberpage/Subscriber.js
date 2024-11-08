@@ -101,12 +101,17 @@ export default function Subscriber() {
     const handleSavePlan = async () => {
         setLoader(true);
         setRenewBtn(true);
-        const newDue = (parseInt(dueamount, 10) || 0) + (parseInt(customesharge, 10) || parseInt(planAmount, 10));
+        
+        // Parse values once
+        const parsedCustomesharge = parseInt(customesharge, 10) || 0;
+        const parsedPlanAmount = parseInt(planAmount, 10) || 0;
+        const newDue = parsedCustomesharge + parsedPlanAmount;
 
+        const currentDate = new Date().toISOString().split('T')[0];
 
         const ledgerData = {
-            type:'Renewal',
-            date: new Date().toISOString().split('T')[0],
+            type: 'Renewal',
+            date: currentDate,
             particular: `${planName} From ${renewactdate} to ${expdate}`,
             debitamount: parseInt(customesharge, 10) || parseInt(planAmount, 10),
             creditamount: 0
@@ -147,7 +152,14 @@ export default function Subscriber() {
 
 
     const handleRenew = async () => {
-        setShowModal(true);
+        const userPermissions = localStorage.getItem('Permssions');
+
+        
+        
+
+        
+        
+        
     }
 
 

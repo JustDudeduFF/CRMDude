@@ -9,6 +9,7 @@ export default function CreateLeadForm({ showModal, modalClose }) {
 
   const [arraycompany, setArrayCompany] = useState([]);
   const [formData, setFormData] = useState({
+    generatedDate: new Date().toISOString().split('T')[0],
     firstName: '',
     lastName: '',
     email: '',

@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import '../Modal.css'
 import { db } from '../../FirebaseConfig';
-import { child, get, ref, set } from 'firebase/database';
+import { get, ref, set } from 'firebase/database';
 import { toast, ToastContainer } from 'react-toastify';
 
 
@@ -12,6 +12,7 @@ const PlanModal = ({show, onClose}) => {
     const [planname, setPlanName] = useState('');
     const [periodtime, setPeriodTime] = useState('');
     const [planamount, setPlanAmount] = useState('');
+    const [planSpeed, setPlanSpeed] = useState('');
     
 
     const planRef = ref(db, `Master/Broadband Plan/${plancode}`);
@@ -20,7 +21,8 @@ const PlanModal = ({show, onClose}) => {
         planname: planname,
         planperiod: planperiod,
         periodtime: periodtime,
-        planamount: planamount
+        planamount: planamount,
+        planSpeed: planSpeed
     }
 
     
@@ -83,9 +85,14 @@ const PlanModal = ({show, onClose}) => {
 
                 </div>
 
-                <div className='col-md-9'>
+                <div className='col-md-6'>
                     <label className='form-label'>Plan Name</label>
                     <input className='form-control' onChange={(event) => setPlanName(event.target.value)}></input>
+                </div>
+
+                <div className='col-md-3'>
+                    <label className='form-label'>Plan Speed/Bandwidth</label>
+                    <input type='number' className='form-control' onChange={(event) => setPlanSpeed(event.target.value)}></input>
                 </div>
 
                 <div className='col-md-3'>

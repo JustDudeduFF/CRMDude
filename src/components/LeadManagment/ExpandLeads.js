@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import ExcelIcon from '../subscriberpage/drawables/xls.png';
 import * as XLSX from 'xlsx';
-import { onValue, ref } from 'firebase/database';
+import { onValue, ref, update } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
 import { isThisMonth, isThisWeek, isToday, subDays, parseISO } from 'date-fns';
 import AssignedLead from './AssignedLead';
+import { Modal } from 'react-bootstrap';
 
 export default function ExpandLeads({ showExpand, closeExpand }) {
     const [arrayData, setArrayData] = useState([]);
@@ -13,6 +14,12 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
     const [filterData, setFilteredData] = useState([]);
     const [showAssignedLead, setShowAssignedLead] = useState(false);
     const [leadID, setLeadID] = useState('');
+    const [showLeadConversation, setShowLeadConversation] = useState(false);
+    const [convertLeadId, setConvertLeadId] = useState('');
+    const [planArray, setPlanArray] = useState([]);
+    const [selectedPlan, setSelectedPlan] = useState('');
+    const [planAmount, setPlanAmount] = useState('');
+    const [securityAmount, setSecurityAmount] = useState("0");
 
     const heading = 'Lead and Enquiry Data';
 
@@ -24,9 +31,31 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
         XLSX.writeFile(workbook, `${heading} Data.xlsx`);
     };
 
+    const convertLead = () => {
+        const leadRef = ref(db, `Leadmanagment/${convertLeadId}`);
+        update(leadRef, {
+            status: 'assigned',
+            type: 'lead',
+            plan: selectedPlan,
+            securityamount: securityAmount
+        });
+        setShowLeadConversation(false);
+    }
+
     // Fetch data from Firebase
     const fetchdata = useCallback(() => {
         const dataRef = ref(db, 'Leadmanagment');
+        const planRef = ref(db, 'Master/Broadband Plan');
+        onValue(planRef, (planSnap) => {
+            const planArray = [];
+            planSnap.forEach((childSnap) => {
+                const planName = childSnap.val().planname;
+                const planKey = childSnap.key;
+                const planAmount = childSnap.val().planamount;
+                planArray.push({planName, planKey, planAmount});
+            });
+            setPlanArray(planArray);
+        });
         onValue(dataRef, (dataSnap) => {
             try {
                 const dataArray = [];
@@ -42,8 +71,10 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                     const Address = childSnap.val().address;
                     const Status = childSnap.val().status;
                     const leadID = childSnap.key;
+                    const generatedDate = childSnap.val().generatedDate;
 
                     dataArray.push({
+                        generatedDate: childSnap.val().generatedDate,
                         FirstName,
                         LastName,
                         Enquiry_Concern,
@@ -77,27 +108,27 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
         switch (filterPeriod) {
             case 'Today':
                 filteredArray = arrayData.filter((data) =>
-                    isToday(parseISO(data.Enquiry_LeadDate))
+                    isToday(parseISO(data.generatedDate))
                 );
                 break;
             case 'This Week':
                 filteredArray = arrayData.filter((data) =>
-                    isThisWeek(parseISO(data.Enquiry_LeadDate))
+                    isThisWeek(parseISO(data.generatedDate))
                 );
                 break;
             case 'This Month':
                 filteredArray = arrayData.filter((data) =>
-                    isThisMonth(parseISO(data.Enquiry_LeadDate))
+                    isThisMonth(parseISO(data.generatedDate))
                 );
                 break;
             case 'Last 7 Days':
                 filteredArray = arrayData.filter(
-                    (data) => parseISO(data.Enquiry_LeadDate) >= subDays(currentDate, 7)
+                    (data) => parseISO(data.generatedDate) >= subDays(currentDate, 7)
                 );
                 break;
             case 'Last 30 Days':
                 filteredArray = arrayData.filter(
-                    (data) => parseISO(data.Enquiry_LeadDate) >= subDays(currentDate, 30)
+                    (data) => parseISO(data.generatedDate) >= subDays(currentDate, 30)
                 );
                 break;
             default:
@@ -172,15 +203,19 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {filterData.map(({ FirstName, LastName, Mobile, Address, Enquiry_LeadDate, LeadSource, Status, Type, leadID }, index) => (
+                            {filterData.map(({ FirstName, LastName, Mobile, Address, generatedDate, LeadSource, Status, Type, leadID }, index) => (
                                 <tr key={index}>
                                     <td>{`${FirstName} ${LastName}`}</td>
                                     <td>{`"${Mobile}" : "${Address}"`}</td>
                                     <td>{LeadSource}</td>
-                                    <td>{new Date(Enquiry_LeadDate).toLocaleDateString()}</td>
+                                    <td>{new Date(generatedDate).toLocaleDateString()}</td>
                                     <td>{Status}</td>
                                     <td>
-                                        <button onClick={() => {setShowAssignedLead(true); setLeadID(leadID)}} className='btn btn-outline-success me-3'>{Type === 'enquiry' ? 'Convert to Lead' : 'Re-Assign'}</button>
+                                        <button onClick={() => {if(Type === 'enquiry'){
+                                            setShowLeadConversation(true); setConvertLeadId(leadID);
+                                            } else {
+                                                setShowAssignedLead(true); setLeadID(leadID)
+                                            }}} className='btn btn-outline-success me-3'>{Type === 'enquiry' ? 'Convert to Lead' : 'Re-Assign'}</button>
                                         <button className='btn btn-danger'>Cancel</button>
                                     </td>   
                                 </tr>
@@ -189,6 +224,44 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                     </table>
                 </div>
             </div>
+
+            <Modal show={showLeadConversation} onHide={() => setShowLeadConversation(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Lead Conversation</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p>leadID: {convertLeadId}</p>
+                    <div>
+                        <label className="form-label">Select Plan</label>
+                        <select onChange={(e) => {setSelectedPlan(e.target.value); setPlanAmount(planArray.find(plan => plan.planKey === e.target.value).planAmount)}} className="form-select">
+                            <option value=''>Choose...</option>
+                            {
+                                planArray.length > 0 ? (
+                                    planArray.map(({planName, planKey}) => (
+                                        <option key={planKey} value={planKey}>{planName}</option>
+                                    ))
+                                ) : (
+                                    <option value=''>No Data Available!</option>
+                                )
+                            }
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="form-label">Plan Amount</label>
+                        <input value={planAmount} onChange={(e) => setPlanAmount(e.target.value)} type="number" className="form-control" />
+                    </div>
+
+                    <div>
+                        <label className="form-label">Security Amount</label>
+                        <input value={securityAmount} onChange={(e) => setSecurityAmount(e.target.value)} type="number" className="form-control" />
+                    </div>
+                </Modal.Body>
+                <Modal.Footer>
+                    <button className='btn btn-secondary' onClick={() => setShowLeadConversation(false)}>Cancel</button>
+                    <button onClick={convertLead} className='btn btn-primary'>Convert</button>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 }

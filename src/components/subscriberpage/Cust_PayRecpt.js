@@ -8,6 +8,7 @@ import PaymetTable from './PaymetTable';
 export default function Cust_PayRecpt() {
   const location = useLocation();
   const {userid} = location.state || {};
+  const paymentcollection = localStorage.getItem('paymentcollection');
 
   const navigate = useNavigate();
   return (
@@ -19,7 +20,13 @@ export default function Cust_PayRecpt() {
         <div style={{flex:'4'}}>
             <div style={{width:'max-content', float:'right'}}>
               
-                <button onClick={() => {navigate('collect', {state: {userid}})}} type="button" className="btn btn-outline-success">Create Receipt</button>
+                <button onClick={() => {
+                  if(paymentcollection === 'true'){
+                    navigate('collect', {state: {userid}});
+                  }else{
+                    alert('You are not allowed to create receipt');
+                  }
+                }} type="button" className="btn btn-outline-success">Create Receipt</button>
                 <img src={Excel_Icon} className='img_download_icon'></img>
                 <img src={PDF_Icon} className='img_download_icon'></img>
 

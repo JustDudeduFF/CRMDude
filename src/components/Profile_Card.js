@@ -11,6 +11,12 @@ export default function Profile_Card() {
 
     const handleUserLogout = () => {
         localStorage.removeItem('contact');
+        localStorage.removeItem('Name');
+        localStorage.removeItem('Designation');
+        localStorage.removeItem('planrenewal');
+        localStorage.removeItem('allowedbackdate');
+        localStorage.removeItem('transfertickets');
+        localStorage.removeItem('inventry');
         navigate('/');
     };
     

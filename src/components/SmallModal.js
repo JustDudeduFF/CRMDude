@@ -21,7 +21,7 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
         })
 
         return () => fetchUsers();
-    });
+    }, []);
 
     const assignTicket = async(event) => {
         event.preventDefault();

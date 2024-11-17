@@ -19,10 +19,11 @@ const AssignedLead = ({show, closeModal, leadID}) => {
                 nameArray.push({empname, empmobile});
             });
             setEmpArray(nameArray);
-        })
+        });
+
 
         return () => fetchUsers();
-    });
+    }, []);
 
     const assignLead = async() => {
     

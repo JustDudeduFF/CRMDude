@@ -22,7 +22,7 @@ const CloseTicketModal = ({ show, ticketno, closeModal}) => {
         })
 
         return () => fetchUsers();
-    });
+    }, []);
 
 
     const closrTicket = async (event) => {

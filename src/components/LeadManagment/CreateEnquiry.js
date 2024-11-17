@@ -13,6 +13,7 @@ export default function CreateEnquiry({ showModal1, modalClose1 }) {
   
 
   const INITIAL_FORM_STATE = {
+    generatedDate: new Date().toISOString().split('T')[0],
     firstName: '',
     lastName: '',
     address: '',
@@ -22,7 +23,8 @@ export default function CreateEnquiry({ showModal1, modalClose1 }) {
     leadsource: 'office',
     generatename: myMobile,
     type: 'enquiry',
-    status: 'pending'
+    status: 'pending',
+    assignedto: ''
   };
 
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);

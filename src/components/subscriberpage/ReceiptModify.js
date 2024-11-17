@@ -89,7 +89,7 @@ export default function ReceiptModify() {
         creditamount: parseFloat(discount),
       };
   
-      if (discount === null || discount === '0') {
+      if (parseFloat(discount) === 0 || discount === null) {
         await set(ref(db, `Subscriber/${userid}/ledger/${paymentkey}`), ledgerData);
       } else {
         await set(ref(db, `Subscriber/${userid}/ledger/${paymentkey}`), ledgerData);

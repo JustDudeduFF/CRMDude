@@ -11,6 +11,7 @@ import TicketConcerns from './TicketConcerns'
 import DebitCreditNotesConcern from './DebitCreditNotesConcern'
 import RemarksFollow from './RemarksFollow'
 
+
 export default function MasterDash() {
   return (
     <div className='d-flex flex-column' style={{marginTop:'4.5%', padding:'10px'}}>
@@ -38,6 +39,8 @@ export default function MasterDash() {
 
             <Link id='link' to='ticketconcern' className='rounded mt-2 ms-1 me-1'>
             <li className="list-group-item shadow">Ticket Concerns</li></Link>
+
+
             
             </ul>
             </div>
@@ -48,6 +51,8 @@ export default function MasterDash() {
             <ul className="list-group list-group-flush rounded mb-2">
                 <Link id='link' to='company' className='rounded mt-2 ms-1 me-1'>
             <li className="list-group-item shadow">Companies</li></Link>
+
+            
 
             <Link id='link' to='colony' className='rounded mt-2 ms-1 me-1'>
             <li className="list-group-item shadow">Colony</li></Link>
@@ -77,6 +82,7 @@ export default function MasterDash() {
                     <Route path='ticketconcern' element={<TicketConcerns/>}/>
                     <Route path='dbparticular' element={<DebitCreditNotesConcern/>}/>
                     <Route path='remarkfollow' element={<RemarksFollow/>}/>
+                    
                 </Routes>
             </div>
 

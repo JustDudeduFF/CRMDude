@@ -492,6 +492,10 @@ export default function DashFirstDiv() {
         });
     };
 
+    function formatRevenue(amount) {
+        return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
     return (
         <>
         {isLoading ? (
@@ -696,22 +700,22 @@ export default function DashFirstDiv() {
                                 </div>
                                 <div style={{flex:'3', marginTop: '10px'}}>
                                     <img alt='' onClick={() => {setRevenueExpand(true)}} style={{width:'20px', height:'20px',float:'right', marginTop:'5px', marginRight:'8px', cursor:'pointer'}} src={ExpandIcon}></img>
-                                    <h3>{`$${revenueMonth}.00`}</h3>
+                                    <h3>{`₹${formatRevenue(revenueMonth)}.00`}</h3>
                                     <label style={{color: 'gray'}}>This Month Revenue</label>
                                 </div> 
 
                             </div>
                             <div style={{flex: '1', display: 'flex', flexDirection: 'row', marginTop: '30px'}}>
                                 <div style={{border: '1px solid gray', flex: '1', padding: '5px'}}>
-                                    <h5>{`$${revenueToday}.00`}</h5>
+                                    <h5>{`₹${formatRevenue(revenueToday)}.00`}</h5>
                                     <label style={{color: 'gray'}} >Today's Revenue</label>
                                 </div>
                                 <div style={{border: '1px solid gray', flex: '1', padding: '5px'}}>
-                                <h5>{`$${revenueCash}.00`}</h5>
+                                <h5>{`₹${formatRevenue(revenueCash)}.00`}</h5>
                                 <label style={{color: 'red'}} >Cash Collection</label>
                                 </div>
                                 <div style={{border: '1px solid gray', flex: '1', padding: '5px'}}>
-                                <h5>{`$${revenueOnline}.00`}</h5>
+                                <h5>{`₹${formatRevenue(revenueOnline)}.00`}</h5>
                                 <label style={{color: 'green'}} >Online Collection</label>
                                 </div>
 
@@ -728,7 +732,7 @@ export default function DashFirstDiv() {
                                 <img alt='' className='img_boldicon' src={DueRupee_Icon}></img>
                                 </div>
                                 <div style={{flex: '3', marginTop: '10px', cursor:'pointer'}}>
-                                    <h3>{`$${dueArrayMonth}.00`}</h3>
+                                    <h3>{`₹${formatRevenue(dueArrayMonth)}.00`}</h3>
                                     <label style={{color: 'red'}}>Month Due Amount</label>
                                 </div>
                                 
@@ -739,21 +743,21 @@ export default function DashFirstDiv() {
                                 setExpandDataType('Due All');
                                 setShowExpandView(true);
                                 }}  style={{border: '1px solid gray', flex: '1', padding: '5px', cursor:'pointer'}}>
-                                    <h5>{`$${arryadue}.00`}</h5>
+                                    <h5>{`₹${formatRevenue(arryadue)}.00`}</h5>
                                     <label style={{color: 'gray'}} >Total Due Amount</label>
                                 </div>
                                 <div onClick={() => {
                                 setExpandDataType('Due Week');
                                 setShowExpandView(true);
                                 }}  style={{border: '1px solid gray', flex: '1', padding: '5px', cursor:'pointer'}}>
-                                <h5>{`$${dueArrayWeek}.00`}</h5>
+                                <h5>{`₹${formatRevenue(dueArrayWeek)}.00`}</h5>
                                 <label style={{color: 'red'}} >Weekly Due</label>
                                 </div>
                                 <div onClick={() => {
                                 setExpandDataType('Due Today');
                                 setShowExpandView(true);
                                 }}  style={{border: '1px solid gray', flex: '1', padding: '5px', cursor:'pointer'}}>
-                                <h5>{`$${dueArrayToday}.00`}</h5>
+                                <h5>{`₹${formatRevenue(dueArrayToday)}.00`}</h5>
                                 <label style={{color: 'blue'}} >Today's Due Amount</label>
                                 </div>
 

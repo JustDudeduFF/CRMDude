@@ -25,7 +25,9 @@ export default function Reports_Others() {
 
         <div className='offcanvas_div' style={{width: 'auto', flex: '1', border: '2px solid gray', padding: '5px', borderRadius: '10px',  marginRight: '15px'}}>
         <label className="reports_label">Expired Reports</label><br></br>
+        <Link id='link' to='/dashboard/expired'>
         <img alt='' src={Expired} style={{width:'50px', height: '50px', cursor:"pointer", marginLeft: '30px', marginTop: '10px'}}></img>
+        </Link>
         </div>
 
         <div className='offcanvas_div' style={{width: 'auto', flex: '1', border: '2px solid gray', padding: '5px', borderRadius: '10px',  marginRight: '15px'}}>
@@ -68,7 +70,7 @@ export default function Reports_Others() {
         <div className='offcanvas_div' style={{width: 'auto', flex: '1', border: '2px solid gray', padding: '5px', borderRadius: '10px',  marginRight: '15px'}}>
         
         <label className="reports_label">Employee Reports</label><br></br>
-        <Link id='link' to='/dashboard/bulkuser'>
+        <Link id='link' to='/dashboard/templates'>
         <img alt='' src={Emp_Report} style={{width:'50px', height: '50px', cursor:"pointer", marginLeft: '30px', marginTop: '10px'}}></img></Link>
         </div>
       

@@ -53,7 +53,6 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
                     ispArray.push(ispname);
                 });
                 setArrayIsp(ispArray);
-                console.log(arrayisp, arrayplan);
             }
         }
         
@@ -69,7 +68,6 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
     const savePlan = async () => {
         const planinfoKey = Date.now();
         setRenewBtn(true);
-        console.log(dueamount, customecharge, planamount);
         const newDue = (parseInt(dueamount, 10) || 0) + (parseInt(customecharge, 10) || parseInt(planamount, 10));
         // Add disabled Amount
 
@@ -98,7 +96,8 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
             activationDate: activationDate,
             expiryDate: expirydate,
             planAmount: parseInt(customecharge, 10) || parseInt(planamount, 10),
-            dueAmount: newDue
+            dueAmount: newDue,
+            planName: planName
           }
 
         if(planName === '' || planamount === ''){

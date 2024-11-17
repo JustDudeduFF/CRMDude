@@ -12,6 +12,7 @@ import DocumentUpload from './DocumentUpload';
 import SubscriberDetails from './SubscriberDetails';
 import SubscriberLogs from './SubscriberLogs';
 import { ProgressBar } from 'react-loader-spinner';
+import axios from 'axios';
 
 
 import { db } from '../../FirebaseConfig'
@@ -38,6 +39,7 @@ export default function Subscriber() {
   const [fullName, setFullName] = useState("");
 
 
+
   // Connection Details
   const [isp, setIsp] = useState("");
   const [planName, setPlanName] = useState("");
@@ -58,8 +60,12 @@ export default function Subscriber() {
   const [arrayplan, setArrayPlan] = useState([]);
   const [remarks, setRemarks] = useState('');
   const [expdate, setExpDate] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [contact, setContact] = useState('');
 
   const [renew, setRenew] = useState(false);
+  const planrenewal = localStorage.getItem('planrenewal');
+  const changeplan = localStorage.getItem('changeplan');
 
 
 
@@ -96,7 +102,7 @@ export default function Subscriber() {
     
 
     const ledgerKey = Date.now();
-    const planinfoKey = Date.now();
+    
 
     const handleSavePlan = async () => {
         setLoader(true);
@@ -138,11 +144,29 @@ export default function Subscriber() {
 
         await set(ref(db, `Subscriber/${username}/ledger/${ledgerKey}`), ledgerData);
 
-        await set(ref(db, `Subscriber/${username}/planinfo/${planinfoKey}`), planinfo);
+        await set(ref(db, `Subscriber/${username}/planinfo/${ledgerKey}`), planinfo);
 
-        await update(planRef, newconnectioninfo);
-        setShowModal(false);
-        setLoader(false);
+        await update(planRef, newconnectioninfo).then(() => {
+            const emailData = {
+                to: userEmail,
+                subject: 'Renewal of Plan',
+                text: `Dear ${fullName}, Your plan has been renewed successfully.\n\nYour new plan will be active from ${renewactdate} to ${expdate}.\n\nYour Current Due Amount is ${newDue}.\n\nThank you for your business.\nRegards,\nSigma Business Solutions`,
+            }
+
+           
+            const sendMail = async () => {
+                const response = await axios.post('http://localhost:5000/sendmail', emailData);
+                alert(response.data.message);
+            }
+
+            const sendWhatsapp = async () => {
+                const response = await axios.post(`https://fa93-103-178-60-231.ngrok-free.app/send-message?number=91${contact}&message=Dear ${fullName},\n Your plan has been renewed successfully.\nYour new plan will be active from ${renewactdate} to ${expdate}.\nYour Current Due Amount is ${newDue}.\n\nThank you for your business.\nRegards,\nSigma Business Solutions `);
+                alert(response.data.status);
+            }
+            sendWhatsapp();
+            setShowModal(false);
+            setLoader(false);
+        });
 
           
 
@@ -152,14 +176,12 @@ export default function Subscriber() {
 
 
     const handleRenew = async () => {
-        const userPermissions = localStorage.getItem('Permssions');
+        if(planrenewal === 'true'){
+            setShowModal(true);
+        }else{
+            alert('You are not allowed to renew the plan');
+        }
 
-        
-        
-
-        
-        
-        
     }
 
 
@@ -175,7 +197,12 @@ export default function Subscriber() {
                     setCompany(subsSnap.val().company);
                     setUserID(subsSnap.val().username);
                     setRegistrationDate(subsSnap.val().createdAt);
+                    setUserEmail(subsSnap.val().email);
+                    setContact(subsSnap.val().mobileNo);
                 }
+
+
+                
     
                 // Fetch Available Plans
                 const planSnap = await get(plansRef);
@@ -260,6 +287,7 @@ export default function Subscriber() {
       const getperiod = (dateValue) => {
         const currentplan = planName;
 
+
         const selectePlanObj = arrayplan.find(plan => plan.planname === currentplan);
 
         if(selectePlanObj){
@@ -281,6 +309,10 @@ export default function Subscriber() {
             const formattedExpirationDate = date.toISOString().split('T')[0];
             setExpDate(formattedExpirationDate);
 
+        }
+
+        else{
+            console.log('No Plan Found');
         }
         
 
@@ -391,7 +423,11 @@ export default function Subscriber() {
                                 <button onClick={handleRenew} style={{marginRight:'10px'}} type="button" className="btn btn-info" disabled = {renew}>Renew Subscription</button>
                                 <button onClick={() => {
 
-                                    setPlanChange(true);
+                                    if(changeplan === 'true'){
+                                        setPlanChange(true);
+                                    }else{
+                                        alert('You are not allowed to change the plan');
+                                    }
                                 }}  type="button" className="btn btn-outline-danger">Change Plan</button>
                                 </div>
 

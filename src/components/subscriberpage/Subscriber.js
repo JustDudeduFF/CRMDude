@@ -107,11 +107,14 @@ export default function Subscriber() {
     const handleSavePlan = async () => {
         setLoader(true);
         setRenewBtn(true);
+
+
         
         // Parse values once
         const parsedCustomesharge = parseInt(customesharge, 10) || 0;
         const parsedPlanAmount = parseInt(planAmount, 10) || 0;
-        const newDue = parsedCustomesharge + parsedPlanAmount;
+        const newDue = parseInt(dueamount) + parsedCustomesharge || parsedPlanAmount;
+
 
         const currentDate = new Date().toISOString().split('T')[0];
 
@@ -148,21 +151,22 @@ export default function Subscriber() {
 
         await update(planRef, newconnectioninfo).then(() => {
             const emailData = {
-                to: userEmail,
-                subject: 'Renewal of Plan',
-                text: `Dear ${fullName}, Your plan has been renewed successfully.\n\nYour new plan will be active from ${renewactdate} to ${expdate}.\n\nYour Current Due Amount is ${newDue}.\n\nThank you for your business.\nRegards,\nSigma Business Solutions`,
+                to: "justdudehere@gmail.com",
+                subject: 'Broadband Subscription Renwal',
+                text: `Dear ${fullName}, \nYour plan has been renewed successfully.\n\nYour new plan will be active from ${renewactdate} to ${expdate}.\n\nYour Current Due Amount is ₹${newDue}.\n\nThank you for your business.\nRegards,\nSigma Business Solutions`,
             }
 
            
             const sendMail = async () => {
-                const response = await axios.post('http://localhost:5000/sendmail', emailData);
-                alert(response.data.message);
+                const response = await axios.post('https://61ae-103-178-60-100.ngrok-free.app/sendmail', emailData);
+                console.log(response.data.message);
             }
 
             const sendWhatsapp = async () => {
-                const response = await axios.post(`https://fa93-103-178-60-231.ngrok-free.app/send-message?number=91${contact}&message=Dear ${fullName},\n Your plan has been renewed successfully.\nYour new plan will be active from ${renewactdate} to ${expdate}.\nYour Current Due Amount is ${newDue}.\n\nThank you for your business.\nRegards,\nSigma Business Solutions `);
-                alert(response.data.status);
+                const response = await axios.post(`https://61ae-103-178-60-100.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${fullName},\n Your plan has been renewed successfully.\nYour new plan will be active from ${renewactdate} to ${expdate}.\nYour Current Due Amount is ₹${newDue}.\n\nThank you for your business.\nRegards,\nSigma Business Solutions `);
+                console.log(response.data.status);
             }
+            sendMail();
             sendWhatsapp();
             setShowModal(false);
             setLoader(false);
@@ -199,6 +203,13 @@ export default function Subscriber() {
                     setRegistrationDate(subsSnap.val().createdAt);
                     setUserEmail(subsSnap.val().email);
                     setContact(subsSnap.val().mobileNo);
+
+
+                    localStorage.setItem('subsname', subsSnap.val().fullName);
+                    localStorage.setItem('subsemail', subsSnap.val().email);
+                    localStorage.setItem('subscontact', subsSnap.val().mobileNo);
+                    localStorage.setItem('subsaddress', subsSnap.val().installationAddress);
+                    localStorage.setItem('subsplan', subsSnap.child("connectionDetails").val().planName)
                 }
 
 

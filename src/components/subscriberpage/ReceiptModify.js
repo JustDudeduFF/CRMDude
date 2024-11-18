@@ -1,12 +1,20 @@
-import { get, ref, set, update } from 'firebase/database';
+import { child, get, ref, set, update } from 'firebase/database';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../../FirebaseConfig';
 import { toast, ToastContainer } from 'react-toastify';
+import axios from 'axios';
+import { jsPDF } from "jspdf"; // Import jsPDF
+import autoTable from 'jspdf-autotable';
 
 
 export default function ReceiptModify() {
   const userid = localStorage.getItem('susbsUserid');
+  const subsemail = localStorage.getItem('subsemail');
+  const contact = localStorage.getItem('subscontact');
+  const name = localStorage.getItem('subsname');
+  const address = localStorage.getItem('subsaddress');
+  const planname = localStorage.getItem('subsplan');
 
   const navigate = useNavigate();
 
@@ -21,6 +29,7 @@ export default function ReceiptModify() {
   const [collectedBy, setCollectedBy] = useState('');
   const [transactionNo, settransactionNo] = useState('');
   const [narration, setnarration] = useState('');
+  const [companyData, setCompanyData] = useState({});
 
   const [isdisabled, setIsDisabled] = useState(false);
 
@@ -54,6 +63,210 @@ export default function ReceiptModify() {
         discountkey: newLedgerKey2,
         authorized: false
       };
+
+      const handleDownloadInvoice = async() => {
+        const doc = new jsPDF();
+    
+        autoTable(doc, {
+          body: [
+            [
+              {
+                content: companyData.companyname,
+                styles: {
+                  halign: 'left',
+                  fontSize: 20,
+                  textColor: '#ffffff',
+                }
+              },
+              {
+                content: 'Invoice',
+                styles: {
+                  halign: 'right',
+                  fontSize: 20,
+                  fontWeight: 'bold',
+                  textColor: '#ffffff',
+                }
+              }
+            ],
+          ],
+          theme: 'plain',
+          styles: {
+            fillColor: '#3366ff',
+          }
+        });
+    
+    
+        autoTable(doc, {
+          body: [
+            [
+              {
+                content: `Reference : #INV${receiptData.receiptNo.slice(10, 13)}` + '\nDate: ' + receiptData.receiptDate,
+                styles: {
+                  halign: 'right',
+                  
+                }
+              }
+            ],
+          ],
+          theme: 'plain',
+          
+        });
+    
+    
+        autoTable(doc, {
+          body: [
+            [
+              {
+                content: 'Billed to:' + '\nCustomer Name: ' + name + '\nAddress: ' + address + '\nMobile No: ' + contact,
+                styles: {
+                  halign: 'left',
+                }
+              },
+              {
+                content: 'From:' + '\n' + companyData.companyname + '\n' + companyData.companyaddress + '\nMobile No: ' + companyData.companymobile,
+                styles: {
+                  halign: 'right',
+                }
+              }
+            ],
+          ],
+          theme: 'plain',
+          
+        });
+    
+        autoTable(doc, {
+          body: [
+            [
+              {
+                content: 'Amount Paid: ',
+                styles: {
+                  fontSize: 18,
+                  halign: 'right',
+                }
+              }
+            ],
+    
+            [
+              {
+                content:  receiptData.amount + '.00 Rs',
+                styles: {
+                  halign: 'right',
+                  fontSize: 15,
+                  textColor: '#3366ff',
+                }
+              }
+            ],
+    
+            [
+              {
+                content: 'Payment Mode: ' + receiptData.paymentMode,
+                styles: {
+                  halign: 'right',
+                }
+              }
+            ]
+          ],
+          theme: 'plain',
+          
+        });
+    
+        autoTable(doc, {
+          body: [
+            [
+              {
+                content: 'Products and Services',
+                styles: {
+                  halign: 'left',
+                  fontSize: 14,
+                }
+              }
+            ]
+          ],
+          theme: 'plain',
+          
+        });
+    
+    
+        autoTable(doc, {
+          head: [
+            ['S. No.', '', 'Quantity', 'Rate', 'Discount', 'Amount']
+          ],
+          body: [
+            ['1', `${planname}`, `${receiptData.billing}`, `${parseInt(receiptData.amount) + parseInt(receiptData.discount)}`, `${receiptData.discount}`, `${receiptData.amount}`]
+          ],
+          theme: 'striped',
+          headStyles: {
+            fillColor: '#343a40',
+          }
+        });
+    
+    
+        autoTable(doc, {
+          body: [
+            [
+              {
+                content: 'Total Amount: ' + receiptData.amount + '.00 Rs',
+              styles: {
+                  halign: 'right',
+                  fontSize: 14,
+                }
+              }
+            ]
+          ],
+          theme: 'plain',
+        });
+    
+        autoTable(doc, {
+          body: [
+            [
+              {
+                content: 'Thank you for your business!' + '\n' + 'For any queries, please contact us at ' + companyData.companymobile + '\n' + 'This is an auto generated invoice and does not require any signature.',
+                styles: {
+                  halign: 'center',
+                  fontSize: 12,
+                }
+              }
+            ]
+          ],
+          theme: 'plain',
+        });
+    
+        autoTable(doc, {
+          body: [
+            [
+              {
+                content: 'Powered by: CRMDude',
+                styles: {
+                  halign: 'left',
+                  fontSize: 12,
+                }
+              }
+            ]
+          ],
+          theme: 'plain',
+        });
+    
+        const pdfBlob = doc.output('blob');
+
+        const mailData = new FormData();
+        mailData.append('pdf', pdfBlob, `${receiptData.receiptDate}.pdf`);
+        mailData.append('to', 'justdudehere@gmail.com');
+        mailData.append('subject', 'Payment Status And Invoice');
+        mailData.append('text', `Dear ${name}, \nYour Payment has been done for receipt period ${receiptData.billingPeriod}.\n\nPayment Mode: ${receiptData.paymentMode}\n\nReceipt Date: ${receiptData.receiptDate}\n\nReceipt No.: ${receiptData.receiptNo}\n\nThank you for your business.\nRegards,\nSigma Business Solutions`)
+    
+        try{
+          const response = await axios.post('https://61ae-103-178-60-100.ngrok-free.app/send-invoice', mailData);
+          if(response.ok){
+            console.log('Invoice Sent Succesfully');
+          }else{
+            console.log('Failed to Send Invoice');
+          }
+        }catch(error){
+          console.log('Error to Send Mail: '+ error);
+        }
+    
+      };
+
   
       const dueRef = ref(db, `Subscriber/${userid}/connectionDetails`);
       const dueSnap = await get(dueRef);
@@ -69,9 +282,18 @@ export default function ReceiptModify() {
       const newDue = {
         dueAmount: dueAmount - (parseInt(amount) + parseInt(discount)),
       };
+
+
+    const sendWhatsapp = async () => {
+      const response = await axios.post(`https://61ae-103-178-60-100.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${name},\nYour Payment has been done for receipt period ${receiptData.billingPeriod}.\nPayment Mode: ${receiptData.paymentMode}\nReceipt Date: ${receiptData.receiptDate}\nReceipt No.: ${receiptData.receiptNo}\nThank you for your business.\nRegards,\nSigma Business Solutions `);
+      console.log(response.data.status);
+  }
   
       await set(ref(db, `Subscriber/${userid}/payments/${paymentkey}`), receiptData);
-      await update(dueRef, newDue);
+      await update(dueRef, newDue).then(() => {
+        handleDownloadInvoice();
+        sendWhatsapp();
+      });
   
       const ledgerData = {
         type: 'Payment Collection',
@@ -116,6 +338,7 @@ export default function ReceiptModify() {
   
 
   useEffect(() => {
+    const companyRef = ref(db, `Master/companys`);
     const fetchbillingperiod = async () => {
       const billingSnap = await get(billingRef);
 
@@ -147,7 +370,22 @@ export default function ReceiptModify() {
       }
     };
 
+    const fetchCompany = async () => {
+      const companySnap = await get(companyRef);
+      if(companySnap.exists()){
+        companySnap.forEach(company => {
+          const companyData = company.val();
+          
+          if(companyData.companycode === 'global'){
+            setCompanyData(companyData);
+
+          }
+        });
+      }
+    }
+
     fetchbillingperiod();
+    fetchCompany();
     fetchemp();
   }, [userid]);
 

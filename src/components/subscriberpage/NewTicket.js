@@ -76,7 +76,8 @@ export default function NewTicket() {
         closedate: '',
         closeby: '',
         closetime: '',
-        rac: ''
+        rac: '',
+        generatedDate: new Date().toISOString().split('T')[0]
       }
 
       const globalticketdata = {
@@ -93,7 +94,8 @@ export default function NewTicket() {
         closeby: '',
         closetime: '',
         rac: '',
-        userid: username
+        userid: username,
+        generatedDate: new Date().toISOString().split('T')[0]
       }
 
       const ticketRef = ref(db, `Subscriber/${username}/Tickets/${ticketno}`);

@@ -28,11 +28,12 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
         const ticketRef = ref(db, `Subscriber/${ticketno.subsID}/Tickets/${ticketno.Ticketno}`);
         const globalTicketsRef = ref(db, `Global Tickets/${ticketno.Ticketno}`);
         const ticketSnap = await get(ticketRef);
-        if(ticketSnap.hasChild('assigndata')){
+        if(ticketSnap.hasChild('assigndate')){
             const assigndata = {
                 assigndate: new Date().toISOString().split('T')[0],
                 assigntime: new Date().toLocaleTimeString(),
-                assignto: assignemp
+                assignto: assignemp,
+                status:'Pending'
             }
             update(globalTicketsRef, assigndata);
             update(ticketRef, assigndata);

@@ -15,6 +15,7 @@ import RackDashBoard from './NetworkRack/RackDashBoard';
 import PayrollandAttendence from './PayoutandAttendence/PayrollandAttendence';
 import Sendmail from '../Server/Sendmail';
 import TemplateDash from './Templates/TemplateDash';
+import LoginWhatsapp from './Templates/LoginWhatsapp';
 
 function New_Dashboard() {  // Renamed to PascalCase
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ function New_Dashboard() {  // Renamed to PascalCase
           <Route path='/networkrack/*' element={<RackDashBoard/>}/>
           <Route path='/payrollandattendence/*' element={<PayrollandAttendence/>}/>
           <Route path='/expired/*' element={<Sendmail/>}/>
-          <Route path='/templates/*' element={<TemplateDash/>}/>
+          <Route path='/templates/*' element={<LoginWhatsapp/>}/>
         </Routes>
       </AnimatePresence>
     </div>

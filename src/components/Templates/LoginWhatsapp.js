@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 
 const LoginWhatsapp = () => {
     const [qrCode, setQrCode] = useState(null);
@@ -8,9 +7,13 @@ const LoginWhatsapp = () => {
     useEffect(() => {
         const fetchQrCode = async () => {
             try {
-                const response = await axios.get('https://99dd-103-87-49-95.ngrok-free.app/qr');
-                console.log('QR Response:', response.data); // Log entire response
-                setQrCode(response.data.qr); // Set the QR code if available
+                const response = await fetch('https://99dd-103-87-49-95.ngrok-free.app/qr');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                console.log('QR Response:', data);
+                setQrCode(data.qr);
             } catch (error) {
                 console.error('Error fetching QR code:', error);
                 setQrCode(null);
@@ -19,11 +22,11 @@ const LoginWhatsapp = () => {
             }
         };
     
-        fetchQrCode(); // Initial fetch
+        fetchQrCode();
 
-        const intervalId = setInterval(fetchQrCode, 20000); // Fetch every 20 seconds
+        const intervalId = setInterval(fetchQrCode, 20000);
 
-        return () => clearInterval(intervalId); // Cleanup on unmount
+        return () => clearInterval(intervalId);
     }, []);
 
     return (

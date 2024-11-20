@@ -323,7 +323,17 @@ export default function Subscriber() {
         }
 
         else{
+            setRenewBtn(false);
+            toast.error('No Plan Found Please Change Plan!', {
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              });
             console.log('No Plan Found');
+            
         }
         
 

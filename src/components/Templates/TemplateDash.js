@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Form, Modal } from 'react-bootstrap'
 import { ref, set, onValue } from 'firebase/database'
 import { db } from '../../FirebaseConfig';
+import axios from 'axios';
 
 
 export default function TemplateDash() {
@@ -29,10 +30,14 @@ export default function TemplateDash() {
     event.preventDefault(); // Prevent default to allow drop
   };
 
-  const uploadTemplate = () => {
+  const uploadTemplate = async () => {
     const templateRef = ref(db, `MessagingTemplates/${templateName}`);
     set(templateRef, {
       templateType: templateType,
+      templateName: templateName,
+      templatePreview: templatePreview
+    });
+    const response = await axios.post('https://99dd-103-87-49-95.ngrok-free.app/send-template', {
       templateName: templateName,
       templatePreview: templatePreview
     });

@@ -158,12 +158,12 @@ export default function Subscriber() {
 
            
             const sendMail = async () => {
-                const response = await axios.post('https://61ae-103-178-60-100.ngrok-free.app/sendmail', emailData);
+                const response = await axios.post('https://7f7c-103-87-49-95.ngrok-free.app/sendmail', emailData);
                 console.log(response.data.message);
             }
 
             const sendWhatsapp = async () => {
-                const response = await axios.post(`https://61ae-103-178-60-100.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${fullName},\n Your plan has been renewed successfully.\nYour new plan will be active from ${renewactdate} to ${expdate}.\nYour Current Due Amount is ₹${newDue}.\n\nThank you for your business.\nRegards,\nSigma Business Solutions `);
+                const response = await axios.post(`https://7f7c-103-87-49-95.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${fullName},\n Your plan has been renewed successfully.\nYour new plan will be active from ${renewactdate} to ${expdate}.\nYour Current Due Amount is ₹${newDue}.\n\nThank you for your business.\nRegards,\nSigma Business Solutions `);
                 console.log(response.data.status);
             }
             sendMail();

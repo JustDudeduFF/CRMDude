@@ -158,12 +158,12 @@ export default function Subscriber() {
 
            
             const sendMail = async () => {
-                const response = await axios.post('https://7f7c-103-87-49-95.ngrok-free.app/sendmail', emailData);
+                const response = await axios.post('https://finer-chimp-heavily.ngrok-free.app/sendmail', emailData);
                 console.log(response.data.message);
             }
 
             const sendWhatsapp = async () => {
-                const response = await axios.post(`https://7f7c-103-87-49-95.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${fullName},\n Your plan has been renewed successfully.\nYour new plan will be active from ${renewactdate} to ${expdate}.\nYour Current Due Amount is ₹${newDue}.\n\nThank you for your business.\nRegards,\nSigma Business Solutions `);
+                const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${fullName},\n Your plan has been renewed successfully.\nYour new plan will be active from ${renewactdate} to ${expdate}.\nYour Current Due Amount is ₹${newDue}.\n\nThank you for your business.\nRegards,\nSigma Business Solutions `);
                 console.log(response.data.status);
             }
             sendMail();
@@ -323,7 +323,7 @@ export default function Subscriber() {
         }
 
         else{
-            setRenewBtn(false);
+            setShowModal(false);
             toast.error('No Plan Found Please Change Plan!', {
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -358,7 +358,6 @@ export default function Subscriber() {
           /><br></br>
           <label style={{color:'white', fontSize:'17px'}}>Fetching Data...</label>
           </div>
-          <ToastContainer/>
         </div>
         
       }
@@ -366,6 +365,7 @@ export default function Subscriber() {
             <div style={{flex: '1'}}>
             <img style={{width: '200px', height: '200px', margin: '10px'}} src={Demo_Icon} className="rounded float-start" alt="subscriber Image"></img>
             </div>
+            <ToastContainer style={{position:'fixed', top:'5%', right:'3.5%'}}/>
             <div style={{flex:'5', display: 'flex', flexDirection: 'row'}}>
                 <div style={{flex: '2', display: 'flex', flexDirection:'column'}}>
                     <div style={{flex:'1'}}>
@@ -428,7 +428,7 @@ export default function Subscriber() {
                         <div style={{flex: '1', display:'flex', flexDirection:'column'}}>
                             <div style={{flex:"1", padding: '10px', borderRadius: '20px', boxShadow:dueamount < 0 ? '0 0 10px green' : dueamount > 0 ? '0 0 10px red' : '0 0 10px gray', display: 'flex', flexDirection:'row'}}>
                                 <div style={{flex:'1'}}>
-                                    <img className='img_boldicon' src={Due_Icon}></img>
+                                    <img alt='Due Amount' className='img_boldicon' src={Due_Icon}></img>
                                 </div>
                                 <div style={{display: 'flex', flex:'2', flexDirection:'column'}}>
                                 <label style={{fontSize:'30px', marginLeft:'20px'}}>{dueamount}</label>

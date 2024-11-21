@@ -7,6 +7,7 @@ import ExcelIcon from './subscriberpage/drawables/xls.png'
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from "react-toastify";
 import { ProgressBar } from 'react-loader-spinner';
+import axios from 'axios';
 
 const DashExpandView = ({ show, datatype, modalShow }) => {
     const navigate = useNavigate();
@@ -144,7 +145,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
         }
     }, [show, fetchExpandData, fetchPlans]); // Dependency on `show` and `fetchExpandData`
 
-    const handleSavePlan = async (username, expireDate, planAmount, planName) => {
+    const handleSavePlan = async (username, expireDate, planAmount, planName, mobile, fullName) => {
         setLoader(true);
         if (heading.split(' ')[0] === 'Expiring') {
             const dueRef = ref(db, `Subscriber/${username}/connectionDetails`);
@@ -199,18 +200,31 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                 dueAmount: newDue,
             };
 
+            const sendMessage = async (mobile, planName, fullName, expireDate, planAmount, date) => {
+                const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${fullName},\n Your plan has been renewed successfully.\nYour new plan will be active from ${date} to ${expireDate}.\nYour Current Plan Amount is ₹${planAmount}.\n\nThank you for your business.\nRegards,\nSigma Business Solutions `);
+                const responsemail = await axios.post('https://finer-chimp-heavily.ngrok-free.app/sendmail', {
+                    to: "justdudehere@gmail.com",
+                    subject: 'Broadband Subscription Renewal',
+                    text: `Dear ${fullName},\nYour plan has been renewed successfully.\nYour new plan will be active from ${date} to ${expireDate}.\nYour Current Plan Amount is ₹${planAmount}.\n\nThank you for your business.\nRegards,\nSigma Business Solutions `,
+                });
+                
+                console.log(response, responsemail);
+            }
+
             await set(ref(db, `Subscriber/${username}/ledger/${Date.now()}`), ledgerData);
             await set(ref(db, `Subscriber/${username}/planinfo/${Date.now()}`), planinfo);
-            await update(dueRef, newconnectioninfo);
-            setLoader(false);
-            toast.success('Plan Renewed!', {
+            await update(dueRef, newconnectioninfo).then(() => {
+                sendMessage(mobile, planName, fullName, expireDate, planAmount, ledgerData.date);
+                setLoader(false);
+                toast.success('Plan Renewed!', {
                 autoClose: 1000,
                 hideProgressBar: false,
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: true,
-                progress: undefined,
-            })
+                    progress: undefined,
+                })
+            });
         }else{
             setLoader(false);
             toast.error('Plan Not Found!', {
@@ -284,7 +298,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                                         <td>{planAmount}</td>
                                         <td>{expiredDate}</td>
                                         <td>
-                                            <button onClick={() =>{ handleSavePlan(username, expiredDate, planAmount, planName);}} className='btn btn-outline-success'>{heading.split(' ')[0] === 'Expiring' ? 'Renew' : 'Collect'}</button>
+                                            <button onClick={() =>{ handleSavePlan(username, expiredDate, planAmount, planName, mobile, fullName);}} className='btn btn-outline-success'>{heading.split(' ')[0] === 'Expiring' ? 'Renew' : 'Collect'}</button>
                                         </td>
                                     </tr>
                                 ))

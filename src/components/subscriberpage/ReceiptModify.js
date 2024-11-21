@@ -255,7 +255,7 @@ export default function ReceiptModify() {
         mailData.append('text', `Dear ${name}, \nYour Payment has been done for receipt period ${receiptData.billingPeriod}.\n\nPayment Mode: ${receiptData.paymentMode}\n\nReceipt Date: ${receiptData.receiptDate}\n\nReceipt No.: ${receiptData.receiptNo}\n\nThank you for your business.\nRegards,\nSigma Business Solutions`)
     
         try{
-          const response = await axios.post('https://99dd-103-87-49-95.ngrok-free.app/send-invoice', mailData);
+          const response = await axios.post('https://finer-chimp-heavily.ngrok-free.app/send-invoice', mailData);
           if(response.ok){
             console.log('Invoice Sent Succesfully');
           }else{
@@ -285,7 +285,7 @@ export default function ReceiptModify() {
 
 
     const sendWhatsapp = async () => {
-      const response = await axios.post(`https://7f7c-103-87-49-95.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${name},\nYour Payment has been done for receipt period ${receiptData.billingPeriod}.\nPayment Mode: ${receiptData.paymentMode}\nReceipt Date: ${receiptData.receiptDate}\nReceipt No.: ${receiptData.receiptNo}\nThank you for your business.\nRegards,\nSigma Business Solutions `);
+      const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${name},\nYour Payment has been done for receipt period ${receiptData.billingPeriod}.\nPayment Mode: ${receiptData.paymentMode}\nReceipt Date: ${receiptData.receiptDate}\nReceipt No.: ${receiptData.receiptNo}\nThank you for your business.\nRegards,\nSigma Business Solutions `);
       console.log(response.data.status);
   }
   

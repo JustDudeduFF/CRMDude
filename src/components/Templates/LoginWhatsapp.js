@@ -6,60 +6,96 @@ import unlinked from './whatappdrawable/link.png'
 const LoginWhatsapp = () => {
     const [qrCode, setQrCode] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [text, settext] = useState('');
+    const [header, setHeader] = useState('');
+
+    
+    
 
     useEffect(() => {
-        const getStatus = async () => {
-            try {
-                const response = await axios.post('https://7f7c-103-87-49-95.ngrok-free.app/status');
-                if (response.status !== 200) {
-                    // If status is not 200, call the QR code API
-                    await getQRCode();
-                    settext('Please Scan Code to Connect with API')
-                }else{
-                    setLoading(false);
-                    settext('You Already Connected with API Service')
-                    setQrCode(linked);
-                }
-            } catch (error) {
-                console.error('Error fetching status:', error);
-                // Call the QR code API in case of an error
-                await getQRCode();
-            }
-        };
-
-        const getQRCode = async () => {
-            try {
-                const qrResponse = await axios.post('https://7f7c-103-87-49-95.ngrok-free.app/qr');
-                setQrCode(qrResponse.data.qr);
-                settext('Please Scan Qr Code to Connect with API')
+        const fetchStatus = async () => {
+            const response = await axios.get('https://finer-chimp-heavily.ngrok-free.app/status');
+            if(response.status !== 200){  
+                setHeader('Please scan the QR code to login to WhatsApp');
+                fetchQrCode();
+            }else{
+                setHeader('WhatsApp is already connected');
+                setQrCode(linked);
                 setLoading(false);
-                console.log('QR Code fetched successfully:', qrResponse.data.qr);
-            } catch (error) {
-                setQrCode(unlinked);
-                settext('Failed to get Qr Code Please Contact Devloper')
-                console.error('Error fetching QR Code:', error);
             }
-        };
+        }
 
-        // Poll the server every 5 seconds for updates
-        const interval = setInterval(getStatus, 5000);
-
-        // Cleanup interval on component unmount
-        return () => clearInterval(interval);
-
+        const fetchQrCode = async () => {
+            const response = await axios.get('https://finer-chimp-heavily.ngrok-free.app/qr');
+            setQrCode(response.data.qr);
+            setLoading(false);
+        }
+        fetchStatus();
     }, []);
 
+
+    const handlePayment = async () => {
+        try {
+          // Create order on backend
+          const { data } = await axios.post('https://finer-chimp-heavily.ngrok-free.app/create-order', {
+            amount: 500, // Amount in INR
+          });
+    
+          const options = {
+            key: 'rzp_test_5tAkkRIcyGgC0k', // Replace with your Razorpay Key ID
+            amount: data.amount,
+            currency: data.currency,
+            name: 'JustDude',
+            description: 'Test Transaction',
+            order_id: data.orderId,
+            handler: async (response) => {
+                console.log(response);
+              // Send response to backend for verification
+              const verifyResponse = await axios.get('https://finer-chimp-heavily.ngrok-free.app/verify-payment', {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              });
+
+
+              console.log(verifyResponse.data);
+    
+              if (verifyResponse.data.success) {
+                alert('Payment Successful and Verified!');
+              } else {
+                alert('Payment Verification Failed!');
+              }
+            },
+            prefill: {
+              name: 'John Doe',
+              email: 'john.doe@example.com',
+              contact: '9999999999',
+            },
+            theme: {
+              color: '#3399cc',
+            },
+          };
+    
+          const rzp = new window.Razorpay(options);
+          rzp.open();
+        } catch (error) {
+          console.error('Error during payment:', error);
+        }
+    }
+
     return (
-        <div style={{marginTop:'14.5%', marginLeft:'42%'}}>
+        <div style={{marginTop:'4.5%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
             <h1>WhatsApp Bot</h1>
             {loading ? (
-                <p>Loading QR code...</p>
+                <p style={{marginTop:'10%'}}>Loading QR code...</p>
             ) : qrCode ? (
-                <div>
-                    <p>{`${text}:`}</p>
-                    <img style={{width:'200px', height:'200px'}} src={qrCode} alt="QR Code" />
+                <div style={{display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', marginTop:'10%'}}>
+                    <p>{header}</p>
+                    <img style={{width:'200px', height:'200px', padding:'10px'}} src={qrCode} alt="QR Code" />
+
+                    <button className='btn btn-primary' onClick={handlePayment}>Pay Now</button>
                 </div>
+
+                
             ) : (
                 <p>Failed to load QR code.</p>
             )}

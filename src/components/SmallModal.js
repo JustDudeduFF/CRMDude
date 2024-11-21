@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import './SmallModal.css'; // Add your styles here
 import { get, onValue, ref, update } from 'firebase/database';
 import { db } from '../FirebaseConfig';
+import axios from 'axios';
 
 const SmallModal = ({ show, ticketno, closeModal}) => {
     const [arrayemp, setEmpArray] = useState([]);
     const [assignemp, setAssignEmp] = useState('');
+    const [subsData, setSubsData] = useState({});
     const empRef = ref(db, `users`);
 
     useEffect(() => {
@@ -18,10 +20,22 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
                 nameArray.push({empname, empmobile});
             });
             setEmpArray(nameArray);
-        })
+        });
 
-        return () => fetchUsers();
+        const fetchSubs = onValue(ref(db, `Subscriber/${ticketno.subsID}`), (subsSnap) => {
+            const subsData = subsSnap.val();
+            setSubsData(subsData);
+        });
+
+        return () => {fetchUsers(); fetchSubs();}
     }, []);
+
+    const sendMessage = async (mobile, ticketno, fullName, userid) => {
+        const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${fullName},\nYour ticket ${ticketno} is assigned to that executive ${assignemp}.`);
+        //Message For Executive
+        const response2 = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear Executive,\nYou have been assigned a new ticket ${ticketno} for ${fullName} and his mobile number is ${mobile} and his userid is ${userid}. \n For More Details Please go for Application`);
+        console.log(response.status);
+    }
 
     const assignTicket = async(event) => {
         event.preventDefault();
@@ -38,6 +52,7 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
             update(globalTicketsRef, assigndata);
             update(ticketRef, assigndata);
             closeModal();
+            sendMessage(subsData.mobileNo, ticketno.Ticketno, subsData.fullName, ticketno.subsID);
             alert(`${ticketno.Ticketno} is now assigned to ${assignemp}`)
         }else{
             const assigndata = {
@@ -45,8 +60,9 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
             }
             update(globalTicketsRef, assigndata);
             update(ticketRef, assigndata).then(() => {
+                sendMessage(subsData.mobileNo, ticketno.Ticketno, subsData.fullName, ticketno.subsID);
                 closeModal();
-                alert(`${ticketno.Ticketno} is now assigned to ${assignemp}`)
+                alert(`${ticketno.Ticketno} is now assigned to ${assignemp}`);
             })
         }
     }

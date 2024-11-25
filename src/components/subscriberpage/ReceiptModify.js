@@ -1,4 +1,4 @@
-import { child, get, ref, set, update } from 'firebase/database';
+import { get, ref, set, update } from 'firebase/database';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../../FirebaseConfig';
@@ -283,9 +283,11 @@ export default function ReceiptModify() {
         dueAmount: dueAmount - (parseInt(amount) + parseInt(discount)),
       };
 
+      const newDueAmount = dueAmount - (parseInt(amount) + parseInt(discount));
+
 
     const sendWhatsapp = async () => {
-      const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${name},\nYour Payment has been done for receipt period ${receiptData.billingPeriod}.\nPayment Mode: ${receiptData.paymentMode}\nReceipt Date: ${receiptData.receiptDate}\nReceipt No.: ${receiptData.receiptNo}\nThank you for your business.\nRegards,\nSigma Business Solutions `);
+      const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${name}, \n Thanks for making payment Rs. ${amount} by ${receiptData.paymentMode } On Date ${receiptData.receiptDate } your current balance is Rs. ${newDueAmount} for any query contact on +919999118971 SIGMA BUSINESS SOLUTIONS.`);
       console.log(response.data.status);
   }
   

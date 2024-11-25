@@ -201,7 +201,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
             };
 
             const sendMessage = async (mobile, planName, fullName, expireDate, planAmount, date) => {
-                const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${fullName},\n Your plan has been renewed successfully.\nYour new plan will be active from ${date} to ${expireDate}.\nYour Current Plan Amount is ₹${planAmount}.\n\nThank you for your business.\nRegards,\nSigma Business Solutions `);
+                const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${fullName},\n  Your Plan ${planName}  ₹${planAmount}  Recharge Successfully for period of  ${date} to ${expireDate} thanks for being with us. For any query call (9999118971) SIGMA BUSINESS SOLUTIONS or Download app (customer.sigmaetworks.in).`);
                 const responsemail = await axios.post('https://finer-chimp-heavily.ngrok-free.app/sendmail', {
                     to: "justdudehere@gmail.com",
                     subject: 'Broadband Subscription Renewal',

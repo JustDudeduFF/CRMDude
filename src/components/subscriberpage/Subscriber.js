@@ -163,7 +163,7 @@ export default function Subscriber() {
             }
 
             const sendWhatsapp = async () => {
-                const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${fullName},\n Your plan has been renewed successfully.\nYour new plan will be active from ${renewactdate} to ${expdate}.\nYour Current Due Amount is ₹${newDue}.\n\nThank you for your business.\nRegards,\nSigma Business Solutions `);
+                const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${fullName},\n  Your Plan ${planName} for ₹${planAmount}  Recharge Successfully for period of  ${renewactdate} to ${expdate} thanks for being with us. For any query call (9999118971) SIGMA BUSINESS SOLUTIONS or Download app (customer.sigmaetworks.in). `);
                 console.log(response.data.status);
             }
             sendMail();

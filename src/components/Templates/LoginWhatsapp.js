@@ -50,7 +50,7 @@ const LoginWhatsapp = () => {
             handler: async (response) => {
                 console.log(response);
               // Send response to backend for verification
-              const verifyResponse = await axios.get('https://finer-chimp-heavily.ngrok-free.app/verify-payment', {
+              const verifyResponse = await axios.post('https://finer-chimp-heavily.ngrok-free.app/verify-payment', {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,

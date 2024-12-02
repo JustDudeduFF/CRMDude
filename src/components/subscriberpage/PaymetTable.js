@@ -67,25 +67,15 @@ export default function PaymetTable() {
       }
 
       const paymentSnap = await get(paymentsRef);
-      if(paymentSnap.exists()){
+      if (paymentSnap.exists()) {
         const paymentsArray = [];
-        paymentSnap.forEach(Childpayment => {
-          const source = Childpayment.val().source;
-          const receiptNo = Childpayment.val().receiptNo;
-          const receiptDate = Childpayment.val().receiptDate;
-          const paymentMode = Childpayment.val().paymentMode;
-          const bankname = Childpayment.val().bankname;
-          const amount = Childpayment.val().amount;
-          const discount = Childpayment.val().discount;
-          const collectedBy = Childpayment.val().collectedBy;
-          const modifiedBy = Childpayment.val().modifiedBy;
-          const transactionNo = Childpayment.val().transactionNo;
-          const narration = Childpayment.val().narration;
-          const discountkey = Childpayment.val().discountkey;
-          const billing = Childpayment.val().billingPeriod;
-          
-          paymentsArray.push({source, receiptNo, receiptDate, paymentMode, bankname ,amount, discount, collectedBy, modifiedBy, transactionNo, narration, discountkey, billing})
-          
+        paymentSnap.forEach((child) => {
+          const payment = child.val();
+          paymentsArray.push({
+            ...payment,
+            amount: parseFloat(payment.amount) || 0,
+            discount: parseFloat(payment.discount) || 0,
+          });
         });
         setArrayPayment(paymentsArray);
       }
@@ -102,59 +92,85 @@ export default function PaymetTable() {
   };
 
   const updatePayment = async (updatedPayment) => {
-    let dueAmount = parseInt(customerData.connectionDetails.dueAmount);
-    const payment = arraypayment.find(payment => payment.receiptNo === updatedPayment.receiptNo).amount;
-    const discount = arraypayment.find(payment => payment.receiptNo === updatedPayment.receiptNo).discount;
-
-    console.log(discount);
-
-
-    if(parseInt(updatedPayment.amount) !== parseInt(payment)){
-      dueAmount = parseInt(payment) - (parseInt(updatedPayment.amount) + parseInt(updatedPayment.discount));
-    }else{
+    try {
+      // Ensure values are parsed properly and prevent NaN
+      const currentdueAmount = parseInt(customerData.connectionDetails.dueAmount, 10);
+      let dueAmount = parseInt(customerData.connectionDetails.dueAmount, 10);
+      console.log(dueAmount);
+      const payment = arraypayment.find(payment => payment.receiptNo === updatedPayment.receiptNo);
       
-      return;
+      if (!payment) {
+        alert('Payment not found!');
+        return;
+      }
+  
+      const { amount: currentAmount, discount: currentDiscount, discountkey: discountKey } = payment;
+      const { amount: updatedAmount, discount: updatedDiscount } = updatedPayment;
+
+      console.log(`currentAmount: ${currentAmount}`);
+      console.log(`currentDiscount: ${currentDiscount}`);
+  
+      // Check if the payment amount or discount has changed
+      if (updatedAmount !== currentAmount || updatedDiscount !== currentDiscount) {
+        // Recalculate the due amount
+        dueAmount = ((parseInt(currentAmount, 10) + parseInt(currentDiscount, 10)) 
+                    - (parseInt(updatedAmount, 10) + parseInt(updatedDiscount, 10)) + parseInt(currentdueAmount));
+      } else {
+        // If no changes to the amount or discount, exit early
+        return;
+      }
+  
+      // Extract payment key from receipt number
+      const paymentKey = updatedPayment.receiptNo.slice(4, 17);
+  
+      // Prepare the updated payment data for Firebase
+      const paymentData = {
+        source: updatedPayment.source,
+        receiptDate: updatedPayment.receiptDate,
+        paymentMode: updatedPayment.paymentMode,
+        bankname: updatedPayment.bankname,
+        amount: updatedAmount,
+        discount: updatedDiscount,
+        modifiedBy: localStorage.getItem('Name'),
+      };
+  
+      // Prepare the updated ledger data for Firebase
+      const ledgerData = {
+        date: updatedPayment.receiptDate,
+        debitamount: 0,
+        creditamount: updatedAmount,
+      };
+
+      const discountData = {
+        date: updatedPayment.receiptDate,
+        debitamount: 0,
+        creditamount: updatedDiscount,
+      };
+
+
+  
+      // Perform the updates in Firebase
+      await update(ref(db, `Subscriber/${userid}/payments/${paymentKey}`), paymentData);
+      await update(ref(db, `Subscriber/${userid}/ledger/${paymentKey}`), ledgerData);
+      await update(ref(db, `Subscriber/${userid}/connectionDetails`), { dueAmount });
+
+      if(discountKey){
+        await update(ref(db, `Subscriber/${userid}/ledger/${discountKey}`), discountData);
+      }
+  
+      alert('Payment Updated Successfully!');
+    } catch (error) {
+      console.error("Error updating payment:", error);
+      alert('An error occurred while updating the payment.');
     }
-
-    if(parseInt(updatedPayment.discount) !== parseInt(discount)){
-      dueAmount = parseInt(payment) - parseInt(updatedPayment.discount);
-    }else{
-      return;
-    }
-
-    
-    const paymentkey = updatedPayment.receiptNo.slice(4, 17);
-
-    
-    const paymentData = {
-      source: updatedPayment.source,
-      receiptDate: updatedPayment.receiptDate,
-      paymentMode: updatedPayment.paymentMode,
-      bankname: updatedPayment.bankname,
-      amount: updatedPayment.amount,
-      discount: updatedPayment.discount,
-      modifiedBy: localStorage.getItem('Name'),
-    }
-
-    const ledgerData = {
-      date: updatedPayment.receiptDate,
-      debitamount: 0,
-      creditamount: updatedPayment.amount,
-    }
-
-    await update(ref(db, `Subscriber/${userid}/payments/${paymentkey}`), paymentData);
-    await update(ref(db, `Subscriber/${userid}/ledger/${paymentkey}`), ledgerData);
-    await update(ref(db, `Subscriber/${userid}/connectionDetails`), {dueAmount});
-
-    alert('Payment Updated Successfully!');
   };
-
-  const handleRightClickReceiptNo = (payment) => {
-    setCurrentPayment(payment); // Set the current payment
-    setShowOptionsModal(true); // Open the options modal
-  };
+  
 
   const handleEdit = () => {
+    if(currentPayment.authorized){
+      alert(`That Receipt is authorized it could not be modified`)
+      return;
+    }
     setSelectedPayment(currentPayment); // Set the selected payment for editing
     setIsModalOpen(true); // Open the edit modal
     setShowOptionsModal(false); // Close the options modal
@@ -349,6 +365,7 @@ export default function PaymetTable() {
 
   const handleShareInvoice = () => {
     // Logic to share the invoice
+
     
     setShowOptionsModal(false); // Close the options modal
   };
@@ -463,46 +480,50 @@ export default function PaymetTable() {
         </Modal.Footer>
       </Modal>
 
+      {/* Payment Table */}
       <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: 'max-content' }} className="table">
+        <table className="table">
           <thead>
             <tr>
-              <th style={{width:'60px'}} scope="col">S. No.</th>
-              <th style={{width:'120px'}} scope="col">Source</th>
-              <th style={{width:'180px'}} scope="col">Receipt No.</th>
-              <th style={{width:'120px'}} scope="col">Receipt Date</th>
-              <th style={{width:'100px'}} scope="col">Amount</th>
-              <th style={{width:'100px'}} scope="col">Discount</th>
-              <th style={{width:'180px'}} scope="col">Payment Mode</th>
-              <th style={{width:'150px'}} scope="col">Cheque or Transaction No.</th>
-              <th style={{width:'150px'}} scope="col">Bank Name</th>
-              <th style={{width:'150px'}} scope="col">Collected By</th>
-              <th style={{width:'150px'}} scope="col">Modified By</th>
-              <th style={{width:'150px'}} scope="col">Narration</th>
+              <th>S. No.</th>
+              <th>Source</th>
+              <th>Receipt No.</th>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Discount</th>
+              <th>Payment Mode</th>
+              <th>Bank Name</th>
+              <th>Collected By</th>
+              <th>Modified By</th>
+              <th>Narration</th>
             </tr>
           </thead>
-          <tbody className="table-group-divider">
+          <tbody>
             {arraypayment.length > 0 ? (
-              arraypayment.slice().reverse().map((payment, index) => (
+              arraypayment.map((payment, index) => (
                 <tr key={index}>
                   <td>{index + 1}</td>
                   <td>{payment.source}</td>
-                  <td className='text-success' onContextMenu={(e) => { e.preventDefault(); handleRightClickReceiptNo(payment); }}>
+                  <td
+                    className="text-success"
+                    onContextMenu={(e) => { e.preventDefault(); setCurrentPayment(payment); setShowOptionsModal(true); }}
+                  >
                     {payment.receiptNo}
                   </td>
                   <td>{payment.receiptDate}</td>
-                  <td style={{ color: 'blue' }}>{payment.amount}</td>
-                  <td style={{ color: 'green' }}>{payment.discount}</td>
+                  <td>{payment.amount.toFixed(2)}</td>
+                  <td>{payment.discount.toFixed(2)}</td>
                   <td>{payment.paymentMode}</td>
-                  <td>{payment.transactionNo}</td>
                   <td>{payment.bankname}</td>
-                  <td>{userMap[payment.collectedBy] || payment.collectedBy}</td>
+                  <td>{userMap[payment.collectedBy] || 'N/A'}</td>
                   <td>{payment.modifiedBy}</td>
-                  <td>{payment.narration}</td>
+                  <td>{payment.narration || 'N/A'}</td>
                 </tr>
               ))
             ) : (
-              <td colSpan="8" style={{ textAlign: 'center' }}>No Payment data found</td>
+              <tr>
+                <td colSpan="11" style={{ textAlign: 'center' }}>No payment data found</td>
+              </tr>
             )}
           </tbody>
         </table>

@@ -97,13 +97,8 @@ RenewalModal.propTypes = {
   planAmount: PropTypes.number.isRequired,
   isp: PropTypes.string.isRequired,
   modalShow: PropTypes.func.isRequired,
-  handleActivation: PropTypes.func.isRequired,
   handleAmount: PropTypes.func.isRequired,
-  handleRemarks: PropTypes.func.isRequired,
-  handleExpiry: PropTypes.func.isRequired,
-  handleMin: PropTypes.string.isRequired,
   savePlan: PropTypes.func.isRequired,
-  renewBtn: PropTypes.bool.isRequired
 };
 
 export default  RenewalModal;

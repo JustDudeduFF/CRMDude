@@ -1,6 +1,6 @@
 import { get, ref, update } from 'firebase/database';
 import React, {useEffect, useState} from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { db } from '../../FirebaseConfig';
 
 
@@ -9,6 +9,7 @@ export default function ModDCNote() {
   const location = useLocation();
   const {noteno} = location.state || {};
   const username = localStorage.getItem('susbsUserid');
+  const navigate = useNavigate();
 
   const [amount, setAmount] = useState('');
   const [particular, setParticular] = useState('');
@@ -59,13 +60,31 @@ export default function ModDCNote() {
       }
 
       const newdue = {
-        dueAmount: notetype === 'Debit Note' ? (parseInt(dueAmount) - parseInt(amount)) + parseInt(newamount) : (parseInt(dueAmount) - parseInt(amount)) - parseInt(newamount)
+        dueAmount: calculateDueAmount(dueAmount, amount, newamount, notetype),
+      };
+      
+      function calculateDueAmount(dueAmount, amount, newamount, notetype) {
+        // Ensure all values are numbers, or default to 0 if invalid
+        const parsedDueAmount = isNaN(parseInt(dueAmount)) ? 0 : parseInt(dueAmount);
+        const parsedAmount = isNaN(parseInt(amount)) ? 0 : parseInt(amount);
+        const parsedNewAmount = isNaN(parseInt(newamount)) ? 0 : parseInt(newamount);
+      
+        if (notetype === 'Debit Note') {
+          // For Debit Note: subtract 'amount' and add 'newamount'
+          return parsedDueAmount - parsedAmount + parsedNewAmount;
+        } else {
+          // For Credit Note: add 'amount' and subtract 'newamount'
+          return parsedDueAmount + parsedAmount - parsedNewAmount;
+        }
       }
+      
 
       try{
         await update(dueRef, newdue);
         await update(ledgerRef, updateledger);
         await update(dbRef, updatenote);
+        setDueAmount('');
+        navigate(-1);
       }catch(error){
         alert("Failed :-", error);
       }

@@ -469,7 +469,7 @@ export default function Subscriber() {
                 </div>
                 </div>
 
-                <RenewalModal modalShow={() => setShowModal(false)} show={showmodal} planName = {planName} planAmount={planAmount} isp={isp} 
+                <RenewalModal modalShow={() => setShowModal(false)} show={showmodal} planName = {planName} planAmount={parseInt(planAmount)} isp={isp} 
                         handleMin={expiryDate}
                         handleAmount={(e) => setCustomCharge(e.target.value)}
                         handleActivation={(e) => {

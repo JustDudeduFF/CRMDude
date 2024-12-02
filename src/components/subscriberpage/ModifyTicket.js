@@ -1,11 +1,14 @@
 import { ref, onValue, update } from 'firebase/database';
 import React, {useEffect, useState} from 'react'
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { db } from '../../FirebaseConfig';
 
 
 
 export default function ModifyTicket() {
+
+  const navigate = useNavigate();
+
   const [closeby, setCloseBy] = useState('');
   const [status, setStatus] = useState('');
   const [currenttime, setCurrentTime] = useState(new Date())
@@ -31,6 +34,7 @@ export default function ModifyTicket() {
     try{
       await update(ticketRef, newticketdata);
       await update(globaltickets, newticketdata);
+      navigate(-1);
     }catch(error){
       console.log(`Error :- ${error}`);
     }

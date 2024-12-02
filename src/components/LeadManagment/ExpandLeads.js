@@ -20,6 +20,8 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
     const [selectedPlan, setSelectedPlan] = useState('');
     const [planAmount, setPlanAmount] = useState('');
     const [securityAmount, setSecurityAmount] = useState("0");
+    const [companyArray,setCompanyArrya] = useState([]);
+    const [companyname, setCompanyName] = useState('');
 
     const heading = 'Lead and Enquiry Data';
 
@@ -37,7 +39,8 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
             status: 'assigned',
             type: 'lead',
             plan: selectedPlan,
-            securityamount: securityAmount
+            securityamount: securityAmount,
+            company: companyname
         });
         setShowLeadConversation(false);
     }
@@ -46,6 +49,7 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
     const fetchdata = useCallback(() => {
         const dataRef = ref(db, 'Leadmanagment');
         const planRef = ref(db, 'Master/Broadband Plan');
+        const companyRef = ref(db, `Master/companys`);
         onValue(planRef, (planSnap) => {
             const planArray = [];
             planSnap.forEach((childSnap) => {
@@ -91,6 +95,19 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
             } catch (error) {
                 console.log('Failed to Fetch Data: ', error);
             }
+        });
+        onValue(companyRef, (companySnap) => {
+            const companyarray = [];
+
+            companySnap.forEach((child) => {
+                if(child.key !== "global"){
+                    const name = child.key;
+
+                    companyarray.push(name);
+                }
+            });
+
+            setCompanyArrya(companyarray);
         });
     }, []);
 
@@ -255,6 +272,18 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                     <div>
                         <label className="form-label">Security Amount</label>
                         <input value={securityAmount} onChange={(e) => setSecurityAmount(e.target.value)} type="number" className="form-control" />
+                    </div>
+
+                    <div>
+                        <label className="form-label">Select Company</label>
+                        <select onChange={(e) => setCompanyName(e.target.value)} className='form-select'>
+                            <option value="">Choose...</option>
+                            {
+                                companyArray.map((name, index) => (
+                                    <option key={index} value={name}>{name}</option>
+                                ))
+                            }
+                        </select>
                     </div>
                 </Modal.Body>
                 <Modal.Footer>

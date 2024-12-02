@@ -103,8 +103,8 @@ const CloseTicketModal = ({ show, ticketno, closeModal}) => {
   if (!show) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
+    <div className="modal-background">
+      <div className="modal-data">
       <div className='d-flex flex-row'>
       <h4 style={{flex:'1'}}>Close Subscriber Ticket</h4>
       <button onClick={closeModal} className='btn-close'></button>
@@ -137,7 +137,7 @@ const CloseTicketModal = ({ show, ticketno, closeModal}) => {
         </div>
       
       <button className='btn btn-success' onClick={closrTicket}>Close Ticket</button>
-      <button className='btn btn-warning mt-3' onClick={tempClose}>Close as Opened</button>
+      <button className='btn btn-warning ms-3' onClick={tempClose}>Close as Opened</button>
     </div>
     </div>
   );

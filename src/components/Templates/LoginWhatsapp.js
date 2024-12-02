@@ -8,28 +8,42 @@ const LoginWhatsapp = () => {
     const [loading, setLoading] = useState(true);
     const [header, setHeader] = useState('');
 
+
+    const fetchStatus = async () => {
+      try {
+          const response = await axios.post('https://finer-chimp-heavily.ngrok-free.app/status');
+
+          if (response.data.status === 'QR_RECEIVED') {
+              setHeader('Please scan the QR code to login to WhatsApp');
+              setLoading(false);
+              setQrCode(response.data.qr); // Set QR code if available
+
+          }else if(response.data.status === 'DISCONNECTED'){
+            console.log('User Disconnected')
+            setHeader('Whatsapp Service is Down For Some Reason!')
+            setQrCode(unlinked);
+            setLoading(false);
+          }else {
+            console.log('User Connected')
+            setHeader('WhatsApp is already connected');
+            setQrCode(linked);
+            setLoading(false); // Clear QR code if connected
+      }
+      } catch (error) {
+            setHeader('Error For get API Service');
+            setQrCode(unlinked);
+            setLoading(false); // Clear QR code if connected
+            console.error('Error fetching status:', error);
+      }
+  };
+
     
     
 
     useEffect(() => {
-        const fetchStatus = async () => {
-            const response = await axios.get('https://finer-chimp-heavily.ngrok-free.app/status');
-            if(response.status !== 200){  
-                setHeader('Please scan the QR code to login to WhatsApp');
-                fetchQrCode();
-            }else{
-                setHeader('WhatsApp is already connected');
-                setQrCode(linked);
-                setLoading(false);
-            }
-        }
-
-        const fetchQrCode = async () => {
-            const response = await axios.get('https://finer-chimp-heavily.ngrok-free.app/qr');
-            setQrCode(response.data.qr);
-            setLoading(false);
-        }
-        fetchStatus();
+      fetchStatus(); // Fetch status on component mount
+      const interval = setInterval(fetchStatus, 5000); // Poll every 5 seconds
+      return () => clearInterval(interval); // Cleanup interval on unmount
     }, []);
 
 

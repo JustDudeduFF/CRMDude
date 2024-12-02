@@ -22,7 +22,7 @@ const PlanModal = ({show, onClose}) => {
         planperiod: planperiod,
         periodtime: periodtime,
         planamount: planamount,
-        planSpeed: planSpeed
+        bandwidth: planSpeed
     }
 
     

@@ -24,23 +24,24 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
 
         const fetchSubs = onValue(ref(db, `Subscriber/${ticketno.subsID}`), (subsSnap) => {
             const subsData = subsSnap.val();
+            console.log(subsData)
             setSubsData(subsData);
         });
 
         return () => {fetchUsers(); fetchSubs();}
     }, []);
 
-    const sendMessage = async (mobile, ticketno, fullName, userid) => {
-        const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${fullName},\nYour ticket ${ticketno} is assigned to that executive ${assignemp}.`);
+    const sendMessage = async (mobileNo, ticketno, customername, userid) => {
+        const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${customername},\nYour ticket ${ticketno} is assigned to that executive ${assignemp}.`);
         //Message For Executive
-        const response2 = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear Executive,\nYou have been assigned a new ticket ${ticketno} for ${fullName} and his mobile number is ${mobile} and his userid is ${userid}. \n For More Details Please go for Application`);
+        const response2 = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear Executive,\nYou have been assigned a new ticket ${ticketno} for ${customername} and his mobile number is ${mobileNo} and his userid is ${userid}. \n For More Details Please go for Application`);
         console.log(response.status);
     }
 
     const assignTicket = async(event) => {
         event.preventDefault();
         const ticketRef = ref(db, `Subscriber/${ticketno.subsID}/Tickets/${ticketno.Ticketno}`);
-        const globalTicketsRef = ref(db, `Global Tickets/${ticketno.Ticketno}`);
+        const globalTicketsRef = ref(db, `Global Tickets/${ticketno.Ticketno}`);    
         const ticketSnap = await get(ticketRef);
         if(ticketSnap.hasChild('assigndate')){
             const assigndata = {

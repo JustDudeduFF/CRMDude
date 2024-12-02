@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import '../Modal.css'
 import { get, ref, set, update } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
+import axios from 'axios';
 
 
 
@@ -18,6 +19,12 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
     const [planName, setPlanName] = useState('');
     const [isp, setIsp] = useState('');
 
+
+    //Customer Personal Information
+    const [fullName, setfullName] = useState('');
+    const [mobile, setMobile] = useState('');
+    const [mailId, setMailId] = useState('');
+    
 
     const [activationDate, setActivationDate] = useState(new Date().toISOString().split('T')[0]);
     const [expirydate, setExpiryDate] = useState('');
@@ -55,8 +62,20 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
                 setArrayIsp(ispArray);
             }
         }
-        
 
+        const fetchUserDetails = async() => {
+            const userRef = ref(db, `Subscriber/${username}`);
+            const userSnap = await get(userRef);
+            if(userSnap.exists()){
+                setfullName(userSnap.child("fullName").val());
+                setMobile(userSnap.child("mobileNo").val());
+                setMailId(userSnap.child("email").val());
+            }else{
+                console.log("User Snap is Not Found!");
+            }
+        }
+        
+        fetchUserDetails();
        fetchPlan(); 
        fetchisp();
     }, []);
@@ -100,6 +119,18 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
             planName: planName
           }
 
+          const emailData = {
+            to: "justdudehere@gmail.com",
+            subject: 'Broadband Subscription Renwal',
+            text: `Dear ${fullName}, \nYour plan has been renewed successfully.\n\nYour new plan will be active from ${activationDate} to ${expirydate}.\n\nYour Current Due Amount is ₹${newDue}.\n\nThank you for your business.\nRegards,\nSigma Business Solutions`,
+        }
+
+          const sendMessage = async() => {
+            const responsewhatsapp = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${fullName},\n  Your Plan ${planName} for ₹${planamount}  Recharge Successfully for period of  ${activationDate} to ${expirydate} thanks for being with us. For any query call (9999118971) SIGMA BUSINESS SOLUTIONS or Download app (customer.sigmaetworks.in). `);
+            const responsemail = await axios.post('https://finer-chimp-heavily.ngrok-free.app/sendmail', emailData);
+            alert(`Plan Is Changed Succesfully!`)
+          }
+
         if(planName === '' || planamount === ''){
             alert('something went wrong');
         }else{
@@ -107,7 +138,9 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
 
             await set(ref(db, `Subscriber/${username}/planinfo/${planinfoKey}`), planinfo);
 
-            await update(ref(db, `Subscriber/${username}/connectionDetails`), newconnectioninfo);
+            await update(ref(db, `Subscriber/${username}/connectionDetails`), newconnectioninfo).then(() => {
+                sendMessage();
+            })
             
         }
 

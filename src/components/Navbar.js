@@ -56,7 +56,7 @@ export default function Navbar() {
           const fullname = Childsubs.val().fullName;
           const mobile = Childsubs.val().mobileNo;
           const company = Childsubs.val().company;
-          const expiryDate = Childsubs.val().connectionDetails.expiryDate;
+          const expiryDate = Childsubs.child("connectionDetails").val().expiryDate;
 
           const expdate = convertExcelDateSerial(expiryDate);
 

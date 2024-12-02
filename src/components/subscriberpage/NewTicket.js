@@ -64,7 +64,7 @@ export default function NewTicket() {
       const assigntime = currenttime.toLocaleTimeString();
 
       const ticketdata = {
-        generatedBy: localStorage.getItem('Name'),
+        generatedBy: localStorage.getItem('contact'),
         source: 'Manual',
         ticketno: ticketno,
         ticketconcern: ticketconcern,
@@ -81,7 +81,7 @@ export default function NewTicket() {
       }
 
       const globalticketdata = {
-        generatedBy: localStorage.getItem('Name'),
+        generatedBy: localStorage.getItem('contact'),
         ticketno: ticketno,
         source: 'Manual',
         ticketconcern: ticketconcern,

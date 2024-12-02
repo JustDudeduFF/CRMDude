@@ -421,29 +421,44 @@ export default function DashFirstDiv() {
             });
 
             onValue(ref(db, `Subscriber`), (snapshot) => {
-              snapshot.forEach((doc) => {
+                let newInstallations = 0;
+                let newInstallationsToday = 0;
+                let newInstallationsWeek = 0;
+            
+                snapshot.forEach((doc) => {
                     const subscriberData = doc.val();
-                    if(subscriberData.createdAt){
-                        let newInstallations = 0;
-                        let newInstallationsToday = 0;
-                        let newInstallationsWeek = 0;
-                      const date = new Date(subscriberData.createdAt);
-                      if(date.getFullYear() === currentYear && date.getMonth() === currentMonth){
-                        const userKey = doc.key;
-                        newInstallations++;
-                      }
-                      if(date.getFullYear() === currentYear && date.getMonth() === currentMonth && date.getDate() === currentDate){
-                        newInstallationsToday++;
-                      }
-                      if(date.getFullYear() === currentYear && date.getMonth() === currentMonth && date.getDate() === currentDate){
-                        newInstallationsWeek++;
-                      }
-                      setNewInstallations(newInstallations);
-                      setNewInstallationsToday(newInstallationsToday);
-                      setNewInstallationsWeek(newInstallationsWeek);
+            
+                    if (subscriberData.createdAt) {
+                        const date = new Date(convertExcelDateSerial(subscriberData.createdAt));
+            
+                        // Check if the month and year match
+                        if (date.getFullYear() === currentYear && (date.getMonth() + 1) === currentMonth) {
+                            newInstallations++;
+                        }
+            
+                        // Check if the exact date matches today
+                        if (date.getFullYear() === currentYear && (date.getMonth() + 1) === currentMonth && date.getDate() === currentDate) {
+                            newInstallationsToday++;
+                        }
+            
+                        // Check if the date falls within the current week
+                        const currentDateObj = new Date();
+                        const startOfWeek = new Date(currentDateObj.setDate(currentDateObj.getDate() - currentDateObj.getDay())); // Start of the week
+                        const endOfWeek = new Date(startOfWeek);
+                        endOfWeek.setDate(startOfWeek.getDate() + 6); // End of the week
+            
+                        if (date >= startOfWeek && date <= endOfWeek) {
+                            newInstallationsWeek++;
+                        }
                     }
-              });
+                });
+            
+                // Update the state with the final counts
+                setNewInstallations(newInstallations);
+                setNewInstallationsToday(newInstallationsToday);
+                setNewInstallationsWeek(newInstallationsWeek);
             });
+            
             
             // Then fetch attendance data
             onValue(attendenceRef, attendenceSnap => {

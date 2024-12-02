@@ -3,16 +3,15 @@ import { getDatabase } from 'firebase/database';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCjiM-h-XCmnkasrTeiZDgNpb0_RZ-a4Os",
-  authDomain: "crmdude-f417a.firebaseapp.com",
-  databaseURL: "https://crmdude-f417a-default-rtdb.firebaseio.com",
-  projectId: "crmdude-f417a",
-  storageBucket: "crmdude-f417a.firebasestorage.app",
-  messagingSenderId: "363259586787",
-  appId: "1:363259586787:web:1928db06595a9f6e057dd6",
-  measurementId: "G-GBLQY3H58T"
+  apiKey: "AIzaSyA_JRjCsNIVWO9unUcMNa8XorckOtqjAmU",
+  authDomain: "loginandsignup-7a86c.firebaseapp.com",
+  databaseURL: "https://loginandsignup-7a86c-default-rtdb.firebaseio.com",
+  projectId: "loginandsignup-7a86c",
+  storageBucket: "loginandsignup-7a86c.appspot.com",
+  messagingSenderId: "203331983028",
+  appId: "1:203331983028:web:3a884509fb8e8a9f3669e1",
+  measurementId: "G-GS3SD0V0L4"
 };
-
 const app = initializeApp(firebaseConfig)
 
 

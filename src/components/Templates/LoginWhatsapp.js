@@ -47,54 +47,54 @@ const LoginWhatsapp = () => {
     }, []);
 
 
-    const handlePayment = async () => {
-        try {
-          // Create order on backend
-          const { data } = await axios.post('https://finer-chimp-heavily.ngrok-free.app/create-order', {
-            amount: 500, // Amount in INR
-          });
+    // const handlePayment = async () => {
+    //     try {
+    //       // Create order on backend
+    //       const { data } = await axios.post('https://finer-chimp-heavily.ngrok-free.app/create-order', {
+    //         amount: 500, // Amount in INR
+    //       });
     
-          const options = {
-            key: 'rzp_test_5tAkkRIcyGgC0k', // Replace with your Razorpay Key ID
-            amount: data.amount,
-            currency: data.currency,
-            name: 'JustDude',
-            description: 'Test Transaction',
-            order_id: data.orderId,
-            handler: async (response) => {
-                console.log(response);
-              // Send response to backend for verification
-              const verifyResponse = await axios.post('https://finer-chimp-heavily.ngrok-free.app/verify-payment', {
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-              });
+    //       const options = {
+    //         key: 'rzp_test_5tAkkRIcyGgC0k', // Replace with your Razorpay Key ID
+    //         amount: data.amount,
+    //         currency: data.currency,
+    //         name: 'JustDude',
+    //         description: 'Test Transaction',
+    //         order_id: data.orderId,
+    //         handler: async (response) => {
+    //             console.log(response);
+    //           // Send response to backend for verification
+    //           const verifyResponse = await axios.post('https://finer-chimp-heavily.ngrok-free.app/verify-payment', {
+    //             razorpay_order_id: response.razorpay_order_id,
+    //             razorpay_payment_id: response.razorpay_payment_id,
+    //             razorpay_signature: response.razorpay_signature,
+    //           });
 
 
-              console.log(verifyResponse.data);
+    //           console.log(verifyResponse.data);
     
-              if (verifyResponse.data.success) {
-                alert('Payment Successful and Verified!');
-              } else {
-                alert('Payment Verification Failed!');
-              }
-            },
-            prefill: {
-              name: 'John Doe',
-              email: 'john.doe@example.com',
-              contact: '9999999999',
-            },
-            theme: {
-              color: '#3399cc',
-            },
-          };
+    //           if (verifyResponse.data.success) {
+    //             alert('Payment Successful and Verified!');
+    //           } else {
+    //             alert('Payment Verification Failed!');
+    //           }
+    //         },
+    //         prefill: {
+    //           name: 'John Doe',
+    //           email: 'john.doe@example.com',
+    //           contact: '9999999999',
+    //         },
+    //         theme: {
+    //           color: '#3399cc',
+    //         },
+    //       };
     
-          const rzp = new window.Razorpay(options);
-          rzp.open();
-        } catch (error) {
-          console.error('Error during payment:', error);
-        }
-    }
+    //       const rzp = new window.Razorpay(options);
+    //       rzp.open();
+    //     } catch (error) {
+    //       console.error('Error during payment:', error);
+    //     }
+    // }
 
     return (
         <div style={{marginTop:'4.5%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
@@ -105,8 +105,6 @@ const LoginWhatsapp = () => {
                 <div style={{display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', marginTop:'10%'}}>
                     <p>{header}</p>
                     <img style={{width:'200px', height:'200px', padding:'10px'}} src={qrCode} alt="QR Code" />
-
-                    <button className='btn btn-primary' onClick={handlePayment}>Pay Now</button>
                 </div>
 
                 

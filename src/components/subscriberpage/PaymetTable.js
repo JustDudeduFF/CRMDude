@@ -19,9 +19,10 @@ export default function PaymetTable() {
   const [showOptionsModal, setShowOptionsModal] = useState(false); // State to control options modal
   const [currentPayment, setCurrentPayment] = useState(null); // State to hold the current payment for options
 
-  const paymentsRef = ref(db, `Subscriber/${userid}/payments`);
+  
 
   useEffect(() => {
+    const paymentsRef = ref(db, `Subscriber/${userid}/payments`);
     const fetchpayments = async () => {
       const userRef = ref(db, `users`);
       const customerRef = ref(db, `Subscriber/${userid}`);

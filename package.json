@@ -20,6 +20,7 @@
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",
     "lottie-react": "^2.4.0",
+    "next": "^15.0.3",
     "nodemailer": "^6.9.16",
     "papaparse": "^5.4.1",
     "react": "^18.3.1",

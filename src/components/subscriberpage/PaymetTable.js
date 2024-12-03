@@ -83,7 +83,7 @@ export default function PaymetTable() {
       }
     }
 
-    return () => fetchpayments();
+    fetchpayments();
   }, [userid]);
 
   

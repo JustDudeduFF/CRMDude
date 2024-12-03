@@ -35,7 +35,7 @@ export default function DocumetUploadTable() {
       }))
 
       fetchdocs();
-    }, [docRef]);
+    }, []);
 
   
 

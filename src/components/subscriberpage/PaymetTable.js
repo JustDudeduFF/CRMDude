@@ -78,6 +78,7 @@ export default function PaymetTable() {
             discount: parseFloat(payment.discount) || 0,
           });
         });
+        console.log(paymentsArray)
         setArrayPayment(paymentsArray);
       }
     }

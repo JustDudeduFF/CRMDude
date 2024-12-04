@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import ExcelIcon from '../subscriberpage/drawables/xls.png';
 import * as XLSX from 'xlsx';
-import { onValue, ref, update } from 'firebase/database';
+import { child, onValue, ref, update } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
 import { isThisMonth, isThisWeek, isToday, subDays, parseISO } from 'date-fns';
 import AssignedLead from './AssignedLead';
@@ -22,6 +22,8 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
     const [securityAmount, setSecurityAmount] = useState("0");
     const [companyArray,setCompanyArrya] = useState([]);
     const [companyname, setCompanyName] = useState('');
+    const [status, setStatus] = useState('All');
+    const [userMap, setUserMap] = useState({});
 
     const heading = 'Lead and Enquiry Data';
 
@@ -50,6 +52,7 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
         const dataRef = ref(db, 'Leadmanagment');
         const planRef = ref(db, 'Master/Broadband Plan');
         const companyRef = ref(db, `Master/companys`);
+        const userRef = ref(db, `users`);
         onValue(planRef, (planSnap) => {
             const planArray = [];
             planSnap.forEach((childSnap) => {
@@ -75,7 +78,8 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                     const Address = childSnap.val().address;
                     const Status = childSnap.val().status;
                     const leadID = childSnap.key;
-                    const generatedDate = childSnap.val().generatedDate;
+                    const generatename = childSnap.val().generatename;
+                    const assignto = childSnap.val().assignedto;
 
                     dataArray.push({
                         generatedDate: childSnap.val().generatedDate,
@@ -88,7 +92,9 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                         Mobile,
                         Address,
                         Status,
-                        leadID
+                        leadID,
+                        generatename,
+                        assignto
                     });
                 });
                 setArrayData(dataArray);
@@ -96,6 +102,21 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                 console.log('Failed to Fetch Data: ', error);
             }
         });
+
+        onValue(userRef, (userSnap) => {
+            if(userSnap.exists()){
+                const userMap = {};
+                userSnap.forEach((child) => {
+                    const userKey = child.key;
+                    const fullname = child.val().fullname;
+                    userMap[userKey] = fullname;
+                    
+                });
+
+                setUserMap(userMap);
+            }
+        })
+
         onValue(companyRef, (companySnap) => {
             const companyarray = [];
 
@@ -211,21 +232,25 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                     <table className="table">
                         <thead>
                             <tr>
+                                <th>Date</th>
                                 <th>Name</th>
                                 <th>Contact Info</th>
+                                <th>Assign To</th>
                                 <th>Source</th>
-                                <th>Enquiry/Lead Date</th>
+                                <th>Reference By</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {filterData.map(({ FirstName, LastName, Mobile, Address, generatedDate, LeadSource, Status, Type, leadID }, index) => (
+                            {filterData.map(({ FirstName, LastName, Mobile, Address, generatedDate, LeadSource, Status, Type, leadID, generatename, assignto }, index) => (
                                 <tr key={index}>
+                                    <td>{new Date(generatedDate).toISOString().split('T')[0]}</td>
                                     <td>{`${FirstName} ${LastName}`}</td>
                                     <td>{`"${Mobile}" : "${Address}"`}</td>
+                                    <td>{userMap[assignto]}</td>
                                     <td>{LeadSource}</td>
-                                    <td>{new Date(generatedDate).toLocaleDateString()}</td>
+                                    <td>{userMap[generatename] || 'N/A'}</td>
                                     <td>{Status}</td>
                                     <td>
                                         <button onClick={() => {if(Type === 'enquiry'){
@@ -234,6 +259,7 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                                                 setShowAssignedLead(true); setLeadID(leadID)
                                             }}} className='btn btn-outline-success me-3'>{Type === 'enquiry' ? 'Convert to Lead' : 'Re-Assign'}</button>
                                         <button className='btn btn-danger'>Cancel</button>
+                                        <button onClick={() => {setShowLeadConversation(true); setConvertLeadId(leadID)}} className='btn btn-info ms-4'>Edit</button>
                                     </td>   
                                 </tr>
                             ))}

@@ -68,8 +68,20 @@ const DesignationModal = ({show, notshow}) => {
                     </div>
 
                     <div className="col-md-9">
-                        <label className="form-label">Defalut Permissions</label>
-                        <input onChange={(e) => setdesignationaPermission(e.target.value)} type="text" className="form-control" ></input>
+                        <label className="form-label">Defalut Permissions 1</label>
+                        <select className="form-select" onChange={(e) => setdesignationName(e.target.value)}>
+                            <option value=''>Choose...</option>
+                            <option value='read'>Read Subscriber Data</option>
+                            <option value='write'>Write Subscriber Data</option>
+                            <option value='modify'>Modify Subscriber Details</option>
+                            <option value='backentries'>Allow BackDate Entries</option>
+                            <option value='changeplan'>Allow Change Subscriber Plan</option>
+                            <option value='rollback'>Allow Rollback Plan</option>
+                            <option value='authorizaton'>Allow Authorize Receipts</option>
+                            <option value='master'>Allow Master Data</option>
+                            <option value='rack'>Allow Access Server Rack</option>
+
+                        </select>
                     </div>
 
                     

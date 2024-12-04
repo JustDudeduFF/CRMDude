@@ -32,9 +32,9 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
     }, []);
 
     const sendMessage = async (mobileNo, ticketno, customername, userid) => {
-        const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${customername},\nYour ticket ${ticketno} is assigned to that executive ${assignemp}.`);
+        const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${mobileNo}&message=Dear ${customername},\nYour ticket ${ticketno} is assigned to that executive ${assignemp}.`);
         //Message For Executive
-        const response2 = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear Executive,\nYou have been assigned a new ticket ${ticketno} for ${customername} and his mobile number is ${mobileNo} and his userid is ${userid}. \n For More Details Please go for Application`);
+        const response2 = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${assignemp}&message=Dear Executive,\nYou have been assigned a new ticket ${ticketno} for ${customername} and his mobile number is ${mobileNo} and his userid is ${userid}. \n For More Details Please go for Application`);
         console.log(response.status);
     }
 

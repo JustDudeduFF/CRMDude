@@ -432,14 +432,6 @@ export default function EmpDetails() {
                     <form className='row g-3'>
          
 
-          <div className='col-md-2'>
-            <label className='form-label'>Select Company Permissions</label>
-            
-            <select value={companypermissions} onChange={(event) => setCompanyPermissions(event.target.value)} className='form-select' disabled={!isEditing}>
-              <option>Choose...</option>
-              <option>All Company Permissions Allowed</option>
-            </select>
-          </div>
 
           <div className='col-md-2'>
             <label className='form-label'>Select Permissions</label>

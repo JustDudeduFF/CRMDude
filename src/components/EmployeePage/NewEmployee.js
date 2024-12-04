@@ -451,13 +451,7 @@ export default function NewEmployee() {
             </select>
           </div>
 
-          <div className='col-md-2'>
-            <label className='form-label'>Select Company Permissions</label>
-            <select value={companypermissions} onChange={(event) => setCompanyPermissions(event.target.value)} className='form-select'>
-              <option>Choose...</option>
-              <option>All Company Permissions Allowed</option>
-            </select>
-          </div>
+
 
           <div className='col-md-2'>
             <label className='form-label'>Select Permissions</label>

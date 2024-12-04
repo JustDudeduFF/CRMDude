@@ -13,13 +13,13 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
     const [heading, setHeading] = useState('');
     const [arrayData, setArrayData] = useState([]);
     const [filterPeriod, setFilterPeriod] = useState('All Time');
-    const [filterStatus, setFilterStatus] = useState('Open'); // New state for status filter
+    const [filterStatus, setFilterStatus] = useState('Pending');
+    const [ticketSource, setTicketSource] = useState('All'); // New state for status filter
     const [filterData, setFilteredData] = useState([]);
 
     const [showsmallModal, setShowSmallModal] = useState(false);
     const [ticketclosemodal, setTicketCloseModal] = useState(false);
     const [ticketno, setTicketno] = useState([]);
-    const [isCompleted, setIsCompleted] = useState(false);
 
 
     // Download All Data to Excel File
@@ -138,8 +138,12 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
             filteredArray = filteredArray.filter((data) => data.Status === filterStatus);
         }
 
+        if(ticketSource !== 'All'){
+            filteredArray = filteredArray.filter((data) => data.source === ticketSource);
+        }
+
         setFilteredData(filteredArray);
-    }, [filterPeriod, filterStatus, arrayData]);
+    }, [filterPeriod, filterStatus, arrayData, ticketSource]);
 
     if (!viewShow) return null;
 
@@ -168,7 +172,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                         <div className='col-md-3'>
                             <label className='form-label'>Select Ticket Status</label>
                             <select
-                                onChange={(e) => {setFilterStatus(e.target.value); setIsCompleted(e.target.value === 'Completed')}}
+                                onChange={(e) => {setFilterStatus(e.target.value);}}
                                 className='form-select'
                             >
                                 <option value="Pending">Open Tickets</option>
@@ -176,6 +180,19 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                 <option value="Completed">Closed Tickets</option>
                                 <option value="Open">Pending Tickets</option>
                                 <option value="Unassigned">Unassigned Tickets</option>
+                            </select>
+                        </div>
+
+                        <div className='col-md-3'>
+                            <label className='form-label'>Select Ticket Source</label>
+                            <select
+                                onChange={(e) => {setTicketSource(e.target.value);}}
+                                className='form-select'
+                            >  
+                                <option value="All">All Source</option>
+                                <option value="Manual">Manual</option>
+                                <option value="Whatsapp">Whatsapp Bot</option>
+                                <option value="Mobile App">Customer App</option>
                             </select>
                         </div>
                     </form>
@@ -205,7 +222,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                             </tr>
                         </thead>
                         <tbody>
-                            {filterData.map(({ subsID, source, createby, Concern, creationdate, Time, Description, Status, Assign_to, Ticketno }, index) => (
+                        {filterData.map(({ subsID, source, createby, Concern, creationdate, Time, Description, Status, Assign_to, Ticketno }, index) => (
                                 <tr key={index}>
                                     <td>{index + 1}</td>
                                     <td>{subsID}</td>
@@ -217,11 +234,30 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                     <td>{createby}</td>
                                     <td>{`"${creationdate}" at "${Time}"`}</td>
                                     <td>
-                                        <button onClick={() => {setShowSmallModal(true); setTicketno({Ticketno, subsID})}} className='btn btn-outline-success me-3' disabled={isCompleted}>{Status === 'unassigned' ? 'Assign' : 'Re Assign'}</button>
-                                        <button onClick={() => {setTicketCloseModal(true); setTicketno({Ticketno, subsID});}} className='btn btn-danger' disabled={isCompleted}>{Status === 'Open' ? 'Re-Open' : 'Close it'}</button>
+                                        <button
+                                            onClick={() => {
+                                                setShowSmallModal(true);
+                                                setTicketno({ Ticketno, subsID });
+                                            }}
+                                            className='btn btn-outline-success me-3'
+                                            disabled={Status === 'Completed'}
+                                        >
+                                            {Status === 'unassigned' ? 'Assign' : 'Re Assign'}
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setTicketCloseModal(true);
+                                                setTicketno({ Ticketno, subsID });
+                                            }}
+                                            className='btn btn-danger'
+                                            disabled={Status === 'Completed'}
+                                        >
+                                            {Status === 'Open' ? 'Re-Open' : 'Close it'}
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
+
                         </tbody>
                     </table>
                 </div>

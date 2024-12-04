@@ -79,7 +79,6 @@ export default function Navbar() {
         setArrayUser(UserArray);
         setCompanyUserCount(companyCount);
         setExpiredUserCount(expiredCount);
-        console.log(UserArray);
       }
     }
 

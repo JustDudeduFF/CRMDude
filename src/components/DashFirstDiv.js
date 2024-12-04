@@ -190,7 +190,7 @@ export default function DashFirstDiv() {
                                 closed++
                             }else if(ticketno === 'Open'){
                                 cancel++;
-                            }else{
+                            }else if(ticketno === 'Unassigned'){
                                 unassigned++
                             }
 
@@ -500,7 +500,6 @@ export default function DashFirstDiv() {
                     }
                     
                 });
-                console.log(attendenceArray);
 
                 setAttendenceArray(attendenceArray);
             });

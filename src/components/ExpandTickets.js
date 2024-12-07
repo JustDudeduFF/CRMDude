@@ -247,7 +247,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                         <button
                                             onClick={() => {
                                                 setTicketCloseModal(true);
-                                                setTicketno({ Ticketno, subsID });
+                                                setTicketno({ Ticketno, subsID, Concern });
                                             }}
                                             className='btn btn-danger'
                                             disabled={Status === 'Completed'}

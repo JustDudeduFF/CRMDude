@@ -4,6 +4,7 @@ import { onValue, ref, set, update, get } from 'firebase/database';
 import * as XLSX from 'xlsx';
 import { db } from '../FirebaseConfig';
 import ExcelIcon from './subscriberpage/drawables/xls.png'
+import WhatsappIcon from './subscriberpage/drawables/whatsapp.png'
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from "react-toastify";
 import { ProgressBar } from 'react-loader-spinner';
@@ -201,7 +202,9 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
             };
 
             const sendMessage = async (mobile, planName, fullName, expireDate, planAmount, date) => {
-                const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${fullName},\n  Your Plan ${planName}  ₹${planAmount}  Recharge Successfully for period of  ${date} to ${expireDate} thanks for being with us. For any query call (9999118971) SIGMA BUSINESS SOLUTIONS or Download app (customer.sigmaetworks.in).`);
+                const message = `Dear ${fullName},\nYour Plan ${planName}  ₹${planAmount}  Recharge Successfully for period of  ${date} to ${expireDate} thanks for being with us. For any query call (9999118971) SIGMA BUSINESS SOLUTIONS .`;
+                const encodedMessage = encodeURIComponent(message);
+                const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${mobile}&message=${encodedMessage}`);
                 const responsemail = await axios.post('https://finer-chimp-heavily.ngrok-free.app/sendmail', {
                     to: "justdudehere@gmail.com",
                     subject: 'Broadband Subscription Renewal',
@@ -242,6 +245,21 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
         }
     };
 
+    const sendNotification =  () => {   
+        let date = new Date();
+        date.setDate(date.getDate() + 1); // Add 1 day to the current date
+        const remindDate = date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+        arrayData.forEach(async(data) => {
+            const mobile = data.mobile;
+            const fullName = data.fullName;
+            const message = `Reminder!!\n\nDear ${fullName},\nYour Internet Plan will expire ${remindDate}.\n\nkindly Renew it now.\n\nPlease call our customer care number 9999118971 for more information.\n\nSigma Business Solutions\n`;
+            const encoedeMessage = encodeURIComponent(message);
+            
+            
+            const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${mobile}&message=${encoedeMessage}`);
+        });
+    }
+
     if (!show) return null;
 
     return (
@@ -249,6 +267,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
             <div className="modal-data1">
                 <div className="modal-inner1">
                     <h4 style={{flex:'1'}}>{heading}</h4>
+                    <img onClick={sendNotification} src={WhatsappIcon} alt='whatsapp' className='img_download_icon'></img>
                     <img onClick={downloadExcel} src={ExcelIcon} alt='excel' className='img_download_icon'></img>
                     <button style={{right:'5%'}} className="btn-close" onClick={modalShow}></button>
                     <ToastContainer style={{marginTop:'4%'}}/>

@@ -24,12 +24,15 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
 
         const fetchSubs = onValue(ref(db, `Subscriber/${ticketno.subsID}`), (subsSnap) => {
             const subsData = subsSnap.val();
-            console.log(subsData)
+            console.log(ticketno)
+            console.log(subsData);
             setSubsData(subsData);
         });
 
+        
+
         return () => {fetchUsers(); fetchSubs();}
-    }, []);
+    }, [ticketno]);
 
     const sendMessage = async (mobileNo, ticketno, customername, userid) => {
         const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${mobileNo}&message=Dear ${customername},\nYour ticket ${ticketno} is assigned to that executive ${assignemp}.`);
@@ -43,6 +46,9 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
         const ticketRef = ref(db, `Subscriber/${ticketno.subsID}/Tickets/${ticketno.Ticketno}`);
         const globalTicketsRef = ref(db, `Global Tickets/${ticketno.Ticketno}`);    
         const ticketSnap = await get(ticketRef);
+        console.log(subsData);
+        const subsMobile = subsData.mobileNo;
+        const subsfullname = subsData.fullName;
         if(ticketSnap.hasChild('assigndate')){
             const assigndata = {
                 assigndate: new Date().toISOString().split('T')[0],
@@ -61,7 +67,7 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
             }
             update(globalTicketsRef, assigndata);
             update(ticketRef, assigndata).then(() => {
-                sendMessage(subsData.mobileNo, ticketno.Ticketno, subsData.fullName, ticketno.subsID);
+                sendMessage(subsMobile, ticketno.Ticketno, subsfullname, ticketno.subsID);
                 closeModal();
                 alert(`${ticketno.Ticketno} is now assigned to ${assignemp}`);
             })

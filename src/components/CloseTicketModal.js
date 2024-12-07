@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import './SmallModal.css'; // Add your styles here
 import { onValue, ref, update } from 'firebase/database';
 import { db } from '../FirebaseConfig';
+import axios from 'axios';
 
 const CloseTicketModal = ({ show, ticketno, closeModal}) => {
     const [arrayemp, setEmpArray] = useState([]);
     const [closeby, setCloseBy] = useState('');
     const [rac, setRAC] = useState('');
+    const [subsData, setSubsData] = useState({});
     const empRef = ref(db, `users`);
 
     useEffect(() => {
@@ -19,16 +21,25 @@ const CloseTicketModal = ({ show, ticketno, closeModal}) => {
                 nameArray.push({empname, empmobile});
             });
             setEmpArray(nameArray);
-        })
+        });
 
-        return () => fetchUsers();
-    }, []);
+        const fetchSubs = onValue(ref(db, `Subscriber/${ticketno.subsID}`), (subsSnap) => {
+          const subsData = subsSnap.val();
+          setSubsData(subsData);
+      });
+
+        return () => {fetchUsers(); fetchSubs();}
+    }, [ticketno]);
+
+    const sendMessage = async (mobileNo, ticketno, customername, Concern) => {
+      const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${mobileNo}&message=Dear ${customername}, \nyour complain for Ticket No. ${ticketno} of ${Concern} has been resolved.\nThanks for your patience.\nRegards, SIGMA BUSINESS SOLUTIONS.\n9999118971`);
+  }
 
 
     const closrTicket = async (event) => {
         event.preventDefault();
         
-         // Destructure ticketno to extract subsID and Ticketno
+         // Destructure ticketno to extract subsID and Ticketno  
         const ticketRef = ref(db, `Subscriber/${ticketno.subsID}/Tickets/${ticketno.Ticketno}`);
         const globalTicketsRef = ref(db, `Global Tickets/${ticketno.Ticketno}`);
         
@@ -47,11 +58,14 @@ const CloseTicketModal = ({ show, ticketno, closeModal}) => {
             await update(globalTicketsRef, newTicketData);
             
             // After Global Tickets update is successful, update Subscriber Tickets data
-            await update(ticketRef, newTicketData);
+            await update(ticketRef, newTicketData).then(() => {
+              sendMessage(subsData.mobileNo, ticketno.Ticketno, subsData.fullName, ticketno.Concern);
+              closeModal(); 
+            alert(`${ticketno.Ticketno} is Closed By ${closeby}`);
+            });
       
             // Close the modal and display the success alert
-            closeModal(); 
-            alert(`${ticketno.Ticketno} is Closed By ${closeby}`);
+            
           } catch (error) {
             console.error('Error closing ticket:', error);
             alert('Failed to close the ticket. Please try again.');

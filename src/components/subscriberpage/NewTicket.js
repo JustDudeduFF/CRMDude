@@ -3,11 +3,14 @@ import React, {useEffect, useState} from 'react';
 import { db } from '../../FirebaseConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 
 export default function NewTicket() {
 
   const username = localStorage.getItem('susbsUserid');
+  const fullname = localStorage.getItem('subsname');
+  const mobile = localStorage.getItem('subscontact');
   const navigate = useNavigate();
     
     const [arrayconcern, setArrayConcern] = useState([]);
@@ -57,11 +60,21 @@ export default function NewTicket() {
       };
     }, []);
 
+    function generateHappyCode() {
+      return Math.floor(1000 + Math.random() * 9000);
+    }
+
+    const sendmessage = async (assignemp, ticketconcern, ticketno, happycode) => {
+      const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${mobile}&message=Dear ${fullname},  Your complaint has been registered ticket no-${ticketno}, Ticket Title ${ticketconcern}.Please share this ${happycode} Happy Code to Technician for ticket close. For any further assistance. login Web: -sigmanetworks.in , what's up No. 9999118971`);
+      const response2 = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${assignemp}&message=Dear Executive,\nYou have been assigned a new ticket ${ticketno} for ${fullname} and his mobile number is ${mobile} and his userid is ${username}. \n For More Details Please go for Application`);
+    }
+
 
 
     const generateTicket = async () => {
       const ticketno = `TIC-${Date.now()}`
       const assigntime = currenttime.toLocaleTimeString();
+      const happycode = String(generateHappyCode());
 
       const ticketdata = {
         generatedBy: localStorage.getItem('contact'),
@@ -81,6 +94,7 @@ export default function NewTicket() {
       }
 
       const globalticketdata = {
+        happycode: happycode,
         generatedBy: localStorage.getItem('contact'),
         ticketno: ticketno,
         source: 'Manual',
@@ -103,7 +117,9 @@ export default function NewTicket() {
 
 
       try{
-        await set(ticketRef, ticketdata);
+        await set(ticketRef, ticketdata).then(() => {
+          sendmessage(assignemp, ticketconcern, ticketno, happycode, fullname);
+        });
         await set(globalticketRef, globalticketdata);
         navigate(-1);
 

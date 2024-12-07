@@ -72,9 +72,9 @@ export default function BulkUserEntry() {
   // Upload parsed data to Firebase Realtime Database
   const uploadToFirebase = (event) => {
     event.preventDefault(); // Prevent page reload
-
+    console.log("function Run")
     const ledgerkey = Date.now();
-    fileData.forEach((row) => {
+    fileData.forEach(async(row) => {
       // Map each row of Excel data to the userData structure
       const userData = {
         company: row.COMPANYNAME,
@@ -150,9 +150,9 @@ export default function BulkUserEntry() {
       // Store user under their username
       const userRef = ref(db, 'Subscriber/' + row.BBUSERNAME);
       const ledgerRef = ref(db, `Subscriber/${row.BBUSERNAME}/ledger/${ledgerkey}` );
-      set(userRef, cleanedUserData)
-        .then(() => {
-          update(ledgerRef, ledgerdata);
+      await set(userRef, cleanedUserData)
+        .then(async() => {
+          await update(ledgerRef, ledgerdata);
           console.log(`Data for ${row.BBUSERNAME} uploaded successfully!`);
         })
         .catch((error) => {

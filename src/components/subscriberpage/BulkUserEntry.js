@@ -17,7 +17,7 @@ const removeUndefinedValues = (obj) => {
 
 
 const deleteRef = async() => {
-  const reference = ref(db, 'Rack Info');
+  const reference = ref(db, 'Subscriber');
   await remove(reference);
   
   
@@ -72,10 +72,11 @@ export default function BulkUserEntry() {
   // Upload parsed data to Firebase Realtime Database
   const uploadToFirebase = (event) => {
     event.preventDefault(); // Prevent page reload
-    console.log("function Run")
     const ledgerkey = Date.now();
     fileData.forEach(async(row) => {
       // Map each row of Excel data to the userData structure
+
+      
       const userData = {
         company: row.COMPANYNAME,
         fullName: row.FULLNAME,
@@ -146,13 +147,15 @@ export default function BulkUserEntry() {
 
       // Remove undefined values before sending data to Firebase
       const cleanedUserData = removeUndefinedValues(userData);
+      const cleanLedgerData = removeUndefinedValues(ledgerdata);
+      
 
       // Store user under their username
       const userRef = ref(db, 'Subscriber/' + row.BBUSERNAME);
       const ledgerRef = ref(db, `Subscriber/${row.BBUSERNAME}/ledger/${ledgerkey}` );
       await set(userRef, cleanedUserData)
         .then(async() => {
-          await update(ledgerRef, ledgerdata);
+          await update(ledgerRef, cleanLedgerData);
           console.log(`Data for ${row.BBUSERNAME} uploaded successfully!`);
         })
         .catch((error) => {

@@ -15,6 +15,7 @@ import RackDashBoard from './NetworkRack/RackDashBoard';
 import PayrollandAttendence from './PayoutandAttendence/PayrollandAttendence';
 import TemplateDash from './Templates/TemplateDash';
 import LoginWhatsapp from './Templates/LoginWhatsapp';
+import TicketdataDash from './TicketData/TicketdataDash';
 
 function New_Dashboard() {  // Renamed to PascalCase
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ function New_Dashboard() {  // Renamed to PascalCase
           <Route path='/networkrack/*' element={<RackDashBoard/>}/>
           <Route path='/payrollandattendence/*' element={<PayrollandAttendence/>}/>
           <Route path='/templates/*' element={<LoginWhatsapp/>}/>
+          <Route path='/tickets/*' element={<TicketdataDash/>}/>
         </Routes>
       </AnimatePresence>
     </div>

@@ -248,11 +248,11 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
     const sendNotification =  () => {   
         let date = new Date();
         date.setDate(date.getDate() + 1); // Add 1 day to the current date
-        const remindDate = date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
         arrayData.forEach(async(data) => {
             const mobile = data.mobile;
             const fullName = data.fullName;
-            const message = `Reminder!!\n\nDear ${fullName},\nYour Internet Plan will expire ${remindDate}.\n\nkindly Renew it now.\n\nPlease call our customer care number 9999118971 for more information.\n\nSigma Business Solutions\n`;
+            const expire = data.expiredDate;
+            const message = `Reminder!!\n\nDear ${fullName},\nYour Internet Plan will expire ${expire}.\n\nkindly Renew it now.\n\nPlease call our customer care number 9999118971 for more information.\n\nSigma Business Solutions\n`;
             const encoedeMessage = encodeURIComponent(message);
             
             

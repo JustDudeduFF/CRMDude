@@ -237,7 +237,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                         <button
                                             onClick={() => {
                                                 setShowSmallModal(true);
-                                                setTicketno({ Ticketno, subsID });
+                                                setTicketno({ Ticketno, subsID, Concern });
                                             }}
                                             className='btn btn-outline-success me-3'
                                             disabled={Status === 'Completed'}

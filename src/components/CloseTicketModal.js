@@ -32,7 +32,9 @@ const CloseTicketModal = ({ show, ticketno, closeModal}) => {
     }, [ticketno]);
 
     const sendMessage = async (mobileNo, ticketno, customername, Concern) => {
-      const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${mobileNo}&message=Dear ${customername}, \nyour complain for Ticket No. ${ticketno} of ${Concern} has been resolved.\nThanks for your patience.\nRegards, SIGMA BUSINESS SOLUTIONS.\n9999118971`);
+      const message = `Dear ${customername},\nyour complain for Ticket No. ${ticketno} of ${Concern} has been resolved.\nThanks for your patience.\nRegards, SIGMA BUSINESS SOLUTIONS.\n9999118971`;
+      const encodedMessage = encodeURIComponent(message);
+      const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${mobileNo}&message=${encodedMessage}`);
   }
 
 

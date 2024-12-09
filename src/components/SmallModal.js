@@ -39,9 +39,9 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
         return () => {fetchUsers(); fetchSubs();}
     }, [ticketno]);
 
-    const sendMessage = async (mobileNo, ticketno, customername, userid) => {
-        const message = `Dear ${customername}, Your Ticket for ${ticketno.Concern} Ticket No. ${ticketno.Ticketno} is assigned our technical executive ${userLookup[assignemp]} : (${assignemp}) will attend you soon. For any query Whatsapp: 9999118971.\nSIGMA BUSINESS SOLUTIONS.`;
-        const encodedMessage = new encodeURIComponent(message);
+    const sendMessage = async (mobileNo, ticketno, customername, userid, concern) => {
+        const message = `Dear ${customername}, Your Ticket for ${concern} Ticket No. ${ticketno} is assigned our technical executive ${userLookup[assignemp]} : (${assignemp}) will attend you soon. For any query Whatsapp: 9999118971.\nSIGMA BUSINESS SOLUTIONS.`;
+        const encodedMessage = encodeURIComponent(message);
         const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${mobileNo}&message=${encodedMessage}`);
         //Message For Executive
         const response2 = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${assignemp}&message=Dear Executive,\nYou have been assigned a new ticket ${ticketno} for ${customername} and his mobile number is ${mobileNo} and his userid is ${userid}. \n For More Details Please go for Application`);
@@ -65,7 +65,7 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
             update(globalTicketsRef, assigndata);
             update(ticketRef, assigndata);
             closeModal();
-            sendMessage(subsMobile, ticketno.Ticketno, subsData.fullName, ticketno.subsID);
+            sendMessage(subsMobile, ticketno.Ticketno, subsData.fullName, ticketno.subsID, ticketno.Concern);
             alert(`${ticketno.Ticketno} is now assigned to ${assignemp}`)
         }else{
             const assigndata = {
@@ -73,7 +73,7 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
             }
             update(globalTicketsRef, assigndata);
             update(ticketRef, assigndata).then(() => {
-                sendMessage(subsMobile, ticketno.Ticketno, subsfullname, ticketno.subsID);
+                sendMessage(subsMobile, ticketno.Ticketno, subsfullname, ticketno.subsID, ticketno.Concern);
                 closeModal();
                 alert(`${ticketno.Ticketno} is now assigned to ${assignemp}`);
             })

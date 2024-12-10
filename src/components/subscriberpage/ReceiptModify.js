@@ -287,7 +287,10 @@ export default function ReceiptModify() {
 
 
     const sendWhatsapp = async () => {
-      const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${name}, \n Thanks for making payment Rs. ${amount} by ${receiptData.paymentMode } On Date ${receiptData.receiptDate } your current balance is Rs. ${newDueAmount} for any query contact on +919999118971 SIGMA BUSINESS SOLUTIONS.`);
+      const message = `Dear ${name},\nThanks for making payment Rs. ${amount} by ${receiptData.paymentMode} On Date ${receiptData.receiptDate} your current balance is Rs. ${newDueAmount}.\nfor any query contact on 919999118971.\n\nSIGMA BUSINESS SOLUTIONS.`;
+      const encodedMessage = encodeURIComponent(message);
+
+      const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=${encodedMessage}`);
       console.log(response.data.status);
   }
   

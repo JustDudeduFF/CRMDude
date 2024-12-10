@@ -27,16 +27,16 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
         XLSX.writeFile(workbook, `${heading} Data.xlsx`);
     }
 
-    // Function to convert Excel date serial number to a Date object
     function convertExcelDateSerial(input) {
-        const excelDateSerialPattern = /^\d+$/; // matches only digits (Excel date serial number)
+        const excelDateSerialPattern = /^\d+$/; // Matches only digits (Excel date serial number)
         if (excelDateSerialPattern.test(input)) {
             const excelDateSerial = parseInt(input, 10);
             const baseDate = new Date("1900-01-01"); // Correct Excel base date
-            const date = new Date(baseDate.getTime() + excelDateSerial * 86400000);
+            const adjustedSerial = excelDateSerial - 1; // Adjust for Excel's leap year bug
+            const date = new Date(baseDate.getTime() + adjustedSerial * 86400000);
             return date;
         } else {
-            return new Date(input); // return original input as Date object if it's not a valid Excel date serial number
+            return new Date(input); // Return original input as Date object if it's not a valid Excel date serial number
         }
     }
 
@@ -91,27 +91,27 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                         const expDate = expiryDateSerial;
                         const isSameMonth = expDate.getFullYear() === currentDate.getFullYear() && expDate.getMonth() === currentDate.getMonth();
                         if (word === 'Today' && isSameDay(expDate, currentDate)) {
-                            dataArray.push({ username, expiredDate: expDate.toISOString().split('T')[0], fullName, mobile, installationAddress, planAmount, planName });
+                            dataArray.push({ username, expiredDate: `${new Date(expDate).getDate()}-${new Date(expDate).getMonth() + 1}-${new Date(expDate).getFullYear()}`, fullName, mobile, installationAddress, planAmount, planName });
                         } else if (word === 'Tomorrow' && isTomorrowDay(expDate, currentDate)) {
-                            dataArray.push({ username, expiredDate: expDate.toISOString().split('T')[0], fullName, mobile, installationAddress, planAmount, planName });
+                            dataArray.push({ username, expiredDate: `${new Date(expDate).getDate()}-${new Date(expDate).getMonth() + 1}-${new Date(expDate).getFullYear()}`, fullName, mobile, installationAddress, planAmount, planName });
                         } else if (word === 'Week' && isSameISOWeek(expDate, currentDate)) {
-                            dataArray.push({ username, expiredDate: expDate.toISOString().split('T')[0], fullName, mobile, installationAddress, planAmount, planName });
+                            dataArray.push({ username, expiredDate: `${new Date(expDate).getDate()}-${new Date(expDate).getMonth() + 1}-${new Date(expDate).getFullYear()}`, fullName, mobile, installationAddress, planAmount, planName });
                         } else if (word === 'Month' && isSameMonth) {
-                            dataArray.push({ username, expiredDate: expDate.toISOString().split('T')[0], fullName, mobile, installationAddress, planAmount, planName });
+                            dataArray.push({ username, expiredDate: `${new Date(expDate).getDate()}-${new Date(expDate).getMonth() + 1}-${new Date(expDate).getFullYear()}`, fullName, mobile, installationAddress, planAmount, planName });
                         }
                     }else if(datafor === 'Due'){
                         const expDate = activationDateSerial;
                         const isSameMonth = expDate.getFullYear() === currentDate.getFullYear() && expDate.getMonth() === currentDate.getMonth();
                         if (word === 'Today' && isSameDay(expDate, currentDate) && dueAmount > 0) {
-                            dataArray.push({ username, expiredDate: expDate.toISOString().split('T')[0], fullName, mobile, installationAddress, planAmount: dueAmount, planName });
+                            dataArray.push({ username, expiredDate: `${new Date(expDate).getDate()}-${new Date(expDate).getMonth() + 1}-${new Date(expDate).getFullYear()}`, fullName, mobile, installationAddress, planAmount: dueAmount, planName });
                         } else if (word === 'Tomorrow' && isTomorrowDay(expDate, currentDate) && dueAmount > 0) {
-                            dataArray.push({ username, expiredDate: expDate.toISOString().split('T')[0], fullName, mobile, installationAddress, planAmount: dueAmount, planName });
+                            dataArray.push({ username, expiredDate: `${new Date(expDate).getDate()}-${new Date(expDate).getMonth() + 1}-${new Date(expDate).getFullYear()}`, fullName, mobile, installationAddress, planAmount: dueAmount, planName });
                         } else if (word === 'Week' && isSameISOWeek(expDate, currentDate) && dueAmount > 0) {
-                            dataArray.push({ username, expiredDate: expDate.toISOString().split('T')[0], fullName, mobile, installationAddress, planAmount: dueAmount, planName });
+                            dataArray.push({ username, expiredDate: `${new Date(expDate).getDate()}-${new Date(expDate).getMonth() + 1}-${new Date(expDate).getFullYear()}`, fullName, mobile, installationAddress, planAmount: dueAmount, planName });
                         } else if (word === 'Month' && isSameMonth && dueAmount > 0) {
-                            dataArray.push({ username, expiredDate: expDate.toISOString().split('T')[0], fullName, mobile, installationAddress, planAmount: dueAmount, planName });
+                            dataArray.push({ username, expiredDate: `${new Date(expDate).getDate()}-${new Date(expDate).getMonth() + 1}-${new Date(expDate).getFullYear()}`, fullName, mobile, installationAddress, planAmount: dueAmount, planName });
                         }else if(word === 'All' && dueAmount > 0){
-                            dataArray.push({ username, expiredDate: expDate.toISOString().split('T')[0], fullName, mobile, installationAddress, planAmount: dueAmount, planName });
+                            dataArray.push({ username, expiredDate: `${new Date(expDate).getDate()}-${new Date(expDate).getMonth() + 1}-${new Date(expDate).getFullYear()}`, fullName, mobile, installationAddress, planAmount: dueAmount, planName });
                         }
                     }
                         

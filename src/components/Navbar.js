@@ -195,36 +195,36 @@ export default function Navbar() {
 
       {
         issearcfocused && (
-          <div style={{position:'fixed',right:'0',top:'10%', width:'500px', marginRight:'15%', backgroundColor:'white', padding:'5px', height:'300px', zIndex:'1000', overflow:'hidden', overflowY:'auto'}} className="border shadow rounded"
-          onMouseDown={(e) => e.preventDefault()} // Prevent hiding on click
-          >
-            <button className="btn-close" onClick={() => setIsSearchFocused(false)}></button>
-            <table className="table">
-              <thead className="table-primary">
-                <tr>
-                  <th scope="col">S. No.</th>
-                  <th scope="col">Full Name</th>
-                  <th scope="col">UserName</th>
-                  <th scope="col">Mobile no.</th>
-                </tr>
-              </thead>
-              <tbody className="table-group-divider">
-                {fileredSubs.map(({username, fullname, mobile}, index) => (
-                  <tr key={index}>
-                    <td>{index + 1}</td>
-                    <td>{fullname}</td>
-                    <td 
-                      style={{color:'blue', cursor:'pointer'}} 
-                      onClick={() => handleSubsView(username)}
-                    >
-                      {username}
-                    </td>
-                    <td>{mobile}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <div style={{flex:'1', border: '1px solid gray', borderRadius: '5px', marginTop: '10px',position:'fixed',right:'0',top:'10%', width:'500px', marginRight:'15%', backgroundColor:'white', padding:'5px', height:'350px'}}>
+          <button className="btn-close" onClick={() => setIsSearchFocused(false)}></button>
+            <div style={{maxHeight: '300px', overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+                <table className="table">
+                    <thead className='table-primary' style={{position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1}}>
+                        <tr>
+                            <th scope="col">S.No.</th>
+                            <th scope="col">FullName</th>
+                            <th scope="col">Contact</th>
+                            <th scope="col">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody className="table-group-divider">
+                    {fileredSubs.map(({username, fullname, mobile}, index) => (
+                          <tr key={index}>
+                            <td>{index + 1}</td>
+                            <td>{fullname}</td>
+                            <td 
+                              style={{color:'blue', cursor:'pointer'}} 
+                              onClick={() => handleSubsView(username)}
+                            >
+                              {username}
+                            </td>
+                            <td>{mobile}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>                                             
         )
       }
       

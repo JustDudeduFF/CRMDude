@@ -44,7 +44,8 @@ export default function Navbar() {
   useEffect(() => {
     const fetchUsers = async () => {
 
-      const currentDate = new Date().toISOString().split('T')[0];
+      const currentDate = new Date();
+      const time1 = currentDate.getTime();
       const userSnap = await get(subsref);
       if(userSnap.exists()){
         const UserArray = [];
@@ -59,16 +60,18 @@ export default function Navbar() {
           const expiryDate = Childsubs.child("connectionDetails").val().expiryDate;
 
           const expdate = convertExcelDateSerial(expiryDate);
+          const time = new Date(expdate).getTime();
+          
 
 
 
           UserArray.push({username, fullname, mobile, company});
 
           if (companyCount[company]) {
-            if(expdate > currentDate){
+            if(time > time1){
               companyCount[company]++;
             }
-            if(expdate < currentDate){
+            if(time < time1){
               expiredCount[company]++
             }
           } else {

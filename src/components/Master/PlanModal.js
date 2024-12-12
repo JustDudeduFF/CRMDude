@@ -71,8 +71,8 @@ const PlanModal = ({show, onClose}) => {
     
 
     return(
-       <div className='modal-overlay'>
-        <div className='modal-content'>
+       <div className='modal-background'>
+        <div className='modal-data'>
             <div className='d-flex flex-row'>
             <h5 style={{flex:'1'}}>Create New Plan</h5>
             <button onClick={onClose} className='btn-close'></button>
@@ -91,7 +91,7 @@ const PlanModal = ({show, onClose}) => {
                 </div>
 
                 <div className='col-md-3'>
-                    <label className='form-label'>Plan Speed/Bandwidth</label>
+                    <label className='form-label'>Speed/Bandwidth</label>
                     <input type='number' className='form-control' onChange={(event) => setPlanSpeed(event.target.value)}></input>
                 </div>
 

@@ -108,12 +108,19 @@ export default function Subscriber() {
         setLoader(true);
         setRenewBtn(true);
 
+        let newDue = parseInt(dueamount);
+
 
         
         // Parse values once
         const parsedCustomesharge = parseInt(customesharge, 10) || 0;
         const parsedPlanAmount = parseInt(planAmount, 10) || 0;
-        const newDue = parseInt(dueamount) + parsedCustomesharge || parsedPlanAmount;
+
+        if(parsedCustomesharge !== 0){
+            newDue = parseInt(dueamount) + parsedCustomesharge
+        }else{
+            newDue = parseInt(dueamount) + parsedPlanAmount
+        }
 
 
         const currentDate = new Date().toISOString().split('T')[0];
@@ -144,6 +151,7 @@ export default function Subscriber() {
             planAmount: parseInt(customesharge, 10) || parseInt(planAmount, 10),
             dueAmount: newDue
           }
+          console.log(newDue);
 
         await set(ref(db, `Subscriber/${username}/ledger/${ledgerKey}`), ledgerData);
 

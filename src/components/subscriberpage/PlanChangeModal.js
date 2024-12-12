@@ -85,7 +85,6 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
 
 
     const savePlan = async () => {
-        const planinfoKey = Date.now();
         setRenewBtn(true);
         const newDue = (parseInt(dueamount, 10) || 0) + (parseInt(customecharge, 10) || parseInt(planamount, 10));
         // Add disabled Amount
@@ -136,7 +135,7 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
         }else{
             await set(ref(db, `Subscriber/${username}/ledger/${ledgerKey}`), ledgerData);
 
-            await set(ref(db, `Subscriber/${username}/planinfo/${planinfoKey}`), planinfo);
+            await set(ref(db, `Subscriber/${username}/planinfo/${ledgerKey}`), planinfo);
 
             await update(ref(db, `Subscriber/${username}/connectionDetails`), newconnectioninfo).then(() => {
                 sendMessage();

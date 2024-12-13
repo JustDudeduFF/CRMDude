@@ -8,6 +8,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { db } from "../FirebaseConfig";
 import { ref, onValue, get } from "firebase/database";
 import UserProfile from './subscriberpage/drawables/user.png'
+import NotificationIcon from './subscriberpage/drawables/bell.png'
 
 
 export default function Navbar() {
@@ -113,7 +114,11 @@ export default function Navbar() {
           <Link id="link" to='/dashboard'>
           <h1 className="text-primary">CRM Dude</h1></Link>
           <form className="d-flex" role="search">
-            
+              <div style={{width: '50px', height: '50px', cursor: 'pointer', marginRight:'50px'}}>
+                <p style={{position:'fixed', color:'red'}}>10</p>
+                <img style={{width: '50px', height: '50px', cursor: 'pointer', borderRadius:'100%', boxShadow:"0 0 8px gray"}} src={NotificationIcon}>
+                </img>
+              </div>
             <input style={{height: '40px', float:'left'}}
               onClick={() => setIsSearchFocused(true)}
               className="form-control"

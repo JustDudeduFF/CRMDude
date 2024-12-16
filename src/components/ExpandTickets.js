@@ -39,8 +39,8 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
             const usersLookup = {};
             userSnap.forEach((childSnap) => {
                 const userId = childSnap.key;
-                const { fullname } = childSnap.val();
-                usersLookup[userId] = fullname; // Create a dictionary with userid -> fullname
+                const { FULLNAME } = childSnap.val();
+                usersLookup[userId] = FULLNAME; // Create a dictionary with userid -> fullname
             });
     
             // Step 2: Fetch tickets

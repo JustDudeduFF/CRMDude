@@ -27,7 +27,7 @@ export default function DashSecDiv() {
         const users = {};
         snapshot.forEach((doc) => {
           const data = doc.val();
-          users[doc.key] = data.fullname; // Changed to fullname based on your data
+          users[doc.key] = data.FULLNAME; // Changed to fullname based on your data
         });
         setUserData(users);
       }

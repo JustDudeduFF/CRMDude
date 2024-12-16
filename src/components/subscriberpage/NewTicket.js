@@ -46,7 +46,7 @@ export default function NewTicket() {
         if(empSnap.exists()){
           const empArray = [];
           empSnap.forEach(ChildEmp => {
-            const empname = ChildEmp.val().fullname;
+            const empname = ChildEmp.val().FULLNAME;
             const empmobile = ChildEmp.key;
             empArray.push({empname, empmobile});
           });

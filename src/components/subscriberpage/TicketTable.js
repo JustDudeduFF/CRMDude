@@ -17,8 +17,8 @@ export default function TicketTable() {
         const lookup = {};
         userSnap.forEach((childSnap) => {
           const userId = childSnap.key;
-          const { fullname } = childSnap.val();
-          lookup[userId] = fullname || 'Unknown User';
+          const { FULLNAME } = childSnap.val();
+          lookup[userId] = FULLNAME || 'Unknown User';
         });
         setUsersLookup(lookup);
       } catch (error) {

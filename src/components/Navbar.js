@@ -1,14 +1,16 @@
 import React, {useEffect, useState} from "react";
 import Menu from './subscriberpage/drawables/hamburger.png'
-import Profile from './subscriberpage/drawables/man.png'
 import Profile_Card from "./Profile_Card";
 import Building_Img from './subscriberpage/drawables/office-building.png'
 import Reports_Others from "./Reports_Others";
 import { Link, useNavigate } from "react-router-dom";
 import { db } from "../FirebaseConfig";
-import { ref, onValue, get } from "firebase/database";
+import { ref, get, onValue } from "firebase/database";
 import UserProfile from './subscriberpage/drawables/user.png'
 import NotificationIcon from './subscriberpage/drawables/bell.png'
+import { Modal, ModalBody, ModalTitle } from "react-bootstrap";
+import { elements } from "chart.js";
+import { useElementScroll } from "framer-motion";
 
 
 export default function Navbar() {
@@ -23,6 +25,9 @@ export default function Navbar() {
   const [subssearch, setSubsSearch] = useState('');
   const [companyUserCount, setCompanyUserCount] = useState({});
   const [expiredUserCount, setExpiredUserCount] = useState({});
+  const [showModal, setShowModal] = useState(false);
+  const [renewalArray, setRenewArray] = useState([]);
+  const [currentRenewal, setCurrenRenewal] = useState(0);
 
   const subsref = ref(db, 'Subscriber');
 
@@ -43,6 +48,7 @@ export default function Navbar() {
   }
 
   useEffect(() => {
+    const onlineRenewalsref = ref(db, `onlinerenewals`);
     const fetchUsers = async () => {
 
       const currentDate = new Date();
@@ -86,6 +92,24 @@ export default function Navbar() {
       }
     }
 
+    onValue(onlineRenewalsref, (renewalSnap) => {
+      if(renewalSnap.exists()){
+        const dataArray = [];
+        renewalSnap.forEach((elements) => {
+          const userid = elements.val().userid;
+          const fullname = elements.val().fullName;
+          const mobile = elements.val().mobile;
+          const address =elements.val().address;
+          const source = elements.val().source;
+          const date = elements.val().date;
+
+          dataArray.push({userid, fullname, mobile, address, source, date});
+        });
+        setCurrenRenewal(renewalSnap.size);
+        setRenewArray(dataArray);
+      }
+    });
+
     fetchUsers();
   }, [])
     
@@ -115,8 +139,11 @@ export default function Navbar() {
           <h1 className="text-primary">CRM Dude</h1></Link>
           <form className="d-flex" role="search">
               <div style={{width: '50px', height: '50px', cursor: 'pointer', marginRight:'50px'}}>
-                <p style={{position:'fixed', color:'red'}}>10</p>
-                <img style={{width: '50px', height: '50px', cursor: 'pointer', borderRadius:'100%', boxShadow:"0 0 8px gray"}} src={NotificationIcon}>
+                <span class="position-fixed mt-2 ms-2 translate-middle badge rounded-pill bg-danger">
+                  {currentRenewal}
+                </span>
+                <img onClick={() => setShowModal(true)} style={{width: '50px', height: '50px', cursor: 'pointer', borderRadius:'100%', boxShadow:"0 0 8px gray"}} src={NotificationIcon}>
+                
                 </img>
               </div>
             <input style={{height: '40px', float:'left'}}
@@ -236,7 +263,77 @@ export default function Navbar() {
         )
       }
       
-            
+      <Modal show={showModal} onHide={() => setShowModal(false)} className="modal-xl">
+        <ModalTitle>
+          <h4 className="m-2">Online Renew List</h4>
+          
+        </ModalTitle>
+        <ModalBody>
+          <div className="d-flex flex-column">
+            <div className="container ">
+              <form className="row g-3">
+                <div className="col-md-4">
+                  <label className="form-label">Select Day</label>
+                  <select className="form-select">
+                    <option>Choose...</option>
+                  </select>
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label">Select Source</label>
+                  <select className="form-select">
+                    <option>Choose...</option>
+                  </select>
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label">Select Day</label>
+                  <select className="form-select">
+                    <option>Choose...</option>
+                  </select>
+                </div>
+
+              </form>
+            </div>
+
+            <table className="mt-2 table">
+              <thead className='table-primary' style={{position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1}}>
+                <tr>
+                  <th scope="col">S.No</th>
+                  <th scope="col">UserId</th>
+                  <th scope="col">FullName</th>
+                  <th scope="col">Mobile</th>
+                  <th scope="col">Installation Address</th>
+                  <th scope="col">Source</th>
+                  <th scope="col">Action</th>
+                </tr>
+              </thead>
+              <tbody className="table-group-divider">
+                {
+                  renewalArray.length > 0 ? (
+                    renewalArray.map(({userid, fullname, mobile, address, source}, index) => (
+                      <tr key={index}>
+                        <td>{index + 1}</td>
+                        <td>{userid}</td>
+                        <td>{fullname}</td>
+                        <td>{mobile}</td>
+                        <td style={{maxWidth:'250px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{address}</td>
+                        <td>{source}</td>
+                        <td>
+                          <button className="btn btn-primary">Done</button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" style={{textAlign:'center'}}>No Reccent Renewal Found!</td>
+                    </tr>
+                  )
+                }
+              </tbody>
+            </table>
+          </div>
+        </ModalBody>
+
+      </Modal>
 
       
     </div>

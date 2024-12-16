@@ -141,8 +141,8 @@ export default function PayrollandAttendence() {
             
 
             newUsersMap.set(userSnap.key, {
-              fullname: userData.fullname,
-              contact: userData.contact,
+              fullname: userData.FULLNAME,
+              contact: userData.MOBILE,
               basicSalary: monthlySalary,
               dailySalary: dailySalary,
               userId: userSnap.key,

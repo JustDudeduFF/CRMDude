@@ -33,7 +33,7 @@ export default function PaymetTable() {
         const userData = [];
         snapshot.forEach(user => {
           const userKey = user.key;
-          const fullname = user.val().fullname;
+          const fullname = user.val().FULLNAME;
           userData.push({ userKey, fullname });
           userMap[userKey] = fullname;
           setUserMap(userMap); // Populate the hashmap

@@ -365,7 +365,7 @@ export default function ReceiptModify() {
       if (empSnap.exists()) {
         const employeeArray = [];
         empSnap.forEach((Childemp) => {
-          const empName = Childemp.val().fullname;
+          const empName = Childemp.val().FULLNAME;
           const empId = Childemp.key;
           employeeArray.push({empName, empId});
         });

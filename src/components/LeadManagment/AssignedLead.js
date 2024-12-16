@@ -13,8 +13,8 @@ const AssignedLead = ({show, closeModal, leadID}) => {
         const fetchUsers = onValue(empRef, (empSnap) => {
             const nameArray = [];
             empSnap.forEach((child) => {
-                const empname = child.val().fullname;
-                const empmobile = child.val().mobile;
+                const empname = child.val().FULLNAME;
+                const empmobile = child.key;
 
                 nameArray.push({empname, empmobile});
             });

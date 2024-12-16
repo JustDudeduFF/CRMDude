@@ -16,8 +16,8 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
             const nameArray = [];
             const lookup = {};
             empSnap.forEach((child) => {
-                const empname = child.val().fullname;
-                const empmobile = child.val().mobile;
+                const empname = child.val().FULLNAME;
+                const empmobile = child.val().MOBILE;
 
                 lookup[empmobile] = empname;
                 nameArray.push({empname, empmobile});

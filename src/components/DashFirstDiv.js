@@ -414,8 +414,8 @@ export default function DashFirstDiv() {
             usersSnap.forEach(userSnap => {
                 const userData = userSnap.val();
                 newUsersMap.set(userSnap.key, {
-                    fullname: userData.fullname,
-                    contact: userData.contact,
+                    fullname: userData.FULLNAME,
+                    contact: userData.MOBILE,
                     userId: userSnap.key
                 });
             });

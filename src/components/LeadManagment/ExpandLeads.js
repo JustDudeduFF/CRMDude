@@ -108,7 +108,7 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                 const userMap = {};
                 userSnap.forEach((child) => {
                     const userKey = child.key;
-                    const fullname = child.val().fullname;
+                    const fullname = child.val().FULLNAME;
                     userMap[userKey] = fullname;
                     
                 });

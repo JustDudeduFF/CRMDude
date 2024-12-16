@@ -89,7 +89,6 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
         const newDue = (parseInt(dueamount, 10) || 0) + (parseInt(customecharge, 10) || parseInt(planamount, 10));
         // Add disabled Amount
 
-
         const ledgerData = {
             type:'Plan Change',
             date: new Date().toISOString().split('T')[0],
@@ -147,12 +146,7 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
         setPlanAmount('');
         setCustomCharge('');
         setPlanName('');
-        setIsp('');
-
-          
-
-
-          
+        setIsp('');    
     }
 
 

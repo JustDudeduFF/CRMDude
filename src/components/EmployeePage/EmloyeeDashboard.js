@@ -28,8 +28,8 @@ export default function EmloyeeDashboard() {
         const names = [];
         const mobiles = [];
         snapshot.forEach((childSnapshot) => {
-          const fullname = childSnapshot.val().fullname;
-          const mobile = childSnapshot.val().mobile;
+          const fullname = childSnapshot.val().FULLNAME;
+          const mobile = childSnapshot.val().MOBILE;
           names.push(fullname);
           mobiles.push(mobile);
 

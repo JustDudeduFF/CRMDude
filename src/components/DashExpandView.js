@@ -91,27 +91,27 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                         const expDate = expiryDateSerial;
                         const isSameMonth = expDate.getFullYear() === currentDate.getFullYear() && expDate.getMonth() === currentDate.getMonth();
                         if (word === 'Today' && isSameDay(expDate, currentDate)) {
-                            dataArray.push({ username, expiredDate: `${new Date(expDate).getDate()}-${new Date(expDate).getMonth() + 1}-${new Date(expDate).getFullYear()}`, fullName, mobile, installationAddress, planAmount, planName });
+                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount, planName });
                         } else if (word === 'Tomorrow' && isTomorrowDay(expDate, currentDate)) {
-                            dataArray.push({ username, expiredDate: `${new Date(expDate).getDate()}-${new Date(expDate).getMonth() + 1}-${new Date(expDate).getFullYear()}`, fullName, mobile, installationAddress, planAmount, planName });
+                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount, planName });
                         } else if (word === 'Week' && isSameISOWeek(expDate, currentDate)) {
-                            dataArray.push({ username, expiredDate: `${new Date(expDate).getDate()}-${new Date(expDate).getMonth() + 1}-${new Date(expDate).getFullYear()}`, fullName, mobile, installationAddress, planAmount, planName });
+                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount, planName });
                         } else if (word === 'Month' && isSameMonth) {
-                            dataArray.push({ username, expiredDate: `${new Date(expDate).getDate()}-${new Date(expDate).getMonth() + 1}-${new Date(expDate).getFullYear()}`, fullName, mobile, installationAddress, planAmount, planName });
+                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount, planName });
                         }
                     }else if(datafor === 'Due'){
                         const expDate = activationDateSerial;
                         const isSameMonth = expDate.getFullYear() === currentDate.getFullYear() && expDate.getMonth() === currentDate.getMonth();
                         if (word === 'Today' && isSameDay(expDate, currentDate) && dueAmount > 0) {
-                            dataArray.push({ username, expiredDate: `${new Date(expDate).getDate()}-${new Date(expDate).getMonth() + 1}-${new Date(expDate).getFullYear()}`, fullName, mobile, installationAddress, planAmount: dueAmount, planName });
+                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName });
                         } else if (word === 'Tomorrow' && isTomorrowDay(expDate, currentDate) && dueAmount > 0) {
-                            dataArray.push({ username, expiredDate: `${new Date(expDate).getDate()}-${new Date(expDate).getMonth() + 1}-${new Date(expDate).getFullYear()}`, fullName, mobile, installationAddress, planAmount: dueAmount, planName });
+                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName });
                         } else if (word === 'Week' && isSameISOWeek(expDate, currentDate) && dueAmount > 0) {
-                            dataArray.push({ username, expiredDate: `${new Date(expDate).getDate()}-${new Date(expDate).getMonth() + 1}-${new Date(expDate).getFullYear()}`, fullName, mobile, installationAddress, planAmount: dueAmount, planName });
+                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName });
                         } else if (word === 'Month' && isSameMonth && dueAmount > 0) {
-                            dataArray.push({ username, expiredDate: `${new Date(expDate).getDate()}-${new Date(expDate).getMonth() + 1}-${new Date(expDate).getFullYear()}`, fullName, mobile, installationAddress, planAmount: dueAmount, planName });
+                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName });
                         }else if(word === 'All' && dueAmount > 0){
-                            dataArray.push({ username, expiredDate: `${new Date(expDate).getDate()}-${new Date(expDate).getMonth() + 1}-${new Date(expDate).getFullYear()}`, fullName, mobile, installationAddress, planAmount: dueAmount, planName });
+                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName });
                         }
                     }
                         
@@ -315,7 +315,11 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
 
                                         <td style={{maxWidth:'180px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{planName}</td>
                                         <td>{planAmount}</td>
-                                        <td>{expiredDate}</td>
+                                        <td>{new Date(expiredDate).toLocaleDateString('en-GB', {
+                                            day:'2-digit',
+                                            month:'short',
+                                            year:'numeric'
+                                        }).replace(',','')}</td>
                                         <td>
                                             <button onClick={() =>{ handleSavePlan(username, expiredDate, planAmount, planName, mobile, fullName);}} className='btn btn-outline-success'>{heading.split(' ')[0] === 'Expiring' ? 'Renew' : 'Collect'}</button>
                                         </td>

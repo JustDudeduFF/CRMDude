@@ -411,10 +411,18 @@ export default function Subscriber() {
                             <h6 style={{color:'blue'}}>{planName}</h6>
 
                             <label>Start Date</label>
-                            <h6 style={{color:'blue'}}>{activationDate}</h6>
+                            <h6 style={{color:'blue'}}>{new Date(activationDate).toLocaleDateString('en-GB', {
+                                day:'2-digit',
+                                month:'long',
+                                year:'numeric'
+                            }).replace(',', '')}</h6>
 
                             <label>End Date</label><span className="badge text-bg-success mx-3">Edit</span>
-                            <h6 style={{color:'blue'}}>{expiryDate}</h6>
+                            <h6 style={{color:'blue'}}>{new Date(expiryDate).toLocaleDateString('en-GB', {
+                                day:'2-digit',
+                                month:'long',
+                                year:'numeric'
+                            }).replace(',', '')}</h6>
 
                             <label>Amount</label>
                             <h6 style={{color:'blue'}}>{`${parseInt(planAmount)}.00`}</h6>

@@ -255,7 +255,11 @@ export default function ExpandRevenue({ show, modalShow }) {
                     </td>
                     <td>{index + 1}</td>
                     <td>{receipt.UserID}</td>
-                    <td>{receipt.Receipt_Date}</td>
+                    <td>{new Date(receipt.Receipt_Date).toLocaleDateString('en-GB', {
+                      day:'2-digit',
+                      month:'short',
+                      year:'numeric'
+                    }).replace(',','')}</td>
                     <td>{receipt.Amount}</td>
                     <td>{receipt.Discount}</td>
                     <td>{receipt.TransactionID}</td>

@@ -91,13 +91,14 @@ export default function BulkUserEntry() {
         connectionDetails: {
           isp: row.ISP,
           planName: row.PRODUCTNAME,
-          planAmount: row.PLANAMOUNT,
+          planAmount: parseInt(row.PLANAMOUNT),
           securityDeposit: row.securityDeposit,
           refundableAmount: row.refundableAmount,
           activationDate: row.STARTDATE,
           expiryDate: row.ENDDATE,
           conectiontyp: row.conectiontyp,
           dueAmount: row.BALANCENUMERIC,
+          bandwidth: row.BANDWIDTH
         },
         inventoryDeviceDetails: {
           deviceMaker: row.deviceMaker,
@@ -141,7 +142,7 @@ export default function BulkUserEntry() {
         type:'Migration',
         date: new Date().toISOString().split('T')[0],
         particular: `Migration Due Amount`,
-        debitamount: row.BALANCENUMERIC,
+        debitamount: parseInt(row.BALANCENUMERIC),
         creditamount: 0
       }
 

@@ -51,7 +51,7 @@ export default function Loginlayout() {
 
       if(snapshot.exists()){
         
-        const name = snapshot.val().fullname;
+        const name = snapshot.val().FULLNAME;
         const designation = snapshot.val().designation;
         const permission = snapshot.child('permissions').val();
         

@@ -6,7 +6,6 @@ import { toast } from 'react-toastify';
 const ModalRoom = ({show, closeModal}) => {
 
     const [officename, setOfiiceName] = useState('');
-    const [roomname, setRoomName] = useState('');
     const [arrayoffice, setArrayOffice] = useState([]);
 
     const officeRef = ref(db, `Master/Offices`);
@@ -25,9 +24,8 @@ const ModalRoom = ({show, closeModal}) => {
     });
 
     const handleClick = () => {
-        const rackRef = ref(db, `Rack Info/${officename}/${roomname}`);
+        const rackRef = ref(db, `Rack Info/${officename}`);
         const RoomData = {
-            roomname:roomname, 
             officename:officename,
             creationdate:new Date().toISOString().split('')[0],
             createby:localStorage.getItem('contact')
@@ -55,12 +53,12 @@ const ModalRoom = ({show, closeModal}) => {
 
     if (!show) return null;
   return (
-    <div className='modal-overlay'>
-      <div className='modal-content'>
+    <div className='modal-background'>
+      <div className='modal-data'>
         <div className='d-flex flex-column'>
             <h5>Select Office</h5>
             <form className='row g-3'>
-                <div className='col-md-6'>
+                <div className='col-md'>
                     <label className='form-label'>Office Name</label>
                     <select onChange={(e) => setOfiiceName(e.target.value)} className='form-select'>
                         <option value=''>Choose...</option>
@@ -74,12 +72,6 @@ const ModalRoom = ({show, closeModal}) => {
                             )
                         }
                     </select>
-                </div>
-                <div className='col-md-6'>
-                    <label className='form-label'>Enter Room Name</label>
-                    <input onChange={(e) => setRoomName(e.target.value)} type='text' className='form-control'>
-
-                    </input>
                 </div>
             </form>
 

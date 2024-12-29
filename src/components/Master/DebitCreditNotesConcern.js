@@ -3,11 +3,12 @@ import { ref, onValue } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import DebitCreditNoteModal from './DebitCreditNoteModal';
+import { usePermissions } from '../PermissionProvider';
 
 export default function DebitCreditNotesConcern() {
 
     const [showModal, setShowModal] = useState(false);
-
+    const {hasPermission} = usePermissions();
     const [arrayticket, setArrayTicket] = useState([]);
     const ticketRef = ref(db, 'Master/DBConcern')
 
@@ -45,7 +46,7 @@ export default function DebitCreditNotesConcern() {
     <div className='d-flex flex-column ms-3'>
         <div className='d-flex flex-row'>
             <h5 style={{flex:'1'}}>Debit and Credit particulars</h5>
-            <button onClick={() => setShowModal(true)} className='btn btn-outline-success justify-content-right'>Add Concern</button>
+            <button onClick={() => hasPermission("ADD_DEBIT_CREDIT_CONCERN") ? setShowModal(true) : alert("Permission Denied")} className='btn btn-outline-success justify-content-right'>Add Concern</button>
 
         </div>
         <ToastContainer/>

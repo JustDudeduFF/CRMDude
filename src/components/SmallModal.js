@@ -40,12 +40,14 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
     }, [ticketno]);
 
     const sendMessage = async (mobileNo, ticketno, customername, userid, concern) => {
-        const message = `Dear ${customername}, Your Ticket for ${concern} Ticket No. ${ticketno} is assigned our technical executive ${userLookup[assignemp]} : (${assignemp}) will attend you soon. For any query Whatsapp: 9999118971.\nSIGMA BUSINESS SOLUTIONS.`;
-        const encodedMessage = encodeURIComponent(message);
-        const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${mobileNo}&message=${encodedMessage}`);
+        const newMessage = `👋 *Hello ${customername}*,\n\nWe are notifying you that your complaint has been assigned for resolution. Below are the details:\n\n🔹 *Complaint ID:* ${ticketno}\n🔹 *Complaint Subject:* ${concern}\n\n🛠️ *Assigned Team Member Details:* \n\n👤 Name: ${userLookup[assignemp]}\n📞 Contact: +91 ${assignemp}\n\n🎯 *Next Steps:* Our representative will contact you shortly to resolve your issue.\n\nFor further assistance, you can always reach out to us:\n📱 *Phone:* +91 99991 18971\n\nThank you for your patience. 🙏\nRegards\n*Sigma Business Solutions*`
+        const encodedMessage = encodeURIComponent(newMessage);
+        const exMessage = `Dear Executive,\n\nYou have been assigned a new ticket. Below are the details:\n\n🎫 *Ticket No:* ${ticketno}\n👤 *Customer Name:* ${customername}\n📱 *Mobile Number:* ${mobileNo}\n💼 *User ID:* ${userid}\n\nFor more details, please visit the application.\n\nThank you!\nRegards,\n*Sigma Business Solutions*`
+        const enCodedExMessage = encodeURIComponent(exMessage);
+        await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${mobileNo}&message=${encodedMessage}`);
         //Message For Executive
-        const response2 = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${assignemp}&message=Dear Executive,\nYou have been assigned a new ticket ${ticketno} for ${customername} and his mobile number is ${mobileNo} and his userid is ${userid}. \n For More Details Please go for Application`);
-        console.log(response.status);
+        await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${assignemp}&message=${enCodedExMessage}`);
+
     }
 
     const assignTicket = async(event) => {

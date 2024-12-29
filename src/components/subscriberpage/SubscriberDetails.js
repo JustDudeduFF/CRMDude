@@ -4,8 +4,125 @@ import Excel_Icon from './drawables/xls.png'
 import PDF_Icon from './drawables/pdf.png'
 import SubscriberPersonal from './SubscriberPersonal';
 import RechargeTable from './RechargeTable';
+import { Modal } from 'react-bootstrap';
+import { get, ref, update } from 'firebase/database';
+import { db } from '../../FirebaseConfig';
+
+
 
 export default function SubscriberDetails() {
+    const username = localStorage.getItem("susbsUserid");
+    const [showmodal, setShowModal] = useState(false);
+    const [arrayColony, setArrayColony] = useState([]);
+
+    const [subsDetail, setSubsDetail] = useState({
+        name: '',
+        address: '',
+        colonyname: '',
+        mobile: '',
+        alternate: '',
+        email: '',
+        conectiontyp: '',
+        companyname: ''
+        });
+
+    const [prevSubsDetail, setPrevSubsDetail] = useState({});
+
+    useEffect(() => {
+        const fetchBasicInfo = async() => {
+            const Subsref = ref(db, `Subscriber/${username}`);
+            const userSnap = await get(Subsref);
+
+            setSubsDetail({
+                name: userSnap.val().fullName,
+                address: userSnap.val().installationAddress,
+                colonyname: userSnap.val().colonyName,
+                mobile: userSnap.val().mobileNo,
+                alternate: userSnap.val().alternatNo,
+                email: userSnap.val().email,
+                conectiontyp: userSnap.child("connectionDetails").val().conectiontyp,
+                companyname: userSnap.val().company
+            });
+            
+            
+        }
+        
+        const fetchColony = async() => {
+            const colonyRef = ref(db, `Master/Colonys`);
+            const colonySnap = await get(colonyRef);
+
+            if(colonySnap.exists()){
+                const array = [];
+                colonySnap.forEach((element) => {
+                    const coloname = element.key;
+                    const companyName = element.val().undercompany;
+
+                    array.push({coloname, companyName});
+                });
+
+                setArrayColony(array);
+            }
+
+
+        }
+        
+
+        fetchColony();
+        fetchBasicInfo();
+    }, [username]);
+
+
+    const handleUpdate = async() => {
+        console.log(prevSubsDetail);
+        const logKey = Date.now();
+        const userRef = ref(db, `Subscriber/${username}`);
+        const connectionRef = ref(db, `Subscriber/${username}/connectionDetails`);
+        const subsLogRef = ref(db, `Subscriber/${username}/logs/${logKey}`);
+
+        const changes = [];
+
+        // Compare the previous and current state
+        Object.keys(prevSubsDetail).forEach((key) => {
+            if (subsDetail[key] !== prevSubsDetail[key]) {
+                changes.push(
+                    `${key} is changed from "${prevSubsDetail[key] || 'N/A'}" to "${subsDetail[key]}"`
+                );
+            }
+        });
+
+
+        
+
+        const userNewData = {
+            fullName: subsDetail.name,
+            installationAddress: subsDetail.address,
+            colonyName: subsDetail.colonyname,
+            mobileNo: subsDetail.mobile,
+            alternatNo: subsDetail.alternate,
+            email: subsDetail.email,
+            company: subsDetail.companyname
+        }
+
+
+        const logData = {
+            date: new Date().toISOString().split('T')[0],
+            modifiedby: localStorage.getItem('contact'),
+            description:changes.join(', ')
+        }
+
+        const connec = {
+            conectiontyp: subsDetail.conectiontyp
+        }
+
+
+        await update(userRef, userNewData).then(async() => {
+            await update(connectionRef, connec);
+            await update(subsLogRef, logData);
+            setShowModal(false);
+            alert("Detail Updated Succesfully");
+        });
+
+    }
 
 
   return (
@@ -24,8 +141,10 @@ export default function SubscriberDetails() {
                 <div style={{width:'max-content', float:'right'}}>
                 <Link id='link' to='rechargeinfo'>
                     <button type="button" className="btn btn-outline-success">Recharge Info</button></Link>
-                    <Link style={{marginLeft:'10px'}} id='link' to='addproduct'>
-                    <button type="button" className="btn btn-outline-secondary">Edit Info</button></Link>
+                    <button onClick={() => {
+                        setPrevSubsDetail(subsDetail);
+                        setShowModal(true);
+                    }} type="button" className="btn btn-outline-secondary ms-2">Edit Info</button>
                     <img src={Excel_Icon} className='img_download_icon'></img>
                     <img src={PDF_Icon} className='img_download_icon'></img>
                 </div>
@@ -39,6 +158,101 @@ export default function SubscriberDetails() {
                 <Route path='rechargeinfo' element={<RechargeTable/>}/>
             </Routes>
         </div>
+
+        <Modal show={showmodal} onHide={() => setShowModal(false)} size='xl'>
+           <Modal.Header>
+            <Modal.Title>Edit Subscriber Information</Modal.Title>
+           </Modal.Header>
+           <Modal.Body>
+                <form className='row g-3'>
+                    <div className='col-md-3'>
+                        <label className='form-label ms-2'>Subscriber Name</label>
+                        <input onChange={(e) => setSubsDetail((prevState) => ({
+                            ...prevState,
+                            name: e.target.value
+                        }))} value={subsDetail.name} type='text' placeholder='Fullname' className='form-control'></input>
+                    </div>
+
+                    <div className='col-md-3'>
+                        <label className='form-label ms-2'>Subscriber Mobile</label>
+                        <input onChange={(e) => setSubsDetail((prevState) => ({
+                            ...prevState,
+                            mobile: e.target.value
+                        }))} value={subsDetail.mobile} type='number' placeholder='e.g. xxxxxxxx02' className='form-control'></input>
+                    </div>
+
+                    <div className='col-md-3'>
+                        <label className='form-label ms-2'>Subscriber Alternate Mobile</label>
+                        <input onChange={(e) => setSubsDetail((prevState) => ({
+                            ...prevState,
+                            alternate: e.target.value
+                        }))} value={subsDetail.alternate} placeholder='e.g. xxxxxxxx02' type='number' className='form-control'></input>
+                    </div>
+
+                    <div className='col-md-3'>
+                        <label className='form-label ms-2'Subscriber >Mail Address</label>
+                        <input onChange={(e) => setSubsDetail((prevState) => ({
+                            ...prevState,
+                            email: e.target.value
+                        }))} value={subsDetail.email} placeholder='e.g. abc@gmail.com' type='email' className='form-control'></input>
+                    </div>
+
+                    <div className='col-md-12'>
+                        <label className='form-label ms-2'>Subscriber Installation Address</label>
+                        <textarea
+                        onChange={(e) => setSubsDetail((prevState) => ({
+                            ...prevState,
+                            address: e.target.value
+                        }))}
+                        value={subsDetail.address}
+                        className="form-control"
+                        rows="3"
+                        placeholder='e.g. H.no.002, Street no.0 XX Area'
+                        ></textarea>
+                    </div>
+
+                    <div className='col-md-3'>
+                        <label className='form-label ms-2'>Subscriber Colony Name</label>
+                        <select onChange={(e) => {
+                            const selectColony = e.target.value;
+                            const selectedColonyObj = arrayColony.find(colony => colony.coloname === selectColony);
+                            setSubsDetail((prevState) => ({
+                                ...prevState,
+                                colonyname: selectColony,
+                                companyname: selectedColonyObj.companyName
+                            }));  
+                        }} value={subsDetail.colonyname} className='form-select'>
+                            <option value=''>Choose...</option>
+                            {
+                                arrayColony.length > 0 ? (
+                                    arrayColony.map((colony, index) => (
+                                        <option key={index} value={colony.coloname}>{colony.coloname}</option>
+                                    ))
+                                ) : (
+                                    <option value=''>No Data Found!</option>
+                                )
+                            }
+                        </select>
+                    </div>
+
+                    <div className='col-md-3'>
+                        <label className='form-label ms-2'>Subscriber Connection Type</label>
+                        <select onChange={(e) => setSubsDetail((prevState) => ({
+                            ...prevState,
+                            conectiontyp: e.target.value
+                        }))} value={subsDetail.conectiontyp} className='form-select'>
+                        <option value=''>Choose...</option>
+                        <option value='FTTH'>FTTH</option>
+                        <option value='EtherNet'>EtherNet</option>
+                        </select>
+                    </div>
+                </form>
+           </Modal.Body>
+           <Modal.Footer>
+                <button onClick={handleUpdate} className='btn btn-primary'>Update</button>
+                <button onClick={() => setShowModal(false)} className='btn btn-outline-secondary'>Close</button>
+           </Modal.Footer>
+        </Modal>
     </>
     
     )

@@ -2,8 +2,10 @@ import { onValue, ref, update, get } from 'firebase/database';
 import React, { useEffect, useState } from 'react';
 import { db } from '../../FirebaseConfig';
 import { useNavigate } from 'react-router-dom';
+import { usePermissions } from '../PermissionProvider';
 
 export default function TicketTable() {
+  const {hasPermission} = usePermissions();
   const username = localStorage.getItem('susbsUserid');
   const navigate = useNavigate();
 
@@ -45,6 +47,7 @@ export default function TicketTable() {
           ...ticket,
           assignto: usersLookup[ticket.assignto] || 'Not Assigned',
           closeby: usersLookup[ticket.closeby] || ticket.closeby,
+          generateby: usersLookup[ticket.generatedBy] || ticket.generatedBy
         });
       });
       
@@ -59,7 +62,7 @@ export default function TicketTable() {
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: 'max-content' }} className="table">
           <thead>
-            <tr>
+            <tr className='table-primary'>
               <th style={{ width: '180px' }} scope="col">Ticket No.</th>
               <th style={{ width: '100px' }} scope="col">Source</th>
               <th style={{ width: '200px' }} scope='col'>Creation Date</th>
@@ -77,8 +80,8 @@ export default function TicketTable() {
           <tbody className='table-group-divider'>
             {
               arrayticket.length > 0 ? (
-                arrayticket.slice().reverse().map(({ ticketno, source, ticketconcern, assignto, description, assigntime, assigndate, status, closeby, closedate, closetime, rac, generatedDate }, index) => (
-                  <tr key={index}> 
+                arrayticket.slice().reverse().map(({ ticketno, source, ticketconcern, assignto, description, assigntime, assigndate, status, closeby, closedate, closetime, rac, generatedDate, generateby }, index) => (
+                  <tr className={status === "Completed" ? "table-success" : status === "Canceled" ? "table-danger" : "table-secondary"} key={index}> 
                     <td style={{ color: 'green', cursor: 'pointer' }} className="btn" data-bs-toggle="dropdown" aria-expanded="false">{ticketno}</td>
                     <ol className="dropdown-menu">
                       <li onClick={() => {
@@ -96,21 +99,29 @@ export default function TicketTable() {
                         }
                       }} className='dropdown-item'>Update Ticket</li>
                       <li onClick={() => {
-                        const globalref = ref(db, `Global Tickets/${ticketno}`);
-                        const ticketref = ref(db, `Subscriber/${username}/Tickets/${ticketno}`);
-
-                        const data = {
-                          status: 'Canceled'
+                        if(hasPermission("CLOSE_TICKET")){
+                          if(status !== "Completed"){
+                            const globalref = ref(db, `Global Tickets/${ticketno}`);
+                            const ticketref = ref(db, `Subscriber/${username}/Tickets/${ticketno}`);
+    
+                            const data = {
+                              status: 'Canceled'
+                            }
+    
+                            update(globalref, data);
+                            update(ticketref, data);
+                          }else{
+                            alert("Ticket is Closed Now")
+                          }
+                        }else{
+                          alert("Permission Denied")
                         }
-
-                        update(globalref, data);
-                        update(ticketref, data);
                       }} className='dropdown-item'>Cancel Ticket</li>
                     </ol>
                     <td>{source}</td>
                     <td>{generatedDate}</td>
                     <td>{`${assigndate} ${assigntime}`}</td>
-                    <td>Shivam Chauhan</td>
+                    <td>{generateby}</td>
                     <td>{assignto}</td>
                     <td>{ticketconcern}</td>
                     <td>{closeby}</td>

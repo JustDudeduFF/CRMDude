@@ -9,9 +9,11 @@ import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from "react-toastify";
 import { ProgressBar } from 'react-loader-spinner';
 import axios from 'axios';
+import { usePermissions } from './PermissionProvider';
 
 const DashExpandView = ({ show, datatype, modalShow }) => {
     const navigate = useNavigate();
+    const {hasPermission} = usePermissions();
     const [heading, setHeading] = useState('');
     const [arrayData, setArrayData] = useState([]);
     const [arrayplan, setArrayPlan] = useState([]);
@@ -245,20 +247,49 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
         }
     };
 
-    const sendNotification =  () => {   
-        let date = new Date();
-        date.setDate(date.getDate() + 1); // Add 1 day to the current date
-        arrayData.forEach(async(data) => {
-            const mobile = data.mobile;
-            const fullName = data.fullName;
-            const expire = data.expiredDate;
-            const message = `Reminder!!\n\nDear ${fullName},\nYour Internet Plan will expire ${expire}.\n\nkindly Renew it now.\n\nPlease call our customer care number 9999118971 for more information.\n\nSigma Business Solutions\n`;
-            const encoedeMessage = encodeURIComponent(message);
+    const sendNotification =  async() => {
+        if(heading.split(" ")[0] === "Expiring"){
+            if(hasPermission("MSG_EXPIRING")){
+                let date = new Date();
+                date.setDate(date.getDate() + 1); // Add 1 day to the current date
+                arrayData.forEach(async(data) => {
+                    const mobile = data.mobile;
+                    const fullName = data.fullName;
+                    const expire = data.expiredDate;
+                    const planName = data.planName;
+                    const newmessage = `Dear ${fullName.split(" ")[1]}\n\nWe hope you are enjoying your broadband experience with us! Your current plan is set to expire on ${new Date(expire).toLocaleDateString("en-GB", {day:'2-digit', month:'long', year:"numeric"})}. To continue enjoying uninterrupted internet service, we recommend renewing your plan today.\n\n*Plan Details:*\n- *Current Plan*: ${planName}\n- *Data Limit*: Unlimited\n- *Expiration Date*: ${new Date(expire).toLocaleDateString("en-GM", {day:'2-digit', month:'long', year:'numeric'})}\n\n*How to Renew:*\n\n- *Online*: Log in to your account at sigmanetworks.in/CustomerLogin and follow the renewal instructions.\n- *Mobile App*: Open our app, Click on "Renew Plan" and complete your payment.\n- *Whatsapp Bot Support*: Contact us 24x7 9999118971.\n\nStay connected with blazing-fast internet and uninterrupted service. Renew your plan today!\n\nBest regards,\n*Sigma Business Solutions*`;
+                    const encoedeMessage = encodeURIComponent(newmessage);
+                    
+                    
+                    await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${mobile}&message=${encoedeMessage}`);
+                });
+            }else{
+                alert("Permission Denied");
+            }
+        }
+        
+
+        if(heading.split(" ")[0] === "Due"){
             
             
-            const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${mobile}&message=${encoedeMessage}`);
-        });
-    }
+            if(!hasPermission("MSG_EXPIRING")){
+                let date = new Date();
+                date.setDate(date.getDate() + 1); // Add 1 day to the1 current date
+                arrayData.forEach(async(data) => {
+                    const mobile = data.mobile;
+                    const fullName = data.fullName;
+                    const amount = data.planAmount;
+                    const username = data.username;
+                    const message = `Hi ${fullName.split(" ")[1]},\n\nThis is a gentle reminder from *Sigma Business Solutions* regarding your broadband service account.\n\nBill Details:\n- *Account Number*: ${username}\n- *Due Amount*: ₹${amount}\n\nTo ensure uninterrupted service, kindly make the payment as early as possible. You can make the payment via login to sigmanetworks.in/CustomerLogin.\nYour Login Credentials is:\n- *UserName*: ${username}\n- *Password*: 123456}\n\nFor any assistance, feel free to contact us at *99991 18971*.\n\nThank you for choosing\n*Sigma Business Soltions*!\nWe value your association with us.`;
+                    const encodedMessage = encodeURIComponent(message);
+                    await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${mobile}&message=${encodedMessage}`); 
+                });
+            }else{
+                alert("Permission Denied");
+            }
+        }
+        }
+        
 
     if (!show) return null;
 

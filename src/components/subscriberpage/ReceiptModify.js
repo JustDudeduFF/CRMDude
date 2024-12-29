@@ -287,10 +287,10 @@ export default function ReceiptModify() {
 
 
     const sendWhatsapp = async () => {
-      const message = `Dear ${name},\nThanks for making payment Rs. ${amount} by ${receiptData.paymentMode} On Date ${receiptData.receiptDate} your current balance is Rs. ${newDueAmount}.\nfor any query contact on 919999118971.\n\nSIGMA BUSINESS SOLUTIONS.`;
-      const encodedMessage = encodeURIComponent(message);
+      const newMessage = `Dear ${name},\n\n💸 **Payment Confirmation** 💸\n\nWe have successfully received your payment. Here are the details:\n\n🔹 **Amount Paid**: ₹${amount}\n🔹 **Payment Mode**: ${receiptData.paymentMode}\n🔹 **Payment Date**: ${new Date(receiptData.receiptDate).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}\n🔹 **Current Due**: ₹${newDueAmount}\n\nIf you have any questions or need further assistance, please contact our support team.\n\n📞 **Support**: +91 99991 18971\n\nThank you for choosing **Sigma Business Solutions**!\n\nBest regards,\n**Sigma Business Solutions** Team`
+      const encodedMessage = encodeURIComponent(newMessage);
 
-      const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=${encodedMessage}`);
+      const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${contact}&message=${encodedMessage}`);
       console.log(response.data.status);
   }
   

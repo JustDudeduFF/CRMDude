@@ -19,6 +19,7 @@ import { isToday, isThisWeek, isThisMonth, subDays } from 'date-fns';
 import CreateEnquiry from './CreateEnquiry';
 import ExpandLeads from './ExpandLeads';
 import ExpandIcon from '../subscriberpage/drawables/expand-arrows.png'
+import { usePermissions } from '../PermissionProvider';
 
 ChartJS.register(
   CategoryScale,
@@ -32,6 +33,7 @@ ChartJS.register(
 );
 
 export default function LeadDash() {
+  const {hasPermission} = usePermissions();
   const [show, setShow] = useState(false);
   const [show1, setShow1] = useState(false);
   const [shoeExpand, setShowExpand] = useState(false);
@@ -90,12 +92,27 @@ export default function LeadDash() {
     setFilteredLeads(filtered);
   }, [filterType, selectedCompany, arrayleads]);
 
-  // Group leads by date
-  const leadCountByDate = filteredLeads.reduce((acc, lead) => {
-    const dateString = lead.date.toISOString().split('T')[0]; // Convert to 'YYYY-MM-DD' format
+  // Generate last five days in chronological order (left to right)
+const lastFiveDays = Array.from({ length: 5 }, (_, i) => {
+  const date = new Date();
+  date.setDate(date.getDate() - (4 - i)); // Start with 5 days ago
+  return date.toISOString().split('T')[0]; // Convert to 'YYYY-MM-DD'
+});
+
+// Filter and count leads for the last five days
+const leadCountByDate = filteredLeads.reduce((acc, lead) => {
+  const dateString = lead.date.toISOString().split('T')[0]; // Convert to 'YYYY-MM-DD'
+  if (lastFiveDays.includes(dateString)) {
     acc[dateString] = (acc[dateString] || 0) + 1;
-    return acc;
-  }, {});
+  }
+  return acc;
+}, {});
+
+// Ensure all dates in the last five days are present and in chronological order
+const chartDataObject = lastFiveDays.reduce((acc, date) => {
+  acc[date] = leadCountByDate[date] || 0;
+  return acc;
+}, {});
 
   // Group leads by leadsource
   const leadCountBySource = filteredLeads.reduce((acc, lead) => {
@@ -143,11 +160,11 @@ export default function LeadDash() {
   };
 
   const chartData = {
-    labels: Object.keys(leadCountByDate), // x-axis labels (dates)
+    labels: Object.keys(chartDataObject), // x-axis labels (dates)
     datasets: [
       {
         label: 'Leads OverView',
-        data: Object.values(leadCountByDate), // y-axis data (lead counts)
+        data: Object.values(chartDataObject), // y-axis data (lead counts)
         fill: false,
         backgroundColor: 'rgba(75,192,192,0.4)',
         borderColor: 'rgba(75,192,192,1)',
@@ -165,7 +182,7 @@ export default function LeadDash() {
       },
       title: {
         display: true,
-        text: 'This Month stats',
+        text: 'Last Five Days',
       },
     },
     scales: {
@@ -186,7 +203,15 @@ export default function LeadDash() {
         <button onClick={() => setShow1(true)} className='btn btn-outline-info me-4'>
           Add Enquiry
         </button>
-        <button onClick={() => setShow(true)} className='btn btn-outline-primary'>
+        <button onClick={() => 
+          {
+            if(hasPermission("ADD_LEAD")){
+              setShow(true);
+            }else{
+              alert("Permission Denied")
+            }
+          }
+        } className='btn btn-outline-primary'>
           Create New Lead
         </button>
       </div>
@@ -203,7 +228,7 @@ export default function LeadDash() {
               <option>This Week</option>
               <option>This Month</option>
             </select>
-            <h6 className='ms-3'>compared to previous period (Sep 22, 2024)</h6>
+
           </div>
           <div className='btn-group d-flex flex-column'>
             <button type='button' className='btn btn-primary'>
@@ -250,7 +275,7 @@ export default function LeadDash() {
             <h5>Get to know your business leads</h5>
             <div className='row'>
               <div className='col-md-4'>
-                <h6>Sessions over time</h6>
+                <h6>Leads Trend</h6>
                 <div className='chart-container' style={{ height: '250px', width: '100%' }}>
                   <Line data={chartData} options={chartOptions} />
                 </div>

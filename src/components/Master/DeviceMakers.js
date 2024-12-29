@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react'
 import MakerModal from './MakerModal'
 import { ref, onValue } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
+import { usePermissions } from '../PermissionProvider';
 
 export default function DeviceMakers() {
 
     const [showModal, setShowModal] = useState(false);
-
+    const {hasPermission} = usePermissions();
     const [arraydMaker, setArraydMaker] = useState([]);
     const dMakerRef = ref(db, 'Master/dMakers')
 
@@ -44,7 +45,7 @@ export default function DeviceMakers() {
     <div className='d-flex flex-column ms-3'>
         <div className='d-flex flex-row'>
             <h5 style={{flex:'1'}}>Device Maker Name and Address</h5>
-            <button onClick={() => setShowModal(true)} className='btn btn-outline-success justify-content-right'>Add New dMaker</button>
+            <button onClick={() => hasPermission("ADD_DEVICE_MAKER") ? setShowModal(true) : alert("Permission Denied")} className='btn btn-outline-success justify-content-right'>Add New dMaker</button>
 
         </div>
 

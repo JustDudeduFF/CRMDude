@@ -16,6 +16,7 @@ import PayrollandAttendence from './PayoutandAttendence/PayrollandAttendence';
 import TemplateDash from './Templates/TemplateDash';
 import LoginWhatsapp from './Templates/LoginWhatsapp';
 import TicketdataDash from './TicketData/TicketdataDash';
+import ProtectedRoute from './ProtectedRoute';
 
 function New_Dashboard() {  // Renamed to PascalCase
   const navigate = useNavigate();
@@ -32,15 +33,19 @@ function New_Dashboard() {  // Renamed to PascalCase
       <AnimatePresence mode='wait'>
         <Routes>
           <Route path='/*' element={<DashFirstDiv/>} />
-          <Route path='/adduser/*' element={<NewUserAdd />} />
-          <Route path='/subscriber/*' element={<Subscriber />} />
-          <Route path='/employees/*' element={<EmployeeDashboard />} />
-          <Route path='/inventry/*' element={<InventryDash/>}/>
+          <Route path='/adduser/*' element={<ProtectedRoute permission="ADD_CUSTOMER"><NewUserAdd/></ProtectedRoute>} />
+          <Route path='/subscriber/*' element={<ProtectedRoute permission="VIEW_CUSTOMER"><Subscriber/></ProtectedRoute>} />
+          <Route path='/employees/*' element={<ProtectedRoute permission="VIEW_EMP">
+            <EmployeeDashboard />
+          </ProtectedRoute>} />
+          <Route path='/inventry/*' element={<ProtectedRoute permission="VIEW_INVENTORY"><InventryDash/></ProtectedRoute>}/>
           <Route path='/master/*' element={<MasterDash/>}/>
           <Route path='/bulkuser/*' element={<BulkUserEntry/>}/>
           <Route path='/leadmanagment/*' element={<LeadDash/>}/>
-          <Route path='/networkrack/*' element={<RackDashBoard/>}/>
-          <Route path='/payrollandattendence/*' element={<PayrollandAttendence/>}/>
+          <Route path='/networkrack/*' element={<ProtectedRoute permission="VIEW_RACK"><RackDashBoard/></ProtectedRoute>}/>
+          <Route path='/payrollandattendence/*' element={<ProtectedRoute permission="VIEW_PAYOUT">
+            <PayrollandAttendence/>
+          </ProtectedRoute>}/>
           <Route path='/templates/*' element={<LoginWhatsapp/>}/>
           <Route path='/tickets/*' element={<TicketdataDash/>}/>
         </Routes>

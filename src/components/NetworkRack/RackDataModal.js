@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { db } from '../../FirebaseConfig';
 
 
-export default function RackDataModal({ show, officename, roomname, closeModal, count }) {
+export default function RackDataModal({ show, officename, closeModal, count }) {
   
 
   const [device, setDevice] = useState('');
@@ -77,7 +77,7 @@ export default function RackDataModal({ show, officename, roomname, closeModal, 
 
 
     // Firebase reference
-    const newRef = ref(db, `Rack Info/${officename}/${roomname}/${count}`);
+    const newRef = ref(db, `Rack Info/${officename}/${count}`);
 
     // Save data to Firebase
     try {
@@ -87,11 +87,11 @@ export default function RackDataModal({ show, officename, roomname, closeModal, 
         closeModal();
       }else if (device === 'Switch') {
         await set(newRef, SwitchData);
-        alert('OLT Added');
+        alert('Switch Added');
         closeModal();
       }else if (device === 'FMS') {
         await set(newRef, FMSData);
-        alert('OLT Added');
+        alert('FMS Added');
         closeModal();
       }
        // Close modal on success
@@ -100,25 +100,13 @@ export default function RackDataModal({ show, officename, roomname, closeModal, 
     }
   };
 
-  // Generate PON structure based on selected range
-  // const generatePonStructure = (range) => {
-  //   const ponCount = parseInt(range, 10);
-  //   const ponData = {};
-  //   for (let i = 0; i < ponCount; i++) {
-  //     ponData[i] = {
-  //       connectedTo: '', 
-  //       connectedPort:'',
-  //       pon:i+1
-  //     };
-  //   }
-  //   return ponData;
-  // };
+
 
   if (!show) return null;
 
   return (
-    <div className='modal-overlay'>
-      <div className='modal-content'>
+    <div className='modal-background'>
+      <div className='modal-data'>
         <div className='d-flex'>
           <h4 style={{ flex: '1' }}>Add Device</h4>
           <button onClick={closeModal} className='btn-close'></button>
@@ -224,7 +212,7 @@ export default function RackDataModal({ show, officename, roomname, closeModal, 
 
               <div className='col-md-12'>
                 <button type='submit' className='btn btn-outline-success'>
-                  Add OLT
+                  Add Device
                 </button>
               </div>
             </>

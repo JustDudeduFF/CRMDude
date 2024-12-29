@@ -6,8 +6,10 @@ import { db } from '../../FirebaseConfig';
 import { isThisMonth, isThisWeek, isToday, subDays, parseISO } from 'date-fns';
 import AssignedLead from './AssignedLead';
 import { Modal } from 'react-bootstrap';
+import { usePermissions } from '../PermissionProvider';
 
 export default function ExpandLeads({ showExpand, closeExpand }) {
+    const { hasPermission} = usePermissions();
     const [arrayData, setArrayData] = useState([]);
     const [filterPeriod, setFilterPeriod] = useState('All Time');
     const [datatype, setDataType] = useState('All');
@@ -245,7 +247,11 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                         <tbody>
                             {filterData.map(({ FirstName, LastName, Mobile, Address, generatedDate, LeadSource, Status, Type, leadID, generatename, assignto }, index) => (
                                 <tr key={index}>
-                                    <td>{new Date(generatedDate).toISOString().split('T')[0]}</td>
+                                    <td>{new Date(generatedDate).toLocaleDateString("en-GB", {
+                                        day:'2-digit',
+                                        month:'short',
+                                        year:'numeric'
+                                    }).replace(",","")}</td>
                                     <td>{`${FirstName} ${LastName}`}</td>
                                     <td>{`"${Mobile}" : "${Address}"`}</td>
                                     <td>{userMap[assignto]}</td>
@@ -254,7 +260,11 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                                     <td>{Status}</td>
                                     <td>
                                         <button onClick={() => {if(Type === 'enquiry'){
-                                            setShowLeadConversation(true); setConvertLeadId(leadID);
+                                            if(hasPermission("CONVERT_TO_LEAD")){
+                                                setShowLeadConversation(true); setConvertLeadId(leadID);
+                                            }else{
+                                                alert("Permission Denied")
+                                            }
                                             } else {
                                                 setShowAssignedLead(true); setLeadID(leadID)
                                             }}} className='btn btn-outline-success me-3'>{Type === 'enquiry' ? 'Convert to Lead' : 'Re-Assign'}</button>

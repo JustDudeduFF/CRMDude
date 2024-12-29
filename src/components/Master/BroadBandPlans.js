@@ -3,11 +3,14 @@ import PlanModal from './PlanModal';
 import { db } from '../../FirebaseConfig';
 import { onValue, ref } from 'firebase/database';
 import { toast } from 'react-toastify';
+import { usePermissions } from '../PermissionProvider';
 
 export default function BroadBandPlans() {
     const [showplanmodal, setShowPlanModal] = useState(false);
     const [arrayplan, setArrayPlan] = useState([]);
     const planRef = ref(db, 'Master/Broadband Plan');
+
+    const {hasPermission} = usePermissions();
 
     useEffect(() => {
         const fetchPlans = onValue(planRef, (planSnap) => {
@@ -52,7 +55,7 @@ export default function BroadBandPlans() {
         <div className='d-flex ms-3 flex-column'>
             <div className='d-flex flex-row'>
                 <h5 style={{ flex: '1' }}>Broadband Plan List</h5>
-                <button onClick={() => setShowPlanModal(true)} className='btn btn-outline-success justify-content-end mb-2'>
+                <button onClick={() => hasPermission("ADD_PLAN") ? setShowPlanModal(true) : alert("Permission Denied")} className='btn btn-outline-success justify-content-end mb-2'>
                     Create New Plan
                 </button>
             </div>

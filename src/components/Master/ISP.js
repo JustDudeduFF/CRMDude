@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react'
 import ISPModal from './ISPModal'
 import { ref, onValue } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
+import { usePermissions } from '../PermissionProvider';
 
 export default function ISP() {
     const [showispmodal, setShowIspModal] = useState(false);
+    const {hasPermission} = usePermissions();
     const [arrayisp, setArrayIsp] = useState([]);
-    const ispRef = ref(db, 'Master/ISPs')
+    const ispRef = ref(db, 'Master/ISPs');
 
 
     useEffect(() => {
@@ -37,7 +39,7 @@ export default function ISP() {
     <div className='d-flex ms-3 flex-column'>
             <div className='d-flex flex-row'>
                 <h5 style={{ flex: '1' }}>ISP - Internet Service Provider List</h5>
-                <button onClick={() => setShowIspModal(true)} className='btn btn-outline-success justify-content-end mb-2'>
+                <button onClick={() => hasPermission("ADD_ISP") ? setShowIspModal(true) : alert("Permission Denied")} className='btn btn-outline-success justify-content-end mb-2'>
                     Add New ISP
                 </button>
             </div>

@@ -4,6 +4,7 @@ import PDF_Icon from './drawables/pdf.png'
 import { BrowserRouter as Router, Routes,Route,Link, useLocation, useNavigate } from 'react-router-dom';
 import ReceiptModify from './ReceiptModify';
 import PaymetTable from './PaymetTable';
+import ProtectedRoute from '../ProtectedRoute'
 
 export default function Cust_PayRecpt() {
   const location = useLocation();
@@ -36,7 +37,7 @@ export default function Cust_PayRecpt() {
     <div style={{flex:'9'}}>
       <Routes>
         <Route path='/' element={<PaymetTable/>}/>
-        <Route path='collect' element={<ReceiptModify/>}/>
+        <Route path='collect' element={<ProtectedRoute permission="COLLECT_PAYMENT"><ReceiptModify/></ProtectedRoute>}/>
         <Route path='modify' element={<ReceiptModify/>}/>
       </Routes>
     </div>

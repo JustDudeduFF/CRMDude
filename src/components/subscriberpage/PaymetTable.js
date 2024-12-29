@@ -5,9 +5,11 @@ import { db } from '../../FirebaseConfig';
 import { Modal, Button } from 'react-bootstrap'; // Import Bootstrap components
 import { jsPDF } from "jspdf"; // Import jsPDF
 import autoTable from 'jspdf-autotable';
+import { usePermissions } from '../PermissionProvider';
 
 export default function PaymetTable() {
   const location = useLocation();
+  const {hasPermission} = usePermissions();
   const {userid} = location.state || {};
   const [arraypayment, setArrayPayment] = useState([]);
   const [selectedPayment, setSelectedPayment] = useState(null); // State to hold selected payment
@@ -172,9 +174,14 @@ export default function PaymetTable() {
       alert(`That Receipt is authorized it could not be modified`)
       return;
     }
-    setSelectedPayment(currentPayment); // Set the selected payment for editing
-    setIsModalOpen(true); // Open the edit modal
-    setShowOptionsModal(false); // Close the options modal
+    if(hasPermission("EDIT_PAYMENT")){
+      setSelectedPayment(currentPayment); // Set the selected payment for editing
+      setIsModalOpen(true); // Open the edit modal
+      setShowOptionsModal(false); // Close the options modal
+    }else{
+      alert("Permission Denied");
+      setShowOptionsModal(false);
+    }
   };
 
   const handleDownloadInvoice = () => {
@@ -379,7 +386,13 @@ export default function PaymetTable() {
           <Modal.Title>Options for Receipt No: {currentPayment?.receiptNo}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Button className='mb-2 ms-2' variant="primary" onClick={handleDownloadInvoice}>
+          <Button className='mb-2 ms-2' variant="primary" onClick={() => {
+            if(hasPermission("DOWNLOAD_INVOICE")){
+              handleDownloadInvoice();
+            }else{
+              alert("Permission Denied")
+            }
+          }}>
             Download Invoice
           </Button>
           <Button className='mb-2 ms-2' variant="secondary" onClick={handleShareInvoice}>

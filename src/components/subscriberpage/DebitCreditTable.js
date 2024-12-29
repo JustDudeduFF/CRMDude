@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes,Route,Link } from 'react-router-dom';
 import DebitCreditsTable from './DebitCreditsTable';
 import CreateNote from './CreateNote';
 import ModDCNote from './ModDCNote';
+import ProtectedRoute from '../ProtectedRoute';
 
 export default function DebitCreditTable() {
   return (
@@ -26,8 +27,8 @@ export default function DebitCreditTable() {
         <div style={{flex:'10'}}>
             <Routes>
                 <Route path='/' element={<DebitCreditsTable/>}/>
-                <Route path='add_dnotes' element={<CreateNote notety={"danger"}/>}/>
-                <Route path='add_cnotes' element={<CreateNote notety={"success"}/>}/>
+                <Route path='add_dnotes' element={<ProtectedRoute permission="CREATE_CREDIT"><CreateNote notety={"danger"}/></ProtectedRoute>}/>
+                <Route path='add_cnotes' element={<ProtectedRoute permission="CREATE_DEBIT"><CreateNote notety={"success"}/></ProtectedRoute>}/>
                 <Route path='modnote' element={<ModDCNote/>}/>
                 
             </Routes>

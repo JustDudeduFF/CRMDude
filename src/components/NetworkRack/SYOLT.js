@@ -4,9 +4,10 @@ import { Modal, Button } from 'react-bootstrap'
 import EthernetPort from './drawables/ethernet.png'
 import { get, onValue, ref, set } from 'firebase/database'
 import { db } from '../../FirebaseConfig'
+import { usePermissions } from '../PermissionProvider'
 
-const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) => {
-
+const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename}) => {
+  const {hasPermission} = usePermissions();
   
 
 
@@ -56,26 +57,38 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
     // Handle right-click on PON
     const handlePONRightClick = (e, index) => {
       e.preventDefault(); // Prevent the default right-click menu
-      setSelectedPON(index + 1); // Set the selected PON (index starts from 1)
-      setShowModal(true); // Show the modal
+      if(hasPermission("UPDATE_RACK")){
+        setSelectedPON(index + 1); // Set the selected PON (index starts from 1)
+        setShowModal(true);
+      } else{
+        alert("Permission Denied")
+      }
     };
 
     // Handle right-click on Ethernet
     const handleETHRightClick = (e, index) => {
       e.preventDefault(); // Prevent the default right-click menu
-      setSelectedEth(index + 1); // Set the selected PON (index starts from 1)
-      setShowModal3(true); // Show the modal
+      if(hasPermission("UPDATE_RACK")){
+        setSelectedEth(index + 1); // Set the selected PON (index starts from 1)
+        setShowModal3(true);
+      }else{
+        alert("Permission Denied")
+      } // Show the modal
     };
 
     //Handle Right Click on SFP
     const handleSFPRightClick = (e, index) => {
       e.preventDefault(); // Prevent the default right-click menu
-      setSelectedSFP(index + 1); // Set the selected PON (index starts from 1)
-      setShowModal2(true); // Show the modal
+      if(hasPermission("UPDATE_RACK")){
+        setSelectedSFP(index + 1); // Set the selected PON (index starts from 1)
+        setShowModal2(true);
+      }else{
+        alert("Permisison Denide")
+      } // Show the modal
     };
 
     const saveETHDetails = async () => {
-      const FmsRef = ref(db, `Rack Info/${officename}/${roomname}/${fmskey}/Ethernet/${ethDetails.connectedPort}`);
+      const FmsRef = ref(db, `Rack Info/${officename}/${fmskey}/Ethernet/${ethDetails.connectedPort}`);
       const oltPort = {
         connectedTo : fmskey,
         connectedPort: ethDetails.connectedPort,
@@ -99,8 +112,8 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
         }else{
           try{
             
-            await set(ref(db,  `Rack Info/${officename}/${roomname}/${deviceIndex}/Ethernet/${selectedEth}`), oltPort);
-            await set(ref(db,  `Rack Info/${officename}/${roomname}/${fmskey}/Ethernet/${ethDetails.connectedPort}`), FmsPort);
+            await set(ref(db,  `Rack Info/${officename}/${deviceIndex}/Ethernet/${selectedEth}`), oltPort);
+            await set(ref(db,  `Rack Info/${officename}/${fmskey}/Ethernet/${ethDetails.connectedPort}`), FmsPort);
             setShowModal(false);
             alert(`Ethernet ${selectedEth} Details are Saved to Device ID ${fmskey} on Port ${ethDetails.connectedPort}`);
   
@@ -115,9 +128,9 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
     const saveSFPDetails = async () => {
       let FmsRef = '';
       if (deviceselect === 'FMS'){
-        FmsRef = ref(db, `Rack Info/${officename}/${roomname}/${fmskey}/Ports/${sfpDetails.connectedPort}`);
+        FmsRef = ref(db, `Rack Info/${officename}/${fmskey}/Ports/${sfpDetails.connectedPort}`);
       }else{
-        FmsRef = ref(db, `Rack Info/${officename}/${roomname}/${fmskey}/SFPs/${sfpDetails.connectedPort}`);
+        FmsRef = ref(db, `Rack Info/${officename}/${fmskey}/SFPs/${sfpDetails.connectedPort}`);
       }
       const oltPort = {
         connectedTo : fmskey,
@@ -144,7 +157,7 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
         }else{
           try{
             
-            await set(ref(db,  `Rack Info/${officename}/${roomname}/${deviceIndex}/SFPs/${selectedSFP}`), oltPort);
+            await set(ref(db,  `Rack Info/${officename}/${deviceIndex}/SFPs/${selectedSFP}`), oltPort);
             await set(FmsRef, FmsPort);
             setShowModal(false);
             alert(`SFP ${selectedSFP} Details are Saved to Device/FMS ID ${fmskey} on Port ${sfpDetails.connectedPort}`);
@@ -159,7 +172,7 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
 
     // Handle form submission to save PON details
     const savePONDetails = async() => {
-     const FmsRef = ref(db, `Rack Info/${officename}/${roomname}/${fmskey}/Ports/${ponDetails.connectedPort}`);
+     const FmsRef = ref(db, `Rack Info/${officename}/${fmskey}/Ports/${ponDetails.connectedPort}`);
 
      
 
@@ -187,8 +200,8 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
       }else{
         try{
           
-          await set(ref(db,  `Rack Info/${officename}/${roomname}/${deviceIndex}/PONs/${selectedPON}`), oltPort);
-          await set(ref(db,  `Rack Info/${officename}/${roomname}/${fmskey}/Ports/${ponDetails.connectedPort}`), FmsPort);
+          await set(ref(db,  `Rack Info/${officename}/${deviceIndex}/PONs/${selectedPON}`), oltPort);
+          await set(ref(db,  `Rack Info/${officename}/${fmskey}/Ports/${ponDetails.connectedPort}`), FmsPort);
           setShowModal(false);
           alert(`Pon ${selectedPON} Details are Saved to fms ID ${fmskey} on Port ${ponDetails.connectedPort}`);
 
@@ -202,7 +215,7 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
 
     useEffect(() => {
       
-        const RackRef = ref(db, `Rack Info/${officename}/${roomname}`);
+        const RackRef = ref(db, `Rack Info/${officename}`);
         // Setup the real-time listener
         const unsubscribe = onValue(RackRef, (snapshots) => {
           if (snapshots.exists()) {
@@ -258,13 +271,13 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
         // Cleanup the listener when component unmounts or `show` changes
         return () => unsubscribe();
       
-    }, [ officename, roomname]);
+    }, [officename]);
 
 
     useEffect(() => {
       const fetchData = async () => {
         try {
-          const portsRef = ref(db, `Rack Info/${officename}/${roomname}/${deviceIndex}`);
+          const portsRef = ref(db, `Rack Info/${officename}/${deviceIndex}`);
           const snapshot = await get(portsRef);
           
           if (snapshot.exists()) {
@@ -289,7 +302,7 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
       };
     
       fetchData();
-    }, [officename, roomname, deviceIndex, PON_RANGE, SFP_RANGE, ETHERNET_RANGE]);
+    }, [officename, deviceIndex, PON_RANGE, SFP_RANGE, ETHERNET_RANGE]);
     
 
     if (!show) return null
@@ -469,7 +482,7 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
         </Modal.Header>
         
         
-          <form>
+          <form className='p-2'>
             <div className="mb-3">
               <label className="form-label">Connected To</label>
               <select onChange={(e) => {
@@ -531,7 +544,7 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
         </Modal.Header>
         
         
-          <form>
+          <form className='p-2'>
             <div className='mb-3'>
               <label className='form-label'>Connected Device</label>
               <select onChange={(e) => {
@@ -636,7 +649,7 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename, roomname}) =
         </Modal.Header>
         
         
-          <form>
+          <form className='p-2'>
             <div className='mb-3'>
               <label className='form-label'>Connected Device</label>
               <select onChange={(e) => {

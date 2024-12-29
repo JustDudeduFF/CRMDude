@@ -60,6 +60,7 @@ export default function NewEmployee() {
         CREATE_TICKET: false,
         CLOSE_TICKET: false,
         REASSING_TICKET: false,
+        ROLLBACK_PLAN: false,
         
       });
   
@@ -647,6 +648,11 @@ export default function NewEmployee() {
                   <div className='form-check form-check-inline col-md-2'>
                     <input name='REASSING_TICKET' onChange={handleCustomerIndividualChange} checked={customerpermission.REASSING_TICKET} className='form-check-input' type='checkbox' id='reassignticket' ></input>
                     <label className='form-check-label' for='reassignticket'>Re-Assign Ticket</label>
+                  </div>
+
+                  <div className='form-check form-check-inline col-md-2'>
+                    <input name='ROLLBACK_PLAN' onChange={handleCustomerIndividualChange} checked={customerpermission.ROLLBACK_PLAN} className='form-check-input' type='checkbox' id='rollbackplan' ></input>
+                    <label className='form-check-label' for='rollbackplan'>Plan Rollback</label>
                   </div>
 
                   

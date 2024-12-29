@@ -18,6 +18,7 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
     const [remarks, setRemarks] = useState('');
     const [planName, setPlanName] = useState('');
     const [isp, setIsp] = useState('');
+    const [bandwidth, setBandwidth] = useState('');
 
 
     //Customer Personal Information
@@ -45,7 +46,8 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
                     const planAmount = childs.val().planamount;
                     const planPeriod = childs.val().planperiod;
                     const periodTime = childs.val().periodtime;
-                    planArray.push({planName, planAmount, planPeriod, periodTime});
+                    const bandwidth = childs.val().bandwidth;
+                    planArray.push({planName, planAmount, planPeriod, periodTime, bandwidth});
                 });
                 setArrayPlan(planArray);
             }
@@ -100,13 +102,14 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
         const planinfo ={
             compeletedate: new Date().toISOString().split('T')[0],
             planName: planName,
-            planAmount: parseInt(customecharge, 10) || parseInt(planamount, 10),
+            planAmount: parseInt(customecharge, 10).toString() || parseInt(planamount, 10).toString(),
             isp: isp,
             activationDate: activationDate,
             expiryDate: expirydate,
             action: 'Plan Change',
             completedby: localStorage.getItem('Name'),
-            remarks: remarks
+            remarks: remarks,
+            bandwidth: `${bandwidth} Mbps`
           }
 
           const newconnectioninfo = {
@@ -114,19 +117,23 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
             expiryDate: expirydate,
             planAmount: parseInt(customecharge, 10) || parseInt(planamount, 10),
             dueAmount: newDue,
-            planName: planName
+            planName: planName,
+            bandwidth: `${bandwidth} Mbps`,
+            isp: isp
           }
 
           const emailData = {
-            to: "justdudehere@gmail.com",
+            to: mailId,
             subject: 'Broadband Subscription Renwal',
-            text: `Dear ${fullName}, \nYour plan has been renewed successfully.\n\nYour new plan will be active from ${activationDate} to ${expirydate}.\n\nYour Current Due Amount is ₹${newDue}.\n\nThank you for your business.\nRegards,\nSigma Business Solutions`,
+            text: `🌐 Broadband Recharge Successful! 🎉\n\nDear ${fullName},\n\n✅ Your broadband recharge for ${planName} has been successfully completed.\n\n💳 *Amount Paid:* ₹${planamount}\n📅 *Validity:* ${new Date(activationDate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})} to ${new Date(expirydate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})}\n🚀 *Speed:* Up to ${bandwidth} Mbps\n\nThank you for choosing *Sigma Business Solutions*! 😊\n\n✨ Enjoy uninterrupted browsing and streaming! 🎬📱\n\nFor support or queries, feel free to reach out to us:\n📞 *Customer Care:* 9999118971\n💬 *WhatsApp Support:* 9999118971    *24x7*\n\nStay connected, stay happy! 🌟`
         }
 
           const sendMessage = async() => {
-            const responsewhatsapp = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${fullName},\n  Your Plan ${planName} for ₹${planamount}  Recharge Successfully for period of  ${activationDate} to ${expirydate} thanks for being with us. For any query call (9999118971) SIGMA BUSINESS SOLUTIONS or Download app (customer.sigmaetworks.in). `);
-            const responsemail = await axios.post('https://finer-chimp-heavily.ngrok-free.app/sendmail', emailData);
-            alert(`Plan Is Changed Succesfully!`)
+            const message = `🌐 Broadband Recharge Successful! 🎉\n\nDear ${fullName},\n\n✅ Your broadband recharge for ${planName} has been successfully completed.\n\n💳 *Amount Paid:* ₹${planamount}\n📅 *Validity:* ${new Date(activationDate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})} to ${new Date(expirydate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})}\n🚀 *Speed:* Up to ${bandwidth} Mbps\n\nThank you for choosing *Sigma Business Solutions*! 😊\n\n✨ Enjoy uninterrupted browsing and streaming! 🎬📱\n\nFor support or queries, feel free to reach out to us:\n📞 *Customer Care:* 9999118971\n💬 *WhatsApp Support:* 9999118971    *24x7*\n\nStay connected, stay happy! 🌟`
+            const encodedMessage = encodeURIComponent(message);
+            await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${mobile}&message=${encodedMessage}`);
+            alert(`Plan Is Changed Succesfully!`);
+            await axios.post('https://finer-chimp-heavily.ngrok-free.app/sendmail', emailData);
           }
 
         if(planName === '' || planamount === ''){
@@ -189,9 +196,11 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
                                 setPlanAmount(selectedObj.planAmount);
                                 const periodtime = selectedObj.periodTime;
                                 const periodtyp = selectedObj.planPeriod;
+                                const bandwidth = selectedObj.bandwidth;
 
                                 setPeriodPlan(periodtyp);
                                 setTimePeriod(periodtime);
+                                setBandwidth(bandwidth);
 
                                 updateExpirationDate(activationDate, periodtime, periodtyp);
                             } else {

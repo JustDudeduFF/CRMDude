@@ -4,11 +4,13 @@ import { ref, onValue, set } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { toast, ToastContainer } from 'react-toastify';
+import { usePermissions } from '../PermissionProvider';
 
 export default function Company() {
 
     const [showModal, setShowModal] = useState(false);
     const [showGlobalCompany, setShowGlobalCompany] = useState(false);
+    const {hasPermission} = usePermissions();
 
     const [companyDetails, setCompanyDetails] = useState({
         companyname: '',
@@ -77,7 +79,7 @@ export default function Company() {
         <div className='d-flex flex-row'>
             <h5 style={{flex:'1'}}>Company company Location and Address</h5>
             <button onClick={() => setShowGlobalCompany(true)} className='btn btn-outline-primary me-2'>Global Company</button>
-            <button onClick={() => setShowModal(true)} className='btn btn-outline-success'>Add New company</button>
+            <button onClick={() => hasPermission("ADD_COMPANY") ? setShowModal(true) : alert("Permission Denied")} className='btn btn-outline-success'>Add New company</button>
 
         </div>
         <ToastContainer/>

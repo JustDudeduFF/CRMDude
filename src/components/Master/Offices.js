@@ -3,11 +3,12 @@ import OfficeModal from './OfficeModal'
 import { ref, onValue } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
 import { toast, ToastContainer } from 'react-toastify';
+import { usePermissions } from '../PermissionProvider';
 
 export default function Offices() {
 
     const [showModal, setShowModal] = useState(false);
-
+    const {hasPermission} = usePermissions();
     const [arrayoffice, setArrayOffice] = useState([]);
     const officeRef = ref(db, 'Master/Offices')
 
@@ -46,7 +47,7 @@ export default function Offices() {
     <div className='d-flex flex-column ms-3'>
         <div className='d-flex flex-row'>
             <h5 style={{flex:'1'}}>Company Office Location and Address</h5>
-            <button onClick={() => setShowModal(true)} className='btn btn-outline-success justify-content-right'>Add New Office</button>
+            <button onClick={() => hasPermission("ADD_OFFICE") ? setShowModal(true) : alert("Permission Denied")} className='btn btn-outline-success justify-content-right'>Add New Office</button>
 
         </div>
         <ToastContainer/>

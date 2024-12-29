@@ -13,10 +13,12 @@ import ExpandTickets from './ExpandTickets'
 import ExpandRevenue from './ExpandRevenue'
 import { useNavigate } from 'react-router-dom';
 import DashSecDiv from './DashSecDiv';
+import { usePermissions } from './PermissionProvider'
 
 export default function DashFirstDiv() {
     const navigate = useNavigate();
     const user = localStorage.getItem('Designation');
+    const {hasPermission} = usePermissions();
 
     const [openticktes, setOpenTickets] = useState(0);
     const [unassignedtickets, setUnassignedTickets] = useState(0);
@@ -144,11 +146,7 @@ export default function DashFirstDiv() {
 
     useEffect(() => {
         setIsLoading(true);
-        if(user === 'Admin' || user === 'Accounts' || user === 'SuperAdmin'){
-            setIsAdmin(true);
-        }else{
-            setIsAdmin(false);
-        }
+        
 
         const leadRef = ref(db, 'Leadmanagment');
         onValue(leadRef, (leadSnap) => {
@@ -529,7 +527,7 @@ export default function DashFirstDiv() {
                 <div style={{width: '100%', display:'flex', flexDirection: 'column', marginTop: '4%', padding: '20px'}}>
                 <div style={{display: 'flex', flexDirection: 'row', width: '100%'}}>
                     {
-                        isAdmin ? (
+                        hasPermission("VIEW_ATTENDENCE") ? (
                             <div style={{ borderRadius: '5px', border: '1px solid gray', flex:'1'}}>
                                 <img onClick={() => openPayroll()} alt='' style={{width:'20px', height:'20px',float:'right', marginTop:'5px', marginRight:'8px', cursor:'pointer'}} src={ExpandIcon}></img>
                                 <h3 style={{marginLeft: '10px'}}>Daily Attendence Logs</h3>

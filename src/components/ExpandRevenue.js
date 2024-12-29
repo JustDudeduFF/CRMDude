@@ -6,8 +6,10 @@ import { onValue, ref, update } from 'firebase/database';
 import { db } from '../FirebaseConfig';
 import LockIcon from './subscriberpage/drawables/lock.png';
 import { isThisMonth, isThisWeek, isToday, subDays, parseISO } from 'date-fns';
+import { usePermissions } from './PermissionProvider';
 
 export default function ExpandRevenue({ show, modalShow }) {
+  const {hasPermission} = usePermissions();
   const [arrayData, setArrayData] = useState([]);
   const [filteredArray, setFilteredArray] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]); // State for selected rows
@@ -115,22 +117,26 @@ export default function ExpandRevenue({ show, modalShow }) {
   
   const handleAuthorize = async (e) => {
     e.preventDefault();
-    try {
-      for (let receipt of selectedRows) {
-        const userId = receipt.UserID;
-        const receiptno = receipt.ReceiptNo; // Assuming the ReceiptNo is stored in each receipt
-        const userRef = ref(db, `Subscriber/${userId}/payments/${receiptno}`);
-
-        await update(userRef, {
-          authorized: true, // Add `authorized: true` key to the user's node
-        });
+    if(hasPermission("PAYMENT_AUTHORIZATION")){
+      try {
+        for (let receipt of selectedRows) {
+          const userId = receipt.UserID;
+          const receiptno = receipt.ReceiptNo; // Assuming the ReceiptNo is stored in each receipt
+          const userRef = ref(db, `Subscriber/${userId}/payments/${receiptno}`);
+  
+          await update(userRef, {
+            authorized: true, // Add `authorized: true` key to the user's node
+          });
+        }
+  
+        // Optionally clear the selected rows after authorization
+        setSelectedRows([]);
+      } catch (error) {
+        console.error("Error authorizing users:", error);
+        alert("There was an error authorizing the selected rows.");
       }
-
-      // Optionally clear the selected rows after authorization
-      setSelectedRows([]);
-    } catch (error) {
-      console.error("Error authorizing users:", error);
-      alert("There was an error authorizing the selected rows.");
+    }else{
+      alert("Permission Denied");
     }
   };
 

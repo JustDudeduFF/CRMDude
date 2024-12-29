@@ -5,6 +5,7 @@ import PDF_Icon from './drawables/pdf.png'
 import InventorysTable from './InventorysTable';
 import AddInvetory from './AddInvetory';
 import InventryModify from './InventryModify';
+import ProtectedRoute from '../ProtectedRoute';
 
 
 export default function InventoryTable() {
@@ -27,8 +28,8 @@ export default function InventoryTable() {
         <div style={{flex:'10'}}>
             <Routes>
                 <Route path='/' element={<InventorysTable/>}/>
-                <Route path='addproduct' element={<AddInvetory/>}/> 
-                <Route path='modinvent' element={<InventryModify/>}/>
+                <Route path='addproduct' element={<ProtectedRoute permission="ADD_DEVICE"><AddInvetory/></ProtectedRoute>}/> 
+                <Route path='modinvent' element={<ProtectedRoute permission="CHANGE_DEVICE"><InventryModify/></ProtectedRoute>}/>
             </Routes>
         </div>
         </>

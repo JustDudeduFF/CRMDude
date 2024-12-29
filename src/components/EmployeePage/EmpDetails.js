@@ -3,7 +3,7 @@ import { db } from '../../FirebaseConfig';
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
-import EmpDash from './EmpDash';
+
 
 export default function EmpDetails() {
     const location = useLocation();
@@ -55,6 +55,7 @@ export default function EmpDetails() {
       CREATE_TICKET: false,
       CLOSE_TICKET: false,
       REASSING_TICKET: false,
+      ROLLBACK_PLAN: false
       
     });
 
@@ -365,6 +366,7 @@ export default function EmpDetails() {
                     CREATE_TICKET: userData.customerpermission?.CREATE_TICKET || false,
                     CLOSE_TICKET: userData.customerpermission?.CLOSE_TICKET || false,
                     REASSING_TICKET: userData.customerpermission?.REASSING_TICKET || false,
+                    ROLLBACK_PLAN: userData.customerpermission?.ROLLBACK_PLAN || false
                   });
 
                   setMasterPermission({
@@ -522,7 +524,16 @@ export default function EmpDetails() {
     const handleSave = async () => {
       const userRef = ref(db, `users/${empData.MOBILE}`);
         await update(userRef, allData).then(() => {
-          alert("User Added Succesfully")
+          setIsEditing(false);
+          toast.success('User Data Updated Succesfully', {
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: false,
+            progress: undefined,
+          });
+    
         });
     };
 
@@ -769,6 +780,11 @@ export default function EmpDetails() {
                   <div className='form-check form-check-inline col-md-2'>
                     <input name='REASSING_TICKET' onChange={handleCustomerIndividualChange} checked={customerpermission.REASSING_TICKET} className='form-check-input' type='checkbox' id='reassignticket' disabled={!isEditing}></input>
                     <label className='form-check-label' for='reassignticket'>Re-Assign Ticket</label>
+                  </div>
+
+                  <div className='form-check form-check-inline col-md-2'>
+                    <input name='ROLLBACK_PLAN' onChange={handleCustomerIndividualChange} checked={customerpermission.ROLLBACK_PLAN} className='form-check-input' type='checkbox' id='rollbackplan'disabled={!isEditing} ></input>
+                    <label className='form-check-label' for='rollbackplan'>Plan Rollback</label>
                   </div>
 
                   

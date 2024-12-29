@@ -42,11 +42,6 @@ export default function NewUserAdd() {
   const [connectionPowerInfo, setConnectionPowerInfo] = useState("");
   const [category, setCategory] = useState('');
 
-  // Field & Fiber Details
-  const [connectedFMS, setConnectedFMS] = useState("");
-  const [connectedPortNo, setConnectedPortNo] = useState("");
-  const [uniqueJCNo, setUniqueJCNo] = useState("");
-  const [fiberCoreNo, setFiberCoreNo] = useState("");
 
 
   // Documents
@@ -360,12 +355,6 @@ export default function NewUserAdd() {
             deviceMaker,
             deviceSerialNumber,
             connectionPowerInfo,
-          },
-          fieldFiberDetails: {
-            connectedFMS,
-            connectedPortNo,
-            uniqueJCNo,
-            fiberCoreNo,
           },
           documents: {
             addressProof: {
@@ -879,134 +868,6 @@ export default function NewUserAdd() {
       </form>
       </div>
 
-{/* Field Details Section */}
-      <h3 style={{marginLeft: '20px', marginTop: '10px'}}>Field & Fiber Details</h3>
-      <div style={{padding: '10px', borderRadius: '5px', boxShadow:'0 0 10px skyblue', margin: '10px'}} className="UserInfo">
-      <form className="row g-3 needs-validation" noValidate>
-        <div className="col-md-3">
-          <label htmlFor="validationCustom04" className="form-label">
-            Connected FMS  
-          </label>
-          <select onChange={(e) => {
-            const selectfms = e.target.value;
-
-            setConnectedFMS(selectfms);
-
-
-            const selectedFMSObj = arrayfms.find(fms => fms.fmsname === selectfms);
-            if(selectedFMSObj){
-              setMaxPort(selectedFMSObj.fmsmaxport);
-            }else{
-              setMaxPort(0)
-            }
-
-          }} className="form-select" id="validationCustom04" required>s
-            <option value="">  
-              Choose...
-            </option>
-            {
-              arrayfms.length > 0 ? (
-                arrayfms.map((fms, index) => (
-                  <option key={index} value={fms.fmsname}>{fms.fmsname}</option>
-                ))
-              ) : (
-                <option value=''>No FMS Available</option>
-              )
-            }
-          </select>
-          <div className="invalid-feedback">Please select a valid state.</div>
-          
-        </div><br></br>
-      
-        <div className="col-md-2">
-          <label htmlFor="validationCustom01" className="form-label">
-            Connected Port No.
-          </label>
-          <div className="input-group has-validation">
-            <input
-            onChange={(e) =>{
-              const selectport = e.target.value;
-
-              if(selectport > +maxport){
-                toast.error('Port No. Not Found!', {
-                  autoClose: 2000,
-                  hideProgressBar: false,
-                  closeOnClick: true,
-                  pauseOnHover: false,
-                  draggable: true,
-                  progress: undefined,
-                });
-                setConnectedPortNo(0);
-                
-              }else{
-                setConnectedPortNo(selectport);
-              }
-            }}
-            
-              type="number"
-              className="form-control"
-              
-              aria-describedby="inputGroupPrepend"
-              required
-            ></input>
-            
-            </div>
-          <div className="valid-feedback">Looks good!</div>
-        </div>
-
-        <div className="col-md-2">
-          <label  className="form-label">
-            Connection Power Info
-          </label>
-          <select onChange={(e) => setConnectionPowerInfo(e.target.value)} className="form-select" id="validationCustom04" required>s
-            <option value="">  
-              Choose...
-            </option>
-            <option>Huawei OLT</option>
-            <option>Syrotech OLT</option>
-            <option>Secureye OLT</option>
-            <option>Richardlink OLT</option>
-          </select>
-          </div>
-
-          <div className="col-md-2">
-          <label htmlFor="validationCustom01" className="form-label">
-            Unique JC No.
-          </label>
-          <div className="input-group has-validation">
-            <input
-            onChange={(e) => setUniqueJCNo(e.target.value)}
-              type="text"
-              className="form-control"
-              
-              aria-describedby="inputGroupPrepend"
-              required
-            ></input>
-            
-            </div>
-          <div className="valid-feedback">Looks good!</div>
-        </div>
-
-        <div className="col-md-2">
-          <label htmlFor="validationCustom01" className="form-label">
-            Fiber Core No.
-          </label>
-          <div className="input-group has-validation">
-            <input
-            onChange={(e) => setFiberCoreNo(e.target.value)}
-              maxLength={1}
-              type="numbers"
-              className="form-control"
-              
-              aria-describedby="inputGroupPrepend"
-              required
-            ></input>
-            {/*Create Documents Upload Section  */}
-            </div>
-          <div className="valid-feedback">Looks good!</div>
-        </div>
-      </form>
-      </div>
 
 
 

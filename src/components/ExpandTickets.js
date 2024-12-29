@@ -7,9 +7,11 @@ import ExcelIcon from './subscriberpage/drawables/xls.png';
 import { isThisMonth, isThisWeek, isToday, subDays, parseISO } from 'date-fns';
 import SmallModal from './SmallModal'
 import CloseTicketModal from './CloseTicketModal';
+import { usePermissions } from './PermissionProvider';
 
 
 const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
+    const {hasPermission} = usePermissions();
     const [heading, setHeading] = useState('');
     const [arrayData, setArrayData] = useState([]);
     const [filterPeriod, setFilterPeriod] = useState('All Time');
@@ -236,8 +238,12 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                     <td>
                                         <button
                                             onClick={() => {
-                                                setShowSmallModal(true);
-                                                setTicketno({ Ticketno, subsID, Concern });
+                                                if(hasPermission("REASSING_TICKET")){
+                                                    setShowSmallModal(true);
+                                                    setTicketno({ Ticketno, subsID, Concern });
+                                                }else{
+                                                    alert("Permission Denied");
+                                                }
                                             }}
                                             className='btn btn-outline-success me-3'
                                             disabled={Status === 'Completed'}
@@ -246,8 +252,12 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                         </button>
                                         <button
                                             onClick={() => {
-                                                setTicketCloseModal(true);
-                                                setTicketno({ Ticketno, subsID, Concern });
+                                                if(hasPermission("CLOSE_TICKET")){
+                                                    setTicketCloseModal(true);
+                                                    setTicketno({ Ticketno, subsID, Concern });
+                                                }else{
+                                                    alert("Permission Denied");
+                                                }
                                             }}
                                             className='btn btn-danger'
                                             disabled={Status === 'Completed'}

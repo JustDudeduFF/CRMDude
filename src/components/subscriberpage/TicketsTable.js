@@ -5,6 +5,7 @@ import PDF_Icon from './drawables/pdf.png'
 import TicketTable from './TicketTable';
 import NewTicket from './NewTicket';
 import ModifyTicket from './ModifyTicket';
+import ProtectedRoute from '../ProtectedRoute';
 
 export default function TicketsTable() {
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ export default function TicketsTable() {
         <div style={{flex:'10'}}>
             <Routes>
                 <Route path='/' element={<TicketTable/>}/>
-                <Route path='newticket' element={<NewTicket/>}/>
+                <Route path='newticket' element={<ProtectedRoute permission="CREATE_TICKET"><NewTicket/></ProtectedRoute>}/>
                 <Route path='modifyticket' element={<ModifyTicket/>}/>
             </Routes>
         </div>

@@ -3,11 +3,12 @@ import DesignationModal from './DesignationModal';
 import { ref, onValue } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
 import { toast, ToastContainer } from 'react-toastify';
+import { usePermissions } from '../PermissionProvider';
 
 export default function Designation() {
 
     const [showModal, setShowModal] = useState(false);
-
+    const {hasPermission} = usePermissions();
     const [arraydesignation, setArraydesignation] = useState([]);
     const designationRef = ref(db, 'Master/Designations')
 
@@ -44,7 +45,7 @@ export default function Designation() {
     <div className='d-flex flex-column ms-3'>
         <div className='d-flex flex-row'>
             <h5 style={{flex:'1'}}>Company designation Location and Address</h5>
-            <button onClick={() => setShowModal(true)} className='btn btn-outline-success justify-content-right'>Add New designation</button>
+            <button onClick={() => hasPermission("ADD_DESIGNATION") ? setShowModal(true) : alert("Permission Denied")} className='btn btn-outline-success justify-content-right'>Add New designation</button>
 
         </div>
         <ToastContainer/>

@@ -13,13 +13,12 @@ import SubscriberDetails from './SubscriberDetails';
 import SubscriberLogs from './SubscriberLogs';
 import { ProgressBar } from 'react-loader-spinner';
 import axios from 'axios';
-
-
 import { db } from '../../FirebaseConfig'
 import { ref, get, set, update, onValue } from 'firebase/database'
 import RenewalModal from './RenewalModal';
 import PlanChangeModal from './PlanChangeModal';
 import { toast, ToastContainer } from 'react-toastify';
+import { usePermissions } from '../PermissionProvider';
 
 
 
@@ -27,16 +26,20 @@ import { toast, ToastContainer } from 'react-toastify';
 
 
 export default function Subscriber() {
+    const { hasPermission } = usePermissions();
 
     const username = localStorage.getItem('susbsUserid');
 
     const navigate = useNavigate();
+   
 
       //Use States For Fill All Details
 
   const [company, setCompany] = useState("");
   const [userid, setUserID] = useState('');
   const [fullName, setFullName] = useState("");
+
+
 
 
 
@@ -64,6 +67,7 @@ export default function Subscriber() {
   const [contact, setContact] = useState('');
 
   const [renew, setRenew] = useState(false);
+  const [bandwidth, setBandwidth] = useState('');
   const planrenewal = localStorage.getItem('planrenewal');
   const changeplan = localStorage.getItem('changeplan');
 
@@ -149,7 +153,8 @@ export default function Subscriber() {
             activationDate: renewactdate,
             expiryDate: expdate,
             planAmount: parseInt(customesharge, 10) || parseInt(planAmount, 10),
-            dueAmount: newDue
+            dueAmount: newDue,
+            bandwidth: bandwidth
           }
           console.log(newDue);
 
@@ -159,9 +164,9 @@ export default function Subscriber() {
 
         await update(planRef, newconnectioninfo).then(() => {
             const emailData = {
-                to: "justdudehere@gmail.com",
+                to: userEmail,
                 subject: 'Broadband Subscription Renwal',
-                text: `Dear ${fullName}, \nYour plan has been renewed successfully.\n\nYour new plan will be active from ${renewactdate} to ${expdate}.\n\nYour Current Due Amount is ₹${newDue}.\n\nThank you for your business.\nRegards,\nSigma Business Solutions`,
+                text: `🌐 Broadband Recharge Successful! 🎉\n\nDear ${fullName},\n\n✅ Your broadband recharge for ${planName} has been successfully completed.\n\n💳 *Amount Paid:* ₹${planAmount}\n📅 *Validity:* ${new Date(renewactdate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})} to ${new Date(expdate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})}\n🚀 *Speed:* Up to ${bandwidth} Mbps\n\nThank you for choosing *Sigma Business Solutions*! 😊\n\n✨ Enjoy uninterrupted browsing and streaming! 🎬📱\n\nFor support or queries, feel free to reach out to us:\n📞 *Customer Care:* 9999118971\n💬 *WhatsApp Support:* 9999118971    *24x7*\n\nStay connected, stay happy! 🌟`
             }
 
            
@@ -171,8 +176,10 @@ export default function Subscriber() {
             }
 
             const sendWhatsapp = async () => {
-                const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${9266125445}&message=Dear ${fullName},\n  Your Plan ${planName} for ₹${planAmount}  Recharge Successfully for period of  ${renewactdate} to ${expdate} thanks for being with us. For any query call (9999118971) SIGMA BUSINESS SOLUTIONS or Download app (customer.sigmaetworks.in). `);
-                console.log(response.data.status);
+                const message = `🌐 Broadband Recharge Successful! 🎉\n\nDear ${fullName},\n\n✅ Your broadband recharge for ${planName} has been successfully completed.\n\n💳 *Amount Paid:* ₹${planAmount}\n📅 *Validity:* ${new Date(renewactdate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})} to ${new Date(expdate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})}\n🚀 *Speed:* Up to ${bandwidth} Mbps\n\nThank you for choosing *Sigma Business Solutions*! 😊\n\n✨ Enjoy uninterrupted browsing and streaming! 🎬📱\n\nFor support or queries, feel free to reach out to us:\n📞 *Customer Care:* 9999118971\n💬 *WhatsApp Support:* 9999118971    *24x7*\n\nStay connected, stay happy! 🌟`
+                const encodedMessage = encodeURIComponent(message);
+                await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${contact}&message=${encodedMessage}`);
+
             }
             sendMail();
             sendWhatsapp();
@@ -187,14 +194,6 @@ export default function Subscriber() {
     }
 
 
-    const handleRenew = async () => {
-        if(planrenewal === 'true'){
-            setShowModal(true);
-        }else{
-            alert('You are not allowed to renew the plan');
-        }
-
-    }
 
 
     useEffect(() => {
@@ -231,7 +230,8 @@ export default function Subscriber() {
                         const planname = childPlan.val().planname;
                         const planperiod = childPlan.val().planperiod;
                         const periodtime = childPlan.val().periodtime;
-                        planArray.push({ planname, periodtime, planperiod });
+                        const bandwidth = childPlan.val().bandwidth;
+                        planArray.push({ planname, periodtime, planperiod, bandwidth });
 
                         if (planname === planName){
                             setRenew(true);
@@ -263,11 +263,12 @@ export default function Subscriber() {
                 setLoader(false);
             }
         };
+
+        
     
         fetchData();
     
         return () => {
-            // Cleanup real-time listener on component unmount
             fetchData?.();
         };
     }, [username]);
@@ -312,6 +313,7 @@ export default function Subscriber() {
         if(selectePlanObj){
             const planperiod = selectePlanObj.planperiod;
             const periodtime = selectePlanObj.periodtime;
+            const bandwidth = selectePlanObj.bandwidth;
 
             const date = new Date(dateValue);
 
@@ -327,6 +329,7 @@ export default function Subscriber() {
             // Format the new expiration date to YYYY-MM-DD
             const formattedExpirationDate = date.toISOString().split('T')[0];
             setExpDate(formattedExpirationDate);
+            setBandwidth(bandwidth);
 
         }
 
@@ -395,7 +398,7 @@ export default function Subscriber() {
                                 <h5 style={{color: 'black'}}>{company}</h5>
 
 
-                                <label style={{marginTop:'8px'}}>Connection Type</label><span className="badge text-bg-info mx-3">Edit</span><br></br>
+                                <label style={{marginTop:'8px'}}>Connection Type</label><br></br>
                                 <label style={{marginEnd:'8px', color: 'black'}}>FTTH</label>
                                 
                             </div>
@@ -407,7 +410,7 @@ export default function Subscriber() {
                 <div style={{flex: '4', display: 'flex', flexDirection: 'column', color: 'black'}}>
                     <div style={{display: 'flex', flexDirection: 'row', margin: '8px'}}>
                         <div style={{flex: '1'}}> 
-                            <label>Active Plan</label><span className="badge text-bg-success mx-3">Edit</span>
+                            <label>Active Plan</label>
                             <h6 style={{color:'blue'}}>{planName}</h6>
 
                             <label>Start Date</label>
@@ -417,7 +420,7 @@ export default function Subscriber() {
                                 year:'numeric'
                             }).replace(',', '')}</h6>
 
-                            <label>End Date</label><span className="badge text-bg-success mx-3">Edit</span>
+                            <label>End Date</label>
                             <h6 style={{color:'blue'}}>{new Date(expiryDate).toLocaleDateString('en-GB', {
                                 day:'2-digit',
                                 month:'long',
@@ -428,7 +431,7 @@ export default function Subscriber() {
                             <h6 style={{color:'blue'}}>{`${parseInt(planAmount)}.00`}</h6>
                         </div>
                         <div style={{flex: '1'}}>
-                            <label>ISP</label><span className="badge text-bg-success mx-3">Edit</span>
+                            <label>ISP</label>
                             <h6 style={{color:'blue'}}>{isp}</h6>
 
                             <label>Data</label>
@@ -457,14 +460,23 @@ export default function Subscriber() {
                             </div>
                             <div style={{flex:'2', display:'flex', flexDirection:"column"}}>
                                 <div style={{flex:'2', marginTop:'50px', display:"flex", flexDirection:'row'}}>
-                                <button onClick={handleRenew} style={{marginRight:'10px'}} type="button" className="btn btn-info" disabled = {renew}>Renew Subscription</button>
+                                <button onClick={() => hasPermission("RENEW_PLAN") ? setShowModal(true) : toast.error("Permission Denied", {
+                                    autoClose: 3000,
+                                    hideProgressBar: false,
+                                    closeOnClick: true,
+                                    pauseOnHover: true,
+                                    draggable: true,
+                                    progress: undefined,
+                                })} style={{marginRight:'10px'}} type="button" className="btn btn-info" disabled = {renew}>Renew Subscription</button>
                                 <button onClick={() => {
-
-                                    if(changeplan === 'true'){
-                                        setPlanChange(true);
-                                    }else{
-                                        alert('You are not allowed to change the plan');
-                                    }
+                                    hasPermission("CHANGE_PLAN") ? setPlanChange(true) : toast.error("Permission Denied", {
+                                        autoClose: 3000,
+                                        hideProgressBar: false,
+                                        closeOnClick: true,
+                                        pauseOnHover: true,
+                                        draggable: true,
+                                        progress: undefined,
+                                    })
                                 }}  type="button" className="btn btn-outline-danger">Change Plan</button>
                                 </div>
 

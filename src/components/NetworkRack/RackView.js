@@ -11,7 +11,6 @@ import FMS from './FMS'
 export default function RackView() {
     const location = useLocation();
     const { officename } = location.state || {};
-    const { roomname } = location.state || {};
     const [isRack, setIsRack] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [counts, setCounts] = useState(0);
@@ -25,7 +24,7 @@ export default function RackView() {
 
     const fetchRackNewRef = async () => {
       try {
-        const rackRef = ref(db, `Rack Info/${officename}/${roomname}`); // Ensure you define officename and roomname
+        const rackRef = ref(db, `Rack Info/${officename}`); // Ensure you define officename
         const snapshot = await get(rackRef);
 
         if (snapshot.exists()) {
@@ -42,7 +41,7 @@ export default function RackView() {
 
 
     useEffect(() => {
-        const rackRef = ref(db, `Rack Info/${officename}/${roomname}`);
+        const rackRef = ref(db, `Rack Info/${officename}`);
         const fetchRackDevices = onValue(rackRef, (snapshot) => {
             if (snapshot.exists()) {
                 const devicesData = snapshot.val();
@@ -61,7 +60,6 @@ export default function RackView() {
                         if (deviceData.device === 'OLT') {
                             olts.push({
                                 officename: officename,
-                                roomname: roomname,
                                 deviceKey: deviceData.deviceKey,
                                 ponRange: parseInt(deviceData.ponRange, 10),
                                 sfpRange: parseInt(deviceData.sfpRange, 10),
@@ -70,7 +68,6 @@ export default function RackView() {
                         } else if (deviceData.device === 'Switch') {
                             switches.push({
                                 officename: officename,
-                                roomname: roomname,
                                 deviceKey: deviceData.deviceKey,
                                 swethernetrange: parseInt(deviceData.swethernetrange, 10),
                                 swsfpsrange: parseInt(deviceData.swsfpsrange, 10),
@@ -78,7 +75,6 @@ export default function RackView() {
                         } else if (deviceData.device === 'FMS') {
                             fms.push({
                                 officename: officename,
-                                roomname: roomname,
                                 deviceKey: deviceData.deviceKey,
                                 fmsname:deviceData.fmsname,
                                 fmsrange: parseInt(deviceData.fmsrange, 10)
@@ -102,7 +98,7 @@ export default function RackView() {
         });
 
         return () => fetchRackDevices();
-    }, [officename, roomname]); // Only run on mount
+    }, [officename]); // Only run on mount
 
     const addRack = () => {
         fetchRackNewRef();
@@ -115,30 +111,30 @@ export default function RackView() {
                 <div className='d-flex flex-column wd-100 p-2'>
                     <div className='d-flex flex-row'>
                         <h5 style={{ flex: '1' }}>{officename}</h5>
-                        <button onClick={addRack} className='btn btn-primary'> + Add Rack</button>
+                        <button onClick={addRack} className='btn btn-primary'> + Add Device</button>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                         {/* Render OLT components */}
                         <div className='d-flex flex-column'>
                           {oltDevices.map((olt, index) => (
-                              <SYOLT key={`olt-${index}`} show={true} pons={olt.ponRange} sfps={olt.sfpRange} ethernet={olt.ethernetRange} deviceIndex={olt.deviceKey} officename={olt.officename} roomname={olt.roomname} />
+                              <SYOLT key={`olt-${index}`} show={true} pons={olt.ponRange} sfps={olt.sfpRange} ethernet={olt.ethernetRange} deviceIndex={olt.deviceKey} officename={olt.officename} />
                           ))}
                           {/* Render Switch components */}
                           {switchDevices.map((sw, index) => (
-                              <Switch key={`switch-${index}`} show={true} ethernet={sw.swethernetrange} sfps={sw.swsfpsrange} officename={sw.officename} roomname={sw.roomname} deviceIndex={sw.deviceKey}/>
+                              <Switch key={`switch-${index}`} show={true} ethernet={sw.swethernetrange} sfps={sw.swsfpsrange} officename={sw.officename} deviceIndex={sw.deviceKey}/>
                           ))}
                           {/* Render FMS components */}
                           {fmsDevices.map((fms, index) => (
-                              <FMS key={`switch-${index}`} show={true} fmsport={fms.fmsrange} officename={fms.officename} roomname={fms.roomname} deviceIndex={fms.deviceKey}/>
+                              <FMS key={`switch-${index}`} show={true} fmsport={fms.fmsrange} officename={fms.officename} deviceIndex={fms.deviceKey}/>
                           ))}
                         </div>
                     </div>
-                    <RackDataModal closeModal={() => setShowModal(false)} show={showModal} officename={officename} roomname={roomname} count={counts} />
+                    <RackDataModal closeModal={() => setShowModal(false)} show={showModal} officename={officename} count={counts} />
                 </div>
             ) : (
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', marginTop: '350px' }}>
                     <button onClick={addRack} className='btn btn-primary'> + Add Rack</button>
-                    <RackDataModal closeModal={() => setShowModal(false)} show={showModal} officename={officename} roomname={roomname} count={counts}/>
+                    <RackDataModal closeModal={() => setShowModal(false)} show={showModal} officename={officename} count={counts}/>
                 </div>
             )}
         </div>

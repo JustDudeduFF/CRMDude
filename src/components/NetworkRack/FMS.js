@@ -3,10 +3,12 @@ import OpticalPort from './drawables/optical.png'
 import { ref, onValue, get, set } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
 import { Modal, Button } from 'react-bootstrap';
+import { usePermissions } from '../PermissionProvider';
 
-const FMS = ({fmsport, show, officename, roomname, deviceIndex}) => {
+const FMS = ({fmsport, show, officename, deviceIndex}) => {
     const PORT_RANGE = fmsport;
     const isTwoRows = PORT_RANGE > 24; // Determines if two rows are needed
+    const {hasPermission} = usePermissions();
 
 
     const [arrayfms, setArrayFMS] = useState([]);
@@ -31,17 +33,21 @@ const FMS = ({fmsport, show, officename, roomname, deviceIndex}) => {
     // Handle right-click on Port
     const handlePortRightClick = (e, index) => {
         e.preventDefault(); // Prevent the default right-click menu
-        setSelectedPort(index); // Set the selected PON (index starts from 1)
-        setShowModal3(true); // Show the modal
+        if(hasPermission("UPDATE_RACK")){
+          setSelectedPort(index); // Set the selected PON (index starts from 1)
+          setShowModal3(true);
+        }else{
+          alert("Permission Denied");
+        } // Show the modal
       };
 
 
       const savePortDetails = async () => {
         let FmsRef = '';
         if (deviceselect === 'FMS'){
-          FmsRef = ref(db, `Rack Info/${officename}/${roomname}/${fmskey}/Ports/${portDetails.connectedPort}`);
+          FmsRef = ref(db, `Rack Info/${officename}/${fmskey}/Ports/${portDetails.connectedPort}`);
         }else{
-          FmsRef = ref(db, `Rack Info/${officename}/${roomname}/${fmskey}/SFPs/${portDetails.connectedPort}`);
+          FmsRef = ref(db, `Rack Info/${officename}/${fmskey}/SFPs/${portDetails.connectedPort}`);
           
           
         }
@@ -71,7 +77,7 @@ const FMS = ({fmsport, show, officename, roomname, deviceIndex}) => {
             try{
               
               await set(FmsRef, oltPort);
-              await set(ref(db,  `Rack Info/${officename}/${roomname}/${deviceIndex}/Ports/${selectedPort}`), FmsPort);
+              await set(ref(db,  `Rack Info/${officename}/${deviceIndex}/Ports/${selectedPort}`), FmsPort);
               setShowModal3(false);
               alert(`SFP ${selectedPort} Details are Saved to Device/FMS ID ${fmskey} on Port ${portDetails.connectedPort}`);
     
@@ -85,7 +91,7 @@ const FMS = ({fmsport, show, officename, roomname, deviceIndex}) => {
 
     useEffect(() => {
       
-        const RackRef = ref(db, `Rack Info/${officename}/${roomname}`);
+        const RackRef = ref(db, `Rack Info/${officename}`);
         // Setup the real-time listener
         const unsubscribe = onValue(RackRef, (snapshots) => {
           if (snapshots.exists()) {
@@ -141,13 +147,13 @@ const FMS = ({fmsport, show, officename, roomname, deviceIndex}) => {
         // Cleanup the listener when component unmounts or `show` changes
         return () => unsubscribe();
       
-    }, [ officename, roomname]);
+    }, [officename]);
 
 
     useEffect(() => {
       const fetchData = async () => {
         try {
-          const portsRef = ref(db, `Rack Info/${officename}/${roomname}/${deviceIndex}`);
+          const portsRef = ref(db, `Rack Info/${officename}/${deviceIndex}`);
           const snapshot = await get(portsRef);
           
           if (snapshot.exists()) {
@@ -169,7 +175,7 @@ const FMS = ({fmsport, show, officename, roomname, deviceIndex}) => {
       };
     
       fetchData();
-    }, [officename, roomname, deviceIndex, PORT_RANGE]);
+    }, [officename, deviceIndex, PORT_RANGE]);
     
 
     if (!show) return null;
@@ -280,7 +286,7 @@ const FMS = ({fmsport, show, officename, roomname, deviceIndex}) => {
         </Modal.Header>
         
         
-          <form>
+          <form className='p-2'>
             <div className='mb-3'>
               <label className='form-label'>Connected Device</label>
               <select onChange={(e) => {

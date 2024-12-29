@@ -36,76 +36,78 @@ export default function RechargeTable() {
 
     const rollback = async (plankey) => {
         try {
-            const planref = ref(db, `Subscriber/${username}/planinfo/${plankey}`);
-            const planref2 = ref(db, `Subscriber/${username}/planinfo`);
-            const ledgerref = ref(db, `Subscriber/${username}/ledger/${plankey}`);
-            const dueRef = ref(db, `Subscriber/${username}/connectionDetails`);
+            // Notify the user that a background process is happening
+            alert("Rolling back the plan. Please wait...");
     
-            // Step 1: Get all keys from the planinfo to check if plankey is the last node
-            const planSnap = await get(planref2);
+            // Step 1: Fetch data in parallel
+            const [planSnap, ledgerSnap, dueSnap] = await Promise.all([
+                get(ref(db, `Subscriber/${username}/planinfo`), limitToLast(1)), // Fetch all plans
+                get(ref(db, `Subscriber/${username}/ledger/${plankey}`)), // Fetch ledger data
+                get(ref(db, `Subscriber/${username}/connectionDetails`)), // Fetch connection details
+            ]);
+    
+            // Step 2: Validate if plans exist
             if (!planSnap.exists()) {
                 alert("No plans found.");
                 return;
             }
-            
-            // Get all keys from the planinfo
-            const planKeys = Object.keys(planSnap.val());
-            
-            // Step 2: Check if plankey is the last key
+    
+            // Parse plans and keys
+            const plans = planSnap.val();
+            const planKeys = Object.keys(plans);
             const lastKey = planKeys[planKeys.length - 1];
+    
+            // Step 3: Check if rollback is allowed
             if (plankey !== lastKey) {
                 alert("Rollback can only be performed on the last plan.");
                 return;
             }
     
-            // Step 3: Get debit amount from ledger
-            const ledgerSnap = await get(ledgerref);
-            const debitamount = ledgerSnap.child("debitamount").val() || 0;
+            // Step 4: Extract required data
+            const debitAmount = ledgerSnap.child("debitamount").val() || 0; // Debit from ledger
+            const currentDueAmount = dueSnap.child("dueAmount").val() || 0; // Current due
     
-            // Get current due amount
-            const dueSnap = await get(dueRef);
-            const dueAmount = dueSnap.child("dueAmount").val() || 0;
+            // Calculate the new due amount
+            const newDueAmount = parseInt(currentDueAmount) - parseInt(debitAmount);
     
-            // Calculate new due amount
-            const newDue = parseInt(dueAmount) - parseInt(debitamount);
-    
-            // Remove current plan and ledger entry
-            await remove(planref);
-            await remove(ledgerref);
-    
-            // Step 4: Get the last plan details
-            const lastplanQuery = query(planref2, orderByKey(), limitToLast(1));
-            const planSnapLast = await get(lastplanQuery);
-    
-            let start = "0000-00-00";
-            let end = "0000-00-00";
-            let amount = 0;
-            let planName = "--";
-    
-            if (planSnapLast.exists()) {
-                const lastPlan = Object.values(planSnapLast.val())[0]; // Get the last plan object
-                start = lastPlan.activationDate || "0000-00-00";
-                end = lastPlan.expiryDate || "0000-00-00";
-                amount = lastPlan.planAmount || 0;
-                planName = lastPlan.planName || "--";
+            // Step 5: Get the last plan details (excluding the one being rolled back)
+            let lastPlan = { activationDate: "0000-00-00", expiryDate: "0000-00-00", planAmount: 0, planName: "--" };
+            if (planKeys.length > 1) {
+                const secondLastKey = planKeys[planKeys.length - 2];
+                lastPlan = plans[secondLastKey];
             }
     
-            // Ensure no undefined values are passed to update()
-            const due = {
-                dueAmount: newDue,
-                activationDate: start || "0000-00-00",
-                expiryDate: end || "0000-00-00",
-                planAmount: amount || 0,
-                planName: planName || "--",
+            // Prepare the batch updates
+            const updates = {
+                [`Subscriber/${username}/planinfo/${plankey}`]: null, // Remove the current plan
+                [`Subscriber/${username}/ledger/${plankey}`]: null, // Remove ledger entry
+                [`Subscriber/${username}/connectionDetails`]: {
+                    dueAmount: newDueAmount,
+                    activationDate: lastPlan.activationDate || "0000-00-00",
+                    expiryDate: lastPlan.expiryDate || "0000-00-00",
+                    planAmount: lastPlan.planAmount || 0,
+                    planName: lastPlan.planName || "--",
+                },
+                [`Subscriber/${username}/logs/${plankey}`]: {
+                    date: new Date().toISOString().split('T')[0],
+                    description: `Plan Rollback`,
+                    modifiedby: localStorage.getItem('contact')
+                }
             };
+
     
-            await update(dueRef, due); // Update connection details
+            // Step 6: Apply updates asynchronously
+            await update(ref(db), updates);
+    
+            // Notify the user of success
             alert("Plan has been rolled back successfully!");
         } catch (error) {
             console.error("Error during rollback:", error);
             alert("An error occurred while rolling back the plan. Please try again.");
         }
     };
+    
+    
     
     
   return (

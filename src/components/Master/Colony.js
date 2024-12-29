@@ -3,11 +3,12 @@ import ColonyModal from './ColonyModal';
 import { ref, onValue } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
 import { toast, ToastContainer } from 'react-toastify';
+import { usePermissions } from '../PermissionProvider';
 
 export default function Colony() {
 
     const [showModal, setShowModal] = useState(false);
-
+    const {hasPermission} = usePermissions();
     const [arraycolony, setArrayColony] = useState([]);
     const colonyRef = ref(db, 'Master/Colonys')
 
@@ -44,7 +45,7 @@ export default function Colony() {
     <div className='d-flex flex-column ms-3'>
         <div className='d-flex flex-row'>
             <h5 style={{flex:'1'}}>Company Colony Location and Address</h5>
-            <button onClick={() => setShowModal(true)} className='btn btn-outline-success justify-content-right'>Add New Colony</button>
+            <button onClick={() => hasPermission("ADD_COLONY") ? setShowModal(true) : alert("Permission Denied")} className='btn btn-outline-success justify-content-right'>Add New Colony</button>
 
         </div>
         <ToastContainer/>

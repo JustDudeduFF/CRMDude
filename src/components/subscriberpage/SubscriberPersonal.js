@@ -8,13 +8,12 @@ import { useLocation } from 'react-router-dom';
 export default function SubscriberPersonal() {
   const location = useLocation();
   const {username} = location.state || {};
-
+  const jcNumber = "0_25_2_1735305031195";
   const [mobileNo, setMobileNo] = useState("");
+  const [alternateNo, setAlternateNo] = useState('');
   const [email, setEmail] = useState("");
   const [installationAddress, setInstallationAddress] = useState("");
   const [colonyName, setColonyName] = useState("");
-  const [state, setState] = useState("");
-  const [pinCode, setPinCode] = useState("");
 
     // Inventory & Device Details
   const [deviceMaker, setDeviceMaker] = useState("");
@@ -25,7 +24,7 @@ export default function SubscriberPersonal() {
   const [connectedFMS, setConnectedFMS] = useState("");
   const [connectedPortNo, setConnectedPortNo] = useState("");
   const [uniqueJCNo, setUniqueJCNo] = useState("");
-  const [fiberCoreNo, setFiberCoreNo] = useState("");
+  const [connectedOlt, setConnectedOlt] = useState("");
   
   const userRef = ref(db, `Subscriber/${username}`);
   const fieldRef = ref(db, `Subscriber/${username}/fieldFiberDetails`);
@@ -33,33 +32,33 @@ export default function SubscriberPersonal() {
   useEffect(() => {
       const fetchsubsdata = async () => {
           const userSnap = await get(userRef);
-          const fieldSnap = await get(fieldRef);
-          const invetSnap = await get(inventRef);
           if(userSnap.exists()){
               setColonyName(userSnap.val().colonyName);
               setEmail(userSnap.val().email);
-              setState(userSnap.val().state);
-              setPinCode(userSnap.val().pinCode);
               setInstallationAddress(userSnap.val().installationAddress);
               setMobileNo(userSnap.val().mobileNo);
+              setAlternateNo(userSnap.val().alternatNo);
 
           }
 
-          if(fieldSnap.exists()){
-              setConnectedFMS(fieldSnap.val().connectedFMS);
-              setConnectedPortNo(fieldSnap.val().connectedPortNo);
-              setFiberCoreNo(fieldSnap.val().fiberCoreNo);
-              setUniqueJCNo(fieldSnap.val().uniqueJCNo);
-          }
-
-
-          if(invetSnap.exists()){
-              setConnectionPowerInfo(invetSnap.val().connectionPowerInfo);
-              setDeviceSerialNumber(invetSnap.val().deviceSerialNumber);
-              setDeviceMaker(invetSnap.val().deviceMaker);
-          }
 
       }
+
+      const fetchConnectivityInfo = async () => {
+        const jcNumberBreak = jcNumber.split("_");
+        const FMSnameRef = ref(db, `Rack Info/Sigma Shahdara/${jcNumberBreak[0]}`);
+        const fmsSnap = await get(FMSnameRef);
+        const oltSno = fmsSnap.child("Ports").child(jcNumberBreak[1]).val().connectedTo;
+        const oltNameRef = ref(db, `Rack Info/Sigma Shahdara/${oltSno}`);
+        const oltSnap = await get(oltNameRef);
+        setConnectedOlt(`${oltSnap.val().manufacturer}/${oltSnap.val().oltType}`);
+        setConnectedFMS(fmsSnap.val().fmsname);
+        setConnectedPortNo(jcNumberBreak[1]);
+        setUniqueJCNo(jcNumber);
+        
+    }
+
+      fetchConnectivityInfo();
 
       fetchsubsdata();
 
@@ -78,7 +77,7 @@ export default function SubscriberPersonal() {
 
             <h5 style={{fontWeight:'bold'}}>Mobile No.</h5>
             <p style={{color:'blue'}}>{`+91 ${mobileNo}`}</p>
-            <p style={{color:'blue'}}>+91 7982905751</p>
+            <p style={{color:'blue'}}>{`+91 ${alternateNo || 'N/A'}`}</p>
 
 
             <h5 style={{fontWeight:'bold'}}>Email Address</h5>
@@ -101,7 +100,7 @@ export default function SubscriberPersonal() {
 
             <div style={{marginLeft:'20px', flex:'1'}}>
             <h6 style={{borderBottom:'1px solid gray', width:'max-contant'}}>Connection Connectivity Info</h6>
-            <span>Connected OLT :- </span>             <span style={{color:'blue', marginLeft:'10px'}}>{connectionPowerInfo}</span><br></br>
+            <span>Connected OLT :- </span>             <span style={{color:'blue', marginLeft:'10px'}}>{connectedOlt}</span><br></br>
             <span>Connected FMS :- </span>             <span style={{color:'blue', marginLeft:'10px'}}>{connectedFMS}</span><br></br>
             <span>Connected FMS Port :- </span>             <span style={{color:'blue', marginLeft:'10px'}}>{connectedPortNo}</span><br></br>
             <span>Connected JC Box :- </span>             <span style={{color:'blue', marginLeft:'10px'}}>{uniqueJCNo}</span><br></br>

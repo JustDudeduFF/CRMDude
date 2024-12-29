@@ -52,8 +52,8 @@ export default function Loginlayout() {
       if(snapshot.exists()){
         
         const name = snapshot.val().FULLNAME;
-        const designation = snapshot.val().designation;
-        const permission = snapshot.child('permissions').val();
+        const designation = snapshot.val().DESIGNATION;
+        
         
         
 
@@ -66,14 +66,7 @@ export default function Loginlayout() {
           localStorage.setItem('contact', contact);
           localStorage.setItem('Name', name);
           localStorage.setItem('Designation', designation);
-          localStorage.setItem('planrenewal', permission.planrenewal);
-          localStorage.setItem('allowedbackdate', permission.backdateentries);
-          localStorage.setItem('transfertickets', permission.transfertickets);
-          localStorage.setItem('inventry', permission.inventry);
-          localStorage.setItem('changeplan', permission.changeplan);
-          localStorage.setItem('generatetickets', permission.generatetickets);
-          localStorage.setItem('paymentcollection', permission.paymentcollection);
-          localStorage.setItem('dashboardmodification', permission.dashboardmodification);
+          
           
           
           navigate('/dashboard');

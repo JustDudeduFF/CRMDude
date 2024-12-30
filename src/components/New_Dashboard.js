@@ -13,10 +13,10 @@ import BulkUserEntry from './subscriberpage/BulkUserEntry';
 import LeadDash from './LeadManagment/LeadDash';
 import RackDashBoard from './NetworkRack/RackDashBoard';
 import PayrollandAttendence from './PayoutandAttendence/PayrollandAttendence';
-import TemplateDash from './Templates/TemplateDash';
 import LoginWhatsapp from './Templates/LoginWhatsapp';
 import TicketdataDash from './TicketData/TicketdataDash';
 import ProtectedRoute from './ProtectedRoute';
+import { PermissionProvider } from './PermissionProvider';
 
 function New_Dashboard() {  // Renamed to PascalCase
   const navigate = useNavigate();
@@ -30,8 +30,8 @@ function New_Dashboard() {  // Renamed to PascalCase
   return (
     <div>
       <Navbar />
-      <AnimatePresence mode='wait'>
-        <Routes>
+      <PermissionProvider>
+      <Routes>
           <Route path='/*' element={<DashFirstDiv/>} />
           <Route path='/adduser/*' element={<ProtectedRoute permission="ADD_CUSTOMER"><NewUserAdd/></ProtectedRoute>} />
           <Route path='/subscriber/*' element={<ProtectedRoute permission="VIEW_CUSTOMER"><Subscriber/></ProtectedRoute>} />
@@ -49,7 +49,8 @@ function New_Dashboard() {  // Renamed to PascalCase
           <Route path='/templates/*' element={<LoginWhatsapp/>}/>
           <Route path='/tickets/*' element={<TicketdataDash/>}/>
         </Routes>
-      </AnimatePresence>
+      </PermissionProvider>
+
     </div>
   );
 }

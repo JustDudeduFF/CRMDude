@@ -105,36 +105,8 @@ export default function BulkUserEntry() {
           deviceSerialNumber: row.deviceSerialNumber,
           connectionPowerInfo: row.connectionPowerInfo,
         },
-        fieldFiberDetails: {
-          connectedFMS: row.connectedFMS,
-          connectedPortNo: row.connectedPortNo,
-          uniqueJCNo: row.uniqueJCNo,
-          fiberCoreNo: row.fiberCoreNo,
-        },
 
-        documents: {
-          addressProof: {
-            source: 'Manual',
-            date: new Date().toISOString().split('T')[0],
-            modifiedby: localStorage.getItem('Name'),
-            documentname: 'Address Proof',
-            url: row.addressProofURL,
-          },
-          cafDocuments: {
-            source: 'Manual',
-            date: new Date().toISOString().split('T')[0],
-            modifiedby: localStorage.getItem('Name'),
-            documentname: 'Caf Proof',
-            url: row.cafDocumentsURL,
-          },
-          identityProof: {
-            source: 'Manual',
-            date: new Date().toISOString().split('T')[0],
-            modifiedby: localStorage.getItem('Name'),
-            documentname: 'Identity Proof',
-            url: row.identityProofURL,
-          },
-        },
+
         createdAt: row.REGDATE,
       };
 

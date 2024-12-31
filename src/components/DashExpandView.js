@@ -18,6 +18,9 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
     const [arrayData, setArrayData] = useState([]);
     const [arrayplan, setArrayPlan] = useState([]);
     const [loader, setLoader] = useState(false);
+    const [companyArray, setCompanyArray] = useState([]);
+    const [selectCompany, setSelectCompany] = useState('All');
+    const [filteredArray, setFilteredArray] = useState([]);
 
     //Download All Data to Excel File
 
@@ -88,38 +91,40 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                     const planAmount = childSnap.child('connectionDetails').val().planAmount;
                     const planName = childSnap.child('connectionDetails').val().planName;
                     const dueAmount = childSnap.child('connectionDetails').val().dueAmount;
+                    const company = childSnap.val().company;
 
                     if(datafor === 'Expiring'){
                         const expDate = expiryDateSerial;
                         const isSameMonth = expDate.getFullYear() === currentDate.getFullYear() && expDate.getMonth() === currentDate.getMonth();
                         if (word === 'Today' && isSameDay(expDate, currentDate)) {
-                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount, planName });
+                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount, planName, company });
                         } else if (word === 'Tomorrow' && isTomorrowDay(expDate, currentDate)) {
-                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount, planName });
+                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount, planName, company });
                         } else if (word === 'Week' && isSameISOWeek(expDate, currentDate)) {
-                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount, planName });
+                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount, planName, company });
                         } else if (word === 'Month' && isSameMonth) {
-                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount, planName });
+                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount, planName, company });
                         }
                     }else if(datafor === 'Due'){
                         const expDate = activationDateSerial;
                         const isSameMonth = expDate.getFullYear() === currentDate.getFullYear() && expDate.getMonth() === currentDate.getMonth();
                         if (word === 'Today' && isSameDay(expDate, currentDate) && dueAmount > 0) {
-                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName });
+                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company });
                         } else if (word === 'Tomorrow' && isTomorrowDay(expDate, currentDate) && dueAmount > 0) {
-                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName });
+                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company });
                         } else if (word === 'Week' && isSameISOWeek(expDate, currentDate) && dueAmount > 0) {
-                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName });
+                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company });
                         } else if (word === 'Month' && isSameMonth && dueAmount > 0) {
-                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName });
+                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company });
                         }else if(word === 'All' && dueAmount > 0){
-                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName });
+                            dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company });
                         }
                     }
                         
                     
                 });
-
+                const company = [...new Set(dataArray.map((data) => data.company))];
+                setCompanyArray(company);
                 setArrayData(dataArray);
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -147,6 +152,16 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
             fetchPlans();
         }
     }, [show, fetchExpandData, fetchPlans]); // Dependency on `show` and `fetchExpandData`
+
+    useEffect(() => {
+        let filterArray = arrayData;
+
+        if(selectCompany !== 'All'){
+            filterArray = filterArray.filter((data) => data.company === selectCompany);
+        }
+
+        setFilteredArray(filterArray);
+    }, [selectCompany, arrayData])
 
     const handleSavePlan = async (username, expireDate, planAmount, planName, mobile, fullName) => {
         setLoader(true);
@@ -212,8 +227,6 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                     subject: 'Broadband Subscription Renewal',
                     text: `Dear ${fullName},\nYour plan has been renewed successfully.\nYour new plan will be active from ${date} to ${expireDate}.\nYour Current Plan Amount is ₹${planAmount}.\n\nThank you for your business.\nRegards,\nSigma Business Solutions `,
                 });
-                
-                console.log(response, responsemail);
             }
 
             await set(ref(db, `Subscriber/${username}/ledger/${Date.now()}`), ledgerData);
@@ -298,6 +311,17 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
             <div className="modal-data1">
                 <div className="modal-inner1">
                     <h4 style={{flex:'1'}}>{heading}</h4>
+                    <div style={{flex:'1', marginTop:'-10px', marginBottom:'5px'}} className='col-md-3'>
+                        <label className='form-label'>Select Company</label>
+                    <select onChange={(e) => setSelectCompany(e.target.value)} className='form-select'>
+                        <option value='All'>All</option>
+                        {
+                            companyArray.map((data, index) => (
+                                <option key={index} value={data}>{data}</option>
+                            ))
+                        }
+                    </select>
+                    </div>
                     <img onClick={sendNotification} src={WhatsappIcon} alt='whatsapp' className='img_download_icon'></img>
                     <img onClick={downloadExcel} src={ExcelIcon} alt='excel' className='img_download_icon'></img>
                     <button style={{right:'5%'}} className="btn-close" onClick={modalShow}></button>
@@ -335,8 +359,8 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                             </tr>
                         </thead>
                         <tbody>
-                            {arrayData.length > 0 ? (
-                                arrayData.map(({ username, expiredDate, fullName, mobile, installationAddress, planAmount, planName }, index) => (
+                            {filteredArray.length > 0 ? (
+                                filteredArray.map(({ username, expiredDate, fullName, mobile, installationAddress, planAmount, planName }, index) => (
                                     <tr key={index}>
                                         <td>{index + 1}</td>
                                         <td style={{maxWidth:'900px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{fullName}</td>

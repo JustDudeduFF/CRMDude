@@ -72,68 +72,80 @@ export default function BulkUserEntry() {
   // Upload parsed data to Firebase Realtime Database
   const uploadToFirebase = (event) => {
     event.preventDefault(); // Prevent page reload
-    const ledgerkey = Date.now();
     fileData.forEach(async(row) => {
       // Map each row of Excel data to the userData structure
-
-      
-      const userData = {
-        company: row.COMPANYNAME,
-        fullName: row.FULLNAME,
-        username: row.BBUSERNAME, // Correct field for username
-        mobileNo: row.MOBILE,
-        alternatNo: row.LANDLINENO,
-        email: row.EMAIL,
-        installationAddress: row.FULLADDRESSINST,
-        colonyName: row.COLONYNAME,
-        state: row.state,
-        pinCode: row.pinCode,
-        connectionDetails: {
-          isp: row.ISP,
-          planName: row.PRODUCTNAME,
-          planAmount: parseInt(row.PLANAMOUNT),
-          securityDeposit: row.securityDeposit,
-          refundableAmount: row.refundableAmount,
-          activationDate: row.STARTDATE,
-          expiryDate: row.ENDDATE,
-          conectiontyp: row.conectiontyp,
-          dueAmount: row.BALANCENUMERIC,
-          bandwidth: row.BANDWIDTH
-        },
-        inventoryDeviceDetails: {
-          deviceMaker: row.deviceMaker,
-          deviceSerialNumber: row.deviceSerialNumber,
-          connectionPowerInfo: row.connectionPowerInfo,
-        },
-
-
-        createdAt: row.REGDATE,
-      };
-
-      const ledgerdata = {
-        type:'Migration',
-        date: new Date().toISOString().split('T')[0],
-        particular: `Migration Due Amount`,
-        debitamount: parseInt(row.BALANCENUMERIC),
-        creditamount: 0
+      const planData = {
+        bandwidth:row.BANDWIDTH,
+        periodtime:row.Months,
+        planamount:row.PLANAMOUNT,
+        planname:row.Plan,
+        planperiod:row.Period
       }
 
+      
+      // const userData = {
+      //   company: row.COMPANYNAME,
+      //   fullName: row.FULLNAME,
+      //   username: row.BBUSERNAME, // Correct field for username
+      //   mobileNo: row.MOBILE,
+      //   alternatNo: row.LANDLINENO,
+      //   email: row.EMAIL,
+      //   installationAddress: row.FULLADDRESSINST,
+      //   colonyName: row.COLONYNAME,
+      //   state: row.state,
+      //   pinCode: row.pinCode,
+      //   connectionDetails: {
+      //     isp: row.ISP,
+      //     planName: row.PRODUCTNAME,
+      //     planAmount: parseInt(row.PLANAMOUNT),
+      //     securityDeposit: row.securityDeposit,
+      //     refundableAmount: row.refundableAmount,
+      //     activationDate: row.STARTDATE,
+      //     expiryDate: row.ENDDATE,
+      //     conectiontyp: row.CONNECTIONTYP,
+      //     dueAmount: row.BALANCENUMERIC,
+      //     bandwidth: row.BANDWIDTH
+      //   },
+      //   inventoryDeviceDetails: {
+      //     deviceMaker: row.deviceMaker,
+      //     deviceSerialNumber: row.deviceSerialNumber,
+      //     connectionPowerInfo: row.connectionPowerInfo,
+      //   },
+
+
+      //   createdAt: row.REGDATE,
+      // };
+
+      
+
+      // const ledgerdata = {
+      //   type:'Migration',
+      //   date: new Date().toISOString().split('T')[0],
+      //   particular: `Migration Due Amount`,
+      //   debitamount: parseInt(row.BALANCENUMERIC),
+      //   creditamount: 0
+      // }
+
       // Remove undefined values before sending data to Firebase
-      const cleanedUserData = removeUndefinedValues(userData);
-      const cleanLedgerData = removeUndefinedValues(ledgerdata);
+      // const cleanedUserData = removeUndefinedValues(userData);
+      // const cleanLedgerData = removeUndefinedValues(ledgerdata);
       
 
       // Store user under their username
-      const userRef = ref(db, 'Subscriber/' + row.BBUSERNAME);
-      const ledgerRef = ref(db, `Subscriber/${row.BBUSERNAME}/ledger/${ledgerkey}` );
-      await set(userRef, cleanedUserData)
-        .then(async() => {
-          await update(ledgerRef, cleanLedgerData);
-          console.log(`Data for ${row.BBUSERNAME} uploaded successfully!`);
-        })
-        .catch((error) => {
-          console.error(`Error uploading data for ${row.BBUSERNAME}: `, error);
-        });
+    //   const userRef = ref(db, 'Subscriber/' + row.BBUSERNAME);
+    //   const ledgerRef = ref(db, `Subscriber/${row.BBUSERNAME}/ledger/${ledgerkey}` );
+    //   await set(userRef, cleanedUserData)
+    //     .then(async() => {
+    //       await update(ledgerRef, cleanLedgerData);
+    //       console.log(`Data for ${row.BBUSERNAME} uploaded successfully!`);
+    //     })
+    //     .catch((error) => {
+    //       console.error(`Error uploading data for ${row.BBUSERNAME}: `, error);
+    //     });
+
+    await set(ref(db, `Master/Broadband Plan/${row.Code}`), planData).then(() => {
+      alert('All Plan Added')
+    });
     });
   };
 

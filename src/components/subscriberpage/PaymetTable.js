@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { db } from '../../FirebaseConfig';
 import { Modal, Button } from 'react-bootstrap'; // Import Bootstrap components
-import { jsPDF } from "jspdf"; // Import jsPDF
+import { jsPDF } from "jspdf"; 
 import autoTable from 'jspdf-autotable';
 import { usePermissions } from '../PermissionProvider';
 
@@ -237,7 +237,7 @@ export default function PaymetTable() {
       body: [
         [
           {
-            content: 'Billed to:' + '\nCustomer Name: ' + customerData.fullName + '\nAddress: ' + customerData.installationAddress + '\nMobile No: ' + customerData.mobileNo,
+            content: 'Billed to:' + '\nCustomer Name: ' + customerData.fullName + '\nAddress: ' + customerData.installationAddress + '\nMobile No: ' + customerData.mobileNo + '\nEmail: ' +customerData.email,
             styles: {
               halign: 'left',
             }
@@ -309,10 +309,10 @@ export default function PaymetTable() {
 
     autoTable(doc, {
       head: [
-        ['S. No.', '', 'Quantity', 'Rate', 'Discount', 'Amount']
+        ['S. No.', 'Particular', 'Quantity', 'Rate', 'Discount', 'Amount']
       ],
       body: [
-        ['1', `${customerData.connectionDetails.planName}`, `${currentPayment.billing}`, `${parseInt(currentPayment.amount) + parseInt(currentPayment.discount)}`, `${currentPayment.discount}`, `${currentPayment.amount}`]
+        ['1', `${customerData.connectionDetails.planName}`, `${currentPayment.billingPeriod}`, `${parseInt(currentPayment.amount) + parseInt(currentPayment.discount)}`, `${currentPayment.discount}`, `${currentPayment.amount}`]
       ],
       theme: 'striped',
       headStyles: {

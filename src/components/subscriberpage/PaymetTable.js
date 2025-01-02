@@ -309,7 +309,7 @@ export default function PaymetTable() {
 
     autoTable(doc, {
       head: [
-        ['S. No.', 'Particular', 'Quantity', 'Rate', 'Discount', 'Amount']
+        ['S. No.', 'Particular', 'Quantity/Period', 'Rate', 'Discount', 'Amount']
       ],
       body: [
         ['1', `${customerData.connectionDetails.planName}`, `${currentPayment.billingPeriod}`, `${parseInt(currentPayment.amount) + parseInt(currentPayment.discount)}`, `${currentPayment.discount}`, `${currentPayment.amount}`]

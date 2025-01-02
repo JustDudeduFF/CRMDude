@@ -2,6 +2,7 @@ import { ref, onValue, update } from 'firebase/database';
 import React, {useEffect, useState} from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
 import { db } from '../../FirebaseConfig';
+import axios from 'axios';
 
 
 
@@ -17,12 +18,16 @@ export default function ModifyTicket() {
   const location = useLocation();
   const username = localStorage.getItem('susbsUserid');
   const {ticket} = location.state || {};
+  const subsname = localStorage.getItem('subsname');
+  const subscontact = localStorage.getItem('subscontact');
 
   const empRef = ref(db, `users`);
 
   const handleCloseTicket = async () => {
     const ticketRef = ref(db, `Subscriber/${username}/Tickets/${ticket.ticketno}`);
     const globaltickets = ref(db, `Global Tickets/${ticket.ticketno}`);
+    const newMessage = `Dear ${subsname}, 👋\n\nWe’re delighted to inform you that your complaint has been successfully resolved. 🎉\n\nHere are the details of your complaint:\n\n🆔 *Complaint ID:* ${ticket.ticketno}\n📄 *Subject:* ${ticket.ticketconcern}\n📅 *Resolution Date:* ${new Date().toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}\n\nThank you for your patience and for bringing this to our attention. 🙏\n\nIf you have further questions or need assistance, feel free to reach out to us. 📞💻\n\nWarm regards,\n*Sigma Business Solutions*\n📱 +91 9999118971`
+    const encodedMessage = encodeURIComponent(newMessage);
     const newticketdata = {
       closedate: new Date().toISOString().split('T')[0],
       closeby: closeby,
@@ -34,6 +39,7 @@ export default function ModifyTicket() {
     try{
       await update(ticketRef, newticketdata);
       await update(globaltickets, newticketdata);
+      await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${subscontact}&message=${encodedMessage}`)
       navigate(-1);
     }catch(error){
       console.log(`Error :- ${error}`);
@@ -113,7 +119,7 @@ export default function ModifyTicket() {
             <select onChange={(e) => setStatus(e.target.value)} className="form-select">
               <option value=''>Choose...</option>
               <option value='Completed'>Completed</option>
-              <option value='Temporary Closed'>Temporary Closed</option>
+              {/* <option value='Temporary Closed'>Temporary Closed</option> */}
             </select>
           </div>
 

@@ -65,8 +65,12 @@ export default function NewTicket() {
     }
 
     const sendmessage = async (assignemp, ticketconcern, ticketno, happycode) => {
-      const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${mobile}&message=Dear ${fullname},  Your complaint has been registered ticket no-${ticketno}, Ticket Title ${ticketconcern}.Please share this ${happycode} Happy Code to Technician for ticket close. For any further assistance. login Web: -sigmanetworks.in , what's up No. 9999118971`);
-      const response2 = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${assignemp}&message=Dear Executive,\nYou have been assigned a new ticket ${ticketno} for ${fullname} and his mobile number is ${mobile} and his userid is ${username}. \n For More Details Please go for Application`);
+      const newMessage = `🎫 Ticket Registered Successfully! ✅\nHello ${fullname},\nWe have received your ticket and it has been successfully registered.\n\n🆔 *Ticket ID:* ${ticketno}\n📅 *Date:* ${new Date().toLocaleDateString('en-GB', {day:'2-digit', month:'2-digit', year:'2-digit'})}\n📝 *Issue:* ${ticketconcern}\n\nOur support team is working on resolving your issue. 🔧\nPlease Share *${happycode}* Happy Code to executive, When Your Issue is Resolved.\n\n⏳ Estimated Resolution Time: 1-4 Hours\n\nFor updates, you can reply to this chat anytime. 📲\n📞 Customer Support: 9999118971\n\nThank you for reaching out to *Sigma Business Soltions*! We’ll get this sorted out for you soon. 😊\n\nStay connected! 🌐`
+      const encodedMessage = encodeURIComponent(newMessage);
+      const exMessage = `Dear Executive,\n\nYou have been assigned a new ticket. Below are the details:\n\n🎫 *Ticket No:* ${ticketno}\n👤 *Customer Name:* ${fullname}\n📱 *Mobile Number:* ${mobile}\n💼 *User ID:* ${username}\n\nFor more details, please visit the application.\n\nThank you!\nRegards,\n*Sigma Business Solutions*`
+      const enCodedExMessage = encodeURIComponent(exMessage);
+      await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${mobile}&message=${encodedMessage}`);
+      await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${assignemp}&message=${enCodedExMessage}`);
     }
 
 
@@ -90,6 +94,7 @@ export default function NewTicket() {
         closeby: '',
         closetime: '',
         rac: '',
+        happycode: happycode,
         generatedDate: new Date().toISOString().split('T')[0]
       }
 

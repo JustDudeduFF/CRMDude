@@ -38,7 +38,7 @@ const CloseTicketModal = ({ show, ticketno, closeModal}) => {
     const sendMessage = async (mobileNo, ticketno, customername, Concern) => {
       const newMessage = `Dear ${customername}, 👋\n\nWe’re delighted to inform you that your complaint has been successfully resolved. 🎉\n\nHere are the details of your complaint:\n\n🆔 *Complaint ID:* ${ticketno}\n📄 *Subject:* ${Concern}\n📅 *Resolution Date:* ${new Date().toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}\n👨‍💼 *Resolved By:* ${userLookup[closeby]}\n\nThank you for your patience and for bringing this to our attention. 🙏\n\nIf you have further questions or need assistance, feel free to reach out to us. 📞💻\n\nWarm regards,\n*Sigma Business Solutions*\n📱 +91 99991 18971`
       const encodedMessage = encodeURIComponent(newMessage);
-      const response = await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${mobileNo}&message=${encodedMessage}`);
+      await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${mobileNo}&message=${encodedMessage}`);
   }
 
 
@@ -84,41 +84,41 @@ const CloseTicketModal = ({ show, ticketno, closeModal}) => {
       
 
 
-      const tempClose = async (event) => {
-        event.preventDefault();
-        // Destructure ticketno to extract subsID and Ticketno
-        const ticketRef = ref(db, `Subscriber/${ticketno.subsID}/Tickets/${ticketno.Ticketno}`);
-        const globalTicketsRef = ref(db, `Global Tickets/${ticketno.Ticketno}`);
+      // const tempClose = async (event) => {
+      //   event.preventDefault();
+      //   // Destructure ticketno to extract subsID and Ticketno
+      //   const ticketRef = ref(db, `Subscriber/${ticketno.subsID}/Tickets/${ticketno.Ticketno}`);
+      //   const globalTicketsRef = ref(db, `Global Tickets/${ticketno.Ticketno}`);
         
-        const newTicketData = {
-          closedate: new Date().toISOString().split('T')[0],
-          closeby: closeby, // Assuming `closeby` is coming from the component's state
-          closetime: new Date().toLocaleTimeString(),
-          status: 'Open',
-          rac: rac, // Assuming `rac` is also coming from the component's state
-        };
+      //   const newTicketData = {
+      //     closedate: new Date().toISOString().split('T')[0],
+      //     closeby: closeby, // Assuming `closeby` is coming from the component's state
+      //     closetime: new Date().toLocaleTimeString(),
+      //     status: 'Open',
+      //     rac: rac, // Assuming `rac` is also coming from the component's state
+      //   };
       
-        // Ensure both closeby and rac fields are filled before closing the ticket
-        if (closeby !== '' && rac !== '') {
-          try {
-            // Update Global Tickets data
-            await update(globalTicketsRef, newTicketData);
+      //   // Ensure both closeby and rac fields are filled before closing the ticket
+      //   if (closeby !== '' && rac !== '') {
+      //     try {
+      //       // Update Global Tickets data
+      //       await update(globalTicketsRef, newTicketData);
             
-            // After Global Tickets update is successful, update Subscriber Tickets data
-            await update(ticketRef, newTicketData);
+      //       // After Global Tickets update is successful, update Subscriber Tickets data
+      //       await update(ticketRef, newTicketData);
       
-            // Close the modal and display the success alert
-            closeModal(); 
-            alert(`${ticketno.Ticketno} is Closed By ${closeby}`);
-          } catch (error) {
-            console.error('Error closing ticket:', error);
-            alert('Failed to close the ticket. Please try again.');
-          }
-        } else {
-          // Alert if closeby or rac is missing
-          alert('Please choose an employee name and fill in the RCA.');
-        }
-      };
+      //       // Close the modal and display the success alert
+      //       closeModal(); 
+      //       alert(`${ticketno.Ticketno} is Closed By ${closeby}`);
+      //     } catch (error) {
+      //       console.error('Error closing ticket:', error);
+      //       alert('Failed to close the ticket. Please try again.');
+      //     }
+      //   } else {
+      //     // Alert if closeby or rac is missing
+      //     alert('Please choose an employee name and fill in the RCA.');
+      //   }
+      // };
       
   if (!show) return null;
 
@@ -157,7 +157,7 @@ const CloseTicketModal = ({ show, ticketno, closeModal}) => {
         </div>
       
       <button className='btn btn-success' onClick={closrTicket}>Close Ticket</button>
-      <button className='btn btn-warning ms-3' onClick={tempClose}>Close as Opened</button>
+      {/* <button className='btn btn-warning ms-3' onClick={tempClose}>Close as Opened</button> */}
     </div>
     </div>
   );

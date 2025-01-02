@@ -19,6 +19,7 @@ import RenewalModal from './RenewalModal';
 import PlanChangeModal from './PlanChangeModal';
 import { toast, ToastContainer } from 'react-toastify';
 import { usePermissions } from '../PermissionProvider';
+import { Modal, Spinner } from 'react-bootstrap';
 
 
 
@@ -38,6 +39,9 @@ export default function Subscriber() {
   const [company, setCompany] = useState("");
   const [userid, setUserID] = useState('');
   const [fullName, setFullName] = useState("");
+  const [expiryModal, setExpiryModal] = useState(false);
+  const [newExp, setNewExp] = useState("");
+  const [loading, setLoading] = useState(false);
 
 
 
@@ -68,8 +72,7 @@ export default function Subscriber() {
 
   const [renew, setRenew] = useState(false);
   const [bandwidth, setBandwidth] = useState('');
-  const planrenewal = localStorage.getItem('planrenewal');
-  const changeplan = localStorage.getItem('changeplan');
+
 
 
 
@@ -191,6 +194,35 @@ export default function Subscriber() {
 
 
           
+    }
+
+    const updateExpiry = async() => {
+        setLoader(true);
+        const logKey = Date.now().toString();
+        const logRef = ref(db, `Subscriber/${userid}/logs/${logKey}`);
+        const expRef = ref(db, `Subscriber/${userid}/connectionDetails`);
+
+
+        const expDate = {
+            expiryDate: new Date(newExp).toISOString().split('T')[0]
+        }
+        const logData = {
+            date:new Date().toISOString().split('T')[0],
+            description: `plan expiry date is changed from "${expiryDate} to "${newExp}"`,
+            modifiedby: localStorage.getItem('contact')
+        }
+
+        try{
+            await update(expRef, expDate);
+            await update(logRef, logData);
+        }catch(e){
+            console.log(e)
+        }finally{
+            setLoader(false);
+            setExpiryModal(false);
+        }
+
+        
     }
 
 
@@ -420,7 +452,7 @@ export default function Subscriber() {
                                 year:'numeric'
                             }).replace(',', '')}</h6>
 
-                            <label>End Date</label>
+                            <label>End Date</label><span onClick={() => setExpiryModal(true)} style={{cursor:'pointer'}} className='ms-2 badge text-bg-secondary'>Edit</span>
                             <h6 style={{color:'blue'}}>{new Date(expiryDate).toLocaleDateString('en-GB', {
                                 day:'2-digit',
                                 month:'long',
@@ -598,6 +630,35 @@ export default function Subscriber() {
             </div>
 
         </div>
+
+        <Modal show={expiryModal} onHide={() => setExpiryModal(false)}>
+            <Modal.Header>
+                <Modal.Title>
+                    Change Expiry Date
+                </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+            {loading ? (
+                <div className="text-center">
+                    <Spinner animation="border" role="status" variant="primary">
+                    <span className="visually-hidden">Loading...</span>
+                    </Spinner>
+                    <p className="mt-3">Processing, please wait...</p>
+                </div>
+                ) : (
+                    <div className='container'>
+                        <div className='col-md'>
+                            <label className='form-label'>Select New Expiry</label>
+                            <input defaultValue={expiryDate ? new Date(expiryDate).toISOString().split('T')[0] : ''} onChange={(e) => setNewExp(e.target.value)} type='date' className='form-control'></input>
+                        </div>
+                    </div>
+                )} 
+            </Modal.Body>
+            <Modal.Footer>
+                <button onClick={updateExpiry} className='btn btn-primary'>Update</button>
+                <button onClick={() => setExpiryModal(false)} className='btn btn-secodary'>Cancel</button>
+            </Modal.Footer>
+        </Modal>
   </div>
   )
 }

@@ -9,7 +9,6 @@ import ProtectedRoute from '../ProtectedRoute';
 
 export default function TicketsTable() {
   const navigate = useNavigate();
-  const generatetickets = localStorage.getItem('generatetickets');
   return (
         <>
     
@@ -22,11 +21,7 @@ export default function TicketsTable() {
                 
                     <button
                     onClick={() => {
-                      if(generatetickets === 'true'){
                         navigate('newticket');
-                      }else{
-                        alert('You are not allowed to generate ticket');
-                      }
                     }}
                      type="button" className="btn btn-outline-primary">Genearte Ticket</button>
                     <img src={Excel_Icon} className='img_download_icon'></img>

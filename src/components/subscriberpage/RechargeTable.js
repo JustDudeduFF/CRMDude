@@ -83,8 +83,8 @@ export default function RechargeTable() {
                 [`Subscriber/${username}/ledger/${plankey}`]: null, // Remove ledger entry
                 [`Subscriber/${username}/connectionDetails`]: {
                     dueAmount: newDueAmount,
-                    activationDate: lastPlan.activationDate || "0000-00-00",
-                    expiryDate: lastPlan.expiryDate || "0000-00-00",
+                    activationDate: lastPlan.activationDate || "",
+                    expiryDate: lastPlan.expiryDate || "",
                     planAmount: lastPlan.planAmount || 0,
                     planName: lastPlan.planName || "--",
                 },

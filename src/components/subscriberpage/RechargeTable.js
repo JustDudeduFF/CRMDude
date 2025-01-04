@@ -71,7 +71,7 @@ export default function RechargeTable() {
             const newDueAmount = parseInt(currentDueAmount) - parseInt(debitAmount);
     
             // Step 5: Get the last plan details (excluding the one being rolled back)
-            let lastPlan = { activationDate: "0000-00-00", expiryDate: "0000-00-00", planAmount: 0, planName: "--" };
+            let lastPlan = { activationDate: "", expiryDate: "", planAmount: 0, planName: "--" };
             if (planKeys.length > 1) {
                 const secondLastKey = planKeys[planKeys.length - 2];
                 lastPlan = plans[secondLastKey];

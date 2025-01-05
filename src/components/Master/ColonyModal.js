@@ -98,7 +98,7 @@ const ColonyModal = ({show, notshow}) => {
 
                     <div className="col-md-9">
                         <label className="form-label">Under Company</label>
-                        <select onChange={(event) => setUnderCompany(event.target.value)} value={undercompany} className='form-select'>
+                        <select onChange={(e) => setUnderCompany(e.target.value)} className='form-select'>
                         {arraycompany.length > 0 ? (
                         arraycompany.map((company, index) => (
                             <option key={index} value={company}>

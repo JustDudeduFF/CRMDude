@@ -60,6 +60,10 @@ export default function TicketdataDash() {
                 closeby,
                 ticketconcern,
                 status,
+                assigndate,
+                assignto,
+                assigntime,
+                generatedBy
               } = childSnap.val();
   
               const assignedPersonName = usersLookup[closeby] || closeby; // Lookup user name or fallback to userid
@@ -71,7 +75,7 @@ export default function TicketdataDash() {
                   subsID: userid,
                   source,
                   creationdate: generatedDate,
-                  completed: assignedPersonName, // Use user's name from lookup
+                  completedby: assignedPersonName, // Use user's name from lookup
                   Concern: ticketconcern,
                   Status: status,
                   Colony: matchedUser.colonyName,
@@ -79,7 +83,11 @@ export default function TicketdataDash() {
                   isp: matchedUser.isp,
                   mobileNo: matchedUser.mobileNo,
                   address: matchedUser.address,
-                  company: matchedUser.company
+                  company: matchedUser.company,
+                  assignto: usersLookup[assignto],
+                  assignDateandTime: assigndate + " : " + assigntime,
+                  createdBy: usersLookup[generatedBy]
+
                 });
               }
             });

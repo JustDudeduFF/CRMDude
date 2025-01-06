@@ -158,7 +158,7 @@ const downloadExcel = () => {
   
 
   return (
-    <div style={{marginTop:'4.5%', marginLeft:'10px', marginRight:'10px'}} className=''>
+    <div style={{marginTop:'4.5%', marginLeft:'10px', marginRight:'10px'}}>
       <div className='d-flex flex-row'>
         <h4 style={{flex:'1'}}>Your All Tickets Data</h4>
         <img onClick={downloadExcel} src={ExcelIcon} className='img_download_icon'></img>

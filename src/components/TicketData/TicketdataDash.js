@@ -24,8 +24,8 @@ export default function TicketdataDash() {
       const usersLookup = {};
       userSnap.forEach((childSnap) => {
         const userId = childSnap.key;
-        const { fullname } = childSnap.val();
-        usersLookup[userId] = fullname; // Create a dictionary with userid -> fullname
+        const { FULLNAME } = childSnap.val();
+        usersLookup[userId] = FULLNAME; // Create a dictionary with userid -> fullname
       });
   
       // Step 2: Fetch subscribers
@@ -38,8 +38,9 @@ export default function TicketdataDash() {
           const mobileNo = childSnap.val().mobileNo;
           const userId = childSnap.key;
           const address = childSnap.val().installationAddress;
+          const company = childSnap.val().company;
   
-          subsArray.push({ fullName, isp, colonyName, mobileNo, userId, address });
+          subsArray.push({ fullName, isp, colonyName, mobileNo, userId, address, company });
         });
   
         const isps = [...new Set(subsArray.map((data) => data.isp))];
@@ -78,6 +79,7 @@ export default function TicketdataDash() {
                   isp: matchedUser.isp,
                   mobileNo: matchedUser.mobileNo,
                   address: matchedUser.address,
+                  company: matchedUser.company
                 });
               }
             });
@@ -96,6 +98,7 @@ export default function TicketdataDash() {
 
 
     useEffect(() => {
+
       
           fetchExpandData();
       

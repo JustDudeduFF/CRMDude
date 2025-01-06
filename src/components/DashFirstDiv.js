@@ -531,6 +531,7 @@ export default function DashFirstDiv() {
                             <div style={{ borderRadius: '5px', border: '1px solid gray', flex:'1'}}>
                                 <img onClick={() => openPayroll()} alt='' style={{width:'20px', height:'20px',float:'right', marginTop:'5px', marginRight:'8px', cursor:'pointer'}} src={ExpandIcon}></img>
                                 <h3 style={{marginLeft: '10px'}}>Daily Attendence Logs</h3>
+                                <div style={{maxHeight: '600px', overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
                                 <table className="table">
                                     <thead className='table-primary'>
                                         <tr>
@@ -553,6 +554,8 @@ export default function DashFirstDiv() {
                                     ))}
                                     </tbody>
                                     </table>
+                                </div>
+                                
                             </div>
                         ) : (
                             <div style={{flex:'1', display: 'flex', flexDirection: 'column'}}>
@@ -625,7 +628,7 @@ export default function DashFirstDiv() {
                     <div style={{width: '500px',  marginLeft: '20px', flex:'1', display:'flex', flexDirection: 'column'}}>
                         <div style={{borderRadius: '5px', border: '1px solid gray',flex: '1'}}>
                         
-                            <h3 style={{marginLeft: '10px'}}>Expiring Users</h3>
+                            <h3 style={{marginLeft: '10px'}}>Upcoming Renewal</h3>
                             <table className="table">
                             <thead className='table-primary'>
                                 <tr>

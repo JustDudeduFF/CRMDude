@@ -18,6 +18,7 @@ import TicketdataDash from './TicketData/TicketdataDash';
 import ProtectedRoute from './ProtectedRoute';
 import { PermissionProvider } from './PermissionProvider';
 import ExpiredDash from './ExpiredData/ExpiredDash';
+import RevenueDash from './ExpiredData/RevenueDash';
 
 function New_Dashboard() {  // Renamed to PascalCase
   const navigate = useNavigate();
@@ -49,7 +50,8 @@ function New_Dashboard() {  // Renamed to PascalCase
           </ProtectedRoute>}/>
           <Route path='/templates/*' element={<LoginWhatsapp/>}/>
           <Route path='/tickets/*' element={<TicketdataDash/>}/>
-          <Route path='/revenue/*' element={<ExpiredDash/>}/>
+          <Route path='/revenue/*' element={<RevenueDash/>}/>
+          <Route path='/expired/*' element={<ExpiredDash/>}/>
         </Routes>
       </PermissionProvider>
 

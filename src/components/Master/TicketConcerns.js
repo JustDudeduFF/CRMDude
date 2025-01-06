@@ -46,7 +46,7 @@ export default function TicketConcerns() {
     <div className='d-flex flex-column ms-3'>
         <div className='d-flex flex-row'>
             <h5 style={{flex:'1'}}>Ticket Concerns</h5>
-            <button onClick={() => hasPermission("ADD_TICKEt_CONCERNS") ? setShowModal(true) : alert("Permission Denied")} className='btn btn-outline-success justify-content-right'>Add Concern</button>
+            <button onClick={() => hasPermission("ADD_TICKET_CONCERNS") ? setShowModal(true) : alert("Permission Denied")} className='btn btn-outline-success justify-content-right'>Add Concern</button>
 
         </div>
         <ToastContainer/>

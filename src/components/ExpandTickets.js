@@ -44,6 +44,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                 const { FULLNAME } = childSnap.val();
                 usersLookup[userId] = FULLNAME; // Create a dictionary with userid -> fullname
             });
+           
     
             // Step 2: Fetch tickets
             onValue(pendingTicketsRef, (dataSnap) => {
@@ -59,22 +60,22 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                             generatedBy,
                             assigndate,
                             assigntime,
-                            assignto, // This is actually the userid of the assigned person
+                            assignto,
                             description,
                             ticketconcern,
-                            status
+                            status,
+                            generatedDate
                         } = childSnap.val();
-    
-                        // Only include tickets that are not 'Completed'
                         
                         const assignedPersonName = usersLookup[assignto] || assignto; // Lookup user name or fallback to userid
     
                             // Push the ticket with the user's name instead of userid
                             dataArray.push({
+                                generatedDate,
                                 Ticketno: childSnap.key,
                                 subsID: userid,
                                 source,
-                                createby: generatedBy,
+                                createby: usersLookup[generatedBy] || generatedBy,
                                 creationdate: assigndate,
                                 Time: assigntime,
                                 Assign_to: assignedPersonName, // Use user's name from lookup
@@ -213,6 +214,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                             <tr>
                                 <th>S. No.</th>
                                 <th>User ID</th>
+                                <th>Date</th>
                                 <th>Source</th>
                                 <th>Concern</th>
                                 <th>Status</th>
@@ -224,10 +226,11 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                             </tr>
                         </thead>
                         <tbody>
-                        {filterData.map(({ subsID, source, createby, Concern, creationdate, Time, Description, Status, Assign_to, Ticketno }, index) => (
+                        {filterData.map(({ subsID, source, createby, Concern, creationdate, Time, Description, Status, Assign_to, Ticketno, generatedDate }, index) => (
                                 <tr key={index}>
                                     <td>{index + 1}</td>
                                     <td>{subsID}</td>
+                                    <td>{new Date(generatedDate).toLocaleDateString('en-GM', {day:'2-digit', month:'short', year:'2-digit'}).replace(' ', '-')}</td>
                                     <td>{source}</td>
                                     <td>{Concern}</td>
                                     <td>{Status}</td>

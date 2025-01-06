@@ -1,142 +1,120 @@
 import { get, ref } from 'firebase/database';
-import React, { useEffect, useState } from 'react'
-import { db } from '../../FirebaseConfig';
+import React, {useEffect, useState} from 'react'
 import * as XLSX from 'xlsx';
+import { db } from '../../FirebaseConfig';
 import ExcelIcon from '../subscriberpage/drawables/xls.png'
 
 
 const ExpiredDash = () => {
-    const [filter, setFilter] = useState({ startDate: '', endDate: '', isp: 'All', Colony: 'All', Status: 'All', Source: 'All' });
+
+    const [filter, setFilter] = useState({ startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0], isp: 'All', Colony: 'All', Status: 'All', Source: 'All' });
     const [arrayData, setArrayData] = useState([]);
     const [filterData, setFilteredData] = useState([]);
-    
     const [uniqueColony, setUniqueColony] = useState([]);
-    const [uniqueMode, setUniqueMode] = useState([]);
-
-    const [userLookup, setUserLookup] = useState({});
+    const [uniqueIsp, setUniqueIsp] = useState([]);
+    const [uniqueCompany, setUniqueCompany] = useState([]);
 
     const downloadExcel = () => {
-        const dataToDownload = filterData;
-          if (dataToDownload.length === 0) {
-            alert('No data to download');
-            return;
-          }
-        
-          const workbook = XLSX.utils.book_new();
-          const worksheet = XLSX.utils.json_to_sheet(dataToDownload);
-          XLSX.utils.book_append_sheet(workbook, worksheet, 'Tickets data');
-          XLSX.writeFile(workbook, `Tickets Data.xlsx`);
+            const dataToDownload = filterData;
+              if (dataToDownload.length === 0) {
+                alert('No data to download');
+                return;
+              }
+            
+              const workbook = XLSX.utils.book_new();
+              const worksheet = XLSX.utils.json_to_sheet(dataToDownload);
+              XLSX.utils.book_append_sheet(workbook, worksheet, 'Tickets data');
+              XLSX.writeFile(workbook, `Tickets Data.xlsx`);
     }
 
+
     useEffect(() => {
-
-        const fetchUser = async() => {
-            const userRef = ref(db, `users`);
-            const userSnap = await get(userRef);
-
-            if(userSnap.exists()){
-                const lookup = {};
-                userSnap.forEach((child) => {
-                    const name = child.val().FULLNAME;
-                    const mobile = child.val().MOBILE;
-
-                    lookup[mobile] = name;
-                });
-
-                setUserLookup(lookup);
-            }
-        }
-        const fetchRevenue = async() => {
-            const subsRef = ref(db, `Subscriber`);
-            const snapshot = await get(subsRef);
+        const subRef = ref(db, `Subscriber`);
+        const fetchData = async() => {
+            const snapshot = await get(subRef);
             if(snapshot.exists()){
-                const receiptArray = [];
-                snapshot.forEach((subscriberChild) => {
-                const userId = subscriberChild.val().username;
-                const colonyName = subscriberChild.val().colonyName;
-                const fullName = subscriberChild.val().fullName;
-                const address = subscriberChild.val().installationAddress;
-                const mobileNo = subscriberChild.val().mobileNo;
-                const userPayments = subscriberChild.child('payments');
-                userPayments.forEach((paymentChild) => {
-                    const paymentData = paymentChild.val();
-                    const receiptno = paymentChild.key;
-                    const { amount, collectedBy, discount, paymentMode, receiptDate, transactionNo, authorized } = paymentData;
-                    receiptArray.push({
-                        mobileNo: mobileNo,
-                        address: address,
-                        fullName: fullName,
-                        colonyName: colonyName,
-                        ReceiptNo: receiptno,
-                        UserID: userId,
-                        Amount: amount,
-                        discount: discount,
-                        TransactionID: transactionNo,
-                        Collected_By: collectedBy,
-                        PaymentMode: paymentMode,
-                        Receipt_Date: receiptDate,
-                        authorized // Ensure you have 'authorized' in your payment data
-                    });
-                });
-                const paymentmode = [...new Set(receiptArray.map((data) => data.PaymentMode))];
-                const colonys = [...new Set(receiptArray.map((data) => data.colonyName))];
-                setUniqueMode(paymentmode);
-                setUniqueColony(colonys);
-                });
-                setArrayData(receiptArray);
+                const today = new Date();
+                const expiredArray = [];
+                snapshot.forEach((child) => {
+                    const userid = child.val().username
+                    const fullname = child.val().fullName;
+                    const mobile = child.val().mobileNo;
+                    const address = child.val().installationAddress;
+                    const company = child.val().company;
+                    const colony = child.val().colonyName;
+                    const expDate = child.child("connectionDetails").val().expiryDate;
+                    const dueamount = child.child("connectionDetails").val().dueAmount;
+                    const planamount = child.child("connectionDetails").val().planAmount;
+                    const planname = child.child("connectionDetails").val().planName;
+                    const isp = child.child("connectionDetails").val().isp;
+                    
+                    if(new Date(expDate) < today){
+                        expiredArray.push({
+                            fullname, mobile, address, company, colony, expDate, dueamount, planamount, planname, isp, userid
+                        });
+                    }
+
+                    const uniqueIsp = [...new Set(expiredArray.map((data) => data.isp))];
+                    const uniqueColony = [...new Set(expiredArray.map((data) => data.colony))];
+                    const uniqueCompany = [...new Set(expiredArray.map((data) => data.company))];
+                    setUniqueIsp(uniqueIsp);
+                    setUniqueColony(uniqueColony);
+                    setUniqueCompany(uniqueCompany);
+                    setArrayData(expiredArray);
+
+                })
             }
         }
 
-        fetchUser();
-        fetchRevenue();
+        fetchData();
     }, []);
 
     useEffect(() => {
-        let filteredArray = arrayData;
+            let filteredArray = arrayData;
+            
         
-    
-        if (filter.Status !== 'All') {
-            filteredArray = filteredArray.filter((data) => data.authorized === filter.Status);
-        }
-    
-        if(filter.Source !== 'All'){
-            filteredArray = filteredArray.filter((data) => data.Source === filter.Source);
-        }
-    
-        if(filter.isp !== 'All'){
-          filteredArray = filteredArray.filter((data) => data.PaymentMode === filter.isp);
-        }
-    
-        if(filter.Colony !== 'All'){
-          filteredArray = filteredArray.filter((data) => data.colonyName === filter.Colony);
-        }
-    
-        // Filter by Date Range
-        if (filter.startDate && filter.endDate) {
-          const startDate = new Date(filter.startDate).getTime();
-          const endDate = new Date(filter.endDate).getTime();
-          filteredArray = filteredArray.filter((data) => {
-              const creationDate = new Date(data.Receipt_Date).getTime();
-              return creationDate >= startDate && creationDate <= endDate;
-          });
-      }
-    
-        setFilteredData(filteredArray);
-    }, [arrayData, filter]);
+            if (filter.Status !== 'All') {
+                filteredArray = filteredArray.filter((data) => data.company === filter.Status);
+            }
+        
+            if(filter.Source !== 'All'){
+                filteredArray = filteredArray.filter((data) => data.Source === filter.Source);
+            }
+        
+            if(filter.isp !== 'All'){
+              filteredArray = filteredArray.filter((data) => data.isp === filter.isp);
+            }
+        
+            if(filter.Colony !== 'All'){
+              filteredArray = filteredArray.filter((data) => data.colony === filter.Colony);
+            }
+        
+            // Filter by Date Range
+            if (filter.startDate && filter.endDate) {
+              const startDate = new Date(filter.startDate).getTime();
+              const endDate = new Date(filter.endDate).getTime();
+              filteredArray = filteredArray.filter((data) => {
+                  const creationDate = new Date(data.expDate).getTime();
+                  return creationDate >= startDate && creationDate <= endDate;
+              });
+          }
+        
+            setFilteredData(filteredArray);
+        }, [arrayData, filter]);
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
         setFilter({ ...filter, [name]: value });
       };
+
   return (
     <div style={{marginTop:'4.5%', marginLeft:'10px', marginRight:'10px'}}>
         <div className='d-flex flex-row'>
-        <h4 style={{flex:'1'}}>Your All Revenue Data</h4>
-        <img onClick={downloadExcel} src={ExcelIcon} className='img_download_icon'></img>
-      </div>
+            <h4 style={{flex:'1'}}>Your All Expired Data</h4>
+            <img onClick={downloadExcel} src={ExcelIcon} className='img_download_icon'></img>
+        </div>
 
-      {/* Filter Section */}
-      <div className='container d-flex flex-wrap justify-content-center align-items-center mb-3'>
+        <div className='container d-flex flex-wrap justify-content-center align-items-center mb-3'>
         <div className='col-md-4 '>
           <label className='form-label'>Select Start Date</label>
           <input 
@@ -160,17 +138,17 @@ const ExpiredDash = () => {
           />
         </div>
         <div className='col-md-4'>
-        <label className='form-label'>Payment Mode</label>
+        <label className='form-label'>Colony Name</label>
         <select 
             type="text" 
             className="form-control" 
-            name="isp"  
-            value={filter.isp} 
+            name="Colony"  
+            value={filter.Colony} 
             onChange={handleFilterChange} 
             >
               <option value='All'>All</option>
               {
-                uniqueMode.map((ispname, index) => (
+                uniqueColony.map((ispname, index) => (
                   <option key={index} value={ispname}>{ispname}</option>
                 ))
               }
@@ -178,18 +156,18 @@ const ExpiredDash = () => {
             </select>
         </div>
         <div className='col-md-4 mt-2'>
-        <label className='form-label'>Select Colony</label>
+        <label className='form-label'>Select ISP</label>
         <select 
             type="text" 
             className="form-control" 
-            name="Colony" 
-            value={filter.Colony} 
+            name="isp" 
+            value={filter.isp} 
             onChange={handleFilterChange} 
             >
 
               <option value='All'>All</option>
               {
-                uniqueColony.map((Colony, index) => (
+                uniqueIsp.map((Colony, index) => (
                   <option key={index} value={Colony}>{Colony}</option>
                 ))
               }
@@ -198,7 +176,7 @@ const ExpiredDash = () => {
         </div>
 
         <div className='col-md-4 mt-2'>
-          <label className='form-label'>Select Status</label>
+          <label className='form-label'>Select Company</label>
           <select 
             type="text" 
             className="form-control" 
@@ -208,8 +186,11 @@ const ExpiredDash = () => {
             >
 
               <option value="All">All</option>
-              <option value={true}>Authorized</option>
-              <option value={false}>UnAuthorized</option>
+              {
+                uniqueCompany.map((company, index) => (
+                    <option key={index} value={company}>{company}</option>
+                ))
+              }
 
             </select>
         </div>
@@ -234,22 +215,20 @@ const ExpiredDash = () => {
         </div>
       </div>
 
-      {/* Tickets Table */}
-      <div className='table-responsive'>
-        <table className='table table-bordered table-striped table-hover align-middle text-center'>
+      <div>
+        <table className='table table-bordered table-striped table-hover align-middle'>
           <thead className='table-success'>
             <tr>
+              <th scope='col'>S No.</th>
               <th scope="col">User ID</th>
-              <th scope="col">Date</th>
-              <th scope="col">Customer Name</th>
+              <th scope="col">FullName</th>
               <th scope="col">Mobile</th>
-              <th scope="col">Amount</th>
-              <th scope="col">Discount</th>
-              <th scope="col">Installation Address</th>
-              <th scope='col'>Payment Mode</th>
-              <th scope="col">Colony</th>
-              <th scope="col">Collected By</th>
-              <th scope='col'>Status</th>
+              <th scope="col">Address</th>
+              <th scope="col">Expire Date</th>
+              <th scope="col">Due Amount</th>
+              <th scope="col">ISP</th>
+              <th scope='col'>Colony</th>
+              <th scope="col">Company</th>
               {/* Add more headers as needed */}
             </tr>
           </thead>
@@ -258,18 +237,18 @@ const ExpiredDash = () => {
               filterData.length > 0 ? (
                 filterData.map((filterData, index) => (
                   <tr key={index}>
-                    
-                    <td>{filterData.UserID}</td>
-                    <td>{new Date(filterData.Receipt_Date).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}</td>
-                    <td>{filterData.fullName}</td>
-                    <td>{filterData.mobileNo}</td>
-                    <td>{filterData.Amount}</td>
-                    <td>{filterData.discount}</td>
+                    <td>{index + 1}</td>
+                    <td>{filterData.userid}</td>
+                    <td style={{maxWidth:'150px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{filterData.fullname}</td>
+                    <td>{filterData.mobile}</td>
                     <td style={{maxWidth:'250px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{filterData.address}</td>
-                    <td>{filterData.PaymentMode}</td>
-                    <td>{filterData.colonyName}</td>
-                    <td>{userLookup[filterData.Collected_By]}</td>
-                    <td>{filterData.authorized ? "Authorized" : "UnAuthorized"}</td>
+                    
+                    <td>{new Date(filterData.expDate).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}</td>
+                    
+                    <td>{filterData.dueamount}</td>
+                    <td>{filterData.isp}</td>
+                    <td>{filterData.colony}</td>
+                    <td>{filterData.company}</td>
                   </tr>
                 ))
               ) : (
@@ -283,7 +262,6 @@ const ExpiredDash = () => {
           </tbody>
         </table>
       </div>
-      
     </div>
   )
 }

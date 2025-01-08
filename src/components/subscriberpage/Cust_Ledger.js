@@ -6,8 +6,7 @@ import { onValue, ref, off } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
 
 export default function Cust_Ledger() {
-  const location = useLocation();
-  const { userid } = location.state || {};
+  const userid = localStorage.getItem('susbsUserid');
 
   const [arrayledger, setArrayLedger] = useState([]);
 

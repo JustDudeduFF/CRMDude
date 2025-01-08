@@ -359,8 +359,8 @@ export default function Subscriber() {
             }
 
             // Format the new expiration date to YYYY-MM-DD
-            const formattedExpirationDate = date.toISOString().split('T')[0];
-            setExpDate(formattedExpirationDate);
+            const expDate = new Date(date.setDate(date.getDate() - 1)).toISOString().split('T')[0];
+            setExpDate(expDate);
             setBandwidth(bandwidth);
 
         }
@@ -381,6 +381,9 @@ export default function Subscriber() {
         
 
     }
+
+
+
 
     
 

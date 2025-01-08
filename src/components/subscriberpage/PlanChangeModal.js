@@ -170,10 +170,14 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
         }
     
         // Format the new expiration date to YYYY-MM-DD
-        const formattedExpirationDate = date.toISOString().split('T')[0];
-        setExpiryDate(formattedExpirationDate);
+        
+        const expDate = new Date(date.setDate(date.getDate() - 1)).toISOString().split('T')[0];
+        setExpiryDate(expDate);
       };
 
+
+    
+    
     
     
     
@@ -268,7 +272,7 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
 
                     <div className='col-md-3'>
                         <label className='form-label'>Expiry Date</label>
-                        <input value={expirydate} type='date' className='form-control' disabled></input>
+                        <input defaultValue={expirydate} type='date' className='form-control' disabled></input>
                     </div>
 
                     <div className='col-md-9'>

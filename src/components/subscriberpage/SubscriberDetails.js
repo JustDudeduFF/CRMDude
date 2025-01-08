@@ -23,7 +23,8 @@ export default function SubscriberDetails() {
         alternate: '',
         email: '',
         conectiontyp: '',
-        companyname: ''
+        companyname: '',
+        username: ''
         });
 
     const [prevSubsDetail, setPrevSubsDetail] = useState({});
@@ -41,7 +42,8 @@ export default function SubscriberDetails() {
                 alternate: userSnap.val().alternatNo,
                 email: userSnap.val().email,
                 conectiontyp: userSnap.child("connectionDetails").val().conectiontyp,
-                companyname: userSnap.val().company
+                companyname: userSnap.val().company,
+                username: userSnap.val().username
             });
             
             
@@ -100,7 +102,8 @@ export default function SubscriberDetails() {
             mobileNo: subsDetail.mobile,
             alternatNo: subsDetail.alternate,
             email: subsDetail.email,
-            company: subsDetail.companyname
+            company: subsDetail.companyname,
+            username: subsDetail.username
         }
 
 
@@ -221,7 +224,7 @@ export default function SubscriberDetails() {
                                 colonyname: selectColony,
                                 companyname: selectedColonyObj.companyName
                             }));  
-                        }} value={subsDetail.colonyname} className='form-select'>
+                        }} defaultValue={subsDetail.colonyname} className='form-select'>
                             <option value=''>Choose...</option>
                             {
                                 arrayColony.length > 0 ? (
@@ -240,11 +243,19 @@ export default function SubscriberDetails() {
                         <select onChange={(e) => setSubsDetail((prevState) => ({
                             ...prevState,
                             conectiontyp: e.target.value
-                        }))} value={subsDetail.conectiontyp} className='form-select'>
+                        }))} defaultValue={subsDetail.conectiontyp} className='form-select'>
                         <option value=''>Choose...</option>
                         <option value='FTTH'>FTTH</option>
                         <option value='EtherNet'>EtherNet</option>
                         </select>
+                    </div>
+
+                    <div className='col-md-3'>
+                        <label className='form-label ms-2'>User ID</label>
+                        <input onChange={(e) => setSubsDetail((prevState) => ({
+                            ...prevState,
+                            username: e.target.value
+                        }))} defaultValue={subsDetail.username} className='form-control' type='text'></input>
                     </div>
                 </form>
            </Modal.Body>

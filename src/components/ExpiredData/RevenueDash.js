@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { db } from '../../FirebaseConfig';
 import * as XLSX from 'xlsx';
 import ExcelIcon from '../subscriberpage/drawables/xls.png'
+import axios from 'axios';
 
 
 const RevenueDash = () => {
@@ -46,46 +47,123 @@ const RevenueDash = () => {
                 setUserLookup(lookup);
             }
         }
-        const fetchRevenue = async() => {
-            const subsRef = ref(db, `Subscriber`);
-            const snapshot = await get(subsRef);
-            if(snapshot.exists()){
-                const receiptArray = [];
-                snapshot.forEach((subscriberChild) => {
-                const userId = subscriberChild.val().username;
-                const colonyName = subscriberChild.val().colonyName;
-                const fullName = subscriberChild.val().fullName;
-                const address = subscriberChild.val().installationAddress;
-                const mobileNo = subscriberChild.val().mobileNo;
-                const userPayments = subscriberChild.child('payments');
-                userPayments.forEach((paymentChild) => {
-                    const paymentData = paymentChild.val();
-                    const receiptno = paymentChild.key;
-                    const { amount, collectedBy, discount, paymentMode, receiptDate, transactionNo, authorized } = paymentData;
-                    receiptArray.push({
-                        mobileNo: mobileNo,
-                        address: address,
-                        fullName: fullName,
-                        colonyName: colonyName,
-                        ReceiptNo: receiptno,
-                        UserID: userId,
-                        Amount: amount,
-                        discount: discount,
-                        TransactionID: transactionNo,
-                        Collected_By: collectedBy,
-                        PaymentMode: paymentMode,
-                        Receipt_Date: receiptDate,
-                        authorized // Ensure you have 'authorized' in your payment data
-                    });
-                });
-                const paymentmode = [...new Set(receiptArray.map((data) => data.PaymentMode))];
-                const colonys = [...new Set(receiptArray.map((data) => data.colonyName))];
-                setUniqueMode(paymentmode);
-                setUniqueColony(colonys);
-                });
-                setArrayData(receiptArray);
+        // const fetchRevenue = async() => {
+        //     const subsRef = ref(db, `Subscriber`);
+        //     const snapshot = await get(subsRef);
+        //     if(snapshot.exists()){
+        //         const receiptArray = [];
+        //         snapshot.forEach((subscriberChild) => {
+        //         const userId = subscriberChild.val().username;
+        //         const colonyName = subscriberChild.val().colonyName;
+        //         const fullName = subscriberChild.val().fullName;
+        //         const address = subscriberChild.val().installationAddress;
+        //         const mobileNo = subscriberChild.val().mobileNo;
+        //         const userPayments = subscriberChild.child('payments');
+        //         userPayments.forEach((paymentChild) => {
+        //             const paymentData = paymentChild.val();
+        //             const receiptno = paymentChild.key;
+        //             const { amount, collectedBy, discount, paymentMode, receiptDate, transactionNo, authorized } = paymentData;
+        //             receiptArray.push({
+        //                 mobileNo: mobileNo,
+        //                 address: address,
+        //                 fullName: fullName,
+        //                 colonyName: colonyName,
+        //                 ReceiptNo: receiptno,
+        //                 UserID: userId,
+        //                 Amount: amount,
+        //                 discount: discount,
+        //                 TransactionID: transactionNo,
+        //                 Collected_By: collectedBy,
+        //                 PaymentMode: paymentMode,
+        //                 Receipt_Date: receiptDate,
+        //                 authorized // Ensure you have 'authorized' in your payment data
+        //             });
+        //         });
+        //         const paymentmode = [...new Set(receiptArray.map((data) => data.PaymentMode))];
+        //         const colonys = [...new Set(receiptArray.map((data) => data.colonyName))];
+        //         setUniqueMode(paymentmode);
+        //         setUniqueColony(colonys);
+        //         });
+        //         setArrayData(receiptArray);
+        //     }
+        // }
+
+        const fetchRevenue = async () => {
+          try {
+            // Fetch data from the API
+            const response = await axios.post('https://finer-chimp-heavily.ngrok-free.app/subscriber');
+            console.log('Response status:', response.status);
+        
+            if (response.status !== 200 || !response.data) {
+              console.error('Invalid response or data');
+              return;
             }
-        }
+        
+            const snapshot = response.data;
+            console.log('Snapshot:', snapshot);
+        
+            // Ensure snapshot is a valid object
+            if (!snapshot || typeof snapshot !== 'object') {
+              console.error('Snapshot is not a valid object');
+              return;
+            }
+        
+            const receiptArray = [];
+        
+            // Iterate through the snapshot to process data
+            Object.keys(snapshot).forEach((userId) => {
+              const user = snapshot[userId];
+              if (!user || typeof user !== 'object') return; // Skip invalid user entries
+        
+              const colonyName = user.colonyName || 'Unknown Colony';
+              const fullName = user.fullName || 'Unknown Name';
+              const address = user.installationAddress || 'Unknown Address';
+              const mobileNo = user.mobileNo || 'Unknown Mobile';
+              const userPayments = user.payments;
+        
+              // Ensure payments exist and are an object
+              if (!userPayments || typeof userPayments !== 'object') return;
+        
+              // Process payments for each user
+              Object.keys(userPayments).forEach((paymentKey) => {
+                const payment = userPayments[paymentKey];
+                if (!payment || typeof payment !== 'object') return; // Skip invalid payments
+        
+                const { amount, collectedBy, discount, paymentMode, receiptDate, transactionNo, authorized } = payment;
+        
+                receiptArray.push({
+                  mobileNo: mobileNo,
+                  address: address,
+                  fullName: fullName,
+                  colonyName: colonyName,
+                  ReceiptNo: paymentKey, // Use paymentKey as receipt number
+                  UserID: userId,
+                  Amount: amount || 0,
+                  discount: discount || 0,
+                  TransactionID: transactionNo || 'N/A',
+                  Collected_By: collectedBy || 'Unknown',
+                  PaymentMode: paymentMode || 'Unknown',
+                  Receipt_Date: receiptDate || 'Unknown',
+                  authorized: authorized || false, // Default to false if not provided
+                });
+              });
+            });
+        
+            // Calculate unique payment modes and colonies
+            const paymentModes = [...new Set(receiptArray.map((data) => data.PaymentMode))];
+            const colonies = [...new Set(receiptArray.map((data) => data.colonyName))];
+        
+            // Update state
+            setUniqueMode(paymentModes);
+            setUniqueColony(colonies);
+            setArrayData(receiptArray);
+        
+          } catch (error) {
+            console.error('Error fetching revenue:', error);
+          }
+        };
+        
+        
 
         fetchUser();
         fetchRevenue();

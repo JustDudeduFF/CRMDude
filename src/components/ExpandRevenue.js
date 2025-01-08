@@ -232,16 +232,16 @@ export default function ExpandRevenue({ show, modalShow }) {
           <table className="table">
             <thead className="table-success">
               <tr>
-                <th></th>
-                <th>S. No.</th>
-                <th>User ID</th>
-                <th>Receipt Date</th>
-                <th>Amount</th>
-                <th>Discount</th>
-                <th>Transaction ID</th>
-                <th>Receipt No</th>
-                <th>Collected By</th>
-                <th>Payment Mode</th>
+                <th scope='col'></th>
+                <th scope='col'>S. No.</th>
+                <th scope='col'>User ID</th>
+                <th scope='col'>Receipt Date</th>
+                <th scope='col'>Amount</th>
+                <th scope='col'>Discount</th>
+                <th scope='col'>Transaction ID</th>
+                <th scope='col'>Receipt No</th>
+                <th scope='col'>Collected By</th>
+                <th scope='col'>Payment Mode</th>
               </tr>
             </thead>
             <tbody>

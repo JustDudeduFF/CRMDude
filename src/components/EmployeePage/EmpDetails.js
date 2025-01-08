@@ -86,7 +86,8 @@ export default function EmpDetails() {
       EDIT_PAYMENT: false,
       CREATE_DEBIT: false,
       CREATE_CREDIT: false,
-      DOWNLOAD_INVOICE: false
+      DOWNLOAD_INVOICE: false,
+      CANCEL_RECEIPT: false
     });
 
     const [networkpermission, setNetworkPermission] = useState({
@@ -393,7 +394,8 @@ export default function EmpDetails() {
                     EDIT_PAYMENT: userData.paymentpermission?.EDIT_PAYMENT || false,
                     CREATE_DEBIT: userData.paymentpermission?.CREATE_DEBIT || false,
                     CREATE_CREDIT: userData.paymentpermission?.CREATE_CREDIT || false,
-                    DOWNLOAD_INVOICE: userData.paymentpermission?.DOWNLOAD_INVOICE || false
+                    DOWNLOAD_INVOICE: userData.paymentpermission?.DOWNLOAD_INVOICE || false,
+                    CANCEL_RECEIPT: userData.paymentpermission?.CANCEL_RECEIPT || false
                   });
 
                   setNetworkPermission({
@@ -891,6 +893,11 @@ export default function EmpDetails() {
                   <div className='form-check form-check-inline col-md-2'>
                     <input name='DOWNLOAD_INVOICE' onChange={handlePaymentIndividualChange} checked={paymentpermission.DOWNLOAD_INVOICE} className='form-check-input' type='checkbox' id='downloadinvoice' disabled={!isEditing}></input>
                     <label className='form-check-label' for='downloadinvoice'>Download Invoice</label>
+                  </div>
+
+                  <div className='form-check form-check-inline col-md-2'>
+                    <input name='CANCEL_RECEIPT' onChange={handlePaymentIndividualChange} checked={paymentpermission.CANCEL_RECEIPT} className='form-check-input' type='checkbox' id='cancelreceipt' disabled={!isEditing}></input>
+                    <label className='form-check-label' for='cancelreceipt'>Cancel Receipt</label>
                   </div>
 
                   <div className='d-flex mt-3'>

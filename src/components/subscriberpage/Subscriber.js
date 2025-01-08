@@ -233,23 +233,23 @@ export default function Subscriber() {
             try {
                 setLoader(true);
     
-                // Fetch Subscriber Data
-                const subsSnap = await get(userRef);
-                if (subsSnap.exists()) {
-                    setFullName(subsSnap.val().fullName);
-                    setCompany(subsSnap.val().company);
-                    setUserID(subsSnap.val().username);
-                    setRegistrationDate(subsSnap.val().createdAt);
-                    setUserEmail(subsSnap.val().email);
-                    setContact(subsSnap.val().mobileNo);
-
-
-                    localStorage.setItem('subsname', subsSnap.val().fullName);
-                    localStorage.setItem('subsemail', subsSnap.val().email);
-                    localStorage.setItem('subscontact', subsSnap.val().mobileNo);
-                    localStorage.setItem('subsaddress', subsSnap.val().installationAddress);
-                    localStorage.setItem('subsplan', subsSnap.child("connectionDetails").val().planName)
-                }
+                onValue(userRef, (subsSnap) => {
+                    if (subsSnap.exists()) {
+                        setFullName(subsSnap.val().fullName);
+                        setCompany(subsSnap.val().company);
+                        setUserID(subsSnap.val().username);
+                        setRegistrationDate(subsSnap.val().createdAt);
+                        setUserEmail(subsSnap.val().email);
+                        setContact(subsSnap.val().mobileNo);
+    
+    
+                        localStorage.setItem('subsname', subsSnap.val().fullName);
+                        localStorage.setItem('subsemail', subsSnap.val().email);
+                        localStorage.setItem('subscontact', subsSnap.val().mobileNo);
+                        localStorage.setItem('subsaddress', subsSnap.val().installationAddress);
+                        localStorage.setItem('subsplan', subsSnap.child("connectionDetails").val().planName)
+                    }
+                })
 
 
                 

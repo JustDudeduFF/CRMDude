@@ -3,6 +3,7 @@ import React, {useEffect, useState} from 'react'
 import * as XLSX from 'xlsx';
 import { db } from '../../FirebaseConfig';
 import ExcelIcon from '../subscriberpage/drawables/xls.png'
+import axios from 'axios';
 
 
 const ExpiredDash = () => {
@@ -29,42 +30,76 @@ const ExpiredDash = () => {
 
 
     useEffect(() => {
-        const subRef = ref(db, `Subscriber`);
-        const fetchData = async() => {
-            const snapshot = await get(subRef);
-            if(snapshot.exists()){
-                const today = new Date();
-                const expiredArray = [];
-                snapshot.forEach((child) => {
-                    const userid = child.val().username
-                    const fullname = child.val().fullName;
-                    const mobile = child.val().mobileNo;
-                    const address = child.val().installationAddress;
-                    const company = child.val().company;
-                    const colony = child.val().colonyName;
-                    const expDate = child.child("connectionDetails").val().expiryDate;
-                    const dueamount = child.child("connectionDetails").val().dueAmount;
-                    const planamount = child.child("connectionDetails").val().planAmount;
-                    const planname = child.child("connectionDetails").val().planName;
-                    const isp = child.child("connectionDetails").val().isp;
-                    
-                    if(new Date(expDate) < today){
-                        expiredArray.push({
-                            fullname, mobile, address, company, colony, expDate, dueamount, planamount, planname, isp, userid
-                        });
-                    }
-
-                    const uniqueIsp = [...new Set(expiredArray.map((data) => data.isp))];
-                    const uniqueColony = [...new Set(expiredArray.map((data) => data.colony))];
-                    const uniqueCompany = [...new Set(expiredArray.map((data) => data.company))];
-                    setUniqueIsp(uniqueIsp);
-                    setUniqueColony(uniqueColony);
-                    setUniqueCompany(uniqueCompany);
-                    setArrayData(expiredArray);
-
-                })
+      const fetchData = async () => {
+        try {
+          const response = await axios.post('https://finer-chimp-heavily.ngrok-free.app/expiredUser');
+          
+          if (response.status !== 200 || !response.data) {
+            console.error("Invalid response or data");
+            return;
+          }
+      
+          const snapshot = response.data;
+          const today = new Date();
+          const expiredArray = [];
+      
+          // Iterate through each user in the snapshot
+          Object.keys(snapshot).forEach((key) => {
+            const user = snapshot[key]; // Access user data
+            if (!user || !user.connectionDetails) return; // Skip invalid data
+      
+            const {
+              username: userid,
+              fullName: fullname,
+              mobileNo: mobile,
+              installationAddress: address,
+              company,
+              colonyName: colony,
+              connectionDetails: {
+                expiryDate: expDate,
+                dueAmount: dueamount,
+                planAmount: planamount,
+                planName: planname,
+                isp,
+              },
+            } = user;
+      
+            // Check if the user has an expired plan
+            if (expDate && new Date(expDate) < today) {
+              expiredArray.push({
+                fullname,
+                mobile,
+                address,
+                company,
+                colony,
+                expDate,
+                dueamount,
+                planamount,
+                planname,
+                isp,
+                userid,
+              });
             }
+          });
+      
+          // Extract unique values for filtering
+          const uniqueIsp = [...new Set(expiredArray.map((data) => data.isp))];
+          const uniqueColony = [...new Set(expiredArray.map((data) => data.colony))];
+          const uniqueCompany = [...new Set(expiredArray.map((data) => data.company))];
+      
+          // Update state outside the loop
+          setUniqueIsp(uniqueIsp);
+          setUniqueColony(uniqueColony);
+          setUniqueCompany(uniqueCompany);
+          setArrayData(expiredArray);
+      
+        } catch (error) {
+          console.error("Error fetching expired users:", error);
         }
+      };
+      
+
+        
 
         fetchData();
     }, []);

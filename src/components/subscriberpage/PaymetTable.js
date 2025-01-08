@@ -1,6 +1,5 @@
-import { get, ref, onValue, update } from 'firebase/database';
+import { get, ref, onValue, update, remove } from 'firebase/database';
 import React, { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
 import { db } from '../../FirebaseConfig';
 import { Modal, Button } from 'react-bootstrap'; // Import Bootstrap components
 import { jsPDF } from "jspdf"; 
@@ -8,9 +7,8 @@ import autoTable from 'jspdf-autotable';
 import { usePermissions } from '../PermissionProvider';
 
 export default function PaymetTable() {
-  const location = useLocation();
   const {hasPermission} = usePermissions();
-  const {userid} = location.state || {};
+  const userid = localStorage.getItem('susbsUserid');
   const [arraypayment, setArrayPayment] = useState([]);
   const [selectedPayment, setSelectedPayment] = useState(null); // State to hold selected payment
   const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
@@ -43,14 +41,14 @@ export default function PaymetTable() {
         setUserData(userData);
       });
 
-      const customerSnap = await get(customerRef);
-      if(customerSnap.exists()){
-        const customerData = customerSnap.val();
-        setCustomerData(customerData);
+      
+      onValue(customerRef, (customerSnap) => {
+        if(customerSnap.exists()){
+          const customerData = customerSnap.val();
+          setCustomerData(customerData);
 
-
-        
-      }
+        }
+      })
 
       const companySnap = await get(companyRef);
       if(companySnap.exists()){
@@ -99,7 +97,6 @@ export default function PaymetTable() {
       // Ensure values are parsed properly and prevent NaN
       const currentdueAmount = parseInt(customerData.connectionDetails.dueAmount, 10);
       let dueAmount = parseInt(customerData.connectionDetails.dueAmount, 10);
-      console.log(dueAmount);
       const payment = arraypayment.find(payment => payment.receiptNo === updatedPayment.receiptNo);
       
       if (!payment) {
@@ -109,9 +106,6 @@ export default function PaymetTable() {
   
       const { amount: currentAmount, discount: currentDiscount, discountkey: discountKey } = payment;
       const { amount: updatedAmount, discount: updatedDiscount } = updatedPayment;
-
-      console.log(`currentAmount: ${currentAmount}`);
-      console.log(`currentDiscount: ${currentDiscount}`);
   
       // Check if the payment amount or discount has changed
       if (updatedAmount !== currentAmount || updatedDiscount !== currentDiscount) {
@@ -136,6 +130,8 @@ export default function PaymetTable() {
         discount: updatedDiscount,
         modifiedBy: localStorage.getItem('Name'),
       };
+
+
   
       // Prepare the updated ledger data for Firebase
       const ledgerData = {
@@ -183,6 +179,53 @@ export default function PaymetTable() {
       setShowOptionsModal(false);
     }
   };
+
+  const handleCancel = () => {
+    if(!hasPermission("CANCEL_RECEIPT")){
+      alert("Permission Denied!");
+      return;
+    }
+
+    const receiptNo = currentPayment.receiptNo.split('-')[1];
+    const discountkey = currentPayment?.discountkey;
+    const logKey = Date.now();
+    const receiptAmount = parseInt(currentPayment.amount, 10) + parseInt(currentPayment?.discount, 10);
+    const dueAmount = parseInt(customerData.connectionDetails.dueAmount) || 0;
+
+    try{
+      const ledgerRef1 = ref(db, `Subscriber/${userid}/ledger/${receiptNo}`);
+      const ledgerRef2 = ref(db, `Subscriber/${userid}/ledger/${discountkey}`);
+
+      const receiptData = {
+        status: 'cancel'
+      }
+
+      const newDue = {
+        dueAmount: parseInt(dueAmount, 10) + parseInt(receiptAmount, 10)
+      }
+
+      const logData = {
+        date:new Date().toISOString().split('T')[0],
+        description: `Payment Receipt Cancel "Receipt Amount: "${currentPayment.amount} and "Discount: "${currentPayment.discount}`,
+        modifiedby: localStorage.getItem('contact')
+      }
+
+      remove(ledgerRef1);
+      remove(ledgerRef2);
+
+
+      update(ref(db, `Subscriber/${userid}/payments/${receiptNo}`), receiptData);
+      update(ref(db, `Subscriber/${userid}/connectionDetails`), newDue);
+      update(ref(db, `Subscriber/${userid}/logs/${logKey}`), logData);
+      setShowOptionsModal(false);
+      alert('Receipt Canceled')
+
+    }catch(e){
+      console.log(e);
+    }
+
+
+  }
 
   const handleDownloadInvoice = () => {
     const doc = new jsPDF();
@@ -386,7 +429,20 @@ export default function PaymetTable() {
           <Modal.Title>Options for Receipt No: {currentPayment?.receiptNo}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Button className='mb-2 ms-2' variant="primary" onClick={() => {
+          
+          <Button className='mb-2 ms-2' variant="danger" onClick={handleCancel}>
+            Cancel Receipt
+          </Button>
+          <Button className='mb-2 ms-2' variant="secondary" onClick={handleShareInvoice}>
+            Share 
+          </Button>
+          <Button className='mb-2 ms-2' variant="warning" onClick={handleEdit}>
+            Edit Payment
+          </Button>
+          
+        </Modal.Body>
+        <Modal.Footer>
+        <Button className='mb-2 ms-2' variant="primary" onClick={() => {
             if(hasPermission("DOWNLOAD_INVOICE")){
               handleDownloadInvoice();
             }else{
@@ -395,14 +451,6 @@ export default function PaymetTable() {
           }}>
             Download Invoice
           </Button>
-          <Button className='mb-2 ms-2' variant="secondary" onClick={handleShareInvoice}>
-            Share Invoice
-          </Button>
-          <Button className='mb-2 ms-2' variant="warning" onClick={handleEdit}>
-            Edit Payment
-          </Button>
-        </Modal.Body>
-        <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowOptionsModal(false)}>
             Close
           </Button>
@@ -477,7 +525,7 @@ export default function PaymetTable() {
                 <input 
                   type="date" 
                   className="form-control" 
-                  value={selectedPayment.receiptDate} 
+                  defaultValue={selectedPayment.receiptDate} 
                   onChange={(e) => setSelectedPayment({ ...selectedPayment, receiptDate: e.target.value })} 
                 />
               </div>
@@ -515,7 +563,7 @@ export default function PaymetTable() {
           <tbody>
             {arraypayment.length > 0 ? (
               arraypayment.map((payment, index) => (
-                <tr key={index}>
+                <tr className={payment.status === 'cancel'? "table-danger" : ""} key={index}>
                   <td>{index + 1}</td>
                   <td>{payment.source}</td>
                   <td

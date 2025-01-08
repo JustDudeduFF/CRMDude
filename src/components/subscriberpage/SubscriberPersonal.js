@@ -3,11 +3,9 @@ import React, {useState, useEffect} from 'react'
 import LocationAnimation from './drawables/locationanimation.json'
 import { db } from '../../FirebaseConfig';
 import { ref, get } from 'firebase/database';
-import { useLocation } from 'react-router-dom';
 
 export default function SubscriberPersonal() {
-  const location = useLocation();
-  const {username} = location.state || {};
+  const username = localStorage.getItem('susbsUserid')
   const jcNumber = "0_25_2_1735305031195";
   const [mobileNo, setMobileNo] = useState("");
   const [alternateNo, setAlternateNo] = useState('');
@@ -89,7 +87,7 @@ export default function SubscriberPersonal() {
 
             <div style={{marginLeft:'20px', flex:'1'}}>
             <h6 style={{borderBottom:'1px solid gray', width:'max-contant'}}>Connection Installation Location</h6>
-            <div style={{width:'200px'}}>
+            <div style={{width:'200px', zIndex:'-1'}}>
                 <Lottie animationData={LocationAnimation}/>
                 <button style={{marginLeft:'40px'}} className='btn btn-outline-info'>Open Location</button>
             

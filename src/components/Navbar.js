@@ -60,19 +60,19 @@ export default function Navbar() {
         const expiredCount = {};
 
         userSnap.forEach(Childsubs => {
-          const username = Childsubs.key;
+          const userKey = Childsubs.key
+          const username = Childsubs.val().username;
           const fullname = Childsubs.val().fullName;
           const mobile = Childsubs.val().mobileNo;
           const company = Childsubs.val().company;
           const expiryDate = Childsubs.child("connectionDetails").val().expiryDate;
-
           const expdate = convertExcelDateSerial(expiryDate);
           const time = new Date(expdate).getTime();
           
 
 
 
-          UserArray.push({username, fullname, mobile, company});
+          UserArray.push({username, fullname, mobile, company, userKey});
 
           if (companyCount[company]) {
             if(time > time1){
@@ -114,10 +114,10 @@ export default function Navbar() {
   }, [])
     
 
-  const handleSubsView = (username) => {
+  const handleSubsView = (userKey) => {
     setIsSearchFocused(false);
-    localStorage.setItem('susbsUserid',username);
-    navigate('subscriber', { state: { username } });
+    localStorage.setItem('susbsUserid',userKey);
+    navigate('subscriber', { state: { userKey } });
   }
 
   const togglevisiblty = () =>{
@@ -243,13 +243,13 @@ export default function Navbar() {
                         </tr>
                     </thead>
                     <tbody className="table-group-divider">
-                    {fileredSubs.map(({username, fullname, mobile}, index) => (
+                    {fileredSubs.map(({username, fullname, mobile, userKey}, index) => (
                           <tr key={index}>
                             <td>{index + 1}</td>
                             <td>{fullname}</td>
                             <td 
                               style={{color:'blue', cursor:'pointer'}} 
-                              onClick={() => handleSubsView(username)}
+                              onClick={() => handleSubsView(userKey)}
                             >
                               {username}
                             </td>

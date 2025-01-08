@@ -183,7 +183,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                 <option value="Completed">Closed Tickets</option>
                                 <option value="Open">Pending Tickets</option>
                                 <option value="Unassigned">Unassigned Tickets</option>
-                            </select>
+                            </select>                                                                                                           
                         </div>
 
                         <div className='col-md-3'>
@@ -194,7 +194,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                             >  
                                 <option value="All">All Source</option>
                                 <option value="Manual">Manual</option>
-                                <option value="Whatsapp">Whatsapp Bot</option>
+                                <option value="WhatsApp">Whatsapp Bot</option>
                                 <option value="Mobile App">Customer App</option>
                             </select>
                         </div>
@@ -210,31 +210,31 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
 
                 <div style={{ overflow: 'hidden', height: '80vh', overflowY: 'auto', marginTop: '10px' }}>
                     <table className="table">
-                        <thead>
+                        <thead className='table-primary'>
                             <tr>
-                                <th>S. No.</th>
-                                <th>User ID</th>
-                                <th>Date</th>
-                                <th>Source</th>
-                                <th>Concern</th>
-                                <th>Status</th>
-                                <th>Description</th>
-                                <th>Assign to</th>
-                                <th>Ticket Created By</th>
-                                <th>Assign DateTime</th>
-                                <th></th>
+                                <th scope='col'>S. No.</th>
+                                <th scope='col'>User ID</th>
+                                <th scope='col'>Date</th>
+                                <th scope='col'>Source</th>
+                                <th scope='col'>Concern</th>
+                                <th scope='col'>Status</th>
+                                <th scope='col'>Description</th>
+                                <th scope='col'>Assign to</th>
+                                <th scope='col'>Ticket Created By</th>
+                                <th scope='col'>Assign DateTime</th>
+                                <th scope='col'></th>
                             </tr>
                         </thead>
                         <tbody>
                         {filterData.map(({ subsID, source, createby, Concern, creationdate, Time, Description, Status, Assign_to, Ticketno, generatedDate }, index) => (
                                 <tr key={index}>
                                     <td>{index + 1}</td>
-                                    <td>{subsID}</td>
+                                    <td style={{maxWidth:'120px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{subsID}</td>
                                     <td>{new Date(generatedDate).toLocaleDateString('en-GM', {day:'2-digit', month:'short', year:'2-digit'}).replace(' ', '-')}</td>
                                     <td>{source}</td>
                                     <td>{Concern}</td>
                                     <td>{Status}</td>
-                                    <td>{Description}</td>
+                                    <td style={{maxWidth:'180px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{Description}</td>
                                     <td>{Assign_to}</td>
                                     <td>{createby}</td>
                                     <td>{`"${creationdate}" at "${Time}"`}</td>

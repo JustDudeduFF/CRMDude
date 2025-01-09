@@ -32,7 +32,7 @@ const ExpiredDash = () => {
     useEffect(() => {
       const fetchData = async () => {
         try {
-          const response = await axios.post('https://finer-chimp-heavily.ngrok-free.app/expiredUser');
+          const response = await axios.post('http://api.sigmanetworks.in:5000/expiredUser');
           
           if (response.status !== 200 || !response.data) {
             console.error("Invalid response or data");

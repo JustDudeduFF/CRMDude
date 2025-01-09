@@ -44,9 +44,9 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
         const encodedMessage = encodeURIComponent(newMessage);
         const exMessage = `Dear Executive,\n\nYou have been assigned a new ticket. Below are the details:\n\n🎫 *Ticket No:* ${ticketno}\n👤 *Customer Name:* ${customername}\n📱 *Mobile Number:* ${mobileNo}\n💼 *User ID:* ${userid}\n\nFor more details, please visit the application.\n\nThank you!\nRegards,\n*Sigma Business Solutions*`
         const enCodedExMessage = encodeURIComponent(exMessage);
-        await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${mobileNo}&message=${encodedMessage}`);
+        await axios.post(`http://api.sigmanetworks.in:5000/send-message?number=91${mobileNo}&message=${encodedMessage}`);
         //Message For Executive
-        await axios.post(`https://finer-chimp-heavily.ngrok-free.app/send-message?number=91${assignemp}&message=${enCodedExMessage}`);
+        await axios.post(`http://api.sigmanetworks.in:5000/send-message?number=91${assignemp}&message=${enCodedExMessage}`);
 
     }
 

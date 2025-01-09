@@ -4,6 +4,7 @@ import { db } from '../../FirebaseConfig';
 import * as XLSX from 'xlsx';
 import ExcelIcon from '../subscriberpage/drawables/xls.png'
 import axios from 'axios';
+import { use } from 'react';
 
 
 const RevenueDash = () => {
@@ -25,8 +26,8 @@ const RevenueDash = () => {
         
           const workbook = XLSX.utils.book_new();
           const worksheet = XLSX.utils.json_to_sheet(dataToDownload);
-          XLSX.utils.book_append_sheet(workbook, worksheet, 'Tickets data');
-          XLSX.writeFile(workbook, `Tickets Data.xlsx`);
+          XLSX.utils.book_append_sheet(workbook, worksheet, 'Revenue data');
+          XLSX.writeFile(workbook, `Revenue Data.xlsx`);
     }
 
     useEffect(() => {
@@ -91,7 +92,7 @@ const RevenueDash = () => {
         const fetchRevenue = async () => {
           try {
             // Fetch data from the API
-            const response = await axios.post('https://finer-chimp-heavily.ngrok-free.app/subscriber');
+            const response = await axios.post('http://api.sigmanetworks.in:5000/subscriber');
             console.log('Response status:', response.status);
         
             if (response.status !== 200 || !response.data) {
@@ -119,6 +120,7 @@ const RevenueDash = () => {
               const fullName = user.fullName || 'Unknown Name';
               const address = user.installationAddress || 'Unknown Address';
               const mobileNo = user.mobileNo || 'Unknown Mobile';
+              const company = user.company || 'Unknown Company'
               const userPayments = user.payments;
         
               // Ensure payments exist and are an object
@@ -136,6 +138,7 @@ const RevenueDash = () => {
                   address: address,
                   fullName: fullName,
                   colonyName: colonyName,
+                  company: company,
                   ReceiptNo: paymentKey, // Use paymentKey as receipt number
                   UserID: userId,
                   Amount: amount || 0,
@@ -317,6 +320,7 @@ const RevenueDash = () => {
         <table className='table table-bordered table-striped table-hover align-middle text-center'>
           <thead className='table-success'>
             <tr>
+              <th scope='col'>S No</th>
               <th scope="col">User ID</th>
               <th scope="col">Date</th>
               <th scope="col">Customer Name</th>
@@ -336,7 +340,7 @@ const RevenueDash = () => {
               filterData.length > 0 ? (
                 filterData.map((filterData, index) => (
                   <tr key={index}>
-                    
+                    <td>{index + 1}</td>
                     <td>{filterData.UserID}</td>
                     <td>{new Date(filterData.Receipt_Date).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}</td>
                     <td>{filterData.fullName}</td>

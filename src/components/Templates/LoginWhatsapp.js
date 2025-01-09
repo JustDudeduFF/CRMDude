@@ -11,7 +11,7 @@ const LoginWhatsapp = () => {
 
     const fetchStatus = async () => {
       try {
-          const response = await axios.post('https://finer-chimp-heavily.ngrok-free.app/status');
+          const response = await axios.post('http://api.sigmanetworks.in:5000/status');
 
           if (response.data.status === 'QR_RECEIVED') {
               setHeader('Please scan the QR code to login to WhatsApp');

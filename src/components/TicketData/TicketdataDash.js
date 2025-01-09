@@ -4,6 +4,7 @@ import { ref, onValue, get } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
 import ExcelIcon from '../subscriberpage/drawables/xls.png'
 import * as XLSX from 'xlsx';
+import axios from 'axios';
 
 export default function TicketdataDash() {
   const [filter, setFilter] = useState({ startDate: '', endDate: '', isp: 'All', Colony: 'All', Status: 'All', Source: 'All' });
@@ -20,7 +21,7 @@ export default function TicketdataDash() {
     const usersRef = ref(db, `users`);
   
     // Step 1: Fetch all users and store them in a lookup object
-    get(usersRef).then((userSnap) => {
+    get(usersRef).then(async(userSnap) => {
       const usersLookup = {};
       userSnap.forEach((childSnap) => {
         const userId = childSnap.key;
@@ -29,49 +30,58 @@ export default function TicketdataDash() {
       });
   
       // Step 2: Fetch subscribers
-      onValue(subsRef, (subsSnap) => {
+      try{
+        const subsResponse = await axios.post('http://api.sigmanetworks.in:5000/subscriber');
+        const globalResponse = await axios.post('http://api.sigmanetworks.in:5000/globaltickets');
+        console.log(globalResponse.status)  
+
+        if(subsResponse.status !== 200 || globalResponse.status !== 200) return;
+        const subsSnap = subsResponse.data;
+        const dataSnap = globalResponse.data;
         const subsArray = [];
-        subsSnap.forEach((childSnap) => {
-          const fullName = childSnap.val().fullName;
-          const isp = childSnap.child("connectionDetails").val().isp;
-          const colonyName = childSnap.val().colonyName;
-          const mobileNo = childSnap.val().mobileNo;
-          const userId = childSnap.key;
-          const address = childSnap.val().installationAddress;
-          const company = childSnap.val().company;
-  
+        const dataArray = [];
+        Object.keys(subsSnap).forEach((keys) => {
+          const childSnap = subsSnap[keys];
+          const fullName = childSnap.fullName;
+          const isp = childSnap.connectionDetails?.isp;
+          const colonyName = childSnap.colonyName;
+          const mobileNo = childSnap.mobileNo;
+          const userId = childSnap.username;
+          const address = childSnap.installationAddress;
+          const company = childSnap.company;
+
           subsArray.push({ fullName, isp, colonyName, mobileNo, userId, address, company });
         });
-  
+
         const isps = [...new Set(subsArray.map((data) => data.isp))];
         const colonys = [...new Set(subsArray.map((data) => data.colonyName))];
         setUniqueIsp(isps);
         setUniqueColony(colonys);
-  
-        // Step 4: Fetch tickets only after subscribers are ready
-        onValue(pendingTicketsRef, (dataSnap) => {
-          try {
-            const dataArray = [];
-            dataSnap.forEach((childSnap) => {
-              const {
-                userid,
-                source,
-                generatedDate,
-                closeby,
-                ticketconcern,
-                status,
-                assigndate,
-                assignto,
-                assigntime,
-                generatedBy
-              } = childSnap.val();
-  
-              const assignedPersonName = usersLookup[closeby] || closeby; // Lookup user name or fallback to userid
-              const matchedUser = subsArray.find((data) => data.userId === userid);
+
+        Object.keys(dataSnap).forEach((keys) => {
+          const childSnap = dataSnap[keys];
+          const {
+            userid,
+            source,
+            generatedDate,
+            closeby,
+            ticketconcern,
+            status,
+            assigndate,
+            assignto,
+            assigntime,
+            generatedBy
+          } = childSnap;
+
+          
+          const assignedPersonName = usersLookup[closeby] || closeby; // Lookup user name or fallback to userid
+          const matchedUser = subsArray.find((data) => data.userId === userid);
+          
+
   
               if (matchedUser) {
                 dataArray.push({
-                  Ticketno: childSnap.key,
+                  Ticketno: keys,
                   subsID: userid,
                   source,
                   creationdate: generatedDate,
@@ -90,14 +100,17 @@ export default function TicketdataDash() {
 
                 });
               }
-            });
-  
-            setArrayData(dataArray);
-          } catch (error) {
-            console.error("Error fetching data:", error);
-          }
         });
-      });
+        setArrayData(dataArray);
+
+        
+        
+      }catch(e){
+        console.log(e);
+      }
+      
+  
+        
     }).catch((error) => {
       console.error("Error fetching users:", error);
     });
@@ -310,7 +323,7 @@ const downloadExcel = () => {
                     <td style={{maxWidth:'250px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{filterData.address}</td>
                     <td>{filterData.isp}</td>
                     <td>{filterData.Colony}</td>
-                    <td>{filterData.completed}</td>
+                    <td>{filterData.completedby}</td>
                     <td>{filterData.Status}</td>
                   </tr>
                 ))

@@ -11,6 +11,7 @@ import NotificationIcon from './subscriberpage/drawables/bell.png'
 import { Modal, ModalBody, ModalTitle } from "react-bootstrap";
 import { elements } from "chart.js";
 import { useElementScroll } from "framer-motion";
+import axios from "axios";
 
 
 export default function Navbar() {
@@ -53,43 +54,54 @@ export default function Navbar() {
 
       const currentDate = new Date();
       const time1 = currentDate.getTime();
-      const userSnap = await get(subsref);
-      if(userSnap.exists()){
+      
+
         const UserArray = [];
         const companyCount = {};
         const expiredCount = {};
 
-        userSnap.forEach(Childsubs => {
-          const userKey = Childsubs.key
-          const username = Childsubs.val().username;
-          const fullname = Childsubs.val().fullName;
-          const mobile = Childsubs.val().mobileNo;
-          const company = Childsubs.val().company;
-          const expiryDate = Childsubs.child("connectionDetails").val().expiryDate;
-          const expdate = convertExcelDateSerial(expiryDate);
-          const time = new Date(expdate).getTime();
-          
+        try{
+          const response = await axios.post('http://api.sigmanetworks.in:5000/subscriber');
+          if(response.status !== 200) return;
 
+          const userData = response.data;
 
-
-          UserArray.push({username, fullname, mobile, company, userKey});
-
-          if (companyCount[company]) {
-            if(time > time1){
-              companyCount[company]++;
+          Object.keys(userData).forEach(userKey => {
+            const user = userData[userKey];// Access the user data with the key
+            const username = user.username;
+            const fullname = user.fullName;
+            const mobile = user.mobileNo;
+            const company = user.company;
+      
+            const expiryDate = user.connectionDetails?.expiryDate;
+            const expdate = convertExcelDateSerial(expiryDate);
+            const time = new Date(expdate).getTime();
+      
+            UserArray.push({ username, fullname, mobile, company, userKey });
+      
+            if (companyCount[company]) {
+              if (time > time1) {
+                companyCount[company]++;
+              } else if (time < time1) {
+                expiredCount[company] = (expiredCount[company] || 0) + 1;
+              }
+            } else {
+              companyCount[company] = 1;
+              if (time < time1) {
+                expiredCount[company] = 1;
+              }
             }
-            if(time < time1){
-              expiredCount[company]++
-            }
-          } else {
-            companyCount[company] = 1;
-          }
-        });
+          });
 
-        setArrayUser(UserArray);
-        setCompanyUserCount(companyCount);
-        setExpiredUserCount(expiredCount);
-      }
+          setArrayUser(UserArray);
+          setCompanyUserCount(companyCount);
+          setExpiredUserCount(expiredCount);
+        }catch(e){
+          console.log(e)
+        }
+
+        
+      
     }
 
     onValue(onlineRenewalsref, (renewalSnap) => {
@@ -111,6 +123,10 @@ export default function Navbar() {
     });
 
     fetchUsers();
+
+    const intervalId = setInterval(() => {
+      fetchUsers();
+    }, 5000);
   }, [])
     
 
@@ -238,8 +254,8 @@ export default function Navbar() {
                         <tr>
                             <th scope="col">S.No.</th>
                             <th scope="col">FullName</th>
-                            <th scope="col">Contact</th>
-                            <th scope="col">Status</th>
+                            <th scope="col">User ID</th>
+                            <th scope="col">Mobile</th>
                         </tr>
                     </thead>
                     <tbody className="table-group-divider">

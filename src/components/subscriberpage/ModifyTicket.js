@@ -39,7 +39,7 @@ export default function ModifyTicket() {
     try{
       await update(ticketRef, newticketdata);
       await update(globaltickets, newticketdata);
-      await axios.post(`http://api.justdude.in:5000/send-message?number=91${subscontact}&message=${encodedMessage}`)
+      await axios.post(`https://api.justdude.in/send-message?number=91${subscontact}&message=${encodedMessage}`)
       navigate(-1);
     }catch(error){
       console.log(`Error :- ${error}`);

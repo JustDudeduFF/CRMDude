@@ -11,7 +11,7 @@ const LoginWhatsapp = () => {
 
     const fetchStatus = async () => {
       try {
-          const response = await axios.post('http://api.justdude.in:5000/status');
+          const response = await axios.post('https://api.justdude.in/status');
 
           if (response.data.status === 'QR_RECEIVED') {
               setHeader('Please scan the QR code to login to WhatsApp');

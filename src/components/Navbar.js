@@ -61,7 +61,7 @@ export default function Navbar() {
         const expiredCount = {};
 
         try{
-          const response = await axios.post('http://api.justdude.in:5000/subscriber');
+          const response = await axios.post('https://api.justdude.in/subscriber');
           if(response.status !== 200) return;
 
           const userData = response.data;

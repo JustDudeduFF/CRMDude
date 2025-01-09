@@ -92,7 +92,7 @@ const RevenueDash = () => {
         const fetchRevenue = async () => {
           try {
             // Fetch data from the API
-            const response = await axios.post('http://api.sigmanetworks.in:5000/subscriber');
+            const response = await axios.post('http://api.justdude.in:5000/subscriber');
             console.log('Response status:', response.status);
         
             if (response.status !== 200 || !response.data) {

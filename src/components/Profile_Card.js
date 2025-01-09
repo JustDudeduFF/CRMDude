@@ -13,18 +13,19 @@ export default function Profile_Card() {
         localStorage.removeItem('contact');
         localStorage.removeItem('Name');
         localStorage.removeItem('Designation');
-        localStorage.removeItem('planrenewal');
-        localStorage.removeItem('allowedbackdate');
-        localStorage.removeItem('transfertickets');
-        localStorage.removeItem('inventry');
         navigate('/');
     };
+
+
+    const handlePassClick = () => {
+        navigate('/dashboad/migrate')
+    }
     
 
     const items=[
         {text: "Profile View", icon: profile},
         {text: "My Attenence", icon: MyAttendnence_logo},
-        {text: "Change Password", icon: Change_Password},
+        {text: "Change Password", icon: Change_Password, onClick: handlePassClick},
         {text: "Logout", icon: Arrow, onClick: handleUserLogout}
     ]
 

@@ -174,14 +174,14 @@ export default function Subscriber() {
 
            
             const sendMail = async () => {
-                const response = await axios.post('http://api.sigmanetworks.in:5000/sendmail', emailData);
+                const response = await axios.post('http://api.justdude.in:5000/sendmail', emailData);
                 console.log(response.data.message);
             }
 
             const sendWhatsapp = async () => {
                 const message = `🌐 Broadband Recharge Successful! 🎉\n\nDear ${fullName},\n\n✅ Your broadband recharge for ${planName} has been successfully completed.\n\n💳 *Amount Paid:* ₹${planAmount}\n📅 *Validity:* ${new Date(renewactdate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})} to ${new Date(expdate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})}\n🚀 *Speed:* Up to ${bandwidth} Mbps\n\nThank you for choosing *Sigma Business Solutions*! 😊\n\n✨ Enjoy uninterrupted browsing and streaming! 🎬📱\n\nFor support or queries, feel free to reach out to us:\n📞 *Customer Care:* 9999118971\n💬 *WhatsApp Support:* 9999118971    *24x7*\n\nStay connected, stay happy! 🌟`
                 const encodedMessage = encodeURIComponent(message);
-                await axios.post(`http://api.sigmanetworks.in:5000/send-message?number=91${contact}&message=${encodedMessage}`);
+                await axios.post(`http://api.justdude.in:5000/send-message?number=91${contact}&message=${encodedMessage}`);
 
             }
             sendMail();

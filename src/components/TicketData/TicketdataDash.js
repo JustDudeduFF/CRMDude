@@ -31,8 +31,8 @@ export default function TicketdataDash() {
   
       // Step 2: Fetch subscribers
       try{
-        const subsResponse = await axios.post('http://api.sigmanetworks.in:5000/subscriber');
-        const globalResponse = await axios.post('http://api.sigmanetworks.in:5000/globaltickets');
+        const subsResponse = await axios.post('https://api.justdude.in/subscriber');
+        const globalResponse = await axios.post('https://api.justdude.in/globaltickets');
         console.log(globalResponse.status)  
 
         if(subsResponse.status !== 200 || globalResponse.status !== 200) return;

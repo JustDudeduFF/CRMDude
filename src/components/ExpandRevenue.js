@@ -7,6 +7,7 @@ import { db } from '../FirebaseConfig';
 import LockIcon from './subscriberpage/drawables/lock.png';
 import { isThisMonth, isThisWeek, isToday, subDays, parseISO } from 'date-fns';
 import { usePermissions } from './PermissionProvider';
+import axios from 'axios';
 
 export default function ExpandRevenue({ show, modalShow }) {
   const {hasPermission} = usePermissions();
@@ -14,8 +15,10 @@ export default function ExpandRevenue({ show, modalShow }) {
   const [filteredArray, setFilteredArray] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]); // State for selected rows
   const [filterPeriod, setFilterPeriod] = useState('All Time');
-  const [filterStatus, setFilterStatus] = useState('UnAuthorized'); // Default to 'UnAuthorized'
+  const [filterStatus, setFilterStatus] = useState('UnAuthorized');
+  const [filterUser, setFilterUser] = useState(''); // Default to 'UnAuthorized'
   const [paymentmode, setPaymentMode] = useState('All');
+  const [userlookup, setUserLookup] = useState({});
 
   // Function to download the selected rows in Excel format
   const downloadExcel = (selectedOnly = false) => {
@@ -32,34 +35,107 @@ export default function ExpandRevenue({ show, modalShow }) {
   };
 
   useEffect(() => {
-    if (show) {
-      const receiptRef = ref(db, `Subscriber`);
-      onValue(receiptRef, (snapshot) => {
+
+    const fetchUser = async() => {
+        try{
+          const userResponse = await axios.get('https://api.justdude.in/users');
+
+          if(userResponse.status !== 200) return;
+
+          const responseData = userResponse.data;
+
+          if(responseData){
+            const userLook = {};
+            Object.keys(responseData).forEach((key) => {
+              const userSnap = responseData[key];
+
+              const empname = userSnap.FULLNAME;
+              const mobile = userSnap.MOBILE;
+
+              userLook[mobile] = empname;
+            });
+            setUserLookup(userLook);
+          }
+        }catch(e){
+          console.log(e);
+        }
+
+        
+    }
+
+    const fetchRevenue = async () => {
+      try {
+        // Fetch data from the API
+        const response = await axios.get('https://api.justdude.in/subscriber');
+    
+        if (response.status !== 200 || !response.data) {
+          return;
+        }
+    
+        const snapshot = response.data;
+    
+        // Ensure snapshot is a valid object
+        if (!snapshot || typeof snapshot !== 'object') {
+          console.error('Snapshot is not a valid object');
+          return;
+        }
+    
         const receiptArray = [];
-        snapshot.forEach((subscriberChild) => {
-          const userId = subscriberChild.key;
-          const userPayments = subscriberChild.child('payments');
-          userPayments.forEach((paymentChild) => {
-            const paymentData = paymentChild.val();
-            const receiptno = paymentChild.key;
-            const { amount, collectedBy, discount, paymentMode, receiptDate, transactionNo, authorized } = paymentData;
+    
+        // Iterate through the snapshot to process data
+        Object.keys(snapshot).forEach((userId) => {
+          const user = snapshot[userId];
+          if (!user || typeof user !== 'object') return; // Skip invalid user entries
+    
+          const colonyName = user.colonyName || 'Unknown Colony';
+          const fullName = user.fullName || 'Unknown Name';
+          const address = user.installationAddress || 'Unknown Address';
+          const mobileNo = user.mobileNo || 'Unknown Mobile';
+          const company = user.company || 'Unknown Company'
+          const userPayments = user.payments;
+    
+          // Ensure payments exist and are an object
+          if (!userPayments || typeof userPayments !== 'object') return;
+    
+          // Process payments for each user
+          Object.keys(userPayments).forEach((paymentKey) => {
+            const payment = userPayments[paymentKey];
+            if (!payment || typeof payment !== 'object') return; // Skip invalid payments
+    
+            const { amount, collectedBy, discount, paymentMode, receiptDate, transactionNo, authorized } = payment;
+    
             receiptArray.push({
-              ReceiptNo: receiptno,
+              mobileNo: mobileNo,
+              address: address,
+              fullName: fullName,
+              colonyName: colonyName,
+              company: company,
+              ReceiptNo: paymentKey, // Use paymentKey as receipt number
               UserID: userId,
-              Amount: amount,
-              Discount: discount,
-              TransactionID: transactionNo,
-              Collected_By: collectedBy,
-              PaymentMode: paymentMode,
-              Receipt_Date: receiptDate,
-              authorized // Ensure you have 'authorized' in your payment data
+              Amount: amount || 0,
+              discount: discount || 0,
+              TransactionID: transactionNo || 'N/A',
+              Collected_By: collectedBy || 'Unknown',
+              PaymentMode: paymentMode || 'Unknown',
+              Receipt_Date: receiptDate || 'Unknown',
+              authorized: authorized || false, // Default to false if not provided
             });
           });
         });
-        setArrayData(receiptArray); // Set arrayData outside the loop
-      });
-    }
-  }, [show]);
+    
+        
+        setArrayData(receiptArray);
+    
+      } catch (error) {
+        console.error('Error fetching revenue:', error);
+      }
+    };
+    
+    
+
+    fetchUser();
+    fetchRevenue();
+}, [show]);
 
   const isValidDate = (dateString) => {
     return dateString && typeof dateString === 'string' && dateString.trim() !== '';
@@ -111,9 +187,12 @@ export default function ExpandRevenue({ show, modalShow }) {
     if (paymentmode !== 'All') {
       filter = filter.filter((receipt) => receipt.PaymentMode === paymentmode);
     }
+    
+
+    filter = filter.filter((receipt) => receipt.UserID.toLowerCase().includes(filterUser.toLowerCase())) 
   
     setFilteredArray(filter);
-  }, [arrayData, filterPeriod, filterStatus, paymentmode]);
+  }, [arrayData, filterPeriod, filterStatus, paymentmode, filterUser]);
   
   const handleAuthorize = async (e) => {
     e.preventDefault();
@@ -151,6 +230,8 @@ export default function ExpandRevenue({ show, modalShow }) {
     });
   };
 
+  
+
   if (!show) return null;
 
   return (
@@ -158,8 +239,12 @@ export default function ExpandRevenue({ show, modalShow }) {
       <div className="modal-data1">
         <div className="modal-inner1">
           <h4 style={{ flex: '1' }}>Payment Authorization</h4>
-          <form style={{ flex: '2' }} className="row g-3">
-            <div className="col-md-3">
+          <form style={{ flex: '3' }} className="row g-3">
+          <div className='col-md-2'>
+              <label className='form-label'>Search UserId</label>
+              <input onChange={(e) => setFilterUser(e.target.value)} className='form-control' type='text' placeholder='e.g. UserID'></input>
+            </div>
+            <div className="col-md-2">
               <label className="form-label">Select Status</label>
               <select
                 onChange={(e) => setFilterStatus(e.target.value)}
@@ -169,7 +254,7 @@ export default function ExpandRevenue({ show, modalShow }) {
                 <option value="Authorized">Authorized</option>
               </select>
             </div>
-            <div className="col-md-3">
+            <div className="col-md-2">
               <label className="form-label">Select Time Period</label>
               <select
                 onChange={(e) => setFilterPeriod(e.target.value)}
@@ -183,7 +268,7 @@ export default function ExpandRevenue({ show, modalShow }) {
                 <option value="Last 30 Days">Last 30 Days</option>
               </select>
             </div>
-            <div className="col-md-3">
+            <div className="col-md-2">
               <label className="form-label">Select Payment Mode</label>
               <select
                 onChange={(e) => setPaymentMode(e.target.value)}
@@ -200,7 +285,7 @@ export default function ExpandRevenue({ show, modalShow }) {
                 <option value="Amazon Pay">Amazon Pay</option>
               </select>
             </div>
-
+            
             <div className="col-md-2">
               <label className="form-label">Authorization</label>
               <button
@@ -270,7 +355,7 @@ export default function ExpandRevenue({ show, modalShow }) {
                     <td>{receipt.Discount}</td>
                     <td>{receipt.TransactionID}</td>
                     <td>{`REC-${receipt.ReceiptNo}`}</td>
-                    <td>{receipt.Collected_By}</td>
+                    <td>{userlookup[receipt.Collected_By]}</td>
                     <td>{receipt.PaymentMode}</td>
                   </tr>
                 ))

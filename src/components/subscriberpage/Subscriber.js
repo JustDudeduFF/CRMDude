@@ -42,6 +42,7 @@ export default function Subscriber() {
   const [expiryModal, setExpiryModal] = useState(false);
   const [newExp, setNewExp] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isTerminated, setIsTeminated] = useState(false);
 
 
 
@@ -199,8 +200,8 @@ export default function Subscriber() {
     const updateExpiry = async() => {
         setLoader(true);
         const logKey = Date.now().toString();
-        const logRef = ref(db, `Subscriber/${userid}/logs/${logKey}`);
-        const expRef = ref(db, `Subscriber/${userid}/connectionDetails`);
+        const logRef = ref(db, `Subscriber/${username}/logs/${logKey}`);
+        const expRef = ref(db, `Subscriber/${username}/connectionDetails`);
 
 
         const expDate = {
@@ -241,6 +242,7 @@ export default function Subscriber() {
                         setRegistrationDate(subsSnap.val().createdAt);
                         setUserEmail(subsSnap.val().email);
                         setContact(subsSnap.val().mobileNo);
+                        setIsTeminated(subsSnap.val().isTerminate);
     
     
                         localStorage.setItem('subsname', subsSnap.val().fullName);
@@ -323,6 +325,8 @@ export default function Subscriber() {
                 } else {
                     setStatus('Active');
                 }
+
+                if(isTerminated) setStatus('Terminated')
     
                 setRemainDays(daysDiff);
             };
@@ -416,7 +420,7 @@ export default function Subscriber() {
                 <div style={{flex: '2', display: 'flex', flexDirection:'column'}}>
                     <div style={{flex:'1'}}>
                         <Link id='link' to='/dashboard/subscriber' state={{ username: userid }}><h2 style={{color: 'blueviolet', fontWeight:'bold'}}>{fullName}</h2></Link>
-                        <span style={{color: 'green', marginLeft: '15px'}}>Prepaid</span><span> | </span><span style={{color: 'violet'}}>Paid</span><span> | </span><span style={{color: 'red'}}>{status}</span>
+                        <span style={{color: 'green', marginLeft: '15px'}}>Prepaid</span><span> | </span><span style={{color: 'violet'}}>Paid</span><span> | </span><span className={status === "Active" ? ('text-success') : status === "Inactive" ? ('text-danger') : 'text-secondary'}>{status}</span>
                     </div>
                     <div style={{flex: '2'}}>
                         <div style={{padding: '10px', border: '1px solid gray', display: 'flex', flexDirection :'row', margin: '8px', borderRadius: '5px', background: '#cbc4ba', color: 'white', boxShadow: '0 0 8px gray'}}>
@@ -473,7 +477,7 @@ export default function Subscriber() {
                             <h6 style={{color:'blue'}}>Unlimited</h6>
 
                             <label>Status</label>
-                            <h6 style={{color:'green'}}>{status}</h6>
+                            <h6 className={status === "Active" ? ('text-success') : status === "Inactive" ? ('text-danger') : 'text-secondary'}>{status}</h6>
 
                             <label>Days Remains</label>
                             <h6 style={{color:'blue'}}>{remaindays}</h6>
@@ -502,7 +506,7 @@ export default function Subscriber() {
                                     pauseOnHover: true,
                                     draggable: true,
                                     progress: undefined,
-                                })} style={{marginRight:'10px'}} type="button" className="btn btn-info" disabled = {renew}>Renew Subscription</button>
+                                })} style={{marginRight:'10px'}} type="button" className="btn btn-info" disabled = {renew || isTerminated}>Renew Subscription</button>
                                 <button onClick={() => {
                                     hasPermission("CHANGE_PLAN") ? setPlanChange(true) : toast.error("Permission Denied", {
                                         autoClose: 3000,
@@ -512,7 +516,7 @@ export default function Subscriber() {
                                         draggable: true,
                                         progress: undefined,
                                     })
-                                }}  type="button" className="btn btn-outline-danger">Change Plan</button>
+                                }}  type="button" className="btn btn-outline-danger" disabled={isTerminated}>Change Plan</button>
                                 </div>
 
                                 <div style={{flex:'1'}}>
@@ -559,14 +563,14 @@ export default function Subscriber() {
             <div style={{flex:'1', display:'flex', flexDirection:'column'}}>
                 
                 
-                <div onClick={() => {navigate('ledger', {state: {userid}})}} className='div-subs-option'>
+                <div onClick={() => {navigate('ledger', {state: {username}})}} className='div-subs-option'>
                     <label>Ledger</label>
                 </div>
                 
 
 
                 
-                <div onClick={() => {navigate('paymentreceipt', {state: {userid}})}} className='div-subs-option'>
+                <div onClick={() => {navigate('paymentreceipt', {state: {username}})}} className='div-subs-option'>
                     <label>Payments Receipts</label>
                 </div>
                 

@@ -181,7 +181,6 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                 <option value="Pending">Open Tickets</option>
                                 <option value="All">All Tickets</option>
                                 <option value="Completed">Closed Tickets</option>
-                                <option value="Open">Pending Tickets</option>
                                 <option value="Unassigned">Unassigned Tickets</option>
                             </select>                                                                                                           
                         </div>

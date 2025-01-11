@@ -46,13 +46,17 @@ export default function SubscriberPersonal() {
         const jcNumberBreak = jcNumber.split("_");
         const FMSnameRef = ref(db, `Rack Info/Sigma Shahdara/${jcNumberBreak[0]}`);
         const fmsSnap = await get(FMSnameRef);
-        const oltSno = fmsSnap.child("Ports").child(jcNumberBreak[1]).val().connectedTo;
-        const oltNameRef = ref(db, `Rack Info/Sigma Shahdara/${oltSno}`);
-        const oltSnap = await get(oltNameRef);
-        setConnectedOlt(`${oltSnap.val().manufacturer}/${oltSnap.val().oltType}`);
-        setConnectedFMS(fmsSnap.val().fmsname);
-        setConnectedPortNo(jcNumberBreak[1]);
-        setUniqueJCNo(jcNumber);
+        if(fmsSnap.exists()){
+          const oltSno = fmsSnap.child("Ports").child(jcNumberBreak[1]).val()?.connectedTo;
+          const oltNameRef = ref(db, `Rack Info/Sigma Shahdara/${oltSno}`);
+          const oltSnap = await get(oltNameRef);
+          if(oltSnap.exists()){
+            setConnectedOlt(`${oltSnap.val().manufacturer}/${oltSnap.val().oltType}`);
+            setConnectedFMS(fmsSnap.val().fmsname);
+            setConnectedPortNo(jcNumberBreak[1]);
+            setUniqueJCNo(jcNumber);
+          }
+        }
         
     }
 

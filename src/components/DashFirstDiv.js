@@ -4,6 +4,7 @@ import Router_Img from './subscriberpage/drawables/wireless-router.png'
 import Rupee_Icon from './subscriberpage/drawables/rupee.png'
 import DueRupee_Icon from './subscriberpage/drawables/rupeenew.png'
 import Tickets_Icon from './subscriberpage/drawables/complain.png'
+import ExcelIcon from './subscriberpage/drawables/xls.png'
 import {db} from '../FirebaseConfig'
 import { ref } from 'firebase/database';
 import { onValue } from 'firebase/database'
@@ -14,16 +15,18 @@ import ExpandRevenue from './ExpandRevenue'
 import { useNavigate } from 'react-router-dom';
 import DashSecDiv from './DashSecDiv';
 import { usePermissions } from './PermissionProvider'
+import { Modal } from 'react-bootstrap'
+import axios from 'axios'
+import { isThisISOWeek, isThisMonth, isToday, isYesterday, parseISO } from 'date-fns'
+import * as XLSX from 'xlsx';
 
 export default function DashFirstDiv() {
     const navigate = useNavigate();
-    const user = localStorage.getItem('Designation');
     const {hasPermission} = usePermissions();
 
     const [openticktes, setOpenTickets] = useState(0);
     const [unassignedtickets, setUnassignedTickets] = useState(0);
     const [closedtickets, setCloseTickets] = useState(0);
-    const [cancelticket, setCancelTickets] = useState(0);
 
     const [dueArrayWeek, setDueArrayWeek] = useState(0);
     const [dueArrayMonth, setDueArrayMonth] = useState(0);
@@ -57,12 +60,45 @@ export default function DashFirstDiv() {
     const [arryadue, setDueArray] = useState(0);
 
     const [attendenceArray, setAttendenceArray] = useState([]);
+    const [installationArray, setInstallationArray] = useState([]);
     const [newInstallations, setNewInstallations] = useState(0);
     const [newInstallationsToday, setNewInstallationsToday] = useState(0);
     const [newInstallationsWeek, setNewInstallationsWeek] = useState(0);
+    const [filteIns, setFilterIns] = useState({
+        company: 'All',
+        day: 'Month'
+    });
+    const [filterInsArray, setFilterInsArray] = useState([]);
+    const [companyArray, setCompanyArray] = useState([]);
     
     const [isLoading, setIsLoading] = useState(true);
-    const [isAdmin, setIsAdmin] = useState(false);
+    const [showInsModal, setShowInsModal] =  useState(false);
+
+    const downloadExcel =()=> {
+        // Extract specific columns (e.g., customer and status)
+        const extractedData = filterInsArray.map((item, index) => ({
+            "S No.": index + 1,
+            "Customer Name": item.fullName,
+            "Mobile": item.mobileNo,
+            "Installation Address": item.installationAddress,
+            "Email": item.email,
+            "Registration Date": item.createdAt,
+            "Plan Name": item.connectionDetails.planName,
+            "Plan Amount": item.connectionDetails.planAmount,
+            "Colony": item.colonyName,
+            "Company": item.company,
+            "Activation Date": item.connectionDetails.activationDate,
+            "Expiry Date": item.connectionDetails.expiryDate,
+            "ISP": item.connectionDetails.isp,
+ 
+        }));
+        const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.json_to_sheet(extractedData);
+
+        
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Installation");
+        XLSX.writeFile(workbook, `Installation Data.xlsx`);
+    }    
 
 
 
@@ -186,8 +222,6 @@ export default function DashFirstDiv() {
                                 open++;
                             }else if(ticketno === 'Completed'){
                                 closed++
-                            }else if(ticketno === 'Open'){
-                                cancel++;
                             }else if(ticketno === 'Unassigned'){
                                 unassigned++
                             }
@@ -195,7 +229,6 @@ export default function DashFirstDiv() {
                         });
                         setOpenTickets(open);
                         setCloseTickets(closed);
-                        setCancelTickets(cancel);
                         setUnassignedTickets(unassigned);
                     }
                     resolve();
@@ -401,7 +434,7 @@ export default function DashFirstDiv() {
         navigate('payrollandattendence');
     }
 
-    function fetchData() {
+    const fetchData = async() =>  {
 
         const currentYear = new Date().getFullYear();
         const currentMonth = (new Date().getMonth() + 1);
@@ -417,47 +450,6 @@ export default function DashFirstDiv() {
                     userId: userSnap.key
                 });
             });
-
-            onValue(ref(db, `Subscriber`), (snapshot) => {
-                let newInstallations = 0;
-                let newInstallationsToday = 0;
-                let newInstallationsWeek = 0;
-            
-                snapshot.forEach((doc) => {
-                    const subscriberData = doc.val();
-            
-                    if (subscriberData.createdAt) {
-                        const date = new Date(convertExcelDateSerial(subscriberData.createdAt));
-            
-                        // Check if the month and year match
-                        if (date.getFullYear() === currentYear && (date.getMonth() + 1) === currentMonth) {
-                            newInstallations++;
-                        }
-            
-                        // Check if the exact date matches today
-                        if (date.getFullYear() === currentYear && (date.getMonth() + 1) === currentMonth && date.getDate() === currentDate) {
-                            newInstallationsToday++;
-                        }
-            
-                        // Check if the date falls within the current week
-                        const currentDateObj = new Date();
-                        const startOfWeek = new Date(currentDateObj.setDate(currentDateObj.getDate() - currentDateObj.getDay())); // Start of the week
-                        const endOfWeek = new Date(startOfWeek);
-                        endOfWeek.setDate(startOfWeek.getDate() + 6); // End of the week
-            
-                        if (date >= startOfWeek && date <= endOfWeek) {
-                            newInstallationsWeek++;
-                        }
-                    }
-                });
-            
-                // Update the state with the final counts
-                setNewInstallations(newInstallations);
-                setNewInstallationsToday(newInstallationsToday);
-                setNewInstallationsWeek(newInstallationsWeek);
-            });
-            
-            
             // Then fetch attendance data
             onValue(attendenceRef, attendenceSnap => {
                 const attendenceArray = [];
@@ -502,11 +494,105 @@ export default function DashFirstDiv() {
                 setAttendenceArray(attendenceArray);
             });
         });
+
+
+        try{
+            const  response = await axios.get('https://api.justdude.in/subscriber');
+            const userResponse = await axios.get('https://api.justdude.in/subscriber');
+
+            if(response.status !== 200) return;
+            if(userResponse.status !== 200) return;
+
+            const subsData = response.data;
+            if(subsData){
+                let newInstallations = 0;
+                let newInstallationsToday = 0;
+                let newInstallationsWeek = 0;
+                const installArray = [];
+                Object.keys(subsData).forEach((key) => {
+                    const subscriberData = subsData[key];
+
+                    if (subscriberData.createdAt) {
+                        const date = convertExcelDateSerial(subscriberData.createdAt);
+            
+                        // Check if the month and year match
+                        if (isThisMonth(parseISO(date))) {
+                            newInstallations++;
+                            installArray.push(subscriberData);
+                        }
+            
+                        // Check if the exact date matches today
+                        if (isToday(parseISO(date))) {
+                            newInstallationsToday++;
+                        }
+            
+                    
+                        if (isThisISOWeek(parseISO(date))) {
+                            newInstallationsWeek++;
+                        }
+                    }
+                });
+
+                const company = [...new Set(installArray.map((data) => data.company))]
+
+                    // Update the state with the final counts
+                setCompanyArray(company);
+                setInstallationArray(installArray);
+                setNewInstallations(newInstallations);
+                setNewInstallationsToday(newInstallationsToday);
+                setNewInstallationsWeek(newInstallationsWeek);
+            }
+
+
+        }catch(e){
+            console.log(e)
+        }
+
+        
     };
 
     function formatRevenue(amount) {
         return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
+    const isValidDate = (dateString) => {
+        return dateString && typeof dateString === 'string' && dateString.trim() !== '';
+      };
+
+    useEffect(() => {
+        let filterArray = installationArray;
+
+        if(filteIns.company !== "All"){
+            filterArray = filterArray.filter((data) => data.company === filteIns.company);
+        }
+
+        if(filteIns.day !== "Month"){
+            switch(filteIns.day){
+                case 'Month':
+                    filterArray = filterArray.filter((data) => 
+                    isValidDate(data.createdAt) && isThisMonth(parseISO(data.createdAt))
+                );
+                break;
+                case 'Today':
+                    filterArray = filterArray.filter((data) => 
+                    isValidDate(data.createdAt) && isToday(parseISO(data.createdAt))
+                );
+                break;
+                case 'Yesterday':
+                    filterArray = filterArray.filter((data) => 
+                    isValidDate(data.createdAt) && isYesterday(data.createdAt)
+                );
+                break;
+                case 'This Week':
+                    filterArray = filterArray.filter((data) => 
+                        isValidDate(data.createdAt) && isThisISOWeek(parseISO(data.createdAt))
+                    );
+                break;
+                
+            }
+        }
+
+        setFilterInsArray(filterArray);
+    }, [filteIns]);
 
     return (
         <>
@@ -690,7 +776,7 @@ export default function DashFirstDiv() {
                         <div style={{borderRadius: '5px',flex: '1', marginTop: '15px', boxShadow: '0 0 7px violet'}}>
                             <img alt='' className='img_boldicon' src={Router_Img}></img>
                             <label style={{marginLeft: '20px', fontSize: '25px'}}>New Installations</label> 
-                            <span style={{marginRight: '100px', fontSize: '30px', float: 'right', marginTop: '20px', color: 'green', borderBottom: '2px solid gray'}}>{newInstallations}</span>
+                            <span onClick={() => setShowInsModal(true)} style={{marginRight: '100px', fontSize: '30px', float: 'right', marginTop: '20px', color: 'green', borderBottom: '2px solid gray', cursor:'pointer'}}>{newInstallations}</span>
                             <div style={{display: 'flex', flexDirection: 'row', margin: '20px', height: '80px'}}>
                                 <div style={{border: '0.5px solid gray', flex: '1', padding:'10px'}}>
                                     <h3>{newInstallationsToday}</h3>
@@ -800,10 +886,7 @@ export default function DashFirstDiv() {
                                     <h5>{unassignedtickets}</h5>
                                     <label style={{color: 'gray'}} >Unassigned Tickets</label>
                                 </div>
-                                <div style={{border: '1px solid gray', flex: '1', padding: '5px'}}>
-                                <h5>{cancelticket}</h5>
-                                <label style={{color: 'red'}} >Pending Tickets</label>
-                                </div>
+                                
                                 <div style={{border: '1px solid gray', flex: '1', padding: '5px'}}>
                                 <h5>{closedtickets}</h5>
                                 <label style={{color: 'blue'}} >Closed Tickets</label>
@@ -816,6 +899,79 @@ export default function DashFirstDiv() {
                         
                     </div>
                 </div>
+
+                <Modal show={showInsModal} onHide={() => setShowInsModal(false)} size='xl'>
+                <Modal.Header className="d-flex align-items-center">
+                    <Modal.Title>
+                        This Month New User
+                    </Modal.Title>
+                    <div className='col-md-3 ms-auto'>
+                        <label className='form-label'>Select Company</label>
+                        <select onChange={(e) => setFilterIns({...filteIns, company:e.target.value})} className='form-select'>
+                            <option value='All'>All</option>
+                            {
+                                companyArray.map((company, index) => (
+                                    <option key={index} value={company}>{company}</option>
+                                ))
+                            }
+                        </select>
+
+                    </div>
+                    <div className='col-md-3 ms-auto'>
+                        <label className='form-label'>Select Day</label>
+                        <select onChange={(e) => setFilterIns({...filteIns, day:e.target.value})} className='form-select'>
+                            <option value='Month'>This Month</option>
+                            <option value='Today'>Today</option>
+                            <option value='Yesterday'>Yesterday</option>
+                            <option value='This Week'>This Week</option>
+                            
+
+                        </select>
+
+                    </div>
+                    <img onClick={downloadExcel} className='img_download_icon ms-auto' alt='excel' src={ExcelIcon}></img>
+                </Modal.Header>
+
+                    <Modal.Body style={{maxHeight:'79vh', overflow:'hidden', overflowY:'auto'}}>
+                        <table className='table table-striped table-hover'>
+                            <thead className='table table-primary'>
+                                <tr>
+                                    <th scope='col'>S No</th>
+                                    <th scope='col'>Date</th>
+                                    <th scope='col'>UserID</th>
+                                    <th scope='col'>Name</th>
+                                    <th scope='col'>Mobile</th>
+                                    <th scope='col'>Address</th>
+                                    <th scope='col'>Company</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {
+                                    filterInsArray.length > 0 ? (
+                                        filterInsArray.map((data, index) => (
+                                            <tr key={index}>
+                                                <td>{index + 1}</td>
+                                                <td>{new Date(data.createdAt).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}</td>
+                                                <td>{data.username}</td>
+                                                <td>{data.fullName}</td>
+                                                <td>{data.mobileNo}</td>
+                                                <td style={{maxWidth:'200px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{data.installationAddress}</td>
+                                                <td>{data.company}</td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+
+                                        </tr>
+                                    )
+                                }
+                            </tbody>
+                        </table>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        
+                    </Modal.Footer>
+                </Modal>
                 
             
 

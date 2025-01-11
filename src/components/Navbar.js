@@ -9,8 +9,6 @@ import { ref, get, onValue } from "firebase/database";
 import UserProfile from './subscriberpage/drawables/user.png'
 import NotificationIcon from './subscriberpage/drawables/bell.png'
 import { Modal, ModalBody, ModalTitle } from "react-bootstrap";
-import { elements } from "chart.js";
-import { useElementScroll } from "framer-motion";
 import axios from "axios";
 
 
@@ -29,6 +27,8 @@ export default function Navbar() {
   const [showModal, setShowModal] = useState(false);
   const [renewalArray, setRenewArray] = useState([]);
   const [currentRenewal, setCurrenRenewal] = useState(0);
+  const [uniqueCompanies, setUniqueCompanies] = useState([]);
+  const [showModal2, setShowModal2] = useState(false);
 
   const subsref = ref(db, 'Subscriber');
 
@@ -61,23 +61,20 @@ export default function Navbar() {
         const expiredCount = {};
 
         try{
-          const response = await axios.post('https://api.justdude.in/subscriber');
+          const response = await axios.get('https://api.justdude.in/subscriber');
           if(response.status !== 200) return;
 
           const userData = response.data;
 
           Object.keys(userData).forEach(userKey => {
             const user = userData[userKey];// Access the user data with the key
-            const username = user.username;
-            const fullname = user.fullName;
-            const mobile = user.mobileNo;
             const company = user.company;
       
             const expiryDate = user.connectionDetails?.expiryDate;
-            const expdate = convertExcelDateSerial(expiryDate);
+            const expdate = convertExcelDateSerial(expiryDate); 
             const time = new Date(expdate).getTime();
-      
-            UserArray.push({ username, fullname, mobile, company, userKey });
+            UserArray.push({company});
+
       
             if (companyCount[company]) {
               if (time > time1) {
@@ -92,8 +89,9 @@ export default function Navbar() {
               }
             }
           });
+          const company = [...new Set(UserArray.map(user => user.company))];
 
-          setArrayUser(UserArray);
+          setUniqueCompanies(company);
           setCompanyUserCount(companyCount);
           setExpiredUserCount(expiredCount);
         }catch(e){
@@ -123,11 +121,31 @@ export default function Navbar() {
     });
 
     fetchUsers();
+  }, []);
 
-    const intervalId = setInterval(() => {
-      fetchUsers();
-    }, 5000);
-  }, [])
+  const getSearchUser = async() => {
+    setIsSearchFocused(true)
+    const response = await axios.get(`https://api.justdude.in/subscriber/${subssearch}`);
+    if(response.status !== 200) return;
+
+    const data = response.data;
+    if(data){
+      const userArray = [];
+      Object.keys(data).forEach((dataKey) => {
+        const userData = data[dataKey];
+
+        const {key, name, mobile, userid, address} = userData;
+        userArray.push({
+          username:userid,
+          fullname: name,
+          mobile,
+          userKey:key
+        });
+        
+      });
+      setArrayUser(userArray);
+    }
+  }
     
 
   const handleSubsView = (userKey) => {
@@ -140,12 +158,6 @@ export default function Navbar() {
     setIsVisible(!isVisible)
   }
 
-  const fileredSubs = arrayuser.filter(({username, mobile}) => 
-    username.toLowerCase().includes(subssearch.toLowerCase()) ||
-    mobile.toLowerCase().includes(subssearch.toLowerCase())
-  );
-
-  const uniqueCompanies = [...new Set(arrayuser.map(user => user.company))]; // Get unique company names
 
   return (
     <div>
@@ -163,15 +175,20 @@ export default function Navbar() {
                 </img>
               </div>
             <input style={{height: '40px', float:'left'}}
-              onClick={() => setIsSearchFocused(true)}
               className="form-control"
               onChange={(e) => setSubsSearch(e.target.value)}
               type="search"
               placeholder="Search"
               aria-label="Search"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault(); // Prevents form submission or other default actions
+                  getSearchUser();    // Call the search function
+                }
+              }}
             ></input>
             <div style={{ display:'flex', flexDirection:'row', marginLeft:'10px'}}>
-              <div data-bs-toggle="modal" data-bs-target="#staticBackdrop" style={{width: '50px', height: '50px', cursor: 'pointer'}}>
+              <div onClick={() => setShowModal2(true)} style={{width: '50px', height: '50px', cursor: 'pointer'}}>
                 <img style={{width: '50px', height: '50px', cursor: 'pointer', borderRadius:'100%', boxShadow:"0 0 8px gray"}} src={Building_Img}>
                 </img>
               </div>
@@ -208,36 +225,6 @@ export default function Navbar() {
         </div>
       </nav>
 
-
-      <div className="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div className="modal-dialog">
-            <div className="modal-content">
-            <div className="modal-header">
-                <h1 className="modal-title fs-5" id="staticBackdropLabel">Change Company</h1>
-                <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div className="modal-body">
-            <ol className="list-group list-group-numbered">
-                {uniqueCompanies.map((company, index) => (
-                  <li key={index} className="list-group-item d-flex justify-content-between align-items-start">
-                    <div className="ms-2 me-auto">
-                      <div className="fw-bold">{company}</div>
-                      Active Users: {companyUserCount[company] || 0}
-                    </div>
-                    <span className="badge text-bg-primary rounded-pill">{expiredUserCount[company] || 0}</span>
-                  </li>
-                ))}
-                
-                </ol>
-            </div>
-            <div className="modal-footer">
-                <button type="button" className="btn btn-success" data-bs-dismiss="modal">Add New</button>
-                <button type="button" className="btn btn-primary">Change</button>
-            </div>
-            </div>
-        </div>
-        </div>
-
       {
         isVisible && (
             <Profile_Card/>
@@ -259,7 +246,7 @@ export default function Navbar() {
                         </tr>
                     </thead>
                     <tbody className="table-group-divider">
-                    {fileredSubs.map(({username, fullname, mobile, userKey}, index) => (
+                    {arrayuser.map(({username, fullname, mobile, userKey}, index) => (
                           <tr key={index}>
                             <td>{index + 1}</td>
                             <td>{fullname}</td>
@@ -348,6 +335,29 @@ export default function Navbar() {
             </table>
           </div>
         </ModalBody>
+
+      </Modal>
+
+      <Modal show={showModal2} onHide={() => setShowModal2(false)}>
+        <Modal.Header>
+          <Modal.Title>
+            Company and Customer Stats
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+        <ol className="list-group list-group-numbered">
+              {uniqueCompanies.map((company, index) => (
+               <li key={index} className="list-group-item d-flex justify-content-between align-items-start">
+               <div className="ms-2 me-auto">
+                 <div className="fw-bold">{company}</div>
+                 <span className="text-success">Active Users: {companyUserCount[company] || 0}</span>
+               </div>
+               <span className="badge text-bg-danger rounded-pill">{expiredUserCount[company] || 0}</span>
+             </li>
+           ))}
+           
+           </ol>       
+        </Modal.Body>
 
       </Modal>
 

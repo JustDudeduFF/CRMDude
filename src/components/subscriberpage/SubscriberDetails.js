@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { BrowserRouter as Router, Routes,Route,Link } from 'react-router-dom';
-import Excel_Icon from './drawables/xls.png'
-import PDF_Icon from './drawables/pdf.png'
 import SubscriberPersonal from './SubscriberPersonal';
 import RechargeTable from './RechargeTable';
 import { Modal } from 'react-bootstrap';
@@ -11,7 +9,7 @@ import { db } from '../../FirebaseConfig';
 
 
 export default function SubscriberDetails() {
-    const username = localStorage.getItem("susbsUserid");
+    const userid = localStorage.getItem("susbsUserid");
     const [showmodal, setShowModal] = useState(false);
     const [arrayColony, setArrayColony] = useState([]);
 
@@ -24,14 +22,15 @@ export default function SubscriberDetails() {
         email: '',
         conectiontyp: '',
         companyname: '',
-        username: ''
+        username: '',
+        isTerminated: ''
         });
 
     const [prevSubsDetail, setPrevSubsDetail] = useState({});
 
     useEffect(() => {
         const fetchBasicInfo = async() => {
-            const Subsref = ref(db, `Subscriber/${username}`);
+            const Subsref = ref(db, `Subscriber/${userid}`);
             const userSnap = await get(Subsref);
 
             setSubsDetail({
@@ -43,7 +42,8 @@ export default function SubscriberDetails() {
                 email: userSnap.val().email,
                 conectiontyp: userSnap.child("connectionDetails").val().conectiontyp,
                 companyname: userSnap.val().company,
-                username: userSnap.val().username
+                username: userSnap.val().username,
+                isTerminated: userSnap.val().isTerminate
             });
             
             
@@ -71,15 +71,15 @@ export default function SubscriberDetails() {
 
         fetchColony();
         fetchBasicInfo();
-    }, [username]);
+    }, [userid]);
 
 
     const handleUpdate = async() => {
         console.log(prevSubsDetail);
         const logKey = Date.now();
-        const userRef = ref(db, `Subscriber/${username}`);
-        const connectionRef = ref(db, `Subscriber/${username}/connectionDetails`);
-        const subsLogRef = ref(db, `Subscriber/${username}/logs/${logKey}`);
+        const userRef = ref(db, `Subscriber/${userid}`);
+        const connectionRef = ref(db, `Subscriber/${userid}/connectionDetails`);
+        const subsLogRef = ref(db, `Subscriber/${userid}/logs/${logKey}`);
 
         const changes = [];
 
@@ -127,6 +127,14 @@ export default function SubscriberDetails() {
 
     }
 
+    const teminateUser = async() => {
+        const terminate = {
+            isTerminate:true
+        }
+        await update(ref(db, `Subscriber/${userid}`), terminate);
+        alert("User id Terminated")
+    }
+
 
   return (
     
@@ -148,8 +156,7 @@ export default function SubscriberDetails() {
                         setPrevSubsDetail(subsDetail);
                         setShowModal(true);
                     }} type="button" className="btn btn-outline-secondary ms-2">Edit Info</button>
-                    <img src={Excel_Icon} className='img_download_icon'></img>
-                    <img src={PDF_Icon} className='img_download_icon'></img>
+                    <button onClick={teminateUser} className={subsDetail.isTerminated ? 'btn btn-success ms-2 me-2' : 'btn btn-danger ms-2 me-2'}>{subsDetail.isTerminated ? 'Active User' : 'Terminated User'}</button>
                 </div>
             </div>
         </div>

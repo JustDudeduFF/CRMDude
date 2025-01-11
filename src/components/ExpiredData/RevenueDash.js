@@ -33,75 +33,38 @@ const RevenueDash = () => {
     useEffect(() => {
 
         const fetchUser = async() => {
-            const userRef = ref(db, `users`);
-            const userSnap = await get(userRef);
+            const userResponse = await axios.get('https://api.justdude.in/users');
 
-            if(userSnap.exists()){
-                const lookup = {};
-                userSnap.forEach((child) => {
-                    const name = child.val().FULLNAME;
-                    const mobile = child.val().MOBILE;
+            if(userResponse.status !== 200) return;
 
-                    lookup[mobile] = name;
-                });
+            const responseData = userResponse.data;
 
-                setUserLookup(lookup);
+            if(responseData){
+              const userLook = {};
+              Object.keys(responseData).forEach((key) => {
+                const userSnap = responseData[key];
+  
+                const empname = userSnap.FULLNAME;
+                const mobile = userSnap.MOBILE;
+
+                userLook[mobile] = empname;
+              });
+              setUserLookup(userLook);
             }
+
+            
         }
-        // const fetchRevenue = async() => {
-        //     const subsRef = ref(db, `Subscriber`);
-        //     const snapshot = await get(subsRef);
-        //     if(snapshot.exists()){
-        //         const receiptArray = [];
-        //         snapshot.forEach((subscriberChild) => {
-        //         const userId = subscriberChild.val().username;
-        //         const colonyName = subscriberChild.val().colonyName;
-        //         const fullName = subscriberChild.val().fullName;
-        //         const address = subscriberChild.val().installationAddress;
-        //         const mobileNo = subscriberChild.val().mobileNo;
-        //         const userPayments = subscriberChild.child('payments');
-        //         userPayments.forEach((paymentChild) => {
-        //             const paymentData = paymentChild.val();
-        //             const receiptno = paymentChild.key;
-        //             const { amount, collectedBy, discount, paymentMode, receiptDate, transactionNo, authorized } = paymentData;
-        //             receiptArray.push({
-        //                 mobileNo: mobileNo,
-        //                 address: address,
-        //                 fullName: fullName,
-        //                 colonyName: colonyName,
-        //                 ReceiptNo: receiptno,
-        //                 UserID: userId,
-        //                 Amount: amount,
-        //                 discount: discount,
-        //                 TransactionID: transactionNo,
-        //                 Collected_By: collectedBy,
-        //                 PaymentMode: paymentMode,
-        //                 Receipt_Date: receiptDate,
-        //                 authorized // Ensure you have 'authorized' in your payment data
-        //             });
-        //         });
-        //         const paymentmode = [...new Set(receiptArray.map((data) => data.PaymentMode))];
-        //         const colonys = [...new Set(receiptArray.map((data) => data.colonyName))];
-        //         setUniqueMode(paymentmode);
-        //         setUniqueColony(colonys);
-        //         });
-        //         setArrayData(receiptArray);
-        //     }
-        // }
 
         const fetchRevenue = async () => {
           try {
             // Fetch data from the API
             const response = await axios.post('https://api.justdude.in/subscriber');
-            console.log('Response status:', response.status);
         
             if (response.status !== 200 || !response.data) {
-              console.error('Invalid response or data');
               return;
             }
         
             const snapshot = response.data;
-            console.log('Snapshot:', snapshot);
         
             // Ensure snapshot is a valid object
             if (!snapshot || typeof snapshot !== 'object') {

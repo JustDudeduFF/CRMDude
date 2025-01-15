@@ -10,6 +10,8 @@ import UserProfile from './subscriberpage/drawables/user.png'
 import NotificationIcon from './subscriberpage/drawables/bell.png'
 import { Modal, ModalBody, ModalTitle } from "react-bootstrap";
 import axios from "axios";
+import * as XLSX from 'xlsx';
+import ExcelIcon from './subscriberpage/drawables/xls.png'
 
 
 export default function Navbar() {
@@ -29,8 +31,9 @@ export default function Navbar() {
   const [currentRenewal, setCurrenRenewal] = useState(0);
   const [uniqueCompanies, setUniqueCompanies] = useState([]);
   const [showModal2, setShowModal2] = useState(false);
+  const [excelData, setExcelData] = useState([]);
 
-  const subsref = ref(db, 'Subscriber');
+
 
   function convertExcelDateSerial(input) {
     const excelDateSerialPattern = /^\d+$/; // matches only digits (Excel date serial number)
@@ -65,10 +68,12 @@ export default function Navbar() {
           if(response.status !== 200) return;
 
           const userData = response.data;
-
+          const arrayExcel = [];
           Object.keys(userData).forEach(userKey => {
             const user = userData[userKey];// Access the user data with the key
             const company = user.company;
+            arrayExcel.push(user);
+            
       
             const expiryDate = user.connectionDetails?.expiryDate;
             const expdate = convertExcelDateSerial(expiryDate); 
@@ -89,6 +94,7 @@ export default function Navbar() {
               }
             }
           });
+          setExcelData(arrayExcel);
           const company = [...new Set(UserArray.map(user => user.company))];
 
           setUniqueCompanies(company);
@@ -153,6 +159,36 @@ export default function Navbar() {
     localStorage.setItem('susbsUserid',userKey);
     navigate('subscriber', { state: { userKey } });
   }
+
+
+  const downloadUsers = () => {
+
+    const extractedData = excelData.map((item, index) => ({
+      "S No.": index + 1,
+      "UserID": item.username,
+      "Customer Name": item.fullName,
+      "Mobile": item.mobileNo,
+      "Installation Address": item.installationAddress,
+      "Email": item.email,
+      "Registration Date": item.createdAt,
+      "Plan Name": item.connectionDetails?.planName,
+      "Plan Amount": item.connectionDetails?.planAmount,
+      "Colony": item.colonyName,
+      "Company": item.company,
+      "Activation Date": item.connectionDetails?.activationDate,
+      "Expiry Date": item.connectionDetails?.expiryDate,
+      "ISP": item.connectionDetails?.isp,
+    }));
+
+    
+    
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(extractedData);
+
+    
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Installation");
+    XLSX.writeFile(workbook, `All User.xlsx`);
+}         
 
   const togglevisiblty = () =>{
     setIsVisible(!isVisible)
@@ -343,6 +379,7 @@ export default function Navbar() {
           <Modal.Title>
             Company and Customer Stats
           </Modal.Title>
+          <img onClick={downloadUsers} className="img_download_icon ms-auto" src={ExcelIcon}></img>
         </Modal.Header>
         <Modal.Body>
         <ol className="list-group list-group-numbered">

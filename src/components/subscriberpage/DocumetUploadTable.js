@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import DeleteIcon from './drawables/trash.png'
 import ExpandIcon from './drawables/eye.png'
-import { onValue, ref } from 'firebase/database';
+import { onValue, ref, remove, set } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
+import { getStorage, ref as dbRef, deleteObject } from "firebase/storage";
 
 
 export default function DocumetUploadTable() {
@@ -10,10 +11,11 @@ export default function DocumetUploadTable() {
 
   const [arraydocument, setArrayDocument] = useState([]);
 
-
-
-
-
+  const extractFilePathFromUrl = (url) => {
+    const decodedUrl = decodeURIComponent(url); // Decode URL-encoded characters
+    const match = decodedUrl.match(/\/o\/(.*?)\?/); // Extract the file path
+    return match ? match[1] : null;
+  };
 
   const docRef = ref(db, `Subscriber/${username}/documents`);
 
@@ -27,8 +29,8 @@ export default function DocumetUploadTable() {
             const modifiedby = childs.val().modifiedby;
             const documentname = childs.val().documentname;
             const url = childs.val().url;
-
-            docsArray.push({source, date, modifiedby, documentname, url});
+            const key = childs.val().key;
+            docsArray.push({source, date, modifiedby, documentname, url, key});
           });
           setArrayDocument(docsArray);
         }
@@ -36,6 +38,42 @@ export default function DocumetUploadTable() {
 
       fetchdocs();
     }, []);
+
+
+    const deleteFileFromUrl = async (downloadUrl, key) => {
+      const storage = getStorage();
+  
+      // Extract file path from the download URL
+      const filePath = extractFilePathFromUrl(downloadUrl);
+      if (!filePath) {
+          console.error("Invalid download URL. Unable to extract file path.");
+          return;
+      }
+  
+      // Create a reference to the file
+      const fileRef = dbRef(storage, filePath);
+      const deleteRef = ref(db, `Subscriber/${username}/documents/${key}`);
+      try {
+          await remove(deleteRef);
+          await deleteObject(fileRef).then(async() => {
+            const logRef = ref(db, `Subscriber/${username}/logs/${key}`);
+
+            const logData = {
+              date: new Date().toISOString().split('T')[0],
+              modifiedby: localStorage.getItem('contact'),
+              description: `Document Deleted`
+            }
+
+            await set(logRef, logData);
+            alert('Document Deleted Successfully');
+          });
+
+
+          
+      } catch (error) {
+          console.error("Error deleting file:", error);
+      }
+    };
 
   
 
@@ -58,7 +96,7 @@ export default function DocumetUploadTable() {
 
                   {
                     arraydocument.length > 0 ? (
-                      arraydocument.map(({source, date, modifiedby, documentname, url}, index) => (
+                      arraydocument.map(({source, date, modifiedby, documentname, url, key}, index) => (
                         <tr key={index}>
                           <td>{source}</td>
                           <td>{documentname}</td>
@@ -66,7 +104,7 @@ export default function DocumetUploadTable() {
                           <td>{modifiedby}</td>
                           <td><a href={url} target='_blank' rel="noreferrer">
                           <img className='me-5' src={ExpandIcon} alt='delete' style={{width:'30px', cursor:'pointer'}}></img>
-                          </a>  <img src={DeleteIcon} alt='delete' style={{width:'30px', cursor:'pointer'}}></img></td>
+                          </a>  <img onClick={() => deleteFileFromUrl(url, key)} src={DeleteIcon} alt='delete' style={{width:'30px', cursor:'pointer'}}></img></td>
                         </tr>
                       ))
                     ) : (

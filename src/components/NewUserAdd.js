@@ -55,7 +55,6 @@ export default function NewUserAdd() {
   const [arrayisp, setArrayisp] = useState([]);
   const [arraydevice, setArraydevice] = useState([]);
   const [arrayserial, setArrayserial] = useState([]);
-  const [arrayfms, setArrayfms] = useState([]);
   const [arraycategory, setArrayCategory] = useState([]);
 
   const [planDuration, setPlanDuration] = useState(0); // Duration value from Firebase
@@ -66,7 +65,6 @@ export default function NewUserAdd() {
 
 
   const [isListVisible, setIsListVisible] = useState(false);
-  const [maxport, setMaxPort] = useState(0);
   const handleListItemClick = (value) => {
     setDeviceSerialNumber(value)
     setIsListVisible(false); // Optionally hide the list after selection
@@ -249,34 +247,13 @@ export default function NewUserAdd() {
     });
 
 
-    const unsubscribefms = onValue(fmsRef, (fmsSnap) => {
-      if (fmsSnap.exists()) {
-        const fmsArray = [];
-        fmsSnap.forEach((Childfms) => {
-          const fmsname = Childfms.key;
-          const fmsmaxport = Childfms.val().fmsport
-          fmsArray.push({fmsname, fmsmaxport});
-        });
-        setArrayfms(fmsArray);
-        
-      } else {
-        toast.error('Please Add an fms Location', {
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-      }
-    });
 
     return () => {
       unsubscribecolony();       // Cleanup for colony listener
       unsubscribeplan();  // Cleanup for plan listener
       unsubscribeisp();
       unsubscribedevice();
-      unsubscribefms();
+
     };
   }, []); 
 
@@ -362,7 +339,8 @@ export default function NewUserAdd() {
               date: new Date().toISOString().split('T')[0],
               modifiedby: localStorage.getItem('Name'),
               documentname: 'Address Proof',
-              url: addressProofURL
+              url: addressProofURL,
+              key: "addressProof"
             },
 
             cafDocuments: {
@@ -370,7 +348,8 @@ export default function NewUserAdd() {
               date: new Date().toISOString().split('T')[0],
               modifiedby: localStorage.getItem('Name'),
               documentname: 'Caf Proof',
-              url: cafDocumentsURL
+              url: cafDocumentsURL,
+              key: "cafDocuments"
             },
 
             identityProof: {
@@ -378,14 +357,10 @@ export default function NewUserAdd() {
               date: new Date().toISOString().split('T')[0],
               modifiedby: localStorage.getItem('Name'),
               documentname: 'Identity Proof',
-              url: identityProofURL
+              url: identityProofURL,
+              key: "identityProof"
             }
           },
-          
-
-            
-
-          
           createdAt: activationDate,
         };
         

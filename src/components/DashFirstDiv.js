@@ -19,6 +19,7 @@ import { Modal } from 'react-bootstrap'
 import axios from 'axios'
 import { isThisISOWeek, isThisMonth, isToday, isYesterday, parseISO } from 'date-fns'
 import * as XLSX from 'xlsx';
+import ExpiredUsersBarChart from './ExpiredUsersBarChart'
 
 export default function DashFirstDiv() {
     const navigate = useNavigate();
@@ -41,10 +42,8 @@ export default function DashFirstDiv() {
     const [expireArrayToday, setExpireArrayToday] = useState('...');
     const [expireArrayTommorow, setExpireArrayTommorow] = useState('...');
     const [expireArrayMonth, setExpireArrayMonth] = useState('...');
-
-    const [expiredYesterday, setExpiredYesterday] = useState('...');
-    const [expiredLast7Days, setExpiredLast7Days] = useState('...');
-    const [expiredLast30Days, setExpiredLast30Days] = useState('...');
+    const [last5days, setLast5days] = useState({});
+    const [upcoming5days, setUpcoming5Dats] = useState({});
 
     const [leadArray, setLeadArray] = useState([]);
     
@@ -74,8 +73,14 @@ export default function DashFirstDiv() {
     const [isLoading, setIsLoading] = useState(true);
     const [showInsModal, setShowInsModal] =  useState(false);
 
+    const setStatusBasedOnExpiry = (expiryDate) => {
+        const currentDate = new Date(); // Get the current date
+        const expiry = new Date(expiryDate); // Convert expiry date to a Date object
+    
+        return currentDate <= expiry ? "Active" : "Inactive";
+    };
+
     const downloadExcel =()=> {
-        // Extract specific columns (e.g., customer and status)
         const extractedData = filterInsArray.map((item, index) => ({
             "S No.": index + 1,
             "Customer Name": item.fullName,
@@ -87,11 +92,14 @@ export default function DashFirstDiv() {
             "Plan Amount": item.connectionDetails.planAmount,
             "Colony": item.colonyName,
             "Company": item.company,
-            "Activation Date": item.connectionDetails.activationDate,
-            "Expiry Date": item.connectionDetails.expiryDate,
+            "Activation Date": new Date(item.connectionDetails.activationDate).toISOString().split('T')[0],
+            "Expiry Date": new Date(item.connectionDetails.expiryDate).toISOString().split('T')[0],
             "ISP": item.connectionDetails.isp,
+            "Status": setStatusBasedOnExpiry(item.connectionDetails.expiryDate)
  
         }));
+
+
         const workbook = XLSX.utils.book_new();
         const worksheet = XLSX.utils.json_to_sheet(extractedData);
 
@@ -121,6 +129,30 @@ export default function DashFirstDiv() {
         } else {
           return input; // return original input if it's not a valid Excel date serial number
         }
+      }
+
+      const getLast5DaysExpiredDetails = (data) => {
+        const result = {};
+      
+        // Loop through the 'last5days' object
+        Object.keys(data.last5days).forEach((date) => {
+          const expiredUsers = data.last5days[date];  // Array of expired users for each date
+          result[date] = expiredUsers.length;  // Count users per day
+        });
+      
+        return result;  // Return the count of expired users per day
+      };
+
+      const getUpcoming5DaysRenewalDetails = (data) => {
+        const result = {};
+      
+        // Loop through the 'last5days' object
+        Object.keys(data.upcoming5days).forEach((date) => {
+          const expiredUsers = data.upcoming5days[date];  // Array of expired users for each date
+          result[date] = expiredUsers.length;  // Count users per day
+        });
+      
+        return result;
       }
 
     function isSameISOWeek(dueDate, currentDate) {
@@ -410,9 +442,7 @@ export default function DashFirstDiv() {
                     setExpireArrayTommorow(expireTommorowArray.length);
                     setExpireArrayWeek(expireWeekArray.length);
                     setExpireArrayMonth(expireArrayMonth.length);
-                    setExpiredLast7Days(expireLast7DaysArray.length);
-                    setExpiredLast30Days(expireLast30DaysArray.length);
-                    setExpiredYesterday(expireYesterdayArray.length);
+
                     resolve();
                 });
                 return () => unsubscribe();
@@ -499,9 +529,14 @@ export default function DashFirstDiv() {
         try{
             const  response = await axios.get('https://api.justdude.in/subscriber');
             const userResponse = await axios.get('https://api.justdude.in/subscriber');
+            const last5daysResponse = await axios.get('https://api.justdude.in/expired?expire=last5days');
+            const upcoming5daysResponse = await axios.get('https://api.justdude.in/expired?expire=upcoming5days'); 
 
             if(response.status !== 200) return;
             if(userResponse.status !== 200) return;
+            if(last5daysResponse.status !== 200) return;
+            if(upcoming5daysResponse.status !== 200) return;
+
 
             const subsData = response.data;
             if(subsData){
@@ -541,6 +576,16 @@ export default function DashFirstDiv() {
                 setNewInstallations(newInstallations);
                 setNewInstallationsToday(newInstallationsToday);
                 setNewInstallationsWeek(newInstallationsWeek);
+            }
+
+            const expire5days = last5daysResponse.data;
+            if(expire5days){
+                setLast5days(getLast5DaysExpiredDetails(expire5days));
+            }
+
+            const renewal5days = upcoming5daysResponse.data;
+            if(renewal5days){
+                setUpcoming5Dats(getUpcoming5DaysRenewalDetails(renewal5days));
             }
 
 
@@ -647,40 +692,12 @@ export default function DashFirstDiv() {
                             <div style={{flex:'1', display: 'flex', flexDirection: 'column'}}>
                                 <div style={{flex:'1', border: '1px solid gray', borderRadius: '5px'}}>
                                     <h3 style={{color: 'black', marginLeft: '10px'}}>Expired Users</h3>
-                                    <table className="table">
-                                        <thead className='table-danger'>
-                                            <tr>
-                                                <th scope="col">Days</th>
-                                                <th scope="col">Quantity</th>
-                                                <th scope="col">View</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="table-group-divider">
-                                            <tr>
-                                                <td>Yesterday</td>
-                                                <td>{expiredYesterday}</td>
-                                                <td><img alt='expand view' onClick={() => {
-                                                    
-                                                }} style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Last 7 Days</td>
-                                                <td>{expiredLast7Days}</td>
-                                                <td><img alt='expand view' onClick={() => {
-                                                    
-                                                }} style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
-                                            </tr>
-                                            
-                                            <tr>
-                                                <td>Last 30 Days</td>
-                                                <td>{expiredLast30Days}</td>
-                                                <td><img alt='expand view' onClick={() => {
-                                                    
-                                                }} style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+                                    {Object.keys(last5days).length > 0 ? (
+                                        <ExpiredUsersBarChart data={last5days} type={"expire"} />
+                                    ) : (
+                                        <p>Loading chart...</p>
+                                    )}
+                                </div>  
 
                                 <div style={{flex:'1', border: '1px solid gray', borderRadius: '5px', marginTop: '10px'}}>
                                     <h3 style={{color: 'black', marginLeft: '10px'}}>Leads Information</h3>
@@ -715,60 +732,11 @@ export default function DashFirstDiv() {
                         <div style={{borderRadius: '5px', border: '1px solid gray',flex: '1'}}>
                         
                             <h3 style={{marginLeft: '10px'}}>Upcoming Renewal</h3>
-                            <table className="table">
-                            <thead className='table-primary'>
-                                <tr>
-                                
-                                <th scope="col">Days</th>
-                                <th scope="col">Quantity</th>
-                                <th scope="col">Handle</th>
-                                </tr>
-                            </thead>
-                            <tbody className="table-group-divider">
-                                <tr>
-                                
-                                <td>Today</td>
-                                <td>{expireArrayToday}</td>
-                                <td><img alt='expand view' onClick={() => {
-                                    setExpandDataType('Expiring Today');
-                                    setShowExpandView(true);
-                                }} style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
-                                </tr>
-                                <tr>
-                                
-                                <td>Tomorrow</td>
-                                <td>{expireArrayTommorow}</td>
-                                <td><img alt='expand view' onClick={() => {
-                                    setExpandDataType('Expiring Tomorrow');
-                                    setShowExpandView(true);
-                                }}  style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
-                                </tr>
-
-                                <tr>
-                                <td>This Week</td>
-                                <td>{expireArrayWeek}</td>
-                                <td><img alt='expand view' onClick={() => {
-                                    setExpandDataType('Expiring Week');
-                                    setShowExpandView(true);
-                                }} style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
-                                </tr>
-
-                                
-                                <tr>
-                                <td>This Month</td>
-                                <td>{expireArrayMonth}</td>
-                                <td><img alt='expand view' onClick={() => {
-                                    setExpandDataType('Expiring Month');
-                                    setShowExpandView(true);
-                                }} style={{width:'30px', height: '30px', cursor:'pointer'}} src={Action_Icon}></img></td>
-                                </tr>
-                                
-                                
-                                
-                                
-                               
-                            </tbody>
-                            </table>
+                            {Object.keys(upcoming5days).length > 0 ? (
+                                 <ExpiredUsersBarChart data={upcoming5days} type={"renewal"}/>
+                                ) : (
+                                    <p>Loading chart...</p>
+                                )}       
                         </div>
                         <DashExpandView show={showExpanView} datatype={expandDataType} modalShow={() => setShowExpandView(false)}/>
                         <ExpandTickets viewShow={showTicketExpand} ticketType={ticketsType} closeView={() => setShowTicketExpand(false)}/>

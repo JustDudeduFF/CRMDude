@@ -7,12 +7,54 @@ import * as XLSX from 'xlsx';
 import axios from 'axios';
 
 export default function TicketdataDash() {
-  const [filter, setFilter] = useState({ startDate: '', endDate: '', isp: 'All', Colony: 'All', Status: 'All', Source: 'All' });
+  const [filter, setFilter] = useState({ startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0], isp: 'All', Colony: 'All', Status: 'All', Source: 'All' });
   const [arrayData, setArrayData] = useState([]);
   const [filterData, setFilteredData] = useState([]);
 
   const [uniqueColony, setUniqueColony] = useState([]);
   const [uniqueIsp, setUniqueIsp] = useState([]);
+
+  const convertTo24HourFormat = (time) => {
+    const [timePart, modifier] = time.split(" "); // Split time and AM/PM
+    let [hours, minutes, seconds] = timePart.split(":").map(Number);
+  
+    if (modifier === "AM" && hours === 12) {
+      hours = 0; // 12 AM is 00:xx:xx in 24-hour format
+    } else if (modifier === "PM" && hours !== 12) {
+      hours += 12; // Convert PM hours (e.g., 1 PM becomes 13:xx:xx)
+    }
+  
+    // Return the time in HH:MM:SS (24-hour format)
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  };
+
+  const calculateTimeDifference = (assigndate, assigntime, closedate, closetime) => {
+    // If `closedate` or `closetime` is null, use the current date and time
+    const now = new Date();
+    if (!closedate) closedate = now.toISOString().split("T")[0]; // Current date in YYYY-MM-DD format
+    if (!closetime) closetime = now.toLocaleTimeString("en-US"); // Current time in 12-hour format
+  
+    // Convert times to 24-hour format
+    const start24 = convertTo24HourFormat(assigntime);
+    const end24 = convertTo24HourFormat(closetime);
+  
+    // Create Date objects for assigned and closed times
+    const start = new Date(`${assigndate}T${start24}`);
+    const end = new Date(`${closedate}T${end24}`);
+  
+    // Calculate the difference in milliseconds
+    const differenceInMs = end - start;
+  
+    // Convert milliseconds to minutes
+    const differenceInMinutes = Math.floor(differenceInMs / (1000 * 60));
+  
+    // Convert minutes to hours and minutes
+    const hours = Math.floor(differenceInMinutes / 60);
+    const minutes = differenceInMinutes % 60;
+  
+    console.log(hours + ":" + minutes);
+    return { hours, minutes };
+  };
 
 
   const fetchExpandData = useCallback(() => {
@@ -70,7 +112,9 @@ export default function TicketdataDash() {
             assigndate,
             assignto,
             assigntime,
-            generatedBy
+            generatedBy,
+            closedate,
+            closetime
           } = childSnap;
 
           
@@ -95,9 +139,10 @@ export default function TicketdataDash() {
                   address: matchedUser.address,
                   company: matchedUser.company,
                   assignto: usersLookup[assignto],
-                  assignDateandTime: assigndate + " : " + assigntime,
-                  createdBy: usersLookup[generatedBy]
-
+                  assignDateandTime: assigndate + " " + assigntime,
+                  createdBy: usersLookup[generatedBy],
+                  closeDateandTime: closedate + " " + closetime,
+                  durationslab: calculateTimeDifference(assigndate, assigntime, closedate, closetime)
                 });
               }
         });
@@ -116,12 +161,12 @@ export default function TicketdataDash() {
     });
   }, []);
   
+  
 
 
     useEffect(() => {
 
-      
-          fetchExpandData();
+    fetchExpandData();
       
   }, [fetchExpandData]);
 

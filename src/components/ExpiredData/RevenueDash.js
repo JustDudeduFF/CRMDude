@@ -1,14 +1,11 @@
-import { get, ref } from 'firebase/database';
 import React, { useEffect, useState } from 'react'
-import { db } from '../../FirebaseConfig';
 import * as XLSX from 'xlsx';
 import ExcelIcon from '../subscriberpage/drawables/xls.png'
 import axios from 'axios';
-import { use } from 'react';
 
 
 const RevenueDash = () => {
-    const [filter, setFilter] = useState({ startDate: '', endDate: '', isp: 'All', Colony: 'All', Status: 'All', Source: 'All' });
+    const [filter, setFilter] = useState({ startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0], isp: 'All', Colony: 'All', Status: 'All', Source: 'All' });
     const [arrayData, setArrayData] = useState([]);
     const [filterData, setFilteredData] = useState([]);
     

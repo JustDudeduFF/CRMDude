@@ -93,8 +93,8 @@ export default function BulkUserEntry() {
         email: row.EMAIL,
         installationAddress: row.FULLADDRESSINST,
         colonyName: row.COLONYNAME,
-        state: row.state,
-        pinCode: row.pinCode,
+        state: row.STATE,
+        pinCode: row.PINCODE,
         connectionDetails: {
           isp: row.ISP,
           planName: row.PRODUCTNAME,

@@ -1,7 +1,5 @@
-import { get, ref } from 'firebase/database';
 import React, {useEffect, useState} from 'react'
 import * as XLSX from 'xlsx';
-import { db } from '../../FirebaseConfig';
 import ExcelIcon from '../subscriberpage/drawables/xls.png'
 import axios from 'axios';
 
@@ -126,13 +124,23 @@ const ExpiredDash = () => {
         
             // Filter by Date Range
             if (filter.startDate && filter.endDate) {
-              const startDate = new Date(filter.startDate).getTime();
-              const endDate = new Date(filter.endDate).getTime();
+              const startDate = new Date(filter.startDate);
+              const endDate = new Date(filter.endDate);
+          
+              // Filter the array
               filteredArray = filteredArray.filter((data) => {
-                  const creationDate = new Date(data.expDate).getTime();
-                  return creationDate >= startDate && creationDate <= endDate;
+                const creationDate = new Date(data.expDate);
+          
+                return (
+                  creationDate.getFullYear() >= startDate.getFullYear() &&
+                  creationDate.getFullYear() <= endDate.getFullYear() &&
+                  creationDate.getMonth() >= startDate.getMonth() &&
+                  creationDate.getMonth() <= endDate.getMonth() &&
+                  creationDate.getDate() >= startDate.getDate() &&
+                  creationDate.getDate() <= endDate.getDate()
+                );
               });
-          }
+            }
         
             setFilteredData(filteredArray);
         }, [arrayData, filter]);

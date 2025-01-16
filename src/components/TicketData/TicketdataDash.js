@@ -114,7 +114,8 @@ export default function TicketdataDash() {
             assigntime,
             generatedBy,
             closedate,
-            closetime
+            closetime,
+            description
           } = childSnap;
 
           
@@ -131,6 +132,7 @@ export default function TicketdataDash() {
                   creationdate: generatedDate,
                   completedby: assignedPersonName, // Use user's name from lookup
                   Concern: ticketconcern,
+                  description,
                   Status: status,
                   Colony: matchedUser.colonyName,
                   fullName: matchedUser.fullName,

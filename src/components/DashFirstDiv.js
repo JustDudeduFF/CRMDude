@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import Action_Icon from './subscriberpage/drawables/info.png'
 import Router_Img from './subscriberpage/drawables/wireless-router.png'
 import Rupee_Icon from './subscriberpage/drawables/rupee.png'
 import DueRupee_Icon from './subscriberpage/drawables/rupeenew.png'
@@ -37,11 +36,6 @@ export default function DashFirstDiv() {
     const [revenueToday, setRevenueToday] = useState(0);
     const [revenueCash, setRevenueCash] = useState(0);
     const [revenueOnline, setRevenueOnline] = useState(0);
-
-    const [expireArrayWeek, setExpireArrayWeek] = useState('...');
-    const [expireArrayToday, setExpireArrayToday] = useState('...');
-    const [expireArrayTommorow, setExpireArrayTommorow] = useState('...');
-    const [expireArrayMonth, setExpireArrayMonth] = useState('...');
     const [last5days, setLast5days] = useState({});
     const [upcoming5days, setUpcoming5Dats] = useState({});
 
@@ -59,10 +53,13 @@ export default function DashFirstDiv() {
     const [arryadue, setDueArray] = useState(0);
 
     const [attendenceArray, setAttendenceArray] = useState([]);
-    const [installationArray, setInstallationArray] = useState([]);
-    const [newInstallations, setNewInstallations] = useState(0);
-    const [newInstallationsToday, setNewInstallationsToday] = useState(0);
-    const [newInstallationsWeek, setNewInstallationsWeek] = useState(0);
+    const [state, setState] = useState({
+            companyArray: [],
+            installationArray: [],
+            newInstallations: 0,
+            newInstallationsToday: 0,
+            newInstallationsWeek: 0
+    })
     const [filteIns, setFilterIns] = useState({
         company: 'All',
         day: 'Month'
@@ -178,39 +175,6 @@ export default function DashFirstDiv() {
         );
     }
 
-    // Helper function to check if a date is tomorrow
-    function isTomorrowDay(dueDate, currentDate) {
-        const tomorrow = new Date(currentDate);
-        tomorrow.setDate(currentDate.getDate() + 1); // Set to tomorrow
-
-        return (
-            dueDate.getFullYear() === tomorrow.getFullYear() &&
-            dueDate.getMonth() === tomorrow.getMonth() &&
-            dueDate.getDate() === tomorrow.getDate()
-        );
-    }
-
-    const isDateInRange = (date, range) => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const yesterday = new Date(today);
-        yesterday.setDate(today.getDate() - 1);
-        const last7Days = new Date(today);
-        last7Days.setDate(today.getDate() - range);
-        const last30Days = new Date(today);
-        last30Days.setDate(today.getDate() - 30);
-
-        if (range === 7){
-            return date >= last7Days && date < yesterday;
-        }else if(range === 30){
-            return date >= last30Days && date < yesterday;
-        }else if(range === 1){
-            return date >= yesterday && date < today;
-        }else{
-            return false;
-        }
-
-    }
 
     useEffect(() => {
         setIsLoading(true);
@@ -246,7 +210,6 @@ export default function DashFirstDiv() {
                         let open = 0;
                         let unassigned = 0;
                         let closed = 0;
-                        let cancel = 0;
                         
                         ticketsSnap.forEach(child => {
                             const ticketno = child.val().status;
@@ -377,78 +340,8 @@ export default function DashFirstDiv() {
                 return () => unsubscribe();
             }),
             
-            new Promise(resolve => {
-                const unsubscribe = onValue(dueRef, (expiredSnap) => {
-                    const currentDate = new Date();
-                    const expireTodayArray = [];
-                    const expireTommorowArray = [];
-                    const expireWeekArray = [];
-                    const expireArrayMonth = [];
-                    const expireYesterdayArray = [];
-                    const expireLast7DaysArray = [];
-                    const expireLast30DaysArray = [];
-                    expiredSnap.forEach(childSnap => {
-                        const expireDate = convertExcelDateSerial(childSnap.child('connectionDetails').val().expiryDate);
-                        const username = childSnap.val().username;
-
-
-                        if (expireDate){
-                            const expDate = new Date(expireDate);
-
-                            const isSameMonth = expDate.getFullYear() === currentDate.getFullYear() && expDate.getMonth() === currentDate.getMonth();
-                            if (isSameMonth) {
-                                expireArrayMonth.push(username);
-                            }
-
-                            const isSameWeek = isSameISOWeek(expDate, currentDate);
-                            if (isSameWeek) {
-                                expireWeekArray.push(username);
-                            }  
-
-                            // For today's comparison
-                            const isToday = isSameDay(expDate, currentDate);
-                            if (isToday) {
-                                expireTodayArray.push(username);
-                            }
-
-                            // For tomorrow's comparison
-                            const isTomorrow = isTomorrowDay(expDate, currentDate);
-                            if (isTomorrow) {
-                                expireTommorowArray.push(username);
-                            }
-
-                            const isLast7Days = isDateInRange(expDate, 7);
-                            if (isLast7Days) {
-                                expireLast7DaysArray.push(username);
-                            }
-
-                            const isLast30Days = isDateInRange(expDate, 30);
-                            if (isLast30Days) {
-                                expireLast30DaysArray.push(username);
-                            }
-
-                            const isLast1Days = isDateInRange(expDate, 1);
-                            if (isLast1Days) {
-                                expireYesterdayArray.push(username);
-                            }
-
-                        }
-
-
-                    });
-                    
-
-                    setExpireArrayToday(expireTodayArray.length);
-                    setExpireArrayTommorow(expireTommorowArray.length);
-                    setExpireArrayWeek(expireWeekArray.length);
-                    setExpireArrayMonth(expireArrayMonth.length);
-
-                    resolve();
-                });
-                return () => unsubscribe();
-            }),
             
-            fetchData() // Assuming this returns a promise
+             // Assuming this returns a promise
         ];
 
         Promise.all(promises)
@@ -457,6 +350,9 @@ export default function DashFirstDiv() {
                 console.error('Error loading data:', error);
                 setIsLoading(false);
             });
+            fetchData(); 
+
+            console.log("i am useEffect")
 
     }, []);
 
@@ -525,74 +421,78 @@ export default function DashFirstDiv() {
             });
         });
 
-
-        try{
-            const  response = await axios.get('https://api.justdude.in/subscriber');
-            const userResponse = await axios.get('https://api.justdude.in/subscriber');
-            const last5daysResponse = await axios.get('https://api.justdude.in/expired?expire=last5days');
-            const upcoming5daysResponse = await axios.get('https://api.justdude.in/expired?expire=upcoming5days'); 
-
-            if(response.status !== 200) return;
-            if(userResponse.status !== 200) return;
-            if(last5daysResponse.status !== 200) return;
-            if(upcoming5daysResponse.status !== 200) return;
-
-
-            const subsData = response.data;
-            if(subsData){
+        try {
+            // Run all API calls concurrently using Promise.all
+            const [subscriberResponse, last5daysResponse, upcoming5daysResponse] = await Promise.all([
+                axios.get('https://api.justdude.in/subscriber'),
+                axios.get('https://api.justdude.in/expired?expire=last5days'),
+                axios.get('https://api.justdude.in/expired?expire=upcoming5days')
+            ]);
+        
+            // Check for response status once
+            if (
+                subscriberResponse.status !== 200 ||
+                last5daysResponse.status !== 200 ||
+                upcoming5daysResponse.status !== 200
+            ) {
+                console.error('One or more API calls failed.');
+                return;
+            }
+        
+            // Process subscriber data
+            const subsData = subscriberResponse.data;
+            if (subsData) {
                 let newInstallations = 0;
                 let newInstallationsToday = 0;
                 let newInstallationsWeek = 0;
-                const installArray = [];
-                Object.keys(subsData).forEach((key) => {
-                    const subscriberData = subsData[key];
-
+        
+                const installArray = Object.values(subsData).reduce((acc, subscriberData) => {
                     if (subscriberData.createdAt) {
                         const date = convertExcelDateSerial(subscriberData.createdAt);
-            
-                        // Check if the month and year match
+        
                         if (isThisMonth(parseISO(date))) {
                             newInstallations++;
-                            installArray.push(subscriberData);
+                            acc.push(subscriberData); // Add subscriber data to installArray
                         }
-            
-                        // Check if the exact date matches today
                         if (isToday(parseISO(date))) {
                             newInstallationsToday++;
                         }
-            
-                    
                         if (isThisISOWeek(parseISO(date))) {
                             newInstallationsWeek++;
                         }
                     }
-                });
-
-                const company = [...new Set(installArray.map((data) => data.company))]
-
-                    // Update the state with the final counts
-                setCompanyArray(company);
-                setInstallationArray(installArray);
-                setNewInstallations(newInstallations);
-                setNewInstallationsToday(newInstallationsToday);
-                setNewInstallationsWeek(newInstallationsWeek);
+                    return acc;
+                }, []);
+        
+                const company = [...new Set(installArray.map((data) => data.company))];
+        
+                // Batch state updates
+                setState((prevState) => ({
+                    ...prevState,
+                    companyArray: company,
+                    installationArray: installArray,
+                    newInstallations,
+                    newInstallationsToday,
+                    newInstallationsWeek
+                }));
             }
-
+        
+            // Process last 5 days expired data
             const expire5days = last5daysResponse.data;
-            if(expire5days){
+            if (expire5days) {
                 setLast5days(getLast5DaysExpiredDetails(expire5days));
             }
-
+        
+            // Process upcoming 5 days renewal data
             const renewal5days = upcoming5daysResponse.data;
-            if(renewal5days){
+            if (renewal5days) {
                 setUpcoming5Dats(getUpcoming5DaysRenewalDetails(renewal5days));
             }
-
-
-        }catch(e){
-            console.log(e)
+        } catch (e) {
+            console.error('Error fetching data:', e);
+            // Optional: Add user notification or retry logic here
         }
-
+        
         
     };
 
@@ -604,7 +504,7 @@ export default function DashFirstDiv() {
       };
 
     useEffect(() => {
-        let filterArray = installationArray;
+        let filterArray = state.installationArray;
 
         if(filteIns.company !== "All"){
             filterArray = filterArray.filter((data) => data.company === filteIns.company);
@@ -637,7 +537,7 @@ export default function DashFirstDiv() {
         }
 
         setFilterInsArray(filterArray);
-    }, [filteIns]);
+    }, [filteIns, state.installationArray]);
 
     return (
         <>
@@ -689,15 +589,15 @@ export default function DashFirstDiv() {
                                 
                             </div>
                         ) : (
-                            <div style={{flex:'1', display: 'flex', flexDirection: 'column'}}>
-                                <div style={{flex:'1', border: '1px solid gray', borderRadius: '5px'}}>
-                                    <h3 style={{color: 'black', marginLeft: '10px'}}>Expired Users</h3>
+                            <div style={{width: '500px',  marginLeft: '20px', flex:'1', display:'flex', flexDirection: 'column'}}>
+                                <div style={{borderRadius: '5px', border: '1px solid gray',flex: '1'}}>
+                                <h3 style={{color: 'black', marginLeft: '10px'}}>Expired Users</h3>
                                     {Object.keys(last5days).length > 0 ? (
                                         <ExpiredUsersBarChart data={last5days} type={"expire"} />
                                     ) : (
                                         <p>Loading chart...</p>
-                                    )}
-                                </div>  
+                                    )}     
+                                </div> 
 
                                 <div style={{flex:'1', border: '1px solid gray', borderRadius: '5px', marginTop: '10px'}}>
                                     <h3 style={{color: 'black', marginLeft: '10px'}}>Leads Information</h3>
@@ -744,14 +644,14 @@ export default function DashFirstDiv() {
                         <div style={{borderRadius: '5px',flex: '1', marginTop: '15px', boxShadow: '0 0 7px violet'}}>
                             <img alt='' className='img_boldicon' src={Router_Img}></img>
                             <label style={{marginLeft: '20px', fontSize: '25px'}}>New Installations</label> 
-                            <span onClick={() => setShowInsModal(true)} style={{marginRight: '100px', fontSize: '30px', float: 'right', marginTop: '20px', color: 'green', borderBottom: '2px solid gray', cursor:'pointer'}}>{newInstallations}</span>
+                            <span onClick={() => setShowInsModal(true)} style={{marginRight: '100px', fontSize: '30px', float: 'right', marginTop: '20px', color: 'green', borderBottom: '2px solid gray', cursor:'pointer'}}>{state.newInstallations}</span>
                             <div style={{display: 'flex', flexDirection: 'row', margin: '20px', height: '80px'}}>
                                 <div style={{border: '0.5px solid gray', flex: '1', padding:'10px'}}>
-                                    <h3>{newInstallationsToday}</h3>
+                                    <h3>{state.newInstallationsToday}</h3>
                                     <h5 style={{color: 'gray'}}>Today's Installations</h5>
                                 </div>
                                 <div style={{border: '0.5px solid gray', flex: '1', padding:'10px'}}>
-                                <h3>{newInstallationsWeek}</h3>
+                                <h3>{state.newInstallationsWeek}</h3>
                                 <h5 style={{color: 'gray'}}>Weekly Installations</h5>
                                 </div>
                             </div>

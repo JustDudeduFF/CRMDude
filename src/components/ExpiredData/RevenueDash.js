@@ -55,7 +55,7 @@ const RevenueDash = () => {
         const fetchRevenue = async () => {
           try {
             // Fetch data from the API
-            const response = await axios.post('https://api.justdude.in/subscriber');
+            const response = await axios.get('https://api.justdude.in/subscriber');
         
             if (response.status !== 200 || !response.data) {
               return;
@@ -173,7 +173,7 @@ const RevenueDash = () => {
     <div style={{marginTop:'4.5%', marginLeft:'10px', marginRight:'10px'}}>
         <div className='d-flex flex-row'>
         <h4 style={{flex:'1'}}>Your All Revenue Data</h4>
-        <img onClick={downloadExcel} src={ExcelIcon} className='img_download_icon'></img>
+        <img alt='Excel' onClick={downloadExcel} src={ExcelIcon} className='img_download_icon'></img>
         </div>
 
       {/* Filter Section */}

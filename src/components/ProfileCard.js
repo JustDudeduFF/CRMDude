@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import profile from './subscriberpage/drawables/man.png'
 import './Profile_Card.css'
 import MyAttendnence_logo from './subscriberpage/drawables/attendance.png'

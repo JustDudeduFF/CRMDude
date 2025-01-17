@@ -83,6 +83,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                 const responseData = response.data;
                 if(responseData){
                     const currentDate = new Date();
+                    const newCurrentdata = new Date(word);
                     const dataArray = [];
                     Object.keys(responseData).forEach((key) => {
                         const childSnap = responseData[key];
@@ -110,13 +111,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                         if(datafor === 'Expiring'){
                             const expDate = convertExcelDateSerial(expiryDateSerial);
                             const isSameMonth = expDate.getFullYear() === currentDate.getFullYear() && expDate.getMonth() === currentDate.getMonth();
-                            if (word === 'Today' && isSameDay(expDate, currentDate)) {
-                                dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount, planName, company, isp });
-                            } else if (word === 'Tomorrow' && isTomorrowDay(expDate, currentDate)) {
-                                dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount, planName, company, isp });
-                            } else if (word === 'Week' && isSameISOWeek(expDate, currentDate)) {
-                                dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount, planName, company, isp });
-                            } else if (word === 'Month' && isSameMonth) {
+                            if (isSameDay(expDate, newCurrentdata)) {
                                 dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount, planName, company, isp });
                             }
                         }else if(datafor === 'Due'){

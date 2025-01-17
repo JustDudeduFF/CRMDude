@@ -1,6 +1,6 @@
 // src/components/TicketData/TicketdataDash.js
 import React, { useState, useCallback, useEffect } from 'react';
-import { ref, onValue, get } from 'firebase/database';
+import { ref, get } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
 import ExcelIcon from '../subscriberpage/drawables/xls.png'
 import * as XLSX from 'xlsx';
@@ -51,15 +51,11 @@ export default function TicketdataDash() {
     // Convert minutes to hours and minutes
     const hours = Math.floor(differenceInMinutes / 60);
     const minutes = differenceInMinutes % 60;
-  
-    console.log(hours + ":" + minutes);
     return { hours, minutes };
   };
 
 
   const fetchExpandData = useCallback(() => {
-    const pendingTicketsRef = ref(db, `Global Tickets`);
-    const subsRef = ref(db, `Subscriber`);
     const usersRef = ref(db, `users`);
   
     // Step 1: Fetch all users and store them in a lookup object
@@ -73,14 +69,11 @@ export default function TicketdataDash() {
   
       // Step 2: Fetch subscribers
       try{
-        const subsResponse = await axios.post('https://api.justdude.in/subscriber');
-        const globalResponse = await axios.post('https://api.justdude.in/globaltickets');
-        console.log(globalResponse.status)  
+        const subsResponse = await axios.get('https://api.justdude.in/subscriber');
 
-        if(subsResponse.status !== 200 || globalResponse.status !== 200) return;
+
+        if(subsResponse.status !== 200) return;
         const subsSnap = subsResponse.data;
-        const dataSnap = globalResponse.data;
-        const subsArray = [];
         const dataArray = [];
         Object.keys(subsSnap).forEach((keys) => {
           const childSnap = subsSnap[keys];
@@ -92,62 +85,57 @@ export default function TicketdataDash() {
           const address = childSnap.installationAddress;
           const company = childSnap.company;
 
-          subsArray.push({ fullName, isp, colonyName, mobileNo, userId, address, company });
+          const tickets = childSnap?.Tickets
+          if(tickets){
+            Object.keys(tickets).forEach((ticketkey) => {
+              const userdata = tickets[ticketkey];
+              const {
+                source,
+                generatedDate,
+                closeby,
+                ticketconcern,
+                status,
+                assigndate,
+                assignto,
+                assigntime,
+                generatedBy,
+                closedate,
+                closetime,
+                description
+              } = userdata;
+  
+              dataArray.push({
+                Ticketno: keys,
+                subsID: userId,
+                source,
+                creationdate: generatedDate,
+                completedby: usersLookup[closeby], // Use user's name from lookup
+                Concern: ticketconcern,
+                description,
+                Status: status,
+                Colony: colonyName,
+                fullName: fullName,
+                isp: isp,
+                mobileNo: mobileNo,
+                address: address,
+                company: company,
+                assignto: usersLookup[assignto],
+                assignDateandTime: assigndate + " " + assigntime,
+                createdBy: usersLookup[generatedBy],
+                closeDateandTime: closedate + " " + closetime,
+                durationslab: calculateTimeDifference(assigndate, assigntime, closedate, closetime)
+              });
+  
+  
+            });
+          }
         });
 
-        const isps = [...new Set(subsArray.map((data) => data.isp))];
-        const colonys = [...new Set(subsArray.map((data) => data.colonyName))];
+
+        const isps = [...new Set(dataArray.map((data) => data.isp))];
+        const colonys = [...new Set(dataArray.map((data) => data.Colony))];
         setUniqueIsp(isps);
         setUniqueColony(colonys);
-
-        Object.keys(dataSnap).forEach((keys) => {
-          const childSnap = dataSnap[keys];
-          const {
-            userid,
-            source,
-            generatedDate,
-            closeby,
-            ticketconcern,
-            status,
-            assigndate,
-            assignto,
-            assigntime,
-            generatedBy,
-            closedate,
-            closetime,
-            description
-          } = childSnap;
-
-          
-          const assignedPersonName = usersLookup[closeby] || closeby; // Lookup user name or fallback to userid
-          const matchedUser = subsArray.find((data) => data.userId === userid);
-          
-
-  
-              if (matchedUser) {
-                dataArray.push({
-                  Ticketno: keys,
-                  subsID: userid,
-                  source,
-                  creationdate: generatedDate,
-                  completedby: assignedPersonName, // Use user's name from lookup
-                  Concern: ticketconcern,
-                  description,
-                  Status: status,
-                  Colony: matchedUser.colonyName,
-                  fullName: matchedUser.fullName,
-                  isp: matchedUser.isp,
-                  mobileNo: matchedUser.mobileNo,
-                  address: matchedUser.address,
-                  company: matchedUser.company,
-                  assignto: usersLookup[assignto],
-                  assignDateandTime: assigndate + " " + assigntime,
-                  createdBy: usersLookup[generatedBy],
-                  closeDateandTime: closedate + " " + closetime,
-                  durationslab: calculateTimeDifference(assigndate, assigntime, closedate, closetime)
-                });
-              }
-        });
         setArrayData(dataArray);
 
         
@@ -232,7 +220,7 @@ const downloadExcel = () => {
     <div style={{marginTop:'4.5%', marginLeft:'10px', marginRight:'10px'}}>
       <div className='d-flex flex-row'>
         <h4 style={{flex:'1'}}>Your All Tickets Data</h4>
-        <img onClick={downloadExcel} src={ExcelIcon} className='img_download_icon'></img>
+        <img alt='Excel' onClick={downloadExcel} src={ExcelIcon} className='img_download_icon'></img>
       </div>
       
       

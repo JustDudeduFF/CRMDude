@@ -40,7 +40,6 @@ export const PermissionProvider = ({children}) => {
     
               // Remove duplicates and update state
               setPermissions([...new Set(allPermissions)]);
-              console.log(allPermissions);
             }
           });
         });

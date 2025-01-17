@@ -52,7 +52,8 @@ export default function AddRemarkFollow(props) {
             description: description,
             modifiedby: localStorage.getItem('Name'),
             modifiedon: new Date().toISOString().split('T')[0],
-            followupdate: followupdate
+            followupdate: followupdate,
+            status: "pending"
           }
   
           const userdata = {
@@ -60,8 +61,8 @@ export default function AddRemarkFollow(props) {
             date: new Date().toISOString().split('T')[0],
             particular:remarkparticular,
             followupdate: followupdate,
-            description: description
-            
+            description: description,
+            status: 'pending'
           }
   
           try{

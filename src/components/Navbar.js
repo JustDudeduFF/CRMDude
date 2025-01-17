@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from "react";
 import Menu from './subscriberpage/drawables/hamburger.png'
-import Profile_Card from "./Profile_Card";
+import ProfileCard from "./ProfileCard";
 import Building_Img from './subscriberpage/drawables/office-building.png'
-import Reports_Others from "./Reports_Others";
+import ReportsOthers from "./ReportsOthers";
 import { Link, useNavigate } from "react-router-dom";
 import { db } from "../FirebaseConfig";
-import { ref, get, onValue } from "firebase/database";
+import { ref, onValue } from "firebase/database";
 import UserProfile from './subscriberpage/drawables/user.png'
 import NotificationIcon from './subscriberpage/drawables/bell.png'
 import { Modal, ModalBody, ModalTitle } from "react-bootstrap";
@@ -140,7 +140,7 @@ export default function Navbar() {
       Object.keys(data).forEach((dataKey) => {
         const userData = data[dataKey];
 
-        const {key, name, mobile, userid, address} = userData;
+        const {key, name, mobile, userid} = userData;
         userArray.push({
           username:userid,
           fullname: name,
@@ -203,10 +203,10 @@ export default function Navbar() {
           <h1 className="text-primary">CRM Dude</h1></Link>
           <form className="d-flex" role="search">
               <div style={{width: '50px', height: '50px', cursor: 'pointer', marginRight:'50px'}}>
-                <span class="position-fixed mt-2 ms-2 translate-middle badge rounded-pill bg-danger">
+                <span className="position-fixed mt-2 ms-2 translate-middle badge rounded-pill bg-danger">
                   {currentRenewal}
                 </span>
-                <img onClick={() => setShowModal(true)} style={{width: '50px', height: '50px', cursor: 'pointer', borderRadius:'100%', boxShadow:"0 0 8px gray"}} src={NotificationIcon}>
+                <img alt="online renewal" onClick={() => setShowModal(true)} style={{width: '50px', height: '50px', cursor: 'pointer', borderRadius:'100%', boxShadow:"0 0 8px gray"}} src={NotificationIcon}>
                 
                 </img>
               </div>
@@ -225,12 +225,12 @@ export default function Navbar() {
             ></input>
             <div style={{ display:'flex', flexDirection:'row', marginLeft:'10px'}}>
               <div onClick={() => setShowModal2(true)} style={{width: '50px', height: '50px', cursor: 'pointer'}}>
-                <img style={{width: '50px', height: '50px', cursor: 'pointer', borderRadius:'100%', boxShadow:"0 0 8px gray"}} src={Building_Img}>
+                <img alt="all company" style={{width: '50px', height: '50px', cursor: 'pointer', borderRadius:'100%', boxShadow:"0 0 8px gray"}} src={Building_Img}>
                 </img>
               </div>
               <div style={{display:'flex', flexDirection:'row'}}>
                 <div style={{marginLeft:"20px"}}>
-                <img onClick={togglevisiblty}  className="shadow bg-secondary-subtle" style={{width: '50px', height: '50px', borderRadius: '100%', cursor: 'pointer'}} src={UserProfile}></img>
+                <img alt="my profile" onClick={togglevisiblty}  className="shadow bg-secondary-subtle" style={{width: '50px', height: '50px', borderRadius: '100%', cursor: 'pointer'}} src={UserProfile}></img>
                 </div>
                 <div style={{display:'flex', flexDirection:'column'}}>
                 <label style={{marginLeft: '10px', width:'150px'}}>{name}</label>
@@ -238,7 +238,7 @@ export default function Navbar() {
                 
                 </div>
                 <div style={{cursor:'pointer'}}>
-                  <img className="shadow bg-secondary-subtle rounded" data-bs-toggle="offcanvas" data-bs-target="#offcanvasBottom" aria-controls="offcanvasBottom" style={{width:'50px', height: '50px'}} src={Menu}></img>
+                  <img alt="menu" className="shadow bg-secondary-subtle rounded" data-bs-toggle="offcanvas" data-bs-target="#offcanvasBottom" aria-controls="offcanvasBottom" style={{width:'50px', height: '50px'}} src={Menu}></img>
                 </div>
 
               </div>
@@ -249,7 +249,7 @@ export default function Navbar() {
                 <button type="button" className="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
             <div className="offcanvas-body small">
-                <Reports_Others/>
+            <ReportsOthers/>
             </div>
 
             </div>
@@ -263,7 +263,7 @@ export default function Navbar() {
 
       {
         isVisible && (
-            <Profile_Card/>
+        <ProfileCard/>
         )
       }
 
@@ -379,7 +379,7 @@ export default function Navbar() {
           <Modal.Title>
             Company and Customer Stats
           </Modal.Title>
-          <img onClick={downloadUsers} className="img_download_icon ms-auto" src={ExcelIcon}></img>
+          <img alt="excel" onClick={downloadUsers} className="img_download_icon ms-auto" src={ExcelIcon}></img>
         </Modal.Header>
         <Modal.Body>
         <ol className="list-group list-group-numbered">

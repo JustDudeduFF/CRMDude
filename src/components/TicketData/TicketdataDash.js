@@ -90,6 +90,7 @@ export default function TicketdataDash() {
             Object.keys(tickets).forEach((ticketkey) => {
               const userdata = tickets[ticketkey];
               const {
+                ticketno,
                 source,
                 generatedDate,
                 closeby,
@@ -105,7 +106,7 @@ export default function TicketdataDash() {
               } = userdata;
   
               dataArray.push({
-                Ticketno: keys,
+                Ticketno: ticketno,
                 subsID: userId,
                 source,
                 creationdate: generatedDate,

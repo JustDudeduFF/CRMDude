@@ -70,30 +70,49 @@ export default function Navbar() {
           const userData = response.data;
           const arrayExcel = [];
           Object.keys(userData).forEach(userKey => {
-            const user = userData[userKey];// Access the user data with the key
+            const user = userData[userKey]; // Access the user data with the key
             const company = user.company;
             arrayExcel.push(user);
-            
-      
+          
             const expiryDate = user.connectionDetails?.expiryDate;
             const expdate = convertExcelDateSerial(expiryDate); 
-            const time = new Date(expdate).getTime();
-            UserArray.push({company});
-
-      
+            const expDateObject = new Date(expdate);
+            const currentDateObject = new Date(time1); // Assuming time1 is the reference date
+          
+            // Extract day, month, and year
+            const expDay = expDateObject.getDate();
+            const expMonth = expDateObject.getMonth(); // Month is 0-indexed (January = 0)
+            const expYear = expDateObject.getFullYear();
+          
+            const currDay = currentDateObject.getDate();
+            const currMonth = currentDateObject.getMonth();
+            const currYear = currentDateObject.getFullYear();
+          
+            UserArray.push({ company });
+          
+            // Compare dates based on year, month, and day
             if (companyCount[company]) {
-              if (time > time1) {
+              if (
+                expYear > currYear || 
+                (expYear === currYear && expMonth > currMonth) || 
+                (expYear === currYear && expMonth === currMonth && expDay > currDay)
+              ) {
                 companyCount[company]++;
-              } else if (time < time1) {
+              } else {
                 expiredCount[company] = (expiredCount[company] || 0) + 1;
               }
             } else {
               companyCount[company] = 1;
-              if (time < time1) {
+              if (
+                expYear < currYear || 
+                (expYear === currYear && expMonth < currMonth) || 
+                (expYear === currYear && expMonth === currMonth && expDay < currDay)
+              ) {
                 expiredCount[company] = 1;
               }
             }
           });
+          
           setExcelData(arrayExcel);
           const company = [...new Set(UserArray.map(user => user.company))];
 

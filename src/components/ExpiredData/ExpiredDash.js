@@ -26,81 +26,75 @@ const ExpiredDash = () => {
               XLSX.writeFile(workbook, `Tickets Data.xlsx`);
     }
 
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`https://api.justdude.in/expired?date=${filter.startDate} ${filter.endDate}`);
+        
+        if (response.status !== 200 || !response.data) {
+          console.error("Invalid response or data");
+          return;
+        }
+    
+        const snapshot = response.data;
+        const today = new Date();
+        const expiredArray = [];
+    
+        // Iterate through each user in the snapshot
+        Object.keys(snapshot).forEach((key) => {
+          const user = snapshot[key]; // Access user data
+          if (!user || !user.connectionDetails) return; // Skip invalid data
+    
+          const {
+            username: userid,
+            fullName: fullname,
+            mobileNo: mobile,
+            installationAddress: address,
+            company,
+            colonyName: colony,
+            connectionDetails: {
+              expiryDate: expDate,
+              dueAmount: dueamount,
+              planAmount: planamount,
+              planName: planname,
+              isp,
+            },
+          } = user;
+          
+            expiredArray.push({
+              fullname,
+              mobile,
+              address,
+              company,
+              colony,
+              expDate,
+              dueamount,
+              planamount,
+              planname,
+              isp,
+              userid,
+            });
+        });
+    
+        // Extract unique values for filtering
+        const uniqueIsp = [...new Set(expiredArray.map((data) => data.isp))];
+        const uniqueColony = [...new Set(expiredArray.map((data) => data.colony))];
+        const uniqueCompany = [...new Set(expiredArray.map((data) => data.company))];
+    
+        // Update state outside the loop
+        setUniqueIsp(uniqueIsp);
+        setUniqueColony(uniqueColony);
+        setUniqueCompany(uniqueCompany);
+        setArrayData(expiredArray);
+    
+      } catch (error) {
+        console.error("Error fetching expired users:", error);
+      }
+    };
+
 
     useEffect(() => {
-      const fetchData = async () => {
-        try {
-          const response = await axios.post('https://api.justdude.in/expiredUser');
-          
-          if (response.status !== 200 || !response.data) {
-            console.error("Invalid response or data");
-            return;
-          }
-      
-          const snapshot = response.data;
-          const today = new Date();
-          const expiredArray = [];
-      
-          // Iterate through each user in the snapshot
-          Object.keys(snapshot).forEach((key) => {
-            const user = snapshot[key]; // Access user data
-            if (!user || !user.connectionDetails) return; // Skip invalid data
-      
-            const {
-              username: userid,
-              fullName: fullname,
-              mobileNo: mobile,
-              installationAddress: address,
-              company,
-              colonyName: colony,
-              connectionDetails: {
-                expiryDate: expDate,
-                dueAmount: dueamount,
-                planAmount: planamount,
-                planName: planname,
-                isp,
-              },
-            } = user;
-      
-            // Check if the user has an expired plan
-            if (expDate && new Date(expDate) < today) {
-              expiredArray.push({
-                fullname,
-                mobile,
-                address,
-                company,
-                colony,
-                expDate,
-                dueamount,
-                planamount,
-                planname,
-                isp,
-                userid,
-              });
-            }
-          });
-      
-          // Extract unique values for filtering
-          const uniqueIsp = [...new Set(expiredArray.map((data) => data.isp))];
-          const uniqueColony = [...new Set(expiredArray.map((data) => data.colony))];
-          const uniqueCompany = [...new Set(expiredArray.map((data) => data.company))];
-      
-          // Update state outside the loop
-          setUniqueIsp(uniqueIsp);
-          setUniqueColony(uniqueColony);
-          setUniqueCompany(uniqueCompany);
-          setArrayData(expiredArray);
-      
-        } catch (error) {
-          console.error("Error fetching expired users:", error);
-        }
-      };
-      
-
-        
-
-        fetchData();
-    }, []);
+      fetchData();
+    }, [filter.startDate, filter.endDate]);
 
     useEffect(() => {
             let filteredArray = arrayData;
@@ -120,26 +114,6 @@ const ExpiredDash = () => {
         
             if(filter.Colony !== 'All'){
               filteredArray = filteredArray.filter((data) => data.colony === filter.Colony);
-            }
-        
-            // Filter by Date Range
-            if (filter.startDate && filter.endDate) {
-              const startDate = new Date(filter.startDate);
-              const endDate = new Date(filter.endDate);
-          
-              // Filter the array
-              filteredArray = filteredArray.filter((data) => {
-                const creationDate = new Date(data.expDate);
-          
-                return (
-                  creationDate.getFullYear() >= startDate.getFullYear() &&
-                  creationDate.getFullYear() <= endDate.getFullYear() &&
-                  creationDate.getMonth() >= startDate.getMonth() &&
-                  creationDate.getMonth() <= endDate.getMonth() &&
-                  creationDate.getDate() >= startDate.getDate() &&
-                  creationDate.getDate() <= endDate.getDate()
-                );
-              });
             }
         
             setFilteredData(filteredArray);

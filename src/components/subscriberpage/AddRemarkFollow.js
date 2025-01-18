@@ -62,7 +62,8 @@ export default function AddRemarkFollow(props) {
             particular:remarkparticular,
             followupdate: followupdate,
             description: description,
-            status: 'pending'
+            status: 'pending',
+            userid: localStorage.getItem("susbsUserid")
           }
   
           try{

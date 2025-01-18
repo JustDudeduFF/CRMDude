@@ -5,14 +5,13 @@ import axios from 'axios';
 
 
 const RevenueDash = () => {
-    const [filter, setFilter] = useState({ startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0], isp: 'All', Colony: 'All', Status: 'All', Source: 'All' });
+    const [filter, setFilter] = useState({ startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0], isp: 'All', Colony: 'All', Status: 'All', Company: 'All' });
     const [arrayData, setArrayData] = useState([]);
     const [filterData, setFilteredData] = useState([]);
     
     const [uniqueColony, setUniqueColony] = useState([]);
     const [uniqueMode, setUniqueMode] = useState([]);
-
-    const [userLookup, setUserLookup] = useState({});
+    const [uniqueCompany, setUniqueCompany] = useState([]);
 
     const downloadExcel = () => {
         const dataToDownload = filterData;
@@ -27,110 +26,39 @@ const RevenueDash = () => {
           XLSX.writeFile(workbook, `Revenue Data.xlsx`);
     }
 
-    useEffect(() => {
-
-        const fetchUser = async() => {
-            const userResponse = await axios.get('https://api.justdude.in/users');
-
-            if(userResponse.status !== 200) return;
-
-            const responseData = userResponse.data;
-
-            if(responseData){
-              const userLook = {};
-              Object.keys(responseData).forEach((key) => {
-                const userSnap = responseData[key];
-  
-                const empname = userSnap.FULLNAME;
-                const mobile = userSnap.MOBILE;
-
-                userLook[mobile] = empname;
-              });
-              setUserLookup(userLook);
-            }
-
-            
+    const fetchRevenue = async () => {
+      try {
+        // Fetch data from the API
+        const response = await axios.get(`https://api.justdude.in/subscriber/revenue?date=${filter.startDate} ${filter.endDate}`);
+    
+        if (response.status !== 200 || !response.data) {
+          return;
         }
+        const arrayData = response.data;
+        const array = [];
+        Object.keys(arrayData).forEach((key) => {
+          const userData = arrayData[key];
+          array.push(userData);
+        });
+        const paymentModes = [...new Set(array.map((data) => data.PaymentMode))];
+        const colonies = [...new Set(array.map((data) => data.colonyName))];
+        const company = [...new Set(array.map((data) => data.company))];
+        
+        // Update state
+        setUniqueMode(paymentModes);
+        setUniqueColony(colonies);   
+        setUniqueCompany(company);   
+        setArrayData(array);
+    
+    
+      } catch (error) {
+        console.error('Error fetching revenue:', error);
+      }
+    };
 
-        const fetchRevenue = async () => {
-          try {
-            // Fetch data from the API
-            const response = await axios.get('https://api.justdude.in/subscriber');
-        
-            if (response.status !== 200 || !response.data) {
-              return;
-            }
-        
-            const snapshot = response.data;
-        
-            // Ensure snapshot is a valid object
-            if (!snapshot || typeof snapshot !== 'object') {
-              console.error('Snapshot is not a valid object');
-              return;
-            }
-        
-            const receiptArray = [];
-        
-            // Iterate through the snapshot to process data
-            Object.keys(snapshot).forEach((userId) => {
-              const user = snapshot[userId];
-              if (!user || typeof user !== 'object') return; // Skip invalid user entries
-        
-              const colonyName = user.colonyName || 'Unknown Colony';
-              const fullName = user.fullName || 'Unknown Name';
-              const address = user.installationAddress || 'Unknown Address';
-              const mobileNo = user.mobileNo || 'Unknown Mobile';
-              const company = user.company || 'Unknown Company'
-              const userPayments = user.payments;
-        
-              // Ensure payments exist and are an object
-              if (!userPayments || typeof userPayments !== 'object') return;
-        
-              // Process payments for each user
-              Object.keys(userPayments).forEach((paymentKey) => {
-                const payment = userPayments[paymentKey];
-                if (!payment || typeof payment !== 'object') return; // Skip invalid payments
-        
-                const { amount, collectedBy, discount, paymentMode, receiptDate, transactionNo, authorized } = payment;
-        
-                receiptArray.push({
-                  mobileNo: mobileNo,
-                  address: address,
-                  fullName: fullName,
-                  colonyName: colonyName,
-                  company: company,
-                  ReceiptNo: paymentKey, // Use paymentKey as receipt number
-                  UserID: userId,
-                  Amount: amount || 0,
-                  discount: discount || 0,
-                  TransactionID: transactionNo || 'N/A',
-                  Collected_By: collectedBy || 'Unknown',
-                  PaymentMode: paymentMode || 'Unknown',
-                  Receipt_Date: receiptDate || 'Unknown',
-                  authorized: authorized || false, // Default to false if not provided
-                });
-              });
-            });
-        
-            // Calculate unique payment modes and colonies
-            const paymentModes = [...new Set(receiptArray.map((data) => data.PaymentMode))];
-            const colonies = [...new Set(receiptArray.map((data) => data.colonyName))];
-        
-            // Update state
-            setUniqueMode(paymentModes);
-            setUniqueColony(colonies);
-            setArrayData(receiptArray);
-        
-          } catch (error) {
-            console.error('Error fetching revenue:', error);
-          }
-        };
-        
-        
-
-        fetchUser();
+    useEffect(() => {
         fetchRevenue();
-    }, []);
+    }, [filter.startDate, filter.endDate]);
 
     useEffect(() => {
         let filteredArray = arrayData;
@@ -140,8 +68,8 @@ const RevenueDash = () => {
             filteredArray = filteredArray.filter((data) => data.authorized === filter.Status);
         }
     
-        if(filter.Source !== 'All'){
-            filteredArray = filteredArray.filter((data) => data.Source === filter.Source);
+        if(filter.Company !== 'All'){
+            filteredArray = filteredArray.filter((data) => data.company === filter.Company);
         }
     
         if(filter.isp !== 'All'){
@@ -151,16 +79,6 @@ const RevenueDash = () => {
         if(filter.Colony !== 'All'){
           filteredArray = filteredArray.filter((data) => data.colonyName === filter.Colony);
         }
-    
-        // Filter by Date Range
-        if (filter.startDate && filter.endDate) {
-          const startDate = new Date(filter.startDate).getTime();
-          const endDate = new Date(filter.endDate).getTime();
-          filteredArray = filteredArray.filter((data) => {
-              const creationDate = new Date(data.Receipt_Date).getTime();
-              return creationDate >= startDate && creationDate <= endDate;
-          });
-      }
     
         setFilteredData(filteredArray);
     }, [arrayData, filter]);
@@ -256,21 +174,26 @@ const RevenueDash = () => {
         </div>
 
         <div className='col-md-4 mt-2'>
-        <label className='form-label'>Select Source</label>
+        <label className='form-label'>Select Company</label>
           <select 
           type="text" 
           className="form-control" 
-          name="Source" 
+          name="Company" 
           placeholder="Colony" 
-          value={filter.Source} 
+          value={filter.Company} 
           onChange={handleFilterChange} 
-          disabled
           >
 
-          <option value="All">All Source</option>
-          <option value="Manual">Manual</option>
-          <option value="WhatsApp">Whatsapp Bot</option>
-          <option value="Mobile App">Customer App</option>
+          <option value="All">All Company</option>
+          {
+            uniqueCompany.length > 0 ? (
+              uniqueCompany.map((company, index) => (
+                <option key={index} value={company}>{company}</option>
+              ))
+            ) : (
+              <option value=''>No Data Found</option>
+            )
+          }
           </select>
         </div>
       </div>
@@ -310,7 +233,7 @@ const RevenueDash = () => {
                     <td style={{maxWidth:'250px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{filterData.address}</td>
                     <td>{filterData.PaymentMode}</td>
                     <td>{filterData.colonyName}</td>
-                    <td>{userLookup[filterData.Collected_By]}</td>
+                    <td>{filterData.Collected_By}</td>
                     <td>{filterData.authorized ? "Authorized" : "UnAuthorized"}</td>
                   </tr>
                 ))

@@ -30,13 +30,15 @@ const ExpiredDash = () => {
       try {
         const response = await axios.get(`https://api.justdude.in/expired?date=${filter.startDate} ${filter.endDate}`);
         
+        
         if (response.status !== 200 || !response.data) {
           console.error("Invalid response or data");
           return;
         }
+
+        console.log(response.data);
     
         const snapshot = response.data;
-        const today = new Date();
         const expiredArray = [];
     
         // Iterate through each user in the snapshot

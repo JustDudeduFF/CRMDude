@@ -153,8 +153,8 @@ export default function DashSecDiv() {
             <h4 className='fw-bold'>Employee Collection</h4>
             <label className='form-label fw-bold'>Select Year</label>
             <select className='form-select w-25 mb-2' value={year} onChange={(e) => setYear(e.target.value)}>
-              {years.map((year) => (
-                <option value={year}>{year}</option>
+              {years.map((year, index) => (
+                <option key={index} value={year}>{year}</option>
               ))}
             </select>
           </div>
@@ -214,8 +214,8 @@ export default function DashSecDiv() {
             <h4 className='fw-bold'>Installation Trend</h4>
             <label className='form-label fw-bold'>Select Year</label>
             <select className='form-select w-25 mb-2' value={year} onChange={(e) => setYear(e.target.value)}>
-              {years.map((year) => (
-                <option value={year}>{year}</option>
+              {years.map((year, index) => (
+                <option key={index} value={year}>{year}</option>
               ))}
             </select>
           </div>
@@ -246,8 +246,8 @@ export default function DashSecDiv() {
             <h4 className='fw-bold'>Ticket Nature</h4>
             <label className='form-label fw-bold'>Select Year</label>
             <select className='form-select w-25 mb-2' value={year} onChange={(e) => setYear(e.target.value)}>
-              {years.map((year) => (
-                <option value={year}>{year}</option>
+              {years.map((year, index) => (
+                <option key={index} value={year}>{year}</option>
               ))}
             </select>
           </div>
@@ -262,7 +262,7 @@ export default function DashSecDiv() {
               </thead>
               <tbody>
                 {Object.entries(ticketNatureData).map(([concern, count], index) => (
-                  <tr key={concern}>
+                  <tr key={index}>
                     <td>{index + 1}</td>
                     <td>{concern}</td>
                     <td>{count}</td>

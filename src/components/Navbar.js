@@ -24,8 +24,6 @@ export default function Navbar() {
   const [isVisible, setIsVisible] = useState(false);
   const [arrayuser, setArrayUser] = useState([]);
   const [subssearch, setSubsSearch] = useState('');
-  const [companyUserCount, setCompanyUserCount] = useState({});
-  const [expiredUserCount, setExpiredUserCount] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [renewalArray, setRenewArray] = useState([]);
   const [currentRenewal, setCurrenRenewal] = useState(0);
@@ -35,96 +33,16 @@ export default function Navbar() {
 
 
 
-  function convertExcelDateSerial(input) {
-    const excelDateSerialPattern = /^\d+$/; // matches only digits (Excel date serial number)
-    if (excelDateSerialPattern.test(input)) {
-      const excelDateSerial = parseInt(input, 10);
-      const baseDate = new Date("1900-01-01");
-      const date = new Date(baseDate.getTime() + excelDateSerial * 86400000);
-  
-      const day = date.getDate().toString().padStart(2, "0");
-      const month = (date.getMonth() + 1).toString().padStart(2, "0");
-      const year = date.getFullYear();
-      return `${year}-${month}-${day}`;
-    } else {
-      return input; // return original input if it's not a valid Excel date serial number
-    }
-  }
-
   useEffect(() => {
     const onlineRenewalsref = ref(db, `onlinerenewals`);
     const fetchUsers = async () => {
-
-      const currentDate = new Date();
-      const time1 = currentDate.getTime();
-      
-
-        const UserArray = [];
-        const companyCount = {};
-        const expiredCount = {};
-
         try{
-          const response = await axios.get('https://api.justdude.in/subscriber');
+          const response = await axios.get('https://api.justdude.in/subscriber?data=companycount');
           if(response.status !== 200) return;
-
-          const userData = response.data;
-          const arrayExcel = [];
-          Object.keys(userData).forEach(userKey => {
-            const user = userData[userKey]; // Access the user data with the key
-            const company = user.company;
-            arrayExcel.push(user);
-          
-            const expiryDate = user.connectionDetails?.expiryDate;
-            const expdate = convertExcelDateSerial(expiryDate); 
-            const expDateObject = new Date(expdate);
-            const currentDateObject = new Date(time1); // Assuming time1 is the reference date
-          
-            // Extract day, month, and year
-            const expDay = expDateObject.getDate();
-            const expMonth = expDateObject.getMonth(); // Month is 0-indexed (January = 0)
-            const expYear = expDateObject.getFullYear();
-          
-            const currDay = currentDateObject.getDate();
-            const currMonth = currentDateObject.getMonth();
-            const currYear = currentDateObject.getFullYear();
-          
-            UserArray.push({ company });
-          
-            // Compare dates based on year, month, and day
-            if (companyCount[company]) {
-              if (
-                expYear > currYear || 
-                (expYear === currYear && expMonth > currMonth) || 
-                (expYear === currYear && expMonth === currMonth && expDay > currDay)
-              ) {
-                companyCount[company]++;
-              } else {
-                expiredCount[company] = (expiredCount[company] || 0) + 1;
-              }
-            } else {
-              companyCount[company] = 1;
-              if (
-                expYear < currYear || 
-                (expYear === currYear && expMonth < currMonth) || 
-                (expYear === currYear && expMonth === currMonth && expDay < currDay)
-              ) {
-                expiredCount[company] = 1;
-              }
-            }
-          });
-          
-          setExcelData(arrayExcel);
-          const company = [...new Set(UserArray.map(user => user.company))];
-
-          setUniqueCompanies(company);
-          setCompanyUserCount(companyCount);
-          setExpiredUserCount(expiredCount);
+          setUniqueCompanies(response.data);
         }catch(e){
           console.log(e)
         }
-
-        
-      
     }
 
     onValue(onlineRenewalsref, (renewalSnap) => {
@@ -218,8 +136,7 @@ export default function Navbar() {
     <div>
       <nav className="navbar bg-primary-subtle fixed-top">
         <div className="container-fluid">
-          <Link id="link" to='/dashboard'>
-          <h1 className="text-primary">CRM Dude</h1></Link>
+          <h1 style={{cursor:'pointer'}} onClick={() => navigate('/dashboard')} className="text-primary">CRM Dude</h1>
           <form className="d-flex" role="search">
               <div style={{width: '50px', height: '50px', cursor: 'pointer', marginRight:'50px'}}>
                 <span className="position-fixed mt-2 ms-2 translate-middle badge rounded-pill bg-danger">
@@ -405,10 +322,10 @@ export default function Navbar() {
               {uniqueCompanies.map((company, index) => (
                <li key={index} className="list-group-item d-flex justify-content-between align-items-start">
                <div className="ms-2 me-auto">
-                 <div className="fw-bold">{company}</div>
-                 <span className="text-success">Active Users: {companyUserCount[company] || 0}</span>
+                 <div className="fw-bold">{company.company}</div>
+                 <span className="text-success">Active Users: {company.active || 0}</span>
                </div>
-               <span className="badge text-bg-danger rounded-pill">{expiredUserCount[company] || 0}</span>
+               <span className="badge text-bg-danger rounded-pill">{company.expire|| 0}</span>
              </li>
            ))}
            

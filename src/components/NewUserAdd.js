@@ -150,7 +150,6 @@ export default function NewUserAdd() {
     const planRef = ref(db, `Master/Broadband Plan`);
     const ispRef = ref(db, `Master/ISPs`);
     const deviceRef = ref(db, `Inventory/New Stock`);
-    const fmsRef = ref(db, `Master/FMS`);
 
 
     const unsubscribecolony = onValue(colonyRef, (colonySnap) => {
@@ -281,7 +280,7 @@ export default function NewUserAdd() {
     e.preventDefault();
     const onekey = Date.now();
 
-    if(fullName === '' || username === '' || mobileNo === ''){
+    if(fullName === '' || username === '' || mobileNo === '' || company === '' || installationAddress === '' || conectiontyp === '' || isp === ''){
       toast.error('Manadaratry Field will not be empty', {
         autoClose: 3000,
           hideProgressBar: false,
@@ -459,7 +458,7 @@ export default function NewUserAdd() {
       <form className="row g-3 needs-validation" noValidate>
         <div className="col-md-3">
           <label htmlFor="validationCustom04" className="form-label">
-            Select Company  
+            Select Company *
           </label>
           <input value={company} className='form-control' disabled></input>
           
@@ -468,7 +467,7 @@ export default function NewUserAdd() {
 
         <div className="col-md-4">
           <label htmlFor="validationCustom01" className="form-label">
-            FullName
+            FullName *
           </label>
           <input 
           onChange={(e) => setFullName(e.target.value)}
@@ -482,7 +481,7 @@ export default function NewUserAdd() {
 
         <div className="col-md-3">
           <label  className="form-label">
-            Username
+            Username * 
           </label>
           <div className="input-group has-validation">
             <span className="input-group-text" id="inputGroupPrepend">
@@ -501,7 +500,7 @@ export default function NewUserAdd() {
         </div>
         <div className="col-md-2">
           <label  className="form-label">
-            Mobile No.
+            Mobile No. *
           </label>
           <div className="input-group has-validation">
             <span className="input-group-text" id="inputGroupPrepend">
@@ -534,7 +533,7 @@ export default function NewUserAdd() {
         </div>
         <div className="col-md-4">
           <label htmlFor="validationCustom03" className="form-label">
-            Installation Address
+            Installation Address *
           </label>
           <input
           onChange={(e) => setInstallationAddress(e.target.value)}
@@ -612,7 +611,7 @@ export default function NewUserAdd() {
       <form className="row g-3 needs-validation" noValidate>
         <div className="col-md-3">
           <label htmlFor="validationCustom04" className="form-label">
-            Select ISP  
+            Select ISP *
           </label>
           <select onChange={(e) => setIsp(e.target.value)} className="form-select" id="validationCustom04" required>s
             <option value="">  
@@ -738,7 +737,7 @@ export default function NewUserAdd() {
         </div>
 
         <div className='col-md-3'>
-          <label className="form-label">Connection Type</label>
+          <label className="form-label">Connection Type *</label>
           <select onChange={(e) => setConnectionTyp(e.target.value)} className="form-select">
             <option value=''>Choose...</option>
             <option value='FTTH'>FTTH</option>

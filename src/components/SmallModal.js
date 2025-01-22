@@ -27,16 +27,17 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
             setEmpArray(nameArray);
         });
 
-        const fetchSubs = onValue(ref(db, `Subscriber/${ticketno.subsID}`), (subsSnap) => {
+        const fetchSubs = onValue(ref(db, `Subscriber/${ticketno.UserKey || ticketno.subsID}`), (subsSnap) => {
             const subsData = subsSnap.val();
-            console.log(ticketno)
-            console.log(subsData);
             setSubsData(subsData);
         });
 
         
 
-        return () => {fetchUsers(); fetchSubs();}
+        if(show){
+            return () => {fetchUsers(); fetchSubs();}
+            console.log('small modal return')
+        }
     }, [ticketno]);
 
     const sendMessage = async (mobileNo, ticketno, customername, userid, concern) => {
@@ -52,7 +53,7 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
 
     const assignTicket = async(event) => {
         event.preventDefault();
-        const ticketRef = ref(db, `Subscriber/${ticketno.subsID}/Tickets/${ticketno.Ticketno}`);
+        const ticketRef = ref(db, `Subscriber/${ticketno.UserKey || ticketno.userid}/Tickets/${ticketno.Ticketno}`);
         const globalTicketsRef = ref(db, `Global Tickets/${ticketno.Ticketno}`);    
         const ticketSnap = await get(ticketRef);
         const subsMobile = subsData.mobileNo;

@@ -1,31 +1,57 @@
 import React, { useEffect, useState } from 'react'
 import '../Modal.css'
-import { ref, get } from 'firebase/database';
-import { db } from '../../FirebaseConfig';
+import axios from 'axios';
 
 
-const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, DeviceMac, modalshow, devicetype}) => {
+const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, DeviceMac, modalshow, devicetype, company}) => {
     const [isVisible, setIsVisible] = useState(true);
     const [isVisible2, setIsVisible2] = useState(false);
     const [note, setNote] = useState('Please Confirm Company');
     const [buttontext, setButtonText] = useState('Add Device');
     const [arraymakerm, setArrayMaker] = useState([]);
+    const [companyArray, setCompanyArray] = useState([]);
+
+    const fetchmakername = async() => {
+        const response = await axios.get('https://api.justdude.in/master/dMakers');
+        
+
+        const [makerResponse, companyResponse] = await Promise.all([
+            await axios.get('https://api.justdude.in/master/dMakers'),
+            await axios.get('https://api.justdude.in/master/companys')
+        ]);
+
+        if(makerResponse.status !== 200 || companyResponse.status !== 200) {
+            console.log("One or More API Failed");
+            return;
+        }
+
+        const data = makerResponse.data;
+        const companyData = companyResponse.data;
+
+
+        if(data){
+            const array = [];
+            Object.keys(data).forEach((key) => {
+                array.push(key);
+            });
+            setArrayMaker(array);
+        }
+
+        if(companyData){
+            const array = [];
+            Object.keys(companyData).forEach((key) => {
+                if(key !== "global"){
+                    array.push(key);
+                }
+            });
+            setCompanyArray(array);
+        }
+
+      }
+
+
 
     useEffect(() => {
-        const fetchmakername = async() => {
-            const makerRef = ref(db, `Master/dMakers`);
-            const makerSnap = await get(makerRef);
-      
-            if(makerSnap.exists()){
-              const makerArray = [];
-              makerSnap.forEach(Childname => {
-                const makername = Childname.key;
-                makerArray.push(makername);
-              });
-              setArrayMaker(makerArray);
-            }
-          }
-
           return () => {
             fetchmakername();
           }
@@ -57,7 +83,7 @@ const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, 
        <div className='modal-overlay1'>
         <div className='modal-content1 d-flex flex-column'>
             <div className='d-flex flex-row bg-info rounded'>
-                <div className='m-2 d-flex flex-column col-md-3'>
+                <div className='m-2 d-flex flex-column col-md-2'>
                     <span className='ms-2'>
                         Device Type
                     </span>
@@ -71,17 +97,17 @@ const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, 
                     </select>
                 </div>
 
-                <div className='m-2 d-flex flex-column col-md-4'>
+                <div className='m-2 d-flex flex-column col-md-3'>
                     <span className='ms-2'>Device Added For</span>
                     <select onChange={TypeDevice} className='form-select'>
-                        <option>Choose</option>
-                        <option>New Stock</option>
-                        <option>Damaged Devices</option>
-                        <option>Device on Repair</option>
+                        <option value=''>Choose</option>
+                        <option value='free'>New Stock</option>
+                        <option value='damaged'>Damaged Devices</option>
+                        <option value='repair'>Device on Repair</option>
                     </select>
                 </div>
 
-                <div className='m-2 d-flex flex-column col-md-4'>
+                <div className='m-2 d-flex flex-column col-md-3'>
                     <span className='ms-2'>Entry Type</span>
                     <select onChange={handleChange} className='form-select'>
                         <option>Choose...</option>
@@ -89,7 +115,25 @@ const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, 
                         <option>Bulk</option>
                     </select>
                 </div>
+
+                <div className='m-2 d-flex flex-column col-md-3'>
+                    <span className='ms-2'>Select Company</span>
+                    <select onChange={company} className='form-select'>
+                        <option value=''>Choose...</option>
+                        {
+                            companyArray.length > 0 ? (
+                                companyArray.map((company, index) => (
+                                    <option key={index} value={company}>{company}</option>
+                                ))
+                            ) : (
+                                <option value='' >No Data Availabale!</option>
+                            )
+                        }
+                    </select>
+                </div>
             </div>
+
+            
 
             <div className='d-flex flex-column'>
                 <span>{`Note :- ${note}`}</span>

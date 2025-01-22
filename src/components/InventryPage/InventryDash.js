@@ -11,6 +11,7 @@ export default function InventryDash() {
   const [makername, setMakerName] = useState('');
   const [mac, setMac] = useState('');
   const [serial, setSerial] = useState('');
+  const [companyname, setCompanyName] = useState('');
 
   const [backgroundF, setBackgroundF] = useState('green');
   const [backgroundD, setBackgroundD] = useState('');
@@ -58,21 +59,21 @@ export default function InventryDash() {
   useEffect(() => {
     
     fetchData();
-  }, [fetchData]);
+  }, []);
 
   const getDevices = (type) => {
     setDeviceType(type);
     setGetDevice([]);
 
-    if (type === 'New Stock') {
+    if (type === 'free') {
       setBackgroundF('green');
       setBackgroundD('');
       setBackgroundR('');
-    } else if (type === 'Damaged Devices') {
+    } else if (type === 'damaged') {  
       setBackgroundF('');
       setBackgroundD('red');
       setBackgroundR('');
-    } else {
+    } else if(type === 'repair') {
       setBackgroundF('');
       setBackgroundD('');
       setBackgroundR('yellow');
@@ -135,15 +136,19 @@ export default function InventryDash() {
     
   };
 
-  const inventryData = {
-    serialno: serial,
-    macno: mac,
-    makername: makername,
-    devicecategry: devicecategry
-  };
+  
 
   const AddInventry = async () => {
-    const inventryRef = ref(db, `Inventory/${devicetype}/${makername}/${devicecategry}/${mac}`);
+    const inventryData = {
+      serialno: serial,
+      macno: mac,
+      makername: makername,
+      devicecategry: devicecategry,
+      company: companyname,
+      date:new Date().toISOString().split('T')[0],
+      status: devicetype
+    };
+    const inventryRef = ref(db, `Inventory/${companyname}/${mac}`);
     try {
       await set(inventryRef, inventryData);
       toast.success('Device Added!', {
@@ -188,13 +193,7 @@ export default function InventryDash() {
         <div style={{ flex: '1' }}>
           <h4>Inventory Details</h4>
         </div>
-        <button onClick={() => setShowModal(true)} className='btn btn-outline-primary me-2'>Add Device</button>
-        <label className='form-label me-2 mt-2'>Select Company :-</label>
-        <div className='col-md-2' style={{ float: 'right' }}>
-          <select className='form-select'>
-            <option>Choose...</option>
-          </select>
-        </div>
+        <button onClick={() => setShowModal(true)} className='btn btn-outline-primary me-2'>Add Devices</button>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'row' }}>
@@ -341,6 +340,7 @@ export default function InventryDash() {
         TypeDevice={(event) => setDeviceType(event.target.value)}
         AddDevice={AddInventry}
         modalshow={() => setShowModal(false)}
+        company={(e) => setCompanyName(e.target.value)}
       />
     </div>
   );

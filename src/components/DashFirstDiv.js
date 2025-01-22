@@ -39,7 +39,6 @@ export default function DashFirstDiv() {
     const [last5days, setLast5days] = useState({});
     const [upcoming5days, setUpcoming5Dats] = useState({});
 
-    const [leadArray, setLeadArray] = useState([]);
     
 
     const [showExpanView, setShowExpandView] = useState(false);
@@ -58,14 +57,14 @@ export default function DashFirstDiv() {
             installationArray: [],
             newInstallations: 0,
             newInstallationsToday: 0,
-            newInstallationsWeek: 0
-    })
+            newInstallationsWeek: 0,
+    });
+    const [followupArray, setFollowUpArray] = useState([]);
     const [filteIns, setFilterIns] = useState({
         company: 'All',
         day: 'Month'
     });
     const [filterInsArray, setFilterInsArray] = useState([]);
-    const [companyArray, setCompanyArray] = useState([]);
     
     const [isLoading, setIsLoading] = useState(true);
     const [showInsModal, setShowInsModal] =  useState(false);
@@ -179,29 +178,6 @@ export default function DashFirstDiv() {
     useEffect(() => {
         setIsLoading(true);
         
-
-        const leadRef = ref(db, 'Leadmanagment');
-        onValue(leadRef, (leadSnap) => {
-            try {
-                const dataArray = [];
-
-                leadSnap.forEach((childSnap) => {
-                    const FirstName = childSnap.val().firstName;
-                    const LastName = childSnap.val().lastName;
-                    const Type = childSnap.val().type;
-                    const Mobile = childSnap.val().phone;
-                    const Status = childSnap.val().status;
-                    const leadID = childSnap.key;
-
-                    if(Type === 'lead'){
-                        dataArray.push({leadID, FirstName, LastName, Mobile, Status});
-                    }
-                });
-                setLeadArray(dataArray);
-            } catch (error) {
-                console.log('Failed to Fetch Data: ', error);
-            }
-        });
         
         const promises = [
             new Promise(resolve => {
@@ -352,8 +328,6 @@ export default function DashFirstDiv() {
             });
             fetchData(); 
 
-            console.log("i am useEffect")
-
     }, []);
 
     function openPayroll(){
@@ -423,17 +397,21 @@ export default function DashFirstDiv() {
 
         try {
             // Run all API calls concurrently using Promise.all
-            const [subscriberResponse, last5daysResponse, upcoming5daysResponse] = await Promise.all([
-                axios.get('https://api.justdude.in/subscriber'),
+            const [subscriberResponse, last5daysResponse, upcoming5daysResponse, myfollows, dashrevenue] = await Promise.all([
+                axios.get('https://api.justdude.in/subscriber?data=newinstallation'),
                 axios.get('https://api.justdude.in/expired?expire=last5days'),
-                axios.get('https://api.justdude.in/expired?expire=upcoming5days')
+                axios.get('https://api.justdude.in/expired?expire=upcoming5days'),
+                axios.get(`https://api.justdude.in/users/${localStorage.getItem('contact')}?data=followup`),
+                axios.get(`https://api.justdude.in/subscriber/revenue?count=dashboard ${new Date().toISOString().split('T')[0]}`)
             ]);
         
             // Check for response status once
             if (
                 subscriberResponse.status !== 200 ||
                 last5daysResponse.status !== 200 ||
-                upcoming5daysResponse.status !== 200
+                upcoming5daysResponse.status !== 200 ||
+                myfollows.status !== 200 ||
+                dashrevenue.status !==200
             ) {
                 console.error('One or more API calls failed.');
                 return;
@@ -442,38 +420,19 @@ export default function DashFirstDiv() {
             // Process subscriber data
             const subsData = subscriberResponse.data;
             if (subsData) {
-                let newInstallations = 0;
-                let newInstallationsToday = 0;
-                let newInstallationsWeek = 0;
-        
-                const installArray = Object.values(subsData).reduce((acc, subscriberData) => {
-                    if (subscriberData.createdAt) {
-                        const date = convertExcelDateSerial(subscriberData.createdAt);
-        
-                        if (isThisMonth(parseISO(date))) {
-                            newInstallations++;
-                            acc.push(subscriberData); // Add subscriber data to installArray
-                        }
-                        if (isToday(parseISO(date))) {
-                            newInstallationsToday++;
-                        }
-                        if (isThisISOWeek(parseISO(date))) {
-                            newInstallationsWeek++;
-                        }
-                    }
-                    return acc;
-                }, []);
-        
-                const company = [...new Set(installArray.map((data) => data.company))];
+                const newInstallations = subsData.newInstallations;
+                const newInstallationsToday = subsData.newInstallationsToday;
+                const newInstallationsWeek = subsData.newInstallationsWeek;
         
                 // Batch state updates
                 setState((prevState) => ({
                     ...prevState,
-                    companyArray: company,
-                    installationArray: installArray,
+                    companyArray: subsData.companyArray,
+                    installationArray: subsData.installationArray,
                     newInstallations,
                     newInstallationsToday,
                     newInstallationsWeek
+                    
                 }));
             }
         
@@ -488,6 +447,29 @@ export default function DashFirstDiv() {
             if (renewal5days) {
                 setUpcoming5Dats(getUpcoming5DaysRenewalDetails(renewal5days));
             }
+
+            const myFollowUp = myfollows.data.MyFollows;
+            if(myFollowUp){
+                const array = [];
+                Object.keys(myFollowUp).forEach((key) => {
+                    const follow = myFollowUp[key];
+                    const status = follow.status;
+
+                    if(status === 'pending'){
+                        array.push(follow);
+                    }
+                    
+                });
+                setFollowUpArray(array);
+            }
+            
+            // const dashRevenue = dashrevenue.data;
+            // if(dashRevenue){
+            //     setRevenueOnline(dashRevenue.onlineAmount);
+            //     setRevenueCash(dashRevenue.cashAmount);
+            //     setRevenueToday(dashRevenue.todayAmount);
+            //     setRevenueMonth(dashRevenue.monthWise);            
+            // }
         } catch (e) {
             console.error('Error fetching data:', e);
             // Optional: Add user notification or retry logic here
@@ -600,24 +582,28 @@ export default function DashFirstDiv() {
                                 </div> 
 
                                 <div style={{flex:'1', border: '1px solid gray', borderRadius: '5px', marginTop: '10px'}}>
-                                    <h3 style={{color: 'black', marginLeft: '10px'}}>Leads Information</h3>
-                                    <div style={{maxHeight: '300px', overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+                                    <h3 style={{color: 'black', marginLeft: '10px'}}>My Follows</h3>
+                                    <div style={{Height: '300px', maxHeight:'300px', overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
                                         <table className="table">
                                             <thead className='table-primary' style={{position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1}}>
                                                 <tr>
                                                     <th scope="col">S. No.</th>
-                                                    <th scope="col">FullName</th>
-                                                    <th scope="col">Contact</th>
-                                                    <th scope="col">Status</th>
+                                                    <th scope="col">User ID</th>
+                                                    <th scope="col">Description</th>
+                                                    <th scope="col">Particular</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="table-group-divider">
-                                                {leadArray.map((item, index) => (
+                                                {followupArray.map((item, index) => (
                                                     <tr key={index}>
                                                         <td>{index + 1}</td>
-                                                        <td>{item.FirstName} {item.LastName}</td>
-                                                        <td>{item.Mobile}</td>
-                                                        <td>{item.Status}</td>
+                                                        <td style={{cursor:'pointer', color: 'blue', fontWeight:'bold'}} onClick={() => {
+                                                            const userKey = item.userid;
+                                                            localStorage.setItem('susbsUserid',userKey);
+                                                            navigate('subscriber/remarkfollow', { state: { userKey } })
+                                                        }}>{item.userid}</td>
+                                                        <td style={{maxWidth:'200px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{item.description}</td>
+                                                        <td>{item.particular}</td>  
                                                     </tr>
                                                 ))}
                                             </tbody>
@@ -778,7 +764,7 @@ export default function DashFirstDiv() {
                         <select onChange={(e) => setFilterIns({...filteIns, company:e.target.value})} className='form-select'>
                             <option value='All'>All</option>
                             {
-                                companyArray.map((company, index) => (
+                                state.companyArray.map((company, index) => (
                                     <option key={index} value={company}>{company}</option>
                                 ))
                             }

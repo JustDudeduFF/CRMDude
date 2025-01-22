@@ -7,7 +7,6 @@ import axios from 'axios';
 
 
 export default function NewTicket() {
-
   const username = localStorage.getItem('susbsUserid');
   const fullname = localStorage.getItem('subsname');
   const mobile = localStorage.getItem('subscontact');
@@ -25,9 +24,8 @@ export default function NewTicket() {
     const empRef = ref(db, `users`);
 
     useEffect(() => {
-      const timer = setInterval(() => {
+      console.log("its from ticket")
         setCurrentTime(new Date());
-      }, 1000);
 
 
       const fetchconcerns = onValue(concernRef, (concernSnap => {
@@ -56,7 +54,6 @@ export default function NewTicket() {
 
       return () => {fetchconcerns();
         fetchemp();
-        clearInterval(timer);
       };
     }, []);
 
@@ -114,7 +111,8 @@ export default function NewTicket() {
         closetime: '',
         rac: '',
         userid: username,
-        generatedDate: new Date().toISOString().split('T')[0]
+        generatedDate: new Date().toISOString().split('T')[0],
+        UserKey: username
       }
 
       const ticketRef = ref(db, `Subscriber/${username}/Tickets/${ticketno}`);
@@ -147,8 +145,8 @@ export default function NewTicket() {
         <div style={{flex:'1', margin:'20px', padding:'10px', borderRadius:'5px', boxShadow:'0 0 10px blue'}}>
         <form className="row g-3">
           <div className="col-md-1">
-            <label for="inputEmail4" className="form-label">Ticket No.</label>
-            <input type="email" className="form-control" id="inputEmail4" value='Auto' readOnly></input>
+            <label className="form-label">Ticket No.</label>
+            <input defaultValue='Auto' className="form-control" readOnly></input>
           </div>
           <div className="col-md-2">
             <label for="inputPassword4" className="form-label">Ticket Concern</label>
@@ -166,10 +164,10 @@ export default function NewTicket() {
             </select>
           </div>
           <div className="col-md-2">
-          <label htmlFor="validationCustom04" className="form-label">
+          <label className="form-label">
             Ticket Date
           </label>
-          <input value={new Date().toISOString().split('T')[0]} type='date' className='form-control'></input>
+          <input value={new Date().toISOString().split('T')[0]} type='date' className='form-control' readOnly></input>
               
         </div>
 
@@ -197,28 +195,8 @@ export default function NewTicket() {
             <label for="inputCity" className="form-label">Description or Brief</label>
             <input onChange={(e) => setDescription(e.target.value)} type="text" className="form-control" id="inputCity"></input>
           </div>
-            <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="gridCheck"></input>
-            <label class="form-check-label" for="gridCheck">
-                Send SMS To Employee
-            </label>
-            </div>
-            <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="gridCheck"></input>
-            <label class="form-check-label" for="gridCheck">
-                Send SMS To Subscriber
-            </label>
-            </div>
-            <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="gridCheck" autoComplete='off'></input>
-            <label class="form-check-label" for="gridCheck">
-                Notify Employee
-            </label>
-            </div>
 
         </form>
-
-        
 
         </div>
 

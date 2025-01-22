@@ -66,6 +66,7 @@ export default function AddInventory() {
           const category = childCategory.key;
           categoryArray.push(category);
         });
+        console.log(categoryArray);
         setArraySerial(categoryArray);
       } else {
         setArraySerial([]);
@@ -151,7 +152,7 @@ export default function AddInventory() {
               value={selectedMaker}
               onChange={handleMakerChange}
             >
-              <option value="" disabled>
+              <option value="">
                 Choose...
               </option>
               {arraymaker.length > 0 ? (
@@ -171,7 +172,7 @@ export default function AddInventory() {
               Product Category
             </label>
             <select onChange={handleCategoryChange} id="productCategory" className="form-select">
-              <option value="" disabled>
+              <option value="" >
                 Choose...
               </option>
               {arraycategory.length > 0 ? (
@@ -187,21 +188,28 @@ export default function AddInventory() {
           </div>
 
           <div className="col-md-3">
-            <label htmlFor="serial" className="form-label">
+            <label className="form-label">
               Product Serial No.
             </label>
             <input
               type="text"
               className="form-control"
-              list='serial'
-              
+              id="serial"
+              list="serials" // Match this with the datalist ID
             />
-            <datalist id='serial'>
-              {arrayserial.map((serial, index) => (
-                <option key={index} value={serial}>{serial}</option>
-              ))}
+            <datalist id="serials"> {/* Corrected ID */}
+              {arrayserial && arrayserial.length > 0 ? (
+                arrayserial.map((serial, index) => (
+                  <option key={index} value={serial}>
+                    {serial}
+                  </option>
+                ))
+              ) : (
+                <option value="No serials available" disabled />
+              )}
             </datalist>
           </div>
+
 
           <div className="col-md-6">
             <label htmlFor="remarks" className="form-label">

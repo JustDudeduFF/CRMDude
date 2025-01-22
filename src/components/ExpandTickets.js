@@ -64,7 +64,8 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                             description,
                             ticketconcern,
                             status,
-                            generatedDate
+                            generatedDate,
+                            userKey
                         } = childSnap.val();
                         
                         const assignedPersonName = usersLookup[assignto] || assignto; // Lookup user name or fallback to userid
@@ -82,6 +83,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                 Description: description,
                                 Concern: ticketconcern,
                                 Status: status,
+                                UserKey: userKey
                             });
                         
                     });
@@ -225,7 +227,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                             </tr>
                         </thead>
                         <tbody>
-                        {filterData.map(({ subsID, source, createby, Concern, creationdate, Time, Description, Status, Assign_to, Ticketno, generatedDate }, index) => (
+                        {filterData.map(({ subsID, source, createby, Concern, creationdate, Time, Description, Status, Assign_to, Ticketno, generatedDate, UserKey }, index) => (
                                 <tr key={index}>
                                     <td>{index + 1}</td>
                                     <td style={{maxWidth:'120px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{subsID}</td>
@@ -242,7 +244,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                             onClick={() => {
                                                 if(hasPermission("REASSING_TICKET")){
                                                     setShowSmallModal(true);
-                                                    setTicketno({ Ticketno, subsID, Concern });
+                                                    setTicketno({ Ticketno, subsID, Concern, UserKey });
                                                 }else{
                                                     alert("Permission Denied");
                                                 }
@@ -256,7 +258,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                             onClick={() => {
                                                 if(hasPermission("CLOSE_TICKET")){
                                                     setTicketCloseModal(true);
-                                                    setTicketno({ Ticketno, subsID, Concern });
+                                                    setTicketno({ Ticketno, subsID, Concern, UserKey });
                                                 }else{
                                                     alert("Permission Denied");
                                                 }

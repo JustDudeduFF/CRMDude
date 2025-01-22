@@ -663,7 +663,7 @@ export default function Subscriber() {
             </Modal.Body>
             <Modal.Footer>
                 <button onClick={updateExpiry} className='btn btn-primary'>Update</button>
-                <button onClick={() => setExpiryModal(false)} className='btn btn-secodary'>Cancel</button>
+                <button onClick={() => setExpiryModal(false)} className='btn btn-secondary'>Cancel</button>
             </Modal.Footer>
         </Modal>
   </div>

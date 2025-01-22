@@ -6,12 +6,10 @@ import { useNavigate } from 'react-router-dom';
 
 export default function AddRemarkFollow(props) {
     const {mode} = props
-    const isVisible = mode === 'follow';
     const username = localStorage.getItem('susbsUserid');
     const empid = localStorage.getItem('contact');
     const navigate = useNavigate();
 
-    const [followupdate, setFollowUpDate] = useState('');
     const [arrayconcern, setArrayConcern] = useState([]);
     const [description, setDescription] = useState('');
     const [remarkparticular, setRemarkParticular] = useState('');
@@ -52,7 +50,6 @@ export default function AddRemarkFollow(props) {
             description: description,
             modifiedby: localStorage.getItem('Name'),
             modifiedon: new Date().toISOString().split('T')[0],
-            followupdate: followupdate,
             status: "pending"
           }
   
@@ -60,7 +57,6 @@ export default function AddRemarkFollow(props) {
             followupno: remarkno,
             date: new Date().toISOString().split('T')[0],
             particular:remarkparticular,
-            followupdate: followupdate,
             description: description,
             status: 'pending',
             userid: localStorage.getItem("susbsUserid")
@@ -115,17 +111,6 @@ export default function AddRemarkFollow(props) {
           </label>
           <input className='form-control' type='date' value={new Date().toISOString().split('T')[0]}></input>
         </div>
-          {
-            isVisible && 
-               (
-                <div className="col-md-2">
-                <label className="form-label">
-                    Assign Date
-                </label>
-                <input className='form-control' type='date' onChange={(e) => setFollowUpDate(e.target.value)}></input>
-                </div>
-               )
-               }
 
           <div className='col-md-2'>
             <label className='form-label'>{mode === 'follow' ? 'Follow Up Particular' : 'Remark Particular'}</label>

@@ -12,7 +12,11 @@ export default function ExpandRevenue({ show, modalShow }) {
   const {hasPermission} = usePermissions();
   const [arrayData, setArrayData] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]); // State for selected rows
-  const [filterUser, setFilterUser] = useState(''); 
+  const [filterUser, setFilterUser] = useState('');
+  const [filterDate, setfilterDate] = useState({
+    start: new Date().toISOString().split('T')[0],
+    end: new Date().toISOString().split('T')[0]
+  });
 
   // Function to download the selected rows in Excel format
   const downloadExcel = (selectedOnly = false) => {
@@ -103,8 +107,18 @@ export default function ExpandRevenue({ show, modalShow }) {
       <div className="modal-data1">
         <div className="modal-inner1">
           <h4 style={{ flex: '1' }}>Payment Authorization</h4>
-          <form style={{ flex: '1' }} className="row g-3">
-          <div className='col-md-4'>  
+          <form style={{ flex: '2' }} className="row g-3">
+          <div className='col-md-3'>  
+              <label className='form-label'>Start Date</label>
+              <input className='form-control' type='date'></input>
+            </div>
+
+            <div className='col-md-3'>  
+              <label className='form-label'>End Date</label>
+              <input className='form-control'type='date'></input>
+            </div>
+
+          <div className='col-md-3'>  
               <label className='form-label'>Search UserId</label>
               <input onChange={(e) => setFilterUser(e.target.value)} className='form-control' type='text' placeholder='e.g. UserID' onKeyDown={(e) => {
                 if(e.key === "Enter"){
@@ -113,7 +127,9 @@ export default function ExpandRevenue({ show, modalShow }) {
                 }
               }}></input>
             </div>
-            <div className="col-md-4">
+
+
+            <div className="col-md-3">
               <label className="form-label">Authorization</label>
               <button
                 onClick={handleAuthorize}

@@ -10,13 +10,12 @@ export default function ModRemFollow() {
   const username = localStorage.getItem('susbsUserid');
   const empid = localStorage.getItem('contact')
 
-  const [followupdate, setFollowUpDate] = useState('');
+  const [status, setStatus] = useState('');
   const [remarkconcern, setRemarkConcern] = useState('');
   const [date, setDate] = useState('');
   const [description, setDescription] = useState('');
 
   const [newdescription, setNewDescription] = useState('');
-  const [newfollowupdate, setNewFollowupDate] = useState('');
 
   const remarkRef = ref(db, `Subscriber/${username}/Remarks/${remarkno}`);
   
@@ -26,24 +25,24 @@ export default function ModRemFollow() {
       const remarkSnap = await get(remarkRef);
       if (remarkSnap.exists()) {
         const data = remarkSnap.val();
-        setFollowUpDate(data.followupdate || '');
         setRemarkConcern(data.particular || '');
         setDate(data.modifiedon || '');
         setDescription(data.description || '');
+        setStatus(data.status || '');
       }
     };
 
     fetchData();
-  }, [username, remarkno, remarkRef]);
+  }, [username, remarkno]);
 
   // Renamed update function to avoid conflict with Firebase's update function
-  const handleUpdate = async (event) => {
-    event.preventDefault(); // Prevent default form behavior
+  const handleUpdate = async (e) => {
+    e.preventDefault();
     const myfollowRef = ref(db, `users/${empid}/MyFollows/${remarkno}`);
 
 
     const updatedData = {
-      followupdate: newfollowupdate || followupdate,
+      status: status,
       description: newdescription || description,
     };
 
@@ -68,7 +67,7 @@ export default function ModRemFollow() {
           boxShadow: '0 0 10px gray',
         }}
       >
-        <form className="row g-3" onSubmit={handleUpdate}>
+        <form className="row g-3">
           <div className="col-md-1">
             <label className="form-label">Action ID</label>
             <input type="text" className="form-control" value={remarkno} readOnly />
@@ -88,14 +87,13 @@ export default function ModRemFollow() {
             <input value={date} className="form-control" type="date" readOnly />
           </div>
 
-          <div className="col-md-2">
-            <label className="form-label">Assign Date</label>
-            <input
-              defaultValue={followupdate}
-              onChange={(e) => setNewFollowupDate(e.target.value)}
-              className="form-control"
-              type="date"
-            />
+          <div className='col-md-2'>
+            <label className='form-label'>Follow Status</label>
+            <select onChange={(e) => setStatus(e.target.value)} className='form-select'>
+              <option value='pending'>Pending</option>
+              <option value='completed'>Completed</option>
+            </select>
+
           </div>
 
           <div className="col-md-8">
@@ -109,11 +107,11 @@ export default function ModRemFollow() {
           </div>
 
           <div className="col-8">
-            <button type="submit" className="btn btn-outline-secondary">
+            <button onClick={handleUpdate} type="submit" className="btn btn-outline-secondary">
               Update Action
             </button>
           </div>
-        </form>
+        </form> 
       </div>
     </div>
   );

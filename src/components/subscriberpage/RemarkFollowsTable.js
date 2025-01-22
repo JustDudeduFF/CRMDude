@@ -21,8 +21,8 @@ export default function () {
           const description = child.val().description;
           const modifiedBy = child.val().modifiedby;
           const modifiedon = child.val().modifiedon;
-          const followupdate = child.val().followupdate;
-          remarkArray.push({remarkno, type, date, description, modifiedon, modifiedBy, followupdate});
+          const status = child.val().status;
+          remarkArray.push({remarkno, type, date, description, modifiedon, modifiedBy, status});
         });
         setArrayRemark(remarkArray);
       }
@@ -35,12 +35,11 @@ export default function () {
         <div style={{overflowY:'auto'}}>
                 <table style={{ borderCollapse:'collapse'}} className="table">
                 <thead>
-                    <tr>
+                    <tr className='table-primary'>
                         <th  scope="col">Action ID</th>
                         <th  scope='col'>Action Type</th>
                         <th  scope="col">Action Date</th>
                         <th  scope="col">Description</th>
-                        <th  scope="col">Assign Date</th>
                         <th  scope="col">Modified By</th>
                         <th  scope="col">Modified On</th>
                         
@@ -49,19 +48,18 @@ export default function () {
                 <tbody className='table-group-divider'>
 
                   {arrayremark.length > 0 ? (
-                    arrayremark.map(({remarkno, type, date, description, modifiedon, modifiedBy, followupdate}, index) => (
-                      <tr key={index}>
+                    arrayremark.map(({remarkno, type, date, description, modifiedon, modifiedBy, status}, index) => (
+                      <tr className={status === 'pending' ? 'table-danger' : 'table-success'} key={index}>
                     <td onClick={() => 
                       {if(type === 'Follow Up'){
                         navigate('modremfollow', {state: {remarkno: remarkno}});
                       }else{
                         alert('Remarks Are Not Modifiable');
                       }}
-                    } style={{color:type === 'Follow Up' ? 'blue' : 'skyblue', cursor:'pointer', fontWeight:'bold'}}>{remarkno}</td>
+                    } style={{color:type === 'Follow Up' ? 'blue' : 'black', cursor:'pointer', fontWeight:'bold'}}>{remarkno}</td>
                     <td>{type}</td>
                     <td>{date}</td>
                     <td>{description}</td>
-                    <td>{followupdate}</td>
                     <td>{modifiedBy}</td>
                     <td>{modifiedon}</td>
                     

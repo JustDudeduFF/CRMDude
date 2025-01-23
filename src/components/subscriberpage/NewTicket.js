@@ -7,6 +7,7 @@ import axios from 'axios';
 
 
 export default function NewTicket() {
+  const userid = localStorage.getItem('userid')
   const username = localStorage.getItem('susbsUserid');
   const fullname = localStorage.getItem('subsname');
   const mobile = localStorage.getItem('subscontact');
@@ -24,7 +25,6 @@ export default function NewTicket() {
     const empRef = ref(db, `users`);
 
     useEffect(() => {
-      console.log("its from ticket")
         setCurrentTime(new Date());
 
 
@@ -110,7 +110,7 @@ export default function NewTicket() {
         closeby: '',
         closetime: '',
         rac: '',
-        userid: username,
+        userid: userid,
         generatedDate: new Date().toISOString().split('T')[0],
         UserKey: username
       }

@@ -207,117 +207,114 @@ export default function DashFirstDiv() {
                 return () => unsubscribe();
             }),
             
-            new Promise(resolve => {
-                const unsubscribe = onValue(dueRef, (dueSnap) => {
-                    const currentDate = new Date();
-                    const dueArray = [];
-                    const dueArrayMonth = [];
-                    const dueArrayWeek = [];
-                    const dueArrayToday = [];
-                    dueSnap.forEach(childSnap => {
-                        const dueAmount = childSnap.child('connectionDetails').val().dueAmount;
-                        dueArray.push(dueAmount);
-                        const dueDateTimestamp = convertExcelDateSerial(childSnap.child('connectionDetails').val().activationDate);
+            // new Promise(resolve => {
+            //     const unsubscribe = onValue(dueRef, (dueSnap) => {
+            //         const currentDate = new Date();
+            //         const dueArray = [];
+            //         const dueArrayMonth = [];
+            //         const dueArrayWeek = [];
+            //         const dueArrayToday = [];
+            //         dueSnap.forEach(childSnap => {
+            //             const dueAmount = childSnap.child('connectionDetails').val().dueAmount;
+            //             dueArray.push(dueAmount);
+            //             const dueDateTimestamp = convertExcelDateSerial(childSnap.child('connectionDetails').val().activationDate);
 
-                            const totalDue = dueArray.reduce((acc, current) => acc + current, 0);
-                            setDueArray(totalDue); 
+            //                 const totalDue = dueArray.reduce((acc, current) => acc + current, 0);
+            //                 setDueArray(totalDue); 
 
 
 
-                        if (dueDateTimestamp) {
-                            const dueDate = new Date(dueDateTimestamp);
+            //             if (dueDateTimestamp) {
+            //                 const dueDate = new Date(dueDateTimestamp);
                             
-                            // For month comparison
-                            const isSameMonth = dueDate.getFullYear() === currentDate.getFullYear() && dueDate.getMonth() === currentDate.getMonth();
-                            if (isSameMonth) {
-                                dueArrayMonth.push(dueAmount);
-                            }
+            //                 // For month comparison
+            //                 const isSameMonth = dueDate.getFullYear() === currentDate.getFullYear() && dueDate.getMonth() === currentDate.getMonth();
+            //                 if (isSameMonth) {
+            //                     dueArrayMonth.push(dueAmount);
+            //                 }
                             
-                            // For week comparison (ISO week calculation)
-                            const isSameWeek = isSameISOWeek(dueDate, currentDate);
-                            if (isSameWeek) {
-                                dueArrayWeek.push(dueAmount);
-                            }
+            //                 // For week comparison (ISO week calculation)
+            //                 const isSameWeek = isSameISOWeek(dueDate, currentDate);
+            //                 if (isSameWeek) {
+            //                     dueArrayWeek.push(dueAmount);
+            //                 }
 
-                            // For today's comparison
-                            const isToday = isSameDay(dueDate, currentDate);
-                            if (isToday) {
-                                dueArrayToday.push(dueAmount);
-                            }
-                        }
-                    });
+            //                 // For today's comparison
+            //                 const isToday = isSameDay(dueDate, currentDate);
+            //                 if (isToday) {
+            //                     dueArrayToday.push(dueAmount);
+            //                 }
+            //             }
+            //         });
                     
-                    // Total dues for the current month
-                    const totalDueMonth = dueArrayMonth.reduce((acc, current) => acc + current, 0);
+            //         // Total dues for the current month
+            //         const totalDueMonth = dueArrayMonth.reduce((acc, current) => acc + current, 0);
                     
-                    // Total dues for the current week
-                    const totalDueWeek = dueArrayWeek.reduce((acc, current) => acc + current, 0);
+            //         // Total dues for the current week
+            //         const totalDueWeek = dueArrayWeek.reduce((acc, current) => acc + current, 0);
 
-                    const totalDueToday = dueArrayToday.reduce((acc, current) => acc + current, 0);
+            //         const totalDueToday = dueArrayToday.reduce((acc, current) => acc + current, 0);
                     
-                    // Set the total dues (you can store them separately)
-                    setDueArrayMonth(totalDueMonth);
-                    setDueArrayWeek(totalDueWeek);
-                    setDueArrayToday(totalDueToday);
-                    resolve();
-                });
-                return () => unsubscribe();
-            }),
+            //         // Set the total dues (you can store them separately)
+            //         setDueArrayMonth(totalDueMonth);
+            //         setDueArrayWeek(totalDueWeek);
+            //         setDueArrayToday(totalDueToday);
+            //         resolve();
+            //     });
+            //     return () => unsubscribe();
+            // }),
             
-            new Promise(resolve => {
-                const unsubscribe = onValue(dueRef, (revenueSnap) => {
-                    const currentDate = new Date();
-                    const MonthArray = [];
-                    const CashArray = [];
-                    const TodayArray = [];
-                    const OnlineArray = [];
-                    revenueSnap.forEach((childSnap) => {
-                        const monthData = childSnap.child('payments');
-                        monthData.forEach((newChild) => {
-                            const {receiptDate, paymentMode, amount} = newChild.val();
+            // new Promise(resolve => {
+            //     const unsubscribe = onValue(dueRef, (revenueSnap) => {
+            //         const currentDate = new Date();
+            //         const MonthArray = [];
+            //         const CashArray = [];
+            //         const TodayArray = [];
+            //         const OnlineArray = [];
+            //         revenueSnap.forEach((childSnap) => {
+            //             const monthData = childSnap.child('payments');
+            //             monthData.forEach((newChild) => {
+            //                 const {receiptDate, paymentMode, amount} = newChild.val();
 
-                            if(receiptDate) {
-                                const date = new Date(receiptDate);
-                                const isSameMonth = date.getFullYear() === currentDate.getFullYear() && date.getMonth() === currentDate.getMonth();
-                                if(isSameMonth) {
-                                    MonthArray.push(parseInt(amount));
-                                }
+            //                 if(receiptDate) {
+            //                     const date = new Date(receiptDate);
+            //                     const isSameMonth = date.getFullYear() === currentDate.getFullYear() && date.getMonth() === currentDate.getMonth();
+            //                     if(isSameMonth) {
+            //                         MonthArray.push(parseInt(amount));
+            //                     }
 
-                                const isToday = isSameDay(date, currentDate);
-                                if(isToday) {
-                                    TodayArray.push(parseInt(amount));
-                                }
+            //                     const isToday =     (date, currentDate);
+            //                     if(isToday) {
+            //                         TodayArray.push(parseInt(amount));
+            //                     }
 
-                                const isCash = paymentMode === 'Cash';
-                                if(isSameMonth && isCash) {
-                                    CashArray.push(parseInt(amount));
-                                }
+            //                     const isCash = paymentMode === 'Cash';
+            //                     if(isSameMonth && isCash) {
+            //                         CashArray.push(parseInt(amount));
+            //                     }
 
-                                const isOnline = paymentMode !== 'Cash';
-                                if(isSameMonth && isOnline) {
-                                    OnlineArray.push(parseInt(amount));
-                                }
-                            }
+            //                     const isOnline = paymentMode !== 'Cash';
+            //                     if(isSameMonth && isOnline) {
+            //                         OnlineArray.push(parseInt(amount));
+            //                     }
+            //                 }
 
-                        });
-                    });
+            //             });
+            //         });
 
                     
-                    const totalMonthRevenue = MonthArray.reduce((acc, current) => acc + current, 0);
-                    const totaltodayRevenue = TodayArray.reduce((acc, current) => acc + current, 0);
-                    const totalcashRevenue = CashArray.reduce((acc, current) => acc + current, 0);
-                    const totalonlineRevenue = OnlineArray.reduce((acc, current) => acc + current, 0);
-                    setRevenueOnline(totalonlineRevenue);
-                    setRevenueCash(totalcashRevenue);
-                    setRevenueToday(totaltodayRevenue);
-                    setRevenueMonth(totalMonthRevenue);
-                    resolve();
-                });
-                return () => unsubscribe();
-            }),
-            
-            
-             // Assuming this returns a promise
+            //         const totalMonthRevenue = MonthArray.reduce((acc, current) => acc + current, 0);
+            //         const totaltodayRevenue = TodayArray.reduce((acc, current) => acc + current, 0);
+            //         const totalcashRevenue = CashArray.reduce((acc, current) => acc + current, 0);
+            //         const totalonlineRevenue = OnlineArray.reduce((acc, current) => acc + current, 0);
+            //         setRevenueOnline(totalonlineRevenue);
+            //         setRevenueCash(totalcashRevenue);
+            //         setRevenueToday(totaltodayRevenue);
+            //         setRevenueMonth(totalMonthRevenue);
+            //         resolve();
+            //     });
+            //     return () => unsubscribe();
+            // }),
         ];
 
         Promise.all(promises)
@@ -397,12 +394,14 @@ export default function DashFirstDiv() {
 
         try {
             // Run all API calls concurrently using Promise.all
-            const [subscriberResponse, last5daysResponse, upcoming5daysResponse, myfollows, dashrevenue] = await Promise.all([
+            const [subscriberResponse, last5daysResponse, upcoming5daysResponse, myfollows, dashrevenue, dashdue] = await Promise.all([
                 axios.get('https://api.justdude.in/subscriber?data=newinstallation'),
                 axios.get('https://api.justdude.in/expired?expire=last5days'),
                 axios.get('https://api.justdude.in/expired?expire=upcoming5days'),
                 axios.get(`https://api.justdude.in/users/${localStorage.getItem('contact')}?data=followup`),
-                axios.get(`https://api.justdude.in/subscriber/revenue?count=dashboard ${new Date().toISOString().split('T')[0]}`)
+                axios.get(`https://api.justdude.in/subscriber/revenue?count=dashboard`),
+                axios.get(`https://api.justdude.in/dueAmount?data=dashboard`),
+
             ]);
         
             // Check for response status once
@@ -411,7 +410,8 @@ export default function DashFirstDiv() {
                 last5daysResponse.status !== 200 ||
                 upcoming5daysResponse.status !== 200 ||
                 myfollows.status !== 200 ||
-                dashrevenue.status !==200
+                dashrevenue.status !==200 ||
+                dashdue.status !== 200
             ) {
                 console.error('One or more API calls failed.');
                 return;
@@ -463,13 +463,21 @@ export default function DashFirstDiv() {
                 setFollowUpArray(array);
             }
             
-            // const dashRevenue = dashrevenue.data;
-            // if(dashRevenue){
-            //     setRevenueOnline(dashRevenue.onlineAmount);
-            //     setRevenueCash(dashRevenue.cashAmount);
-            //     setRevenueToday(dashRevenue.todayAmount);
-            //     setRevenueMonth(dashRevenue.monthWise);            
-            // }
+            const dashRevenue = dashrevenue.data;
+            if(dashRevenue){
+                setRevenueOnline(dashRevenue.onlineAmount);
+                setRevenueCash(dashRevenue.cashAmount);
+                setRevenueToday(dashRevenue.todayAmount);
+                setRevenueMonth(dashRevenue.monthWise);            
+            }
+
+            const dashDue = dashdue.data;
+            if(dashDue){
+                setDueArrayMonth(dashDue.totalMonth);
+                setDueArrayWeek(dashDue.totalWeek);
+                setDueArrayToday(dashDue.totalToday);   
+                setDueArray(dashDue.totalAll);      
+            }
         } catch (e) {
             console.error('Error fetching data:', e);
             // Optional: Add user notification or retry logic here

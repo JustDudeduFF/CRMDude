@@ -38,7 +38,7 @@ export const PermissionProvider = ({children}) => {
               const permissionsFromData = Object.keys(data).filter((perm) => data[perm]);
               allPermissions.push(...permissionsFromData);
     
-              // Remove duplicates and update state
+              // Remove duplicates and update stat  e
               setPermissions([...new Set(allPermissions)]);
             }
           });

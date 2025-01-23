@@ -61,6 +61,9 @@ export default function Subscriber() {
 
   const [showmodal, setShowModal] = useState(false);
   const [showplanchange, setPlanChange] = useState(false);
+  const [ispChangeModal, setIspChangeModal] = useState(false);
+  const [ispArray, setIspArray] = useState([]);
+  const [selectedIsp, setSelectedIsp] = useState("");
 
 
   const [customesharge, setCustomCharge] = useState(0);
@@ -198,6 +201,7 @@ export default function Subscriber() {
     }
 
     const updateExpiry = async() => {
+        setExpiryModal(false);
         setLoader(true);
         const logKey = Date.now().toString();
         const logRef = ref(db, `Subscriber/${username}/logs/${logKey}`);
@@ -216,6 +220,14 @@ export default function Subscriber() {
         try{
             await update(expRef, expDate);
             await update(logRef, logData);
+            toast.success(`Expiry Date Changed`, {
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              });
         }catch(e){
             console.log(e)
         }finally{
@@ -289,6 +301,24 @@ export default function Subscriber() {
                         console.log('Connection Data Not Found');
                     }
                 });
+
+                const ispResponse = await axios.get('https://api.justdude.in/master/ISPs');
+    
+                if(ispResponse.status !== 200){
+                    console.log(ispResponse.statusText);
+                    return;
+                };
+    
+                const ispData = ispResponse.data;
+                if(ispData){
+                    const Array = [];
+                    Object.keys(ispData).forEach((key) => {
+                        const isp = ispData[key];
+                        const ispname = isp.ispname;
+                        Array.push(ispname);
+                    });
+                    setIspArray(Array);
+                }
     
                 return unsubscribe;
             } catch (error) {
@@ -386,6 +416,46 @@ export default function Subscriber() {
 
     }
 
+    const updateISP = async() => {
+        setIspChangeModal(false);
+        setLoader(true);
+        const logKey = Date.now();
+        const ispRef = ref(db, `Subscriber/${username}/connectionDetails`);
+        const logRef = ref(db, `Subscriber/${username}/logs/${logKey}`)
+        
+        const ispData = {
+            isp: selectedIsp
+        }
+
+        const logData = {
+            date: new Date().toISOString().split('T')[0],
+            description: `Customer ISP is Changed From ${isp || "N/A"} to ${selectedIsp}`,
+            modifiedby: localStorage.getItem('contact')
+        }
+
+        try{
+            await update(ispRef, ispData);
+            await update(logRef, logData);
+            toast.success(`ISP Changed`, {
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              });
+        }catch(e){
+            console.log(e)
+        }finally{
+            setLoader(false);
+        }
+        
+
+        
+
+
+    }
+
 
 
 
@@ -470,7 +540,7 @@ export default function Subscriber() {
                             <h6 style={{color:'blue'}}>{`${parseInt(planAmount)}.00`}</h6>
                         </div>
                         <div style={{flex: '1'}}>
-                            <label>ISP</label>
+                            <label>ISP</label><span onClick={() => setIspChangeModal(true)} style={{cursor:'pointer'}} className='ms-2 badge text-bg-secondary'>Edit</span>
                             <h6 style={{color:'blue'}}>{isp}</h6>
 
                             <label>Data</label>
@@ -664,6 +734,33 @@ export default function Subscriber() {
             <Modal.Footer>
                 <button onClick={updateExpiry} className='btn btn-primary'>Update</button>
                 <button onClick={() => setExpiryModal(false)} className='btn btn-secondary'>Cancel</button>
+            </Modal.Footer>
+        </Modal>
+
+        <Modal show={ispChangeModal} onHide={() => setIspChangeModal(false)}>
+            <Modal.Header>
+                <Modal.Title>Change Customer ISP</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <div className='container'>
+                    <label className='form-label'>Select ISP</label>
+                    <select onChange={(e) => setSelectedIsp(e.target.value)} className='form-select'>
+                        <option value=''>Choose...</option>
+                        {
+                            ispArray.length > 0 ? (
+                                ispArray.map((isp, index) => (
+                                    <option key={index} value={isp}>{isp}</option>
+                                ))
+                            ) : (
+                                <option value=''>No ISP Found</option>
+                            )
+                        }
+                    </select>
+                </div>
+            </Modal.Body>
+            <Modal.Footer>
+                <button onClick={updateISP} className='btn btn-primary'>Update</button>
+                <button onClick={() => setIspChangeModal(false)} className='btn btn-secondary'>Close</button>
             </Modal.Footer>
         </Modal>
   </div>

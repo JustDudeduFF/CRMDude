@@ -1,5 +1,5 @@
 import { db } from '../../FirebaseConfig';
-import { get, ref, remove, update, query, orderByKey, limitToLast } from 'firebase/database';
+import { get, ref, update, limitToLast } from 'firebase/database';
 import React, { useEffect, useState } from 'react'
 import { usePermissions } from '../PermissionProvider';
 

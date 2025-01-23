@@ -91,9 +91,10 @@ export default function Navbar() {
   }
     
 
-  const handleSubsView = (userKey) => {
+  const handleSubsView = (userKey, username) => {
     setIsSearchFocused(false);
     localStorage.setItem('susbsUserid',userKey);
+    localStorage.setItem('userid', username)
     navigate('subscriber', { state: { userKey } });
   }
 
@@ -224,7 +225,7 @@ export default function Navbar() {
                             <td>{fullname}</td>
                             <td 
                               style={{color:'blue', cursor:'pointer'}} 
-                              onClick={() => handleSubsView(userKey)}
+                              onClick={() => handleSubsView(userKey, username)}
                             >
                               {username}
                             </td>

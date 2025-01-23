@@ -37,7 +37,8 @@ export default function RechargeTable() {
     }, [username]);
 
     const rollback = async (plankey) => {
-        if(hasPermission("PLAN_ROLLBACK")){
+        console.log(hasPermission);
+        if(hasPermission("ROLLBACK_PLAN")){
             try {
                 // Notify the user that a background process is happening
                 alert("Rolling back the plan. Please wait...");

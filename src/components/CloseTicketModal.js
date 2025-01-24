@@ -27,7 +27,7 @@ const CloseTicketModal = ({ show, ticketno, closeModal}) => {
             setEmpArray(nameArray);
         });
 
-        const fetchSubs = onValue(ref(db, `Subscriber/${ticketno.subsID}`), (subsSnap) => {
+        const fetchSubs = onValue(ref(db, `Subscriber/${ticketno.UserKey || ticketno.subsID}`), (subsSnap) => {
           const subsData = subsSnap.val();
           setSubsData(subsData);
       });
@@ -46,7 +46,7 @@ const CloseTicketModal = ({ show, ticketno, closeModal}) => {
         event.preventDefault();
         
          // Destructure ticketno to extract subsID and Ticketno  
-        const ticketRef = ref(db, `Subscriber/${ticketno.subsID}/Tickets/${ticketno.Ticketno}`);
+        const ticketRef = ref(db, `Subscriber/${ticketno.UserKey || ticketno.subsID}/Tickets/${ticketno.Ticketno}`);
         const globalTicketsRef = ref(db, `Global Tickets/${ticketno.Ticketno}`);
         
         const newTicketData = {

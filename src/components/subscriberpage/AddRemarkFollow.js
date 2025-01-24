@@ -34,7 +34,6 @@ export default function AddRemarkFollow(props) {
               array.push(concernname);
             });
             setArrayConcern(array);
-            console.log(ArrayConcern);
           }
         }catch(e){
           console.log(e);

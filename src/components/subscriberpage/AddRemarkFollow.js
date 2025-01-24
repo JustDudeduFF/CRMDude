@@ -41,7 +41,7 @@ export default function AddRemarkFollow(props) {
         }
       }
 
-      return () => fetchconcerns();
+      fetchconcerns();
     }, [])
 
     const savedata = async() => {

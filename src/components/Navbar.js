@@ -3,15 +3,15 @@ import Menu from './subscriberpage/drawables/hamburger.png'
 import ProfileCard from "./ProfileCard";
 import Building_Img from './subscriberpage/drawables/office-building.png'
 import ReportsOthers from "./ReportsOthers";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { db } from "../FirebaseConfig";
 import { ref, onValue } from "firebase/database";
 import UserProfile from './subscriberpage/drawables/user.png'
 import NotificationIcon from './subscriberpage/drawables/bell.png'
 import { Modal, ModalBody, ModalTitle } from "react-bootstrap";
 import axios from "axios";
-import * as XLSX from 'xlsx';
 import ExcelIcon from './subscriberpage/drawables/xls.png'
+import { toast, ToastContainer } from 'react-toastify';
 
 
 export default function Navbar() {
@@ -29,7 +29,6 @@ export default function Navbar() {
   const [currentRenewal, setCurrenRenewal] = useState(0);
   const [uniqueCompanies, setUniqueCompanies] = useState([]);
   const [showModal2, setShowModal2] = useState(false);
-  const [excelData, setExcelData] = useState([]);
 
 
 
@@ -99,33 +98,72 @@ export default function Navbar() {
   }
 
 
-  const downloadUsers = () => {
-
-    const extractedData = excelData.map((item, index) => ({
-      "S No.": index + 1,
-      "UserID": item.username,
-      "Customer Name": item.fullName,
-      "Mobile": item.mobileNo,
-      "Installation Address": item.installationAddress,
-      "Email": item.email,
-      "Registration Date": item.createdAt,
-      "Plan Name": item.connectionDetails?.planName,
-      "Plan Amount": item.connectionDetails?.planAmount,
-      "Colony": item.colonyName,
-      "Company": item.company,
-      "Activation Date": item.connectionDetails?.activationDate,
-      "Expiry Date": item.connectionDetails?.expiryDate,
-      "ISP": item.connectionDetails?.isp,
-    }));
+  const downloadUsers = async() => {
+    setShowModal2(false);
+    toast.warning(`Getting Excel`, {
+      autoClose: 1000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: false,
+      draggable: false,
+      progress: undefined,
+    });
+    try {
+      const response = await axios.get("https://api.justdude.in/subscriber?data=alluserexcel", {
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "All User.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      toast.error(`Failed To Download Excel`, {
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });                  
+      console.error("Error downloading Excel file:", error);
+    } finally{
+      toast.success(`Excel Downloaded`, {
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: false,
+        progress: undefined,
+      });
+    }
+    // const extractedData = excelData.map((item, index) => ({
+    //   "S No.": index + 1,
+    //   "UserID": item.username,
+    //   "Customer Name": item.fullName,
+    //   "Mobile": item.mobileNo,
+    //   "Installation Address": item.installationAddress,
+    //   "Email": item.email,
+    //   "Registration Date": item.createdAt,
+    //   "Plan Name": item.connectionDetails?.planName,
+    //   "Plan Amount": item.connectionDetails?.planAmount,
+    //   "Colony": item.colonyName,
+    //   "Company": item.company,
+    //   "Activation Date": item.connectionDetails?.activationDate,
+    //   "Expiry Date": item.connectionDetails?.expiryDate,
+    //   "ISP": item.connectionDetails?.isp,
+    // }));
 
     
     
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(extractedData);
+    // const workbook = XLSX.utils.book_new();
+    // const worksheet = XLSX.utils.json_to_sheet(extractedData);
 
     
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Installation");
-    XLSX.writeFile(workbook, `All User.xlsx`);
+    // XLSX.utils.book_append_sheet(workbook, worksheet, "Installation");
+    // XLSX.writeFile(workbook, `All User.xlsx`);
 }         
 
   const togglevisiblty = () =>{
@@ -135,6 +173,7 @@ export default function Navbar() {
 
   return (
     <div>
+      <ToastContainer/>
       <nav className="navbar bg-primary-subtle fixed-top">
         <div className="container-fluid">
           <h1 style={{cursor:'pointer'}} onClick={() => navigate('/dashboard')} className="text-primary">CRM Dude</h1>
@@ -149,7 +188,7 @@ export default function Navbar() {
               </div>
             <input style={{height: '40px', float:'left'}}
               className="form-control"
-              onChange={(e) => setSubsSearch(e.target.value)}
+              onChange={(e) => setSubsSearch((e.target.value).trim())}
               type="search"
               placeholder="Search"
               aria-label="Search"

@@ -103,14 +103,14 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                                 expiryDate: expiryDateSerial,
                                 activationDate: activationDateSerial,
                                 isp: isp
-                            } 
+                            },
+                            isTerminate: isterminated
                         } = childSnap;
 
 
 
                         if(datafor === 'Expiring'){
                             const expDate = convertExcelDateSerial(expiryDateSerial);
-                            const isSameMonth = expDate.getFullYear() === currentDate.getFullYear() && expDate.getMonth() === currentDate.getMonth();
                             if (isSameDay(expDate, newCurrentdata)) {
                                 dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount, planName, company, isp });
                             }
@@ -118,15 +118,15 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                             const expDate = convertExcelDateSerial(activationDateSerial);
                             const isSameMonth = expDate.getFullYear() === currentDate.getFullYear() && expDate.getMonth() === currentDate.getMonth();
                             if (word === 'Today' && isSameDay(expDate, currentDate) && dueAmount > 0) {
-                                dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp });
+                                dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp, "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active" });
                             } else if (word === 'Tomorrow' && isTomorrowDay(expDate, currentDate) && dueAmount > 0) {
-                                dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp });
+                                dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp, "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active" });
                             } else if (word === 'Week' && isSameISOWeek(expDate, currentDate) && dueAmount > 0) {
-                                dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp });
+                                dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp, "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active" });
                             } else if (word === 'Month' && isSameMonth && dueAmount > 0) {
-                                dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp });
+                                dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp, "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active" });
                             }else if(word === 'All' && dueAmount > 0){
-                                dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp });
+                                dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp, "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active" });
                             }
                         }
                     });

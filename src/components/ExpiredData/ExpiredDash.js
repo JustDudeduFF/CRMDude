@@ -36,7 +36,6 @@ const ExpiredDash = () => {
           return;
         }
 
-        console.log(response.data);
     
         const snapshot = response.data;
         const expiredArray = [];
@@ -60,6 +59,7 @@ const ExpiredDash = () => {
               planName: planname,
               isp,
             },
+            isTerminate: isterminated
           } = user;
           
             expiredArray.push({
@@ -74,6 +74,8 @@ const ExpiredDash = () => {
               planname,
               isp,
               userid,
+              "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active"
+
             });
         });
     
@@ -255,7 +257,7 @@ const ExpiredDash = () => {
             {
               filterData.length > 0 ? (
                 filterData.map((filterData, index) => (
-                  <tr key={index}>
+                  <tr className={filterData.status === 'Terminated' ? "table-danger" : ""} key={index}>
                     <td>{index + 1}</td>
                     <td>{filterData.userid}</td>
                     <td style={{maxWidth:'150px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{filterData.fullname}</td>

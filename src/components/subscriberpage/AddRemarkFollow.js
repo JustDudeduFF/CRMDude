@@ -128,13 +128,9 @@ export default function AddRemarkFollow(props) {
             <select onChange={(e) => setRemarkParticular(e.target.value)} className="form-select">
               <option value=''>Choose...</option>
               {
-                ArrayConcern.length > 0 ? (
-                  ArrayConcern.map((concern, index) => (
-                    <option key={index} value={concern}>{concern}</option>
-                  ))
-                ) : (
-                  <option value=''>No Concern Availabale</option>
-                )
+                ArrayConcern.map((concern, index) => (
+                  <option key={index} value={concern}>{concern}</option>
+                ))
               }
               
             </select>

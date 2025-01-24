@@ -3,6 +3,7 @@ import { get, ref, set } from 'firebase/database';
 import React, {useEffect, useState} from 'react'
 import { db } from '../../FirebaseConfig';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 export default function AddRemarkFollow(props) {
     const {mode} = props
@@ -13,23 +14,33 @@ export default function AddRemarkFollow(props) {
     const [arrayconcern, setArrayConcern] = useState([]);
     const [description, setDescription] = useState('');
     const [remarkparticular, setRemarkParticular] = useState('');
-    const ConcernRef = ref(db, `Master/RMConcern`);
 
     useEffect(() => {
-      const fetchconcern = async () => {
-        const concernSnap = await get(ConcernRef);
-        if(concernSnap.exists()){
-          const concernArray = [];
-          concernSnap.forEach(child => {
-            const concernname = child.key;
-            concernArray.push(concernname);
-          });
-          setArrayConcern(concernArray);
+      const fetchconcerns = async() => {
+        try{
+          const concernResponse = await axios.get('https://api.justdude.in/master/RMConcern');
 
+          if(concernResponse.status !== 200 ){
+            console.log(concernResponse.status);
+            return;
+          }
+
+          const concernData = concernResponse.data;
+          if(concernData){
+            const array = [];
+            Object.keys(concernData).forEach((key) => {
+              const concern = concernData[key];
+              const concernname = concern.ticketname;
+              array.push(concernname);
+            });
+            setArrayConcern(array);
+          }
+        }catch(e){
+          console.log(e);
         }
       }
 
-      return () => fetchconcern();
+      return () => fetchconcerns();
     }, [])
 
     const savedata = async() => {

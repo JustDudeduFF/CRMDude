@@ -190,10 +190,18 @@ export default function InventryDash() {
     
     <div style={{ display: 'flex', flexDirection: 'column', marginTop: '4.5%' }}>
       <div style={{ display: 'flex', flexDirection: 'row', margin: '10px' }}>
-        <div style={{ flex: '1' }}>
+        <div style={{ flex: '1', display:'flex' }}>
           <h4>Inventory Details</h4>
+          <button onClick={() => setShowModal(true)} className='btn btn-outline-primary ms-auto me-2'>Add Devices</button>
         </div>
-        <button onClick={() => setShowModal(true)} className='btn btn-outline-primary me-2'>Add Devices</button>
+        <label className='form-lable me-2'>Select Company :</label>
+        <div className='col-md-2'>
+          
+          <select className='form-select'>
+            <option value=''>Choose...</option>
+          </select>
+
+        </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'row' }}>

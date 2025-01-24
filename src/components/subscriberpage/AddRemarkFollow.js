@@ -11,7 +11,7 @@ export default function AddRemarkFollow(props) {
     const empid = localStorage.getItem('contact');
     const navigate = useNavigate();
 
-    const [arrayconcern, setArrayConcern] = useState([]);
+    const [ArrayConcern, setArrayConcern] = useState([]);
     const [description, setDescription] = useState('');
     const [remarkparticular, setRemarkParticular] = useState('');
 
@@ -128,8 +128,8 @@ export default function AddRemarkFollow(props) {
             <select onChange={(e) => setRemarkParticular(e.target.value)} className="form-select">
               <option value=''>Choose...</option>
               {
-                arrayconcern.length > 0 ? (
-                  arrayconcern.map((concern, index) => (
+                ArrayConcern.length > 0 ? (
+                  ArrayConcern.map((concern, index) => (
                     <option key={index} value={concern}>{concern}</option>
                   ))
                 ) : (

@@ -14,45 +14,45 @@ export default function TicketdataDash() {
   const [uniqueColony, setUniqueColony] = useState([]);
   const [uniqueIsp, setUniqueIsp] = useState([]);
 
-  const convertTo24HourFormat = (time) => {
-    const [timePart, modifier] = time.split(" "); // Split time and AM/PM
-    let [hours, minutes, seconds] = timePart.split(":").map(Number);
+  // const convertTo24HourFormat = (time) => {
+  //   const [timePart, modifier] = time.split(" "); // Split time and AM/PM 
+  //   let [hours, minutes, seconds] = timePart.split(":").map(Number);
   
-    if (modifier === "AM" && hours === 12) {
-      hours = 0; // 12 AM is 00:xx:xx in 24-hour format
-    } else if (modifier === "PM" && hours !== 12) {
-      hours += 12; // Convert PM hours (e.g., 1 PM becomes 13:xx:xx)
-    }
+  //   if (modifier === "AM" && hours === 12) {
+  //     hours = 0; // 12 AM is 00:xx:xx in 24-hour format
+  //   } else if (modifier === "PM" && hours !== 12) {
+  //     hours += 12; // Convert PM hours (e.g., 1 PM becomes 13:xx:xx)
+  //   }
   
-    // Return the time in HH:MM:SS (24-hour format)
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-  };
+  //   // Return the time in HH:MM:SS (24-hour format)
+  //   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  // };
 
-  const calculateTimeDifference = (assigndate, assigntime, closedate, closetime) => {
-    // If `closedate` or `closetime` is null, use the current date and time
-    const now = new Date();
-    if (!closedate) closedate = now.toISOString().split("T")[0]; // Current date in YYYY-MM-DD format
-    if (!closetime) closetime = now.toLocaleTimeString("en-US"); // Current time in 12-hour format
+  // const calculateTimeDifference = (assigndate, assigntime, closedate, closetime) => {
+  //   // If `closedate` or `closetime` is null, use the current date and time
+  //   const now = new Date();
+  //   if (!closedate) closedate = now.toISOString().split("T")[0]; // Current date in YYYY-MM-DD format
+  //   if (!closetime) closetime = now.toLocaleTimeString("en-US"); // Current time in 12-hour format
   
-    // Convert times to 24-hour format
-    const start24 = convertTo24HourFormat(assigntime);
-    const end24 = convertTo24HourFormat(closetime);
+  //   // Convert times to 24-hour format
+  //   const start24 = convertTo24HourFormat(assigntime);
+  //   const end24 = convertTo24HourFormat(closetime);
   
-    // Create Date objects for assigned and closed times
-    const start = new Date(`${assigndate}T${start24}`);
-    const end = new Date(`${closedate}T${end24}`);
+  //   // Create Date objects for assigned and closed times
+  //   const start = new Date(`${assigndate}T${start24}`);
+  //   const end = new Date(`${closedate}T${end24}`);
   
-    // Calculate the difference in milliseconds
-    const differenceInMs = end - start;
+  //   // Calculate the difference in milliseconds
+  //   const differenceInMs = end - start;
   
-    // Convert milliseconds to minutes
-    const differenceInMinutes = Math.floor(differenceInMs / (1000 * 60));
+  //   // Convert milliseconds to minutes
+  //   const differenceInMinutes = Math.floor(differenceInMs / (1000 * 60));
   
-    // Convert minutes to hours and minutes
-    const hours = Math.floor(differenceInMinutes / 60);
-    const minutes = differenceInMinutes % 60;
-    return { hours, minutes };
-  };
+  //   // Convert minutes to hours and minutes
+  //   const hours = Math.floor(differenceInMinutes / 60);
+  //   const minutes = differenceInMinutes % 60;
+  //   return { hours, minutes };
+  // };
 
 
   const fetchExpandData = useCallback(() => {
@@ -124,7 +124,6 @@ export default function TicketdataDash() {
                 assignDateandTime: assigndate + " " + assigntime,
                 createdBy: usersLookup[generatedBy],
                 closeDateandTime: closedate + " " + closetime,
-                durationslab: calculateTimeDifference(assigndate, assigntime, closedate, closetime)
               });
   
   

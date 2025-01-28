@@ -19,6 +19,7 @@ import axios from 'axios'
 import { isThisISOWeek, isThisMonth, isToday, isYesterday, parseISO } from 'date-fns'
 import * as XLSX from 'xlsx';
 import ExpiredUsersBarChart from './ExpiredUsersBarChart'
+import { api } from '../FirebaseConfig'
 
 export default function DashFirstDiv() {
     const navigate = useNavigate();
@@ -395,16 +396,14 @@ export default function DashFirstDiv() {
         try {
             // Run all API calls concurrently using Promise.all
             const [subscriberResponse, last5daysResponse, upcoming5daysResponse, myfollows, dashrevenue, dashdue, dashticket] = await Promise.all([
-                axios.get('https://api.justdude.in/subscriber?data=newinstallation'),
-                axios.get('https://api.justdude.in/expired?expire=last5days'),
-                axios.get('https://api.justdude.in/expired?expire=upcoming5days'),
-                axios.get(`https://api.justdude.in/users/${localStorage.getItem('contact')}?data=followup`),
-                axios.get(`https://api.justdude.in/subscriber/revenue?count=dashboard`),
-                axios.get(`https://api.justdude.in/dueAmount?data=dashboard`),
-                axios.get(`https://api.justdude.in/tickets?data=count`),
+                axios.get(api+'/subscriber?data=newinstallation'),
+                axios.get(api+'/expired?expire=last5days'),
+                axios.get(api+'/expired?expire=upcoming5days'),
+                axios.get(api+`/users/${localStorage.getItem('contact')}`),
+                axios.get(api+`/subscriber/revenue?count=dashboard`),
+                axios.get(api+`/dueAmount?data=dashboard`),
+                axios.get(api+`/tickets?data=count`),
                 
-
-
             ]);
         
             // Check for response status once

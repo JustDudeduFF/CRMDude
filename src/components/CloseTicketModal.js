@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './SmallModal.css'; // Add your styles here
 import { onValue, ref, update } from 'firebase/database';
-import { db } from '../FirebaseConfig';
+import { api, db } from '../FirebaseConfig';
 import axios from 'axios';
 
 const CloseTicketModal = ({ show, ticketno, closeModal}) => {
@@ -38,7 +38,7 @@ const CloseTicketModal = ({ show, ticketno, closeModal}) => {
     const sendMessage = async (mobileNo, ticketno, customername, Concern) => {
       const newMessage = `Dear ${customername}, 👋\n\nWe’re delighted to inform you that your complaint has been successfully resolved. 🎉\n\nHere are the details of your complaint:\n\n🆔 *Complaint ID:* ${ticketno}\n📄 *Subject:* ${Concern}\n📅 *Resolution Date:* ${new Date().toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}\n👨‍💼 *Resolved By:* ${userLookup[closeby]}\n\nThank you for your patience and for bringing this to our attention. 🙏\n\nIf you have further questions or need assistance, feel free to reach out to us. 📞💻\n\nWarm regards,\n*Sigma Business Solutions*\n📱 +91 99991 18971`
       const encodedMessage = encodeURIComponent(newMessage);
-      await axios.post(`https://api.justdude.in/send-message?number=91${mobileNo}&message=${encodedMessage}`);
+      await axios.post(api+`/send-message?number=91${mobileNo}&message=${encodedMessage}`);
   }
 
 
@@ -47,7 +47,7 @@ const CloseTicketModal = ({ show, ticketno, closeModal}) => {
         
          // Destructure ticketno to extract subsID and Ticketno  
         const ticketRef = ref(db, `Subscriber/${ticketno.UserKey || ticketno.subsID}/Tickets/${ticketno.Ticketno}`);
-        const globalTicketsRef = ref(db, `Global Tickets/${ticketno.Ticketno}`);
+        // const globalTicketsRef = ref(db, `Global Tickets/${ticketno.Ticketno}`);
         
         const newTicketData = {
           closedate: new Date().toISOString().split('T')[0],
@@ -61,7 +61,7 @@ const CloseTicketModal = ({ show, ticketno, closeModal}) => {
         if (closeby !== '' && rac !== '') {
           try {
             // Update Global Tickets data
-            await update(globalTicketsRef, newTicketData);
+            // await update(globalTicketsRef, newTicketData);
             
             // After Global Tickets update is successful, update Subscriber Tickets data
             await update(ticketRef, newTicketData).then(() => {

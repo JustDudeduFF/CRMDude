@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import './ExpandView.css';
 import { onValue, ref, get } from 'firebase/database';
 import * as XLSX from 'xlsx';
-import { db } from '../FirebaseConfig';
+import { api, db } from '../FirebaseConfig';
 import ExcelIcon from './subscriberpage/drawables/xls.png';
 import { isThisMonth, isThisWeek, isToday, subDays, parseISO } from 'date-fns';
 import SmallModal from './SmallModal'
@@ -33,75 +33,10 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
         XLSX.writeFile(workbook, `${heading} Data.xlsx`);
     };
 
-    // const fetchExpandData = useCallback(() => {
-    //     const pendingTicketsRef = ref(db, `Global Tickets`);
-    //     const usersRef = ref(db, `users`);
-    
-    //     // Step 1: Fetch all users and store them in a lookup object
-    //     get(usersRef).then((userSnap) => {
-    //         const usersLookup = {};
-    //         userSnap.forEach((childSnap) => {
-    //             const userId = childSnap.key;
-    //             const { FULLNAME } = childSnap.val();
-    //             usersLookup[userId] = FULLNAME; // Create a dictionary with userid -> fullname
-    //         });
-           
-    
-    //         // Step 2: Fetch tickets
-    //         onValue(pendingTicketsRef, (dataSnap) => {
-    //             setHeading(ticketType); // Set the heading from ticketType prop
-    
-    //             try {
-    //                 const dataArray = [];
-    
-    //                 dataSnap.forEach((childSnap) => {
-    //                     const {
-    //                         userid,
-    //                         source,
-    //                         generatedBy,
-    //                         assigndate,
-    //                         assigntime,
-    //                         assignto,
-    //                         description,
-    //                         ticketconcern,
-    //                         status,
-    //                         generatedDate,
-    //                         userKey
-    //                     } = childSnap.val();
-                        
-    //                     const assignedPersonName = usersLookup[assignto] || assignto; // Lookup user name or fallback to userid
-    
-    //                         // Push the ticket with the user's name instead of userid
-    //                         dataArray.push({
-    //                             generatedDate,
-    //                             Ticketno: childSnap.key,
-    //                             subsID: userid,
-    //                             source,
-    //                             createby: usersLookup[generatedBy] || generatedBy,
-    //                             creationdate: assigndate,
-    //                             Time: assigntime,
-    //                             Assign_to: assignedPersonName, // Use user's name from lookup
-    //                             Description: description,
-    //                             Concern: ticketconcern,
-    //                             Status: status,
-    //                             UserKey: userKey
-    //                         });
-                        
-    //                 });
-    
-    //                 setArrayData(dataArray);
-    //             } catch (error) {
-    //                 console.error('Error fetching data:', error);
-    //             }
-    //         });
-    //     }).catch((error) => {
-    //         console.error('Error fetching users:', error);
-    //     });
-    // }, [ticketType]);
 
     const fetchExpandData = async() => {
         try{
-            const ticketResponse = await axios.get('https://api.justdude.in/tickets?data=open');
+            const ticketResponse = await axios.get(api+'/tickets?data=open');
 
             if(ticketResponse.status !== 200) return;
             const ticketData = ticketResponse.data;

@@ -1,7 +1,7 @@
 // src/components/TicketData/TicketdataDash.js
 import React, { useState, useCallback, useEffect } from 'react';
 import { ref, get } from 'firebase/database';
-import { db } from '../../FirebaseConfig';
+import { api, db } from '../../FirebaseConfig';
 import ExcelIcon from '../subscriberpage/drawables/xls.png'
 import * as XLSX from 'xlsx';
 import axios from 'axios';
@@ -55,101 +55,32 @@ export default function TicketdataDash() {
   // };
 
 
-  const fetchExpandData = useCallback(() => {
-    const usersRef = ref(db, `users`);
-  
-    // Step 1: Fetch all users and store them in a lookup object
-    get(usersRef).then(async(userSnap) => {
-      const usersLookup = {};
-      userSnap.forEach((childSnap) => {
-        const userId = childSnap.key;
-        const { FULLNAME } = childSnap.val();
-        usersLookup[userId] = FULLNAME; // Create a dictionary with userid -> fullname
+  const fetchExpandData = async() => {
+    try{
+      const subsResponse = await axios.get(api+`/tickets?date=${new Date(filter.startDate).getTime()} ${new Date(filter.endDate).getTime()}&statusq=${filter.Status}`);
+
+
+      if(subsResponse.status !== 200) return;
+      const subsSnap = subsResponse.data;
+      const dataArray = [];
+      Object.keys(subsSnap).forEach((keys) => {
+        const childSnap = subsSnap[keys];
+        dataArray.push(childSnap);
       });
-  
-      // Step 2: Fetch subscribers
-      try{
-        const subsResponse = await axios.get('https://api.justdude.in/subscriber');
 
 
-        if(subsResponse.status !== 200) return;
-        const subsSnap = subsResponse.data;
-        const dataArray = [];
-        Object.keys(subsSnap).forEach((keys) => {
-          const childSnap = subsSnap[keys];
-          const fullName = childSnap.fullName;
-          const isp = childSnap.connectionDetails?.isp;
-          const colonyName = childSnap.colonyName;
-          const mobileNo = childSnap.mobileNo;
-          const userId = childSnap.username;
-          const address = childSnap.installationAddress;
-          const company = childSnap.company;
+      const isps = [...new Set(dataArray.map((data) => data.isp))];
+      const colonys = [...new Set(dataArray.map((data) => data.Colony))];
+      setUniqueIsp(isps);
+      setUniqueColony(colonys);
+      setArrayData(dataArray);
 
-          const tickets = childSnap?.Tickets
-          if(tickets){
-            Object.keys(tickets).forEach((ticketkey) => {
-              const userdata = tickets[ticketkey];
-              const {
-                ticketno,
-                source,
-                generatedDate,
-                closeby,
-                ticketconcern,
-                status,
-                assigndate,
-                assignto,
-                assigntime,
-                generatedBy,
-                closedate,
-                closetime,
-                description
-              } = userdata;
-  
-              dataArray.push({
-                Ticketno: ticketno,
-                subsID: userId,
-                source,
-                creationdate: generatedDate,
-                completedby: usersLookup[closeby], // Use user's name from lookup
-                Concern: ticketconcern,
-                description,
-                Status: status,
-                Colony: colonyName,
-                fullName: fullName,
-                isp: isp,
-                mobileNo: mobileNo,
-                address: address,
-                company: company,
-                assignto: usersLookup[assignto],
-                assignDateandTime: assigndate + " " + assigntime,
-                createdBy: usersLookup[generatedBy],
-                closeDateandTime: closedate + " " + closetime,
-              });
-  
-  
-            });
-          }
-        });
-
-
-        const isps = [...new Set(dataArray.map((data) => data.isp))];
-        const colonys = [...new Set(dataArray.map((data) => data.Colony))];
-        setUniqueIsp(isps);
-        setUniqueColony(colonys);
-        setArrayData(dataArray);
-
-        
-        
-      }catch(e){
-        console.log(e);
-      }
       
-  
-        
-    }).catch((error) => {
-      console.error("Error fetching users:", error);
-    });
-  }, []);
+      
+    }catch(e){
+      console.log(e);
+    }
+  }
   
   
 
@@ -158,16 +89,12 @@ export default function TicketdataDash() {
 
     fetchExpandData();
       
-  }, [fetchExpandData]);
+  }, [filter.startDate, filter.endDate, filter.Status]);
 
 
   useEffect(() => {
     let filteredArray = arrayData;
     
-
-    if (filter.Status !== 'All') {
-        filteredArray = filteredArray.filter((data) => data.Status === filter.Status);
-    }
 
     if(filter.Source !== 'All'){
         filteredArray = filteredArray.filter((data) => data.source === filter.Source);
@@ -180,16 +107,6 @@ export default function TicketdataDash() {
     if(filter.Colony !== 'All'){
       filteredArray = filteredArray.filter((data) => data.Colony === filter.Colony);
     }
-
-    // Filter by Date Range
-    if (filter.startDate && filter.endDate) {
-      const startDate = new Date(filter.startDate).getTime();
-      const endDate = new Date(filter.endDate).getTime();
-      filteredArray = filteredArray.filter((data) => {
-          const creationDate = new Date(data.creationdate).getTime();
-          return creationDate >= startDate && creationDate <= endDate;
-      });
-  }
 
     setFilteredData(filteredArray);
 }, [arrayData, filter]);

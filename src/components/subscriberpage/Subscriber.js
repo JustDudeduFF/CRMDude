@@ -20,6 +20,7 @@ import PlanChangeModal from './PlanChangeModal';
 import { toast, ToastContainer } from 'react-toastify';
 import { usePermissions } from '../PermissionProvider';
 import { Modal, Spinner } from 'react-bootstrap';
+import { api } from '../../FirebaseConfig';
 
 
 
@@ -35,14 +36,14 @@ export default function Subscriber() {
    
 
       //Use States For Fill All Details
-
-  const [company, setCompany] = useState("");
-  const [userid, setUserID] = useState('');
-  const [fullName, setFullName] = useState("");
-  const [expiryModal, setExpiryModal] = useState(false);
-  const [newExp, setNewExp] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [isTerminated, setIsTeminated] = useState(false);
+      const [company, setCompany] = useState("");
+      const [userid, setUserID] = useState('');
+      const [fullName, setFullName] = useState("");
+      const [expiryModal, setExpiryModal] = useState(false);
+      const [newExp, setNewExp] = useState("");
+      const [loading, setLoading] = useState(false);
+      const [isTerminated, setIsTeminated] = useState(false);
+      const [terminateRemark, setTerminateRemark] = useState('');
 
 
 
@@ -64,6 +65,8 @@ export default function Subscriber() {
   const [ispChangeModal, setIspChangeModal] = useState(false);
   const [ispArray, setIspArray] = useState([]);
   const [selectedIsp, setSelectedIsp] = useState("");
+  const [showTerimate, setShowTerminate] = useState(false);
+
 
 
   const [customesharge, setCustomCharge] = useState(0);
@@ -178,14 +181,14 @@ export default function Subscriber() {
 
            
             const sendMail = async () => {
-                const response = await axios.post('https://api.justdude.in/sendmail', emailData);
+                const response = await axios.post(api+'/sendmail', emailData);
                 console.log(response.data.message);
             }
 
             const sendWhatsapp = async () => {
                 const message = `🌐 Broadband Recharge Successful! 🎉\n\nDear ${fullName},\n\n✅ Your broadband recharge for ${planName} has been successfully completed.\n\n💳 *Amount Paid:* ₹${planAmount}\n📅 *Validity:* ${new Date(renewactdate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})} to ${new Date(expdate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})}\n🚀 *Speed:* Up to ${bandwidth} Mbps\n\nThank you for choosing *Sigma Business Solutions*! 😊\n\n✨ Enjoy uninterrupted browsing and streaming! 🎬📱\n\nFor support or queries, feel free to reach out to us:\n📞 *Customer Care:* 9999118971\n💬 *WhatsApp Support:* 9999118971    *24x7*\n\nStay connected, stay happy! 🌟`
                 const encodedMessage = encodeURIComponent(message);
-                await axios.post(`https://api.justdude.in/send-message?number=91${contact}&message=${encodedMessage}`);
+                await axios.post(api+`/send-message?number=91${contact}&message=${encodedMessage}`);
 
             }
             sendMail();
@@ -302,7 +305,7 @@ export default function Subscriber() {
                     }
                 });
 
-                const ispResponse = await axios.get('https://api.justdude.in/master/ISPs');
+                const ispResponse = await axios.get(api+'/master/ISPs');
     
                 if(ispResponse.status !== 200){
                     console.log(ispResponse.statusText);
@@ -364,6 +367,21 @@ export default function Subscriber() {
             calculateDaysBetween();
         }
     }, [expiryDate]);
+
+       const teminateUser = async() => {
+            const key = Date.now();
+            const terminate = {
+                isTerminate:true
+            }
+            const terminatelog = {
+                date: new Date().toISOString().split('T')[0],
+                description: `User Terminated: ${terminateRemark}`,
+                modifiedby: localStorage.getItem('contact')
+            }
+            await update(ref(db, `Subscriber/${userid}`), terminate);
+            await update(ref(db, `Subscriber/${userid}/logs/${key}`), terminatelog);
+            alert("User id Terminated");
+        }
     
 
 
@@ -546,7 +564,7 @@ export default function Subscriber() {
                             <label>Data</label>
                             <h6 style={{color:'blue'}}>Unlimited</h6>
 
-                            <label>Status</label>
+                            <label>Status</label><span onClick={() => setShowTerminate(true)} style={{cursor:'pointer'}} className='ms-2 badge text-bg-secondary'>Edit</span>
                             <h6 className={status === "Active" ? ('text-success') : status === "Inactive" ? ('text-danger') : 'text-secondary'}>{status}</h6>
 
                             <label>Days Remains</label>
@@ -763,6 +781,33 @@ export default function Subscriber() {
                 <button onClick={() => setIspChangeModal(false)} className='btn btn-secondary'>Close</button>
             </Modal.Footer>
         </Modal>
+        <Modal show={showTerimate} onHide={() => setShowTerminate(false)}>
+            <Modal.Header>
+                <Modal.Title>
+                    Terminated User
+                </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <div className='container'>
+                    <div className='col-md'>
+                        <label className='form-label'>Select Account Status</label>
+                        <select className='form-select'>
+                            <option>Choose...</option>
+                            <option>{isTerminated ? "Active" : "Terminate"}</option>
+                        </select>
+                    </div>
+
+                    <div className='col-md mt-2'>
+                        <label className='form-label'>Enter Remarks</label>
+                        <input className='form-control' type='text' placeholder='e.g. Reason or Remark'></input>
+                    </div>
+                </div>
+            </Modal.Body>
+            <Modal.Footer>
+                <button onClick={teminateUser} className='btn btn-primary'>Update</button>
+                <button onClick={() => setShowTerminate(false)} className='btn btn-outline-secondary'>Cancel</button>
+            </Modal.Footer>
+        </Modal>    
   </div>
   )
 }

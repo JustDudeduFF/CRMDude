@@ -1,7 +1,7 @@
 import { get, ref, set, update } from 'firebase/database';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { db } from '../../FirebaseConfig';
+import { api, db } from '../../FirebaseConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import axios from 'axios';
 import { jsPDF } from "jspdf"; // Import jsPDF
@@ -255,7 +255,7 @@ export default function ReceiptModify() {
         mailData.append('text', `Dear ${name}, \nYour Payment has been done for receipt period ${receiptData.billingPeriod}.\n\nPayment Mode: ${receiptData.paymentMode}\n\nReceipt Date: ${receiptData.receiptDate}\n\nReceipt No.: ${receiptData.receiptNo}\n\nThank you for your business.\nRegards,\nSigma Business Solutions`)
     
         try{
-          const response = await axios.post('https://api.justdude.in/send-invoice', mailData);
+          const response = await axios.post(api+'/send-invoice', mailData);
           if(response.ok){
             console.log('Invoice Sent Succesfully');
           }else{
@@ -290,7 +290,7 @@ export default function ReceiptModify() {
       const newMessage = `Dear ${name},\n\n💸 **Payment Confirmation** 💸\n\nWe have successfully received your payment. Here are the details:\n\n🔹 **Amount Paid**: ₹${amount}\n🔹 **Payment Mode**: ${receiptData.paymentMode}\n🔹 **Payment Date**: ${new Date(receiptData.receiptDate).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}\n🔹 **Current Due**: ₹${newDueAmount}\n\nIf you have any questions or need further assistance, please contact our support team.\n\n📞 **Support**: +91 99991 18971\n\nThank you for choosing **Sigma Business Solutions**!\n\nBest regards,\n**Sigma Business Solutions** Team`
       const encodedMessage = encodeURIComponent(newMessage);
 
-      const response = await axios.post(`https://api.justdude.in/send-message?number=91${contact}&message=${encodedMessage}`);
+      const response = await axios.post(api+`/send-message?number=91${contact}&message=${encodedMessage}`);
       console.log(response.data.status);
   }
   

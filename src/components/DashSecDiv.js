@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { db } from '../FirebaseConfig';
+import { api, db } from '../FirebaseConfig';
 import { ref, onValue } from 'firebase/database';
+import axios from 'axios';
 
 export default function DashSecDiv() {
 
@@ -11,139 +12,63 @@ export default function DashSecDiv() {
   }
 
   const [year, setYear] = useState(currentYear);
-  const [userData, setUserData] = useState({});
-  const [collectionData, setCollectionData] = useState([]);
+  const [userData, setUserData] = useState([]);
   const [installationData, setInstallationData] = useState([]);
   const [ticketNatureData, setTicketNatureData] = useState({});
+
+  const fetchSecDiv = async() => {
+
+    try{
+    // Run all API calls concurrently using Promise.all
+        const [revenueCount, installationTrend, ticktenature] = await Promise.all([
+          axios.get(api+`/subscriber?data=revenuecountsecdiv&year=${year}`),
+          axios.get(api+`/subscriber?data=installationtrend&year=${year}`),
+          axios.get(api+`/subscriber?data=ticketnature&year=${year}`),
+          
+          
+      ]);
+
+      // Check for response status once
+      if (
+        revenueCount.status !== 200 ||
+        installationTrend.status !== 200 || 
+        ticktenature.status !== 200
+      ) {
+          console.error('One or more API calls failed.');
+          return;
+      }                  
+
+      const revenueData = revenueCount.data;
+      if(revenueData){
+        setUserData(revenueData);
+      }
+
+      const installationData = installationTrend.data;
+      if(installationData){
+        setInstallationData(installationData);
+      }
+
+      const ticketeData = ticktenature.data;
+      if(ticketeData){
+        setTicketNatureData(ticketeData);
+      }
+
+    }catch(e){
+      console.log(e);
+    }
+
+  }
 
   
   
 
   useEffect(() => {
-    // Create a hashmap of user data
-    const userRef = ref(db, 'users');
-    onValue(userRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const users = {};
-        snapshot.forEach((doc) => {
-          const data = doc.val();
-          users[doc.key] = data.FULLNAME; // Changed to fullname based on your data
-        });
-        setUserData(users);
-      }
-    });
 
-    // Fetch collection data
-    const collectionRef = ref(db, `Subscriber`);
-    onValue(collectionRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const collections = [];
-        snapshot.forEach((doc) => {
-          const data = doc.child("payments");
-          data.forEach((item) => {
-            collections.push({
-              userId: doc.key,
-              ...item.val()
-            });
-          });
-        });
-        setCollectionData(collections);
-      }
-    });
+    fetchSecDiv();
 
-    // Fetch installation data
-    
-    onValue(collectionRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const installations = [];
-        snapshot.forEach((doc) => {
-          installations.push(doc.val());
-        });
-        setInstallationData(installations);
-      }
-    });
-
-    const ticketConcerns = ref(db, `Master/Tickets`);
-    const globalTickets = ref(db, `Global Tickets`);
-    
-    onValue(ticketConcerns, (snapshot) => {
-      if (snapshot.exists()) {
-        const tickets = {};
-        // Get all ticket concerns from Master
-        snapshot.forEach((doc) => {
-          tickets[doc.key] = 0; // Initialize count for each concern
-        });
-
-        // Count tickets from Global Tickets
-        onValue(globalTickets, (snapshot) => {
-          if (snapshot.exists()) {
-            snapshot.forEach((doc) => {
-              const ticketData = doc.val();
-              if (ticketData.ticketconcern && ticketData.assigndate) {
-                const ticketDate = new Date(ticketData.assigndate);
-                if (ticketDate.getFullYear() === parseInt(year)) {
-                  if (tickets.hasOwnProperty(ticketData.ticketconcern)) {
-                    tickets[ticketData.ticketconcern]++;
-                  }
-                }
-              }
-            });
-            setTicketNatureData(tickets);
-          }
-        });
-      }
-    });
   }, [year]); // Add year as dependency
 
-  // Calculate monthly totals for each user
-  const getUserMonthlyData = (userId) => {
-    const monthlyData = {
-      jan: 0, feb: 0, mar: 0, apr: 0, may: 0, jun: 0,
-      jul: 0, aug: 0, sep: 0, oct: 0, nov: 0, dec: 0
-    };
 
-    const userCollections = collectionData.filter(item => 
-      item.collectedBy === userId && 
-      item.receiptDate?.includes(year) // Filter by selected year
-    );
-
-    userCollections.forEach(collection => {
-      if (collection.receiptDate && collection.amount) {
-        const date = new Date(collection.receiptDate);
-        const month = date.getMonth(); // 0-11
-        const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-        monthlyData[monthNames[month]] += Number(collection.amount);
-      }
-
-      
-    });
-
-    
-    
-    
-
-    return monthlyData;
-  };
-
-  const getMonthlyInstallations = () => {
-    const monthlyData = {
-      'January': 0, 'February': 0, 'March': 0, 'April': 0,
-      'May': 0, 'June': 0, 'July': 0, 'August': 0,
-      'September': 0, 'October': 0, 'November': 0, 'December': 0
-    };
-
-    installationData.forEach(installation => {
-      if (installation.createdAt) {
-        const date = new Date(installation.createdAt);
-        if (date.getFullYear() === parseInt(year)) {
-          const monthName = date.toLocaleString('default', { month: 'long' });
-          monthlyData[monthName]++;
-        }
-      }
-    });
-
-    return monthlyData;
-  };
 
   return (
     <div className='d-flex flex-column mt-4'>
@@ -162,45 +87,44 @@ export default function DashSecDiv() {
             <table className="table table-bordered table-striped table-hover align-middle text-center">
               <thead className='table-success'>
                 <tr>
-                  <th scope="col">S.No</th>
-                  <th scope="col">Employee Name</th>
-                  <th scope="col">Jan</th>
-                  <th scope="col">Feb</th>
-                  <th scope="col">Mar</th>
-                  <th scope="col">Apr</th>
-                  <th scope="col">May</th>
-                  <th scope="col">Jun</th>
-                  <th scope="col">Jul</th>
-                  <th scope="col">Aug</th>
-                  <th scope="col">Sep</th>
-                  <th scope="col">Oct</th>
-                  <th scope="col">Nov</th>
-                  <th scope="col">Dec</th>
+                  <th className='text-start' scope="col">S.No</th>
+                  <th className='text-start' scope="col">Employee Name</th>
+                  <th className='text-start' scope="col">Jan</th>
+                  <th className='text-start' scope="col">Feb</th>
+                  <th className='text-start' scope="col">Mar</th>
+                  <th className='text-start' scope="col">Apr</th>
+                  <th className='text-start' scope="col">May</th>
+                  <th className='text-start' scope="col">Jun</th>
+                  <th className='text-start' scope="col">Jul</th>
+                  <th className='text-start' scope="col">Aug</th>
+                  <th className='text-start' scope="col">Sep</th>
+                  <th className='text-start' scope="col">Oct</th>
+                  <th className='text-start' scope="col">Nov</th>
+                  <th className='text-start' scope="col">Dec</th>
                   <th scope="col">Total</th>
                 </tr>
               </thead>
               <tbody>
-                {Object.entries(userData).map(([userId, name], index) => {
-                  const monthlyData = getUserMonthlyData(userId);
-                  const total = Object.values(monthlyData).reduce((a, b) => a + b, 0);
-                  
+                {userData.map((user, index) => {
+                  const { name, monthlyData, total } = user;
+
                   return (
-                    <tr key={userId}>
-                      <td>{index + 1}</td>
+                    <tr key={index}>
+                      <td className='text-start'>{index + 1}</td>
                       <td className='text-start'>{name}</td>
-                      <td>₹ {monthlyData.jan.toLocaleString()}</td>
-                      <td>₹ {monthlyData.feb.toLocaleString()}</td>
-                      <td>₹ {monthlyData.mar.toLocaleString()}</td>
-                      <td>₹ {monthlyData.apr.toLocaleString()}</td>
-                      <td>₹ {monthlyData.may.toLocaleString()}</td>
-                      <td>₹ {monthlyData.jun.toLocaleString()}</td>
-                      <td>₹ {monthlyData.jul.toLocaleString()}</td>
-                      <td>₹ {monthlyData.aug.toLocaleString()}</td>
-                      <td>₹ {monthlyData.sep.toLocaleString()}</td>
-                      <td>₹ {monthlyData.oct.toLocaleString()}</td>
-                      <td>₹ {monthlyData.nov.toLocaleString()}</td>
-                      <td>₹ {monthlyData.dec.toLocaleString()}</td>
-                      <td className='fw-bold'>₹ {total.toLocaleString()}</td>
+                      <td className='text-start'>₹ {monthlyData.jan.toLocaleString()}</td>
+                      <td className='text-start'>₹ {monthlyData.feb.toLocaleString()}</td>
+                      <td className='text-start'>₹ {monthlyData.mar.toLocaleString()}</td>
+                      <td className='text-start'>₹ {monthlyData.apr.toLocaleString()}</td>
+                      <td className='text-start'>₹ {monthlyData.may.toLocaleString()}</td>
+                      <td className='text-start'>₹ {monthlyData.jun.toLocaleString()}</td>
+                      <td className='text-start'>₹ {monthlyData.jul.toLocaleString()}</td>
+                      <td className='text-start'>₹ {monthlyData.aug.toLocaleString()}</td>
+                      <td className='text-start'>₹ {monthlyData.sep.toLocaleString()}</td>
+                      <td className='text-start'>₹ {monthlyData.oct.toLocaleString()}</td>
+                      <td className='text-start'>₹ {monthlyData.nov.toLocaleString()}</td>
+                      <td className='text-start'>₹ {monthlyData.dec.toLocaleString()}</td>
+                      <td className="fw-bold">₹ {total.toLocaleString()}</td>
                     </tr>
                   );
                 })}
@@ -229,7 +153,7 @@ export default function DashSecDiv() {
                 </tr>
               </thead>
               <tbody>
-                {Object.entries(getMonthlyInstallations()).map(([month, count], index) => (
+                {Object.entries(installationData).map(([month, count], index) => (
                   <tr key={month}>
                     <td>{index + 1}</td>
                     <td>{month}</td>

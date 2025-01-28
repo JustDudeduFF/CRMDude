@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import * as XLSX from 'xlsx';
 import ExcelIcon from '../subscriberpage/drawables/xls.png'
 import axios from 'axios';
-
+import { api } from '../../FirebaseConfig';
 
 const RevenueDash = () => {
     const [filter, setFilter] = useState({ startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0], isp: 'All', Colony: 'All', Status: 'All', Company: 'All' });
@@ -29,7 +29,7 @@ const RevenueDash = () => {
     const fetchRevenue = async () => {
       try {
         // Fetch data from the API
-        const response = await axios.get(`https://api.justdude.in/subscriber/revenue?date=${filter.startDate} ${filter.endDate}`);
+        const response = await axios.get(api+`/subscriber/revenue?date=${filter.startDate} ${filter.endDate}`);
     
         if (response.status !== 200 || !response.data) {
           return;

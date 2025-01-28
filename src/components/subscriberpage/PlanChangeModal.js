@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import '../Modal.css'
 import { get, ref, set, update } from 'firebase/database';
-import { db } from '../../FirebaseConfig';
+import { api, db } from '../../FirebaseConfig';
 import axios from 'axios';
 
 
@@ -131,9 +131,9 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
           const sendMessage = async() => {
             const message = `🌐 Broadband Recharge Successful! 🎉\n\nDear ${fullName},\n\n✅ Your broadband recharge for ${planName} has been successfully completed.\n\n💳 *Amount Paid:* ₹${planamount}\n📅 *Validity:* ${new Date(activationDate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})} to ${new Date(expirydate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})}\n🚀 *Speed:* Up to ${bandwidth} Mbps\n\nThank you for choosing *Sigma Business Solutions*! 😊\n\n✨ Enjoy uninterrupted browsing and streaming! 🎬📱\n\nFor support or queries, feel free to reach out to us:\n📞 *Customer Care:* 9999118971\n💬 *WhatsApp Support:* 9999118971    *24x7*\n\nStay connected, stay happy! 🌟`
             const encodedMessage = encodeURIComponent(message);
-            await axios.post(`https://api.justdude.in/send-message?number=91${mobile}&message=${encodedMessage}`);
+            await axios.post(api+`/send-message?number=91${mobile}&message=${encodedMessage}`);
             alert(`Plan Is Changed Succesfully!`);
-            await axios.post('https://api.justdude.in/sendmail', emailData);
+            await axios.post(api+'/sendmail', emailData);
           }
 
         if(planName === '' || planamount === ''){

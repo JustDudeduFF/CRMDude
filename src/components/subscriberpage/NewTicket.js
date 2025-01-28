@@ -1,6 +1,6 @@
 import { onValue, ref, set } from 'firebase/database';
 import React, {useEffect, useState} from 'react';
-import { db } from '../../FirebaseConfig';
+import { api, db } from '../../FirebaseConfig';
 import { toast, ToastContainer } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -66,8 +66,8 @@ export default function NewTicket() {
       const encodedMessage = encodeURIComponent(newMessage);
       const exMessage = `Dear Executive,\n\nYou have been assigned a new ticket. Below are the details:\n\n🎫 *Ticket No:* ${ticketno}\n👤 *Customer Name:* ${fullname}\n📱 *Mobile Number:* ${mobile}\n💼 *User ID:* ${username}\n\nFor more details, please visit the application.\n\nThank you!\nRegards,\n*Sigma Business Solutions*`
       const enCodedExMessage = encodeURIComponent(exMessage);
-      await axios.post(`https://api.justdude.in/send-message?number=91${mobile}&message=${encodedMessage}`);
-      await axios.post(`https://api.justdude.in/send-message?number=91${assignemp}&message=${enCodedExMessage}`);
+      await axios.post(api+`/send-message?number=91${mobile}&message=${encodedMessage}`);
+      await axios.post(api+`/send-message?number=91${assignemp}&message=${enCodedExMessage}`);
     }
 
 
@@ -95,35 +95,35 @@ export default function NewTicket() {
         generatedDate: new Date().toISOString().split('T')[0]
       }
 
-      const globalticketdata = {
-        happycode: happycode,
-        generatedBy: localStorage.getItem('contact'),
-        ticketno: ticketno,
-        source: 'Manual',
-        ticketconcern: ticketconcern,
-        assignto: assignemp,
-        description: description,
-        assigntime: assigntime,
-        assigndate: new Date().toISOString().split('T')[0],
-        status: 'Pending',
-        closedate: '',
-        closeby: '',
-        closetime: '',
-        rac: '',
-        userid: userid,
-        generatedDate: new Date().toISOString().split('T')[0],
-        UserKey: username
-      }
+      // const globalticketdata = {
+      //   happycode: happycode,
+      //   generatedBy: localStorage.getItem('contact'),
+      //   ticketno: ticketno,
+      //   source: 'Manual',
+      //   ticketconcern: ticketconcern,
+      //   assignto: assignemp,
+      //   description: description,
+      //   assigntime: assigntime,
+      //   assigndate: new Date().toISOString().split('T')[0],
+      //   status: 'Pending',
+      //   closedate: '',
+      //   closeby: '',
+      //   closetime: '',
+      //   rac: '',
+      //   userid: userid,
+      //   generatedDate: new Date().toISOString().split('T')[0],
+      //   UserKey: username
+      // }
 
       const ticketRef = ref(db, `Subscriber/${username}/Tickets/${ticketno}`);
-      const globalticketRef = ref(db, `Global Tickets/${ticketno}`);
+      // const globalticketRef = ref(db, `Global Tickets/${ticketno}`);
 
 
       try{
         await set(ticketRef, ticketdata).then(() => {
           sendmessage(assignemp, ticketconcern, ticketno, happycode, fullname);
         });
-        await set(globalticketRef, globalticketdata);
+        // await set(globalticketRef, globalticketdata);
         navigate(-1);
 
 

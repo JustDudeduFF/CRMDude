@@ -1,7 +1,7 @@
 
 import { get, ref, set } from 'firebase/database';
 import React, {useEffect, useState} from 'react'
-import { db } from '../../FirebaseConfig';
+import { api, db } from '../../FirebaseConfig';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -18,7 +18,7 @@ export default function AddRemarkFollow(props) {
     useEffect(() => {
       const fetchconcerns = async() => {
         try{
-          const concernResponse = await axios.get('https://api.justdude.in/master/RMConcern');
+          const concernResponse = await axios.get(api+'/master/RMConcern');
 
           if(concernResponse.status !== 200 ){
             console.log(concernResponse.status);

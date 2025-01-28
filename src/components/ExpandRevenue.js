@@ -3,7 +3,7 @@ import './ExpandView.css';
 import * as XLSX from 'xlsx';
 import ExcelIcon from './subscriberpage/drawables/xls.png';
 import { ref, update } from 'firebase/database';
-import { db } from '../FirebaseConfig';
+import { api, db } from '../FirebaseConfig';
 import LockIcon from './subscriberpage/drawables/lock.png';
 import { usePermissions } from './PermissionProvider';
 import axios from 'axios';
@@ -35,7 +35,7 @@ export default function ExpandRevenue({ show, modalShow }) {
   const fetchRevenue = async () => {
     try {
       // Fetch data from the API
-      const response = await axios.get(`https://api.justdude.in/subscriber/revenue?count=50&search=${filterUser}`);
+      const response = await axios.get(api+`/subscriber/revenue?count=50&search=${filterUser}`);
   
       if (response.status !== 200 || !response.data) {
         return;

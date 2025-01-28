@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './SmallModal.css'; // Add your styles here
 import { get, onValue, ref, update } from 'firebase/database';
-import { db } from '../FirebaseConfig';
+import { api, db } from '../FirebaseConfig';
 import axios from 'axios';
 
 const SmallModal = ({ show, ticketno, closeModal}) => {
@@ -45,16 +45,16 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
         const encodedMessage = encodeURIComponent(newMessage);
         const exMessage = `Dear Executive,\n\nYou have been assigned a new ticket. Below are the details:\n\n🎫 *Ticket No:* ${ticketno}\n👤 *Customer Name:* ${customername}\n📱 *Mobile Number:* ${mobileNo}\n💼 *User ID:* ${userid}\n\nFor more details, please visit the application.\n\nThank you!\nRegards,\n*Sigma Business Solutions*`
         const enCodedExMessage = encodeURIComponent(exMessage);
-        await axios.post(`https://api.justdude.in/send-message?number=91${mobileNo}&message=${encodedMessage}`);
+        await axios.post(api+`/send-message?number=91${mobileNo}&message=${encodedMessage}`);
         //Message For Executive
-        await axios.post(`https://api.justdude.in/send-message?number=91${assignemp}&message=${enCodedExMessage}`);
+        await axios.post(api+`/send-message?number=91${assignemp}&message=${enCodedExMessage}`);
 
     }
 
     const assignTicket = async(event) => {
         event.preventDefault();
         const ticketRef = ref(db, `Subscriber/${ticketno.UserKey || ticketno.userid}/Tickets/${ticketno.Ticketno}`);
-        const globalTicketsRef = ref(db, `Global Tickets/${ticketno.Ticketno}`);    
+        // const globalTicketsRef = ref(db, `Global Tickets/${ticketno.Ticketno}`);    
         const ticketSnap = await get(ticketRef);
         const subsMobile = subsData.mobileNo;
         const subsfullname = subsData.fullName;
@@ -65,7 +65,7 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
                 assignto: assignemp,
                 status:'Pending'
             }
-            update(globalTicketsRef, assigndata);
+            // update(globalTicketsRef, assigndata);
             update(ticketRef, assigndata);
             closeModal();
             sendMessage(subsMobile, ticketno.Ticketno, subsData.fullName, ticketno.subsID, ticketno.Concern);
@@ -74,7 +74,7 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
             const assigndata = {
                 assignto: assignemp
             }
-            update(globalTicketsRef, assigndata);
+            // update(globalTicketsRef, assigndata);
             update(ticketRef, assigndata).then(() => {
                 sendMessage(subsMobile, ticketno.Ticketno, subsfullname, ticketno.subsID, ticketno.Concern);
                 closeModal();

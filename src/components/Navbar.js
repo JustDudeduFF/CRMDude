@@ -4,7 +4,7 @@ import ProfileCard from "./ProfileCard";
 import Building_Img from './subscriberpage/drawables/office-building.png'
 import ReportsOthers from "./ReportsOthers";
 import { useNavigate } from "react-router-dom";
-import { db } from "../FirebaseConfig";
+import { api, db } from "../FirebaseConfig";
 import { ref, onValue } from "firebase/database";
 import UserProfile from './subscriberpage/drawables/user.png'
 import NotificationIcon from './subscriberpage/drawables/bell.png'
@@ -36,7 +36,7 @@ export default function Navbar() {
     const onlineRenewalsref = ref(db, `onlinerenewals`);
     const fetchUsers = async () => {
         try{
-          const response = await axios.get('https://api.justdude.in/subscriber?data=companycount');
+          const response = await axios.get(api+'/subscriber?data=companycount');
           if(response.status !== 200) return;
           setUniqueCompanies(response.data);
         }catch(e){

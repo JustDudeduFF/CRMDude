@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react'
 import * as XLSX from 'xlsx';
 import ExcelIcon from '../subscriberpage/drawables/xls.png'
 import axios from 'axios';
+import { api } from '../../FirebaseConfig';
 
 
 const ExpiredDash = () => {
@@ -28,7 +29,7 @@ const ExpiredDash = () => {
 
     const fetchData = async () => {
       try {
-        const response = await axios.get(`https://api.justdude.in/expired?date=${filter.startDate} ${filter.endDate}`);
+        const response = await axios.get(api+`/expired?date=${filter.startDate} ${filter.endDate}`);
         
         
         if (response.status !== 200 || !response.data) {

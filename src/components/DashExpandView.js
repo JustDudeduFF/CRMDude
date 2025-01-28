@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import './ExpandView.css';
 import { onValue, ref, set, update, get } from 'firebase/database';
 import * as XLSX from 'xlsx';
-import { db } from '../FirebaseConfig';
+import { api, db } from '../FirebaseConfig';
 import ExcelIcon from './subscriberpage/drawables/xls.png'
 import WhatsappIcon from './subscriberpage/drawables/whatsapp.png'
 import { useNavigate } from 'react-router-dom';
@@ -77,7 +77,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
             const datafor = words[0];
 
             try {
-                const response = await axios.get('https://api.justdude.in/subscriber');
+                const response = await axios.get(api+'/subscriber');
                 if(response.status !== 200) return;
 
                 const responseData = response.data;
@@ -233,8 +233,8 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
             const sendMessage = async (mobile, planName, fullName, expireDate, planAmount, date) => {
                 const message = `Dear ${fullName},\nYour Plan ${planName}  ₹${planAmount}  Recharge Successfully for period of  ${date} to ${expireDate} thanks for being with us. For any query call (9999118971) SIGMA BUSINESS SOLUTIONS .`;
                 const encodedMessage = encodeURIComponent(message);
-                const response = await axios.post(`https://api.justdude.in/send-message?number=91${mobile}&message=${encodedMessage}`);
-                const responsemail = await axios.post('https://api.justdude.in/sendmail', {
+                const response = await axios.post(api+`/send-message?number=91${mobile}&message=${encodedMessage}`);
+                const responsemail = await axios.post(api+'/sendmail', {
                     to: "justdudehere@gmail.com",
                     subject: 'Broadband Subscription Renewal',
                     text: `Dear ${fullName},\nYour plan has been renewed successfully.\nYour new plan will be active from ${date} to ${expireDate}.\nYour Current Plan Amount is ₹${planAmount}.\n\nThank you for your business.\nRegards,\nSigma Business Solutions `,
@@ -286,7 +286,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                     const encoedeMessage = encodeURIComponent(newmessage);
                     
                     
-                    await axios.post(`https://api.justdude.in/send-message?number=91${mobile}&message=${encoedeMessage}`);
+                    await axios.post(api+`/send-message?number=91${mobile}&message=${encoedeMessage}`);
                 });
             }else{
                 alert("Permission Denied");
@@ -307,7 +307,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                     const username = data.username;
                     const message = `Hi ${fullName.split(" ")[1]},\n\nThis is a gentle reminder from *Sigma Business Solutions* regarding your broadband service account.\n\nBill Details:\n- *Account Number*: ${username}\n- *Due Amount*: ₹${amount}\n\nTo ensure uninterrupted service, kindly make the payment as early as possible. You can make the payment via login to sigmanetworks.in/CustomerLogin.\nYour Login Credentials is:\n- *UserName*: ${username}\n- *Password*: 123456}\n\nFor any assistance, feel free to contact us at *99991 18971*.\n\nThank you for choosing\n*Sigma Business Soltions*!\nWe value your association with us.`;
                     const encodedMessage = encodeURIComponent(message);
-                    await axios.post(`https://api.justdude.in/send-message?number=91${mobile}&message=${encodedMessage}`); 
+                    await axios.post(api+`/send-message?number=91${mobile}&message=${encodedMessage}`); 
                 });
             }else{
                 alert("Permission Denied");

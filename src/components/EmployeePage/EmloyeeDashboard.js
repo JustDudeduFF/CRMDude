@@ -88,7 +88,7 @@ export default function EmloyeeDashboard() {
 
 
         <div style={{flex:`${text}`, overflowY:'auto', height:'79vh', scrollbarWidth:'none', transition:'linear 0.3s'}}>
-        <ol className="list-group list-group">
+        <ol className="list-group">
           {employeName.map((name, index) => (
             <li onClick={() => showEmpDetail(employemobile[index])} className="list-group-item justify-content-between align-items-start mt-2" key={index}>
               <div className='fw-light'>{name}</div>

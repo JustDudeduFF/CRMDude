@@ -1,81 +1,64 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import Emp_Report from './subscriberpage/drawables/presentation.png'
-import Expired from './subscriberpage/drawables/expired.png'
-import Upcoming_Renewals from './subscriberpage/drawables/next-week.png'
-import Tickts from './subscriberpage/drawables/travel-agent.png'
+import reports from './subscriberpage/drawables/analysis.png'
 import Network_Rack from './subscriberpage/drawables/database.png'
 import Leads from './subscriberpage/drawables/manager.png'
 import Inventry from './subscriberpage/drawables/inventory.png'
 import Customer_Add from './subscriberpage/drawables/add-user.png'
+import whatsapp from './subscriberpage/drawables/whatsapp.png'
+import master from './subscriberpage/drawables/master.png'
 import './Reports_Others.css'
-import { Link } from 'react-router-dom'
 
 export default function Reports_Others() {
-  
+  const navigate = useNavigate();
   return (
-    <div style={{display: 'flex', flexDirection: 'row', width: '100%'}}>
-        <div className='offcanvas_div' style={{width: 'auto', flex: '1', border: '2px solid gray', padding: '5px', borderRadius: '10px',  marginRight: '15px'}}>
-        <label className="reports_label">Manage Employees</label><br></br>
-        <Link id='link' to='/dashboard/employees'>
-        
-        <img alt='' src={Emp_Report} style={{width:'50px', height: '50px', cursor:"pointer", marginLeft: '30px', marginTop: '10px'}}></img>
-        </Link>
+    <div className='d-flex flex-row justify-content-center'>
+
+        <div style={{width:'140px'}} onClick={() => navigate('/dashboard/employees')} className='d-flex flex-column align-items-center justify-content-center border border-2 border-success p-4 ms-3 me-3 rounded hover-shadow'>
+          <label className='fw-bold mb-3 text-center label'>Manage Employees</label>
+          <img style={{width:'50px', height:'50px'}} alt='Emp_Report' src={Emp_Report}></img>
         </div>
 
 
-        <div className='offcanvas_div' style={{width: 'auto', flex: '1', border: '2px solid gray', padding: '5px', borderRadius: '10px',  marginRight: '15px'}}>
-        <label className="reports_label">Expired Reports</label><br></br>
-        <Link id='link' to='/dashboard/expired'>
-        <img alt='' src={Expired} style={{width:'50px', height: '50px', cursor:"pointer", marginLeft: '30px', marginTop: '10px'}}></img>
-        </Link>
+        <div style={{width:'140px'}} onClick={() => navigate('reports')} className='d-flex flex-column align-items-center justify-content-center border border-2 border-success p-4 ms-3 me-3 rounded hover-shadow'>
+          <label className='fw-bold mb-3 text-center label'>All Reports</label>
+          <img style={{width:'50px', height:'50px'}} alt='reports' src={reports}></img>
         </div>
 
-        <div className='offcanvas_div' style={{width: 'auto', flex: '1', border: '2px solid gray', padding: '5px', borderRadius: '10px',  marginRight: '15px'}}>
-        <label className="reports_label">Payment Revenue</label><br></br>
-        <Link id='link' to='/dashboard/revenue'>
-        <img alt='' src={Upcoming_Renewals} style={{width:'50px', height: '50px', cursor:"pointer", marginLeft: '30px', marginTop: '10px'}}></img>
-        </Link>
+        <div style={{width:'140px'}} onClick={() => navigate('networkrack')} className='d-flex flex-column align-items-center justify-content-center border border-2 border-success p-4 ms-3 me-3 rounded hover-shadow'>
+          <label className='fw-bold mb-3 text-center label'>Network Rack Info</label>
+          <img style={{width:'50px', height:'50px'}} alt='Network_Rack' src={Network_Rack}></img>
         </div>
 
-        <div className='offcanvas_div' style={{width: 'auto', flex: '1', border: '2px solid gray', padding: '5px', borderRadius: '10px',  marginRight: '15px'}}>
-        <label className="reports_label">Tickets Reports</label><br></br>
-        <Link id='link' to='/dashboard\tickets'>
-        <img alt='' src={Tickts} style={{width:'50px', height: '50px', cursor:"pointer", marginLeft: '30px', marginTop: '10px'}}></img></Link>
+        <div style={{width:'140px'}} onClick={() => navigate('/dashboard/leadmanagment')} className='d-flex flex-column align-items-center justify-content-center border border-2 border-success p-4 ms-3 me-3 rounded hover-shadow'>
+          <label className='fw-bold mb-3 text-center label'>Lead Managment</label>
+          <img style={{width:'50px', height:'50px'}} alt='Leads' src={Leads}></img>
         </div>
 
-        <div className='offcanvas_div' style={{width: 'auto', flex: '1', border: '2px solid gray', padding: '5px', borderRadius: '10px',  marginRight: '15px'}}>
-        <label className="reports_label">Network Rack Info</label><br></br>
-        <Link id='link' to='networkrack'>
-        <img alt='' src={Network_Rack} style={{width:'50px', height: '50px', cursor:"pointer", marginLeft: '30px', marginTop: '10px'}}></img></Link>
-        </div>
-        <div className='offcanvas_div' style={{width: 'auto', flex: '1', border: '2px solid gray', padding: '5px', borderRadius: '10px',  marginRight: '15px'}}>
-        <label className="reports_label">Lead Managment</label><br></br>
-        <Link id='link' to='/dashboard/leadmanagment'>
-        <img alt='' src={Leads} style={{width:'50px', height: '50px', cursor:"pointer", marginLeft: '30px', marginTop: '10px'}}></img></Link>
+
+        <div style={{width:'140px'}} onClick={() => navigate('/dashboard/inventry')} className='d-flex flex-column align-items-center justify-content-center border border-2 border-success p-4 ms-3 me-3 rounded hover-shadow'>
+          <label className='fw-bold mb-3 text-center label'>Inventory</label>
+          <img style={{width:'50px', height:'50px'}} alt='Inventry' src={Inventry}></img>
         </div>
 
-        <div className='offcanvas_div' style={{width: 'auto', flex: '1', border: '2px solid gray', padding: '5px', borderRadius: '10px',  marginRight: '15px'}}>
-        <label className="reports_label">Inventory Reports</label><br></br>
-        <Link id='link' to='/dashboard/inventry'>
-        <img alt='' src={Inventry} style={{width:'50px', height: '50px', cursor:"pointer", marginLeft: '30px', marginTop: '10px'}}></img></Link>
+        <div style={{width:'140px'}} onClick={() => navigate('/dashboard/adduser')} className='d-flex flex-column align-items-center justify-content-center border border-2 border-success p-4 ms-3 me-3 rounded hover-shadow'>
+          <label className='fw-bold mb-3 text-center label'>Add Customer</label>
+          <img style={{width:'50px', height:'50px'}} alt='Customer_Add' src={Customer_Add}></img>
         </div>
-        <div className='offcanvas_div' style={{width: 'auto', flex: '1', border: '2px solid gray', padding: '5px', borderRadius: '10px',  marginRight: '15px'}}>
-        <label className="reports_label">Add Customer</label><br></br>
-        <Link id='link' to='/dashboard/adduser'><img alt='' src={Customer_Add} style={{width:'50px', height: '50px', cursor:"pointer", marginLeft: '30px', marginTop: '10px'}}></img></Link>
-        
-        </div>
-        <div className='offcanvas_div' style={{width: 'auto', flex: '1', border: '2px solid gray', padding: '5px', borderRadius: '10px',  marginRight: '15px'}}>
-        <label className="reports_label">Master</label><br></br>
-        <Link id='link' to='/dashboard/master'>
-        <img alt='' src={Emp_Report} style={{width:'50px', height: '50px', cursor:"pointer", marginLeft: '30px', marginTop: '10px'}}></img></Link>
+
+
+        <div style={{width:'140px'}} onClick={() => navigate('/dashboard/master')} className='d-flex flex-column align-items-center justify-content-center border border-2 border-success p-4 ms-3 me-3 rounded hover-shadow'>
+          <label className='fw-bold mb-3 text-center label'>Master</label>
+          <img style={{width:'50px', height:'50px'}} alt='master' src={master}></img>
         </div>
         
-        <div className='offcanvas_div' style={{width: 'auto', flex: '1', border: '2px solid gray', padding: '5px', borderRadius: '10px',  marginRight: '15px'}}>
         
-        <label className="reports_label">Whatsapp Api</label><br></br>
-        <Link id='link' to='/dashboard/templates'>
-        <img alt='' src={Emp_Report} style={{width:'50px', height: '50px', cursor:"pointer", marginLeft: '30px', marginTop: '10px'}}></img></Link>
+        <div onClick={() => navigate('/dashboard/templates')} style={{width:'140px'}} className='d-flex flex-column align-items-center justify-content-center ms-3 me-3 border border-2 border-success p-4 rounded hover-shadow'>
+          <label className='fw-bold mb-3 text-center label'>WhatsApp</label>
+          <img style={{width:'50px', height:'50px'}} alt='whatsapp' src={whatsapp}></img>
         </div>
+
       
     </div>
   )

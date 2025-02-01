@@ -2,9 +2,7 @@
     box-shadow: 0 0 10px gray;
     
     .reports_label{
-        font-weight: bold;
-        color: blue;
-        border-bottom: 1px solid blue;
+        
     }
     
 }
@@ -12,3 +10,14 @@
 .reports_label{
     font-weight: 600;
 }
+
+.hover-shadow:hover {
+    .label{
+        font-weight: bold;
+        color: blue;
+        border-bottom: 1px solid blue;
+    }
+    background-color: rgb(216, 247, 247);
+    box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.5) !important;
+    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  }

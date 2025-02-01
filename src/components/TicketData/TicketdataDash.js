@@ -1,7 +1,6 @@
 // src/components/TicketData/TicketdataDash.js
-import React, { useState, useCallback, useEffect } from 'react';
-import { ref, get } from 'firebase/database';
-import { api, db } from '../../FirebaseConfig';
+import React, { useState, useEffect } from 'react';
+import { api } from '../../FirebaseConfig';
 import ExcelIcon from '../subscriberpage/drawables/xls.png'
 import * as XLSX from 'xlsx';
 import axios from 'axios';
@@ -55,37 +54,40 @@ export default function TicketdataDash() {
   // };
 
 
-  const fetchExpandData = async() => {
-    try{
-      const subsResponse = await axios.get(api+`/tickets?date=${new Date(filter.startDate).getTime()} ${new Date(filter.endDate).getTime()}&statusq=${filter.Status}`);
-
-
-      if(subsResponse.status !== 200) return;
-      const subsSnap = subsResponse.data;
-      const dataArray = [];
-      Object.keys(subsSnap).forEach((keys) => {
-        const childSnap = subsSnap[keys];
-        dataArray.push(childSnap);
-      });
-
-
-      const isps = [...new Set(dataArray.map((data) => data.isp))];
-      const colonys = [...new Set(dataArray.map((data) => data.Colony))];
-      setUniqueIsp(isps);
-      setUniqueColony(colonys);
-      setArrayData(dataArray);
-
-      
-      
-    }catch(e){
-      console.log(e);
-    }
-  }
+ 
   
   
 
 
     useEffect(() => {
+
+
+      const fetchExpandData = async() => {
+        try{
+          const subsResponse = await axios.get(api+`/tickets?date=${new Date(filter.startDate).getTime()} ${new Date(filter.endDate).getTime()}&statusq=${filter.Status}`);
+    
+    
+          if(subsResponse.status !== 200) return;
+          const subsSnap = subsResponse.data;
+          const dataArray = [];
+          Object.keys(subsSnap).forEach((keys) => {
+            const childSnap = subsSnap[keys];
+            dataArray.push(childSnap);
+          });
+    
+    
+          const isps = [...new Set(dataArray.map((data) => data.isp))];
+          const colonys = [...new Set(dataArray.map((data) => data.Colony))];
+          setUniqueIsp(isps);
+          setUniqueColony(colonys);
+          setArrayData(dataArray);
+    
+          
+          
+        }catch(e){
+          console.log(e);
+        }
+      }
 
     fetchExpandData();
       
@@ -134,9 +136,9 @@ const downloadExcel = () => {
   
 
   return (
-    <div style={{marginTop:'4.5%', marginLeft:'10px', marginRight:'10px'}}>
+    <div style={{marginLeft:'10px', marginRight:'10px'}}>
       <div className='d-flex flex-row'>
-        <h4 style={{flex:'1'}}>Your All Tickets Data</h4>
+        <h5 style={{flex:'1'}}>Your All Tickets Data</h5>
         <img alt='Excel' onClick={downloadExcel} src={ExcelIcon} className='img_download_icon'></img>
       </div>
       

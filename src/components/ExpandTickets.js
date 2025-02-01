@@ -1,8 +1,7 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import './ExpandView.css';
-import { onValue, ref, get } from 'firebase/database';
 import * as XLSX from 'xlsx';
-import { api, db } from '../FirebaseConfig';
+import { api } from '../FirebaseConfig';
 import ExcelIcon from './subscriberpage/drawables/xls.png';
 import { isThisMonth, isThisWeek, isToday, subDays, parseISO } from 'date-fns';
 import SmallModal from './SmallModal'
@@ -13,12 +12,12 @@ import axios from 'axios';
 
 const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
     const {hasPermission} = usePermissions();
-    const [heading, setHeading] = useState('');
     const [arrayData, setArrayData] = useState([]);
     const [filterPeriod, setFilterPeriod] = useState('All Time');
     const [filterStatus, setFilterStatus] = useState('Pending');
     const [ticketSource, setTicketSource] = useState('All'); // New state for status filter
     const [filterData, setFilteredData] = useState([]);
+    const [filterUserId, setFilterUserId] = useState("All");
 
     const [showsmallModal, setShowSmallModal] = useState(false);
     const [ticketclosemodal, setTicketCloseModal] = useState(false);
@@ -29,8 +28,8 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
     const downloadExcel = () => {
         const workbook = XLSX.utils.book_new();
         const worksheet = XLSX.utils.json_to_sheet(arrayData);
-        XLSX.utils.book_append_sheet(workbook, worksheet, heading);
-        XLSX.writeFile(workbook, `${heading} Data.xlsx`);
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Ticket Summary");
+        XLSX.writeFile(workbook, `Tickets Data.xlsx`);
     };
 
 
@@ -99,8 +98,12 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
             filteredArray = filteredArray.filter((data) => data.source === ticketSource);
         }
 
+        if(filterUserId !== "All"){
+            filteredArray = filteredArray.filter((data) => (data.subsID).includes(filterUserId));
+        }
+
         setFilteredData(filteredArray);
-    }, [filterPeriod, filterStatus, arrayData, ticketSource]);
+    }, [filterPeriod, filterStatus, arrayData, ticketSource, filterUserId]);
 
     if (!viewShow) return null;
 
@@ -108,8 +111,13 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
         <div className="modal-body1">
             <div className="modal-data1">
                 <div className="modal-inner1">
-                    <h4 style={{ flex: '1' }}>{heading}</h4>
-                    <form style={{ flex: '2' }} className="row g-3">
+                    <h4 className='me-4'>Ticket Summary</h4>
+                    <form style={{ flex: '4' }} className="row g-3 ms-4">
+                        <div className='col-md-3'>
+                            <label className='form-label'>Enter UserID</label>
+                            <input onChange={(e) => setFilterUserId(e.target.value)} placeholder='e.g. example' className='form-control' type='text'></input>
+
+                        </div>
                         <div className="col-md-3">
                             <label className="form-label">Select Time Period</label>
                             <select
@@ -168,7 +176,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                 <th scope='col'>S. No.</th>
                                 <th scope='col'>User ID</th>
                                 <th scope='col'>Date</th>
-                                <th scope='col'>Source</th>
+                                <th scope='col'>Company</th>
                                 <th scope='col'>Concern</th>
                                 <th scope='col'>Status</th>
                                 <th scope='col'>Description</th>
@@ -179,15 +187,15 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                             </tr>
                         </thead>
                         <tbody>
-                        {filterData.map(({ subsID, source, createby, Concern, creationdate, Time, Description, Status, Assign_to, Ticketno, generatedDate, UserKey }, index) => (
+                        {filterData.map(({ subsID, company, createby, Concern, creationdate, Time, Description, Status, Assign_to, Ticketno, generatedDate, UserKey }, index) => (
                                 <tr key={index}>
                                     <td>{index + 1}</td>
                                     <td style={{maxWidth:'120px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{subsID}</td>
                                     <td>{new Date(generatedDate).toLocaleDateString('en-GM', {day:'2-digit', month:'short', year:'2-digit'}).replace(' ', '-')}</td>
-                                    <td>{source}</td>
+                                    <td>{company}</td>
                                     <td>{Concern}</td>
                                     <td>{Status}</td>
-                                    <td style={{maxWidth:'180px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{Description}</td>
+                                    <td style={{maxWidth:'150px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{Description}</td>
                                     <td>{Assign_to}</td>
                                     <td>{createby}</td>
                                     <td>{`"${creationdate}" at "${Time}"`}</td>

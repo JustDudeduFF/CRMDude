@@ -115,18 +115,19 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                                 dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount, planName, company, isp });
                             }
                         }else if(datafor === 'Due'){
-                            const expDate = convertExcelDateSerial(activationDateSerial);
-                            const isSameMonth = expDate.getFullYear() === currentDate.getFullYear() && expDate.getMonth() === currentDate.getMonth();
-                            if (word === 'Today' && isSameDay(expDate, currentDate) && dueAmount > 0) {
-                                dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp, "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active" });
-                            } else if (word === 'Tomorrow' && isTomorrowDay(expDate, currentDate) && dueAmount > 0) {
-                                dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp, "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active" });
-                            } else if (word === 'Week' && isSameISOWeek(expDate, currentDate) && dueAmount > 0) {
-                                dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp, "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active" });
+                            const expDate = convertExcelDateSerial(expiryDateSerial);
+                            const actDate = convertExcelDateSerial(activationDateSerial);
+                            const isSameMonth = actDate.getFullYear() === currentDate.getFullYear() && actDate.getMonth() === currentDate.getMonth();
+                            if (word === 'Today' && isSameDay(actDate, currentDate) && dueAmount > 0) {
+                                dataArray.push({ username, ActivationDate: actDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp, "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active" });
+                            } else if (word === 'Tomorrow' && isTomorrowDay(actDate, currentDate) && dueAmount > 0) {
+                                dataArray.push({ username, ActivationDate: actDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp, "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active" });
+                            } else if (word === 'Week' && isSameISOWeek(actDate, currentDate) && dueAmount > 0) {
+                                dataArray.push({ username, ActivationDate: actDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp, "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active" });
                             } else if (word === 'Month' && isSameMonth && dueAmount > 0) {
-                                dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp, "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active" });
+                                dataArray.push({ username, ActivationDate: actDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp, "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active" });
                             }else if(word === 'All' && dueAmount > 0){
-                                dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp, "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active" });
+                                dataArray.push({ username, ActivationDate: actDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp, "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active" });
                             }
                         }
                     });

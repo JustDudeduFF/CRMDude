@@ -88,9 +88,9 @@ const RevenueDash = () => {
         setFilter({ ...filter, [name]: value });
       };
   return (
-    <div style={{marginTop:'4.5%', marginLeft:'10px', marginRight:'10px'}}>
+    <div style={{ marginLeft:'10px', marginRight:'10px'}}>
         <div className='d-flex flex-row'>
-        <h4 style={{flex:'1'}}>Your All Revenue Data</h4>
+        <h5 style={{flex:'1'}}>Your All Revenue Data</h5>
         <img alt='Excel' onClick={downloadExcel} src={ExcelIcon} className='img_download_icon'></img>
         </div>
 

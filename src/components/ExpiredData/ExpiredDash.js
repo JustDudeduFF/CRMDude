@@ -130,9 +130,9 @@ const ExpiredDash = () => {
       };
 
   return (
-    <div style={{marginTop:'4.5%', marginLeft:'10px', marginRight:'10px'}}>
+    <div style={{ marginLeft:'10px', marginRight:'10px'}}>
         <div className='d-flex flex-row'>
-            <h4 style={{flex:'1'}}>Your All Expired Data</h4>
+            <h5 style={{flex:'1'}}>Your All Expired Data</h5>
             <img onClick={downloadExcel} src={ExcelIcon} className='img_download_icon'></img>
         </div>
 

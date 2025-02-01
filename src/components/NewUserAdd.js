@@ -1,10 +1,11 @@
 import React, {useState, useEffect} from "react";
-import {db, storage} from '../FirebaseConfig'
+import {api, db, storage} from '../FirebaseConfig'
 import {  uploadBytes, getDownloadURL, ref as dbRef } from "firebase/storage";
 import { ref, set, onValue, update } from "firebase/database";
 import { toast, ToastContainer } from "react-toastify";
 import { ProgressBar } from "react-loader-spinner";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 
 
@@ -146,81 +147,78 @@ export default function NewUserAdd() {
 
 
   useEffect(() => {
-    const colonyRef = ref(db, `Master/Colonys`);
-    const planRef = ref(db, `Master/Broadband Plan`);
-    const ispRef = ref(db, `Master/ISPs`);
     const deviceRef = ref(db, `Inventory/New Stock`);
 
 
-    const unsubscribecolony = onValue(colonyRef, (colonySnap) => {
-      if (colonySnap.exists()) {
-        const colonyArray = [];
-        colonySnap.forEach((Childcolony) => {
-          const colonyname = Childcolony.key;
-          const companyname = Childcolony.val().undercompany;
-          colonyArray.push({colonyname, companyname});
+    // const unsubscribecolony = onValue(colonyRef, (colonySnap) => {
+    //   if (colonySnap.exists()) {
+    //     const colonyArray = [];
+    //     colonySnap.forEach((Childcolony) => {
+    //       const colonyname = Childcolony.key;
+    //       const companyname = Childcolony.val().undercompany;
+    //       colonyArray.push({colonyname, companyname});
 
-        });
-        setArraycolony(colonyArray);
+    //     });
+    //     setArraycolony(colonyArray);
        
-      } else {
-        toast.error('Please Add an colony Location', {
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-      }
-    });
+    //   } else {
+    //     toast.error('Please Add an colony Location', {
+    //       autoClose: 3000,
+    //       hideProgressBar: false,
+    //       closeOnClick: true,
+    //       pauseOnHover: true,
+    //       draggable: true,
+    //       progress: undefined,
+    //     });
+    //   }
+    // });
 
-    const unsubscribeplan = onValue(planRef, (planSnap) => {
-      if (planSnap.exists()) {
-        const planArray = [];
-        planSnap.forEach((Childplan) => {
-          const planname = Childplan.val().planname;
-          const planamount = Childplan.val().planamount;
-          const planperiod = Childplan.val().planperiod;
-          const periodtime = Childplan.val().periodtime;
-          planArray.push({planname, planamount, planperiod, periodtime});
-        });
+    // const unsubscribeplan = onValue(planRef, (planSnap) => {
+    //   if (planSnap.exists()) {
+    //     const planArray = [];
+    //     planSnap.forEach((Childplan) => {
+    //       const planname = Childplan.val().planname;
+    //       const planamount = Childplan.val().planamount;
+    //       const planperiod = Childplan.val().planperiod;
+    //       const periodtime = Childplan.val().periodtime;
+    //       planArray.push({planname, planamount, planperiod, periodtime});
+    //     });
         
-        setArrayplan(planArray);
+    //     setArrayplan(planArray);
         
-      } else {
-        toast.error('Please Add an plan Location', {
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-      }
-    });
+    //   } else {
+    //     toast.error('Please Add an plan Location', {
+    //       autoClose: 3000,
+    //       hideProgressBar: false,
+    //       closeOnClick: true,
+    //       pauseOnHover: true,
+    //       draggable: true,
+    //       progress: undefined,
+    //     });
+    //   }
+    // });
 
-    const unsubscribeisp = onValue(ispRef, (ispSnap) => {
-      if (ispSnap.exists()) {
-        const ispArray = [];
-        ispSnap.forEach((Childisp) => {
-          const ispname = Childisp.val().ispname;
+    // const unsubscribeisp = onValue(ispRef, (ispSnap) => {
+    //   if (ispSnap.exists()) {
+    //     const ispArray = [];
+    //     ispSnap.forEach((Childisp) => {
+    //       const ispname = Childisp.val().ispname;
           
-          ispArray.push(ispname);
-        });
-        setArrayisp(ispArray);
+    //       ispArray.push(ispname);
+    //     });
+    //     setArrayisp(ispArray);
         
-      } else {
-        toast.error('Please Add an isp Location', {
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-      }
-    });
+    //   } else {
+    //     toast.error('Please Add an isp Location', {
+    //       autoClose: 3000,
+    //       hideProgressBar: false,
+    //       closeOnClick: true,
+    //       pauseOnHover: true,
+    //       draggable: true,
+    //       progress: undefined,
+    //     });
+    //   }
+    // });
 
     
     const unsubscribedevice = onValue(deviceRef, (deviceSnap) => {
@@ -248,13 +246,38 @@ export default function NewUserAdd() {
 
 
     return () => {
-      unsubscribecolony();       // Cleanup for colony listener
-      unsubscribeplan();  // Cleanup for plan listener
-      unsubscribeisp();
+      initialData();
       unsubscribedevice();
 
     };
   }, []); 
+
+  const initialData = async() => {
+    const [responseIsp, responsePlan, responseColony] = await Promise.all([
+      axios.get(api+"/master/ISPs?data=isp"),
+      axios.get(api+"/master/Broadband Plan?data=plans"),
+      axios.get(api+"/master/Colonys?data=colony")
+    ]);
+
+    if(responseIsp.status !== 200 || responsePlan.status !== 200 || responseColony.status !== 200){
+      return;
+    }
+
+    const colonyData = responseColony.data;
+    if(colonyData){
+      setArraycolony(colonyData);
+    }
+
+    const planData = responsePlan.data;
+    if(planData){
+      setArrayplan(planData);
+    }
+
+    const ispData = responseIsp.data;
+    if(ispData){
+      setArrayisp(ispData);
+    }
+  }
 
   const updateExpirationDate = (newActivationDate, duration, unit) => {
     const date = new Date(newActivationDate);
@@ -279,6 +302,7 @@ export default function NewUserAdd() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const onekey = Date.now();
+    const userKey = username+onekey;
 
     if(fullName === '' || username === '' || mobileNo === '' || company === '' || installationAddress === '' || conectiontyp === '' || isp === ''){
       toast.error('Manadaratry Field will not be empty', {
@@ -404,11 +428,11 @@ export default function NewUserAdd() {
 
   
         // Add to Firestore
-        await update(ref(db, `Subscriber/${username}`), userData);
-        await set(ref(db, `Subscriber/${username}/ledger/${ledgerkey}`), ledgerdata2);
-        await set(ref(db, `Subscriber/${username}/ledger/${onekey}`), ledgerdata);
-        await set(ref(db, `Subscriber/${username}/Inventory/${onekey}`), inventrydata);
-        await set(ref(db, `Subscriber/${username}/planinfo/${ledgerkey}`), planinfo);
+        await update(ref(db, `Subscriber/${userKey}`), userData);
+        await set(ref(db, `Subscriber/${userKey}/ledger/${ledgerkey}`), ledgerdata2);
+        await set(ref(db, `Subscriber/${userKey}/ledger/${onekey}`), ledgerdata);
+        await set(ref(db, `Subscriber/${userKey}/Inventory/${onekey}`), inventrydata);
+        await set(ref(db, `Subscriber/${userKey}/planinfo/${ledgerkey}`), planinfo);
   
         // Reset form or show success message 
         setLoader(false);

@@ -244,38 +244,44 @@ export default function NewUserAdd() {
     });
 
 
+    initialData();
+
 
     return () => {
-      initialData();
+      
       unsubscribedevice();
 
     };
   }, []); 
 
   const initialData = async() => {
-    const [responseIsp, responsePlan, responseColony] = await Promise.all([
-      axios.get(api+"/master/ISPs?data=isp"),
-      axios.get(api+"/master/Broadband Plan?data=plans"),
-      axios.get(api+"/master/Colonys?data=colony")
-    ]);
-
-    if(responseIsp.status !== 200 || responsePlan.status !== 200 || responseColony.status !== 200){
-      return;
-    }
-
-    const colonyData = responseColony.data;
-    if(colonyData){
-      setArraycolony(colonyData);
-    }
-
-    const planData = responsePlan.data;
-    if(planData){
-      setArrayplan(planData);
-    }
-
-    const ispData = responseIsp.data;
-    if(ispData){
-      setArrayisp(ispData);
+    try{
+      const [responseIsp, responsePlan, responseColony] = await Promise.all([
+        axios.get(api+"/master/ISPs?data=isp"),
+        axios.get(api+"/master/Broadband Plan?data=plans"),
+        axios.get(api+"/master/Colonys?data=colony")
+      ]);
+  
+      if(responseIsp.status !== 200 || responsePlan.status !== 200 || responseColony.status !== 200){
+        return;
+      }
+  
+      const colonyData = responseColony.data;
+      if(colonyData){
+        setArraycolony(colonyData);
+      }
+  
+      const planData = responsePlan.data;
+      if(planData){
+        setArrayplan(planData);
+      }
+  
+      const ispData = responseIsp.data;
+      if(ispData){
+        setArrayisp(ispData);
+      }
+    }catch(e){
+      console.log(e);
     }
   }
 

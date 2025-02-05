@@ -61,7 +61,7 @@ export default function NewEmployee() {
         CLOSE_TICKET: false,
         REASSING_TICKET: false,
         ROLLBACK_PLAN: false,
-        
+        RESEND_CODE: false
       });
   
       const [masterpermission, setMasterPermission] = useState({
@@ -654,6 +654,11 @@ export default function NewEmployee() {
                   <div className='form-check form-check-inline col-md-2'>
                     <input name='ROLLBACK_PLAN' onChange={handleCustomerIndividualChange} checked={customerpermission.ROLLBACK_PLAN} className='form-check-input' type='checkbox' id='rollbackplan' ></input>
                     <label className='form-check-label' for='rollbackplan'>Plan Rollback</label>
+                  </div>
+
+                  <div className='form-check form-check-inline col-md-2'>
+                    <input name='RESEND_CODE' onChange={handleCustomerIndividualChange} checked={customerpermission.RESEND_CODE} className='form-check-input' type='checkbox' id='resendcode' ></input>
+                    <label className='form-check-label' for='resendcode'>Resend Code</label>
                   </div>
 
                   

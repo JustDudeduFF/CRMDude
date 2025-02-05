@@ -1,64 +1,103 @@
-import { onValue, ref, update, get } from 'firebase/database';
+import { ref, update } from 'firebase/database';
 import React, { useEffect, useState } from 'react';
-import { db } from '../../FirebaseConfig';
+import { api, db } from '../../FirebaseConfig';
 import { useNavigate } from 'react-router-dom';
 import { usePermissions } from '../PermissionProvider';
+import { Modal } from 'react-bootstrap';
+import PermissionDenied from '../PermissionDenied';
+import axios from 'axios';
+import { toast, ToastContainer } from 'react-toastify';
 
 export default function TicketTable() {
   const {hasPermission} = usePermissions();
   const username = localStorage.getItem('susbsUserid');
   const navigate = useNavigate();
-
-  const [usersLookup, setUsersLookup] = useState({});
   const [arrayticket, setArrayTicket] = useState([]);
+  const [codemodal, setCodeModal] = useState(false);
+  const [selecticket, setSelectTicket] = useState({
+    ticketno: "",
+    mobile: "",
+    happycode: "",
+    name:""
+  });
+  const [showpermission, setshowpermission] = useState(false);
+
+
+
+
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const userSnap = await get(ref(db, 'users'));
-        const lookup = {};
-        userSnap.forEach((childSnap) => {
-          const userId = childSnap.key;
-          const { FULLNAME } = childSnap.val();
-          lookup[userId] = FULLNAME || 'Unknown User';
-        });
-        setUsersLookup(lookup);
-      } catch (error) {
-        console.error('Error fetching user data:', error);
+
+    const fetchTicket = async() => {
+      const response = await axios.get(api+`/subscriber/${username}?data=webticket`);
+
+      if(response.status !== 200) return;
+
+      const ticketData = response.data;
+      if(ticketData){
+        setArrayTicket(ticketData);
       }
-    };
+    }
+
+    fetchTicket();
+    // const ticketRef = ref(db, `Subscriber/${username}/Tickets`);
     
-    fetchUsers();
+    // const unsubscribe = onValue(ticketRef, (ticketSnap) => {
+    //   if (!ticketSnap.exists()) {
+    //     setArrayTicket([]);
+    //     return;
+    //   }
+
+    //   const ticketArray = [];
+    //   ticketSnap.forEach((Childticket) => {
+    //     const ticket = Childticket.val();
+    //     ticketArray.push({
+    //       ...ticket,
+    //       assignto: usersLookup[ticket.assignto] || 'Not Assigned',
+    //       closeby: usersLookup[ticket.closeby] || ticket.closeby,
+    //       generateby: usersLookup[ticket.generatedBy] || ticket.generatedBy
+    //     });
+    //   });
+      
+    //   setArrayTicket(ticketArray);
+    // });
+
+    // return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    const ticketRef = ref(db, `Subscriber/${username}/Tickets`);
-    
-    const unsubscribe = onValue(ticketRef, (ticketSnap) => {
-      if (!ticketSnap.exists()) {
-        setArrayTicket([]);
-        return;
-      }
+  const resendcode = async() => {
+    setCodeModal(false);
+    const message = `Dear ${selecticket.name} 👋,\n\n🔒 Your Happy Code: ${selecticket.happycode}\n\nFor Ticket No: ${selecticket.ticketno}\n\nStay connected with\nSigma Business Solutions`
+    const encodedmsg = encodeURIComponent(message);
+    const msgresponse = await axios.post(api+`/send-message?number=91${selecticket.mobile}&message=${encodedmsg}`);
 
-      const ticketArray = [];
-      ticketSnap.forEach((Childticket) => {
-        const ticket = Childticket.val();
-        ticketArray.push({
-          ...ticket,
-          assignto: usersLookup[ticket.assignto] || 'Not Assigned',
-          closeby: usersLookup[ticket.closeby] || ticket.closeby,
-          generateby: usersLookup[ticket.generatedBy] || ticket.generatedBy
-        });
-      });
-      
-      setArrayTicket(ticketArray);
-    });
 
-    return () => unsubscribe();
-  }, [username, usersLookup]);
+
+    if(msgresponse.status !== 200){
+      toast.error(`Couldn't send Message`, {
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: false,
+        progress: undefined,
+      });           
+    }
+
+    toast.success(`Message Send 👌`, {
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: false,
+      draggable: false,
+      progress: undefined,
+    });  
+
+  }
 
   return (
     <div>
+      <ToastContainer className='mt-3'></ToastContainer>
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: 'max-content' }} className="table">
           <thead>
@@ -80,7 +119,7 @@ export default function TicketTable() {
           <tbody className='table-group-divider'>
             {
               arrayticket.length > 0 ? (
-                arrayticket.slice().reverse().map(({ ticketno, source, ticketconcern, assignto, description, assigntime, assigndate, status, closeby, closedate, closetime, rac, generatedDate, generateby }, index) => (
+                arrayticket.slice().reverse().map(({ ticketno, source, ticketconcern, assignto, description, assigntime, assigndate, status, closeby, closedate, closetime, rac, generatedDate, generateby, mobile, name, happycode }, index) => (
                   <tr className={status === "Completed" ? "table-success" : status === "Canceled" ? "table-danger" : "table-secondary"} key={index}> 
                     <td style={{ color: 'green', cursor: 'pointer' }} className="btn" data-bs-toggle="dropdown" aria-expanded="false">{ticketno}</td>
                     <ol className="dropdown-menu">
@@ -101,14 +140,13 @@ export default function TicketTable() {
                       <li onClick={() => {
                         if(hasPermission("CLOSE_TICKET")){
                           if(status !== "Completed"){
-                            const globalref = ref(db, `Global Tickets/${ticketno}`);
+                            
                             const ticketref = ref(db, `Subscriber/${username}/Tickets/${ticketno}`);
     
                             const data = {
                               status: 'Canceled'
                             }
     
-                            update(globalref, data);
                             update(ticketref, data);
                           }else{
                             alert("Ticket is Closed Now")
@@ -117,6 +155,20 @@ export default function TicketTable() {
                           alert("Permission Denied")
                         }
                       }} className='dropdown-item'>Cancel Ticket</li>
+                      
+                      <li onClick={() => {
+                        if(hasPermission("RESEND_CODE") && status === "Pending" ){
+                          setSelectTicket({
+                            ticketno:ticketno,
+                            mobile:mobile,
+                            happycode:happycode,
+                            name:name
+                          });
+                          setCodeModal(true);
+                        }else{
+                          setshowpermission(true);
+                        }
+                      }} className='dropdown-item'>Re-Send Code</li>
                     </ol>
                     <td>{source}</td>
                     <td>{generatedDate}</td>
@@ -138,6 +190,37 @@ export default function TicketTable() {
           </tbody>
         </table>
       </div>
+
+      <PermissionDenied setshow={showpermission} setonHide={() => setshowpermission(false)}></PermissionDenied>
+
+      <Modal show={codemodal} onHide={() => setCodeModal(false)}>
+        <Modal.Header>
+          <div className='d-flex flex-column'>
+            <Modal.Title>
+              Resend Happy Code
+            </Modal.Title>
+            <span>{`For Ticket No: ${selecticket.ticketno}`}</span>
+          </div>
+          
+        </Modal.Header>
+        <Modal.Body>
+          <div className='container'>
+            <div className='col-md'>
+              <label className='form-label'>Customer Mobile Number</label>
+              <input defaultValue={selecticket.mobile} onChange={(e) => {
+                setSelectTicket({
+                  ...selecticket,
+                  mobile:e.target.value
+                });
+              }} className='form-control' type='phone' maxLength={10}></input>
+            </div>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <button onClick={resendcode} className='btn btn-primary'>Send</button>
+          <button onClick={() => setCodeModal(false)} className='btn btn-outline-secondary'>Cancel</button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

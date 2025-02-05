@@ -12,8 +12,6 @@ export default function SubscriberDetails() {
     const userid = localStorage.getItem("susbsUserid");
     const [showmodal, setShowModal] = useState(false);
     const [arrayColony, setArrayColony] = useState([]);
-    const [showTerminate, setShowTerminate] = useState(false);
-    const [terminateRemark, setTerminateRemark] = useState('');
 
     const [subsDetail, setSubsDetail] = useState({
         name: '',
@@ -25,7 +23,6 @@ export default function SubscriberDetails() {
         conectiontyp: '',
         companyname: '',
         username: '',
-        isTerminated: ''
         });
 
     const [prevSubsDetail, setPrevSubsDetail] = useState({});
@@ -45,7 +42,6 @@ export default function SubscriberDetails() {
                 conectiontyp: userSnap.child("connectionDetails").val().conectiontyp,
                 companyname: userSnap.val().company,
                 username: userSnap.val().username,
-                isTerminated: userSnap.val().isTerminate
             });
             
             
@@ -129,20 +125,6 @@ export default function SubscriberDetails() {
 
     }
 
-    const teminateUser = async() => {
-        const key = Date.now();
-        const terminate = {
-            isTerminate:true
-        }
-        const terminatelog = {
-            date: new Date().toISOString().split('T')[0],
-            description: `User Terminated: ${terminateRemark}`,
-            modifiedby: localStorage.getItem('contact')
-        }
-        await update(ref(db, `Subscriber/${userid}`), terminate);
-        await update(ref(db, `Subscriber/${userid}/logs/${key}`), terminatelog);
-        alert("User id Terminated");
-    }
 
 
   return (
@@ -164,8 +146,7 @@ export default function SubscriberDetails() {
                     <button onClick={() => {
                         setPrevSubsDetail(subsDetail);
                         setShowModal(true);
-                    }} type="button" className="btn btn-outline-secondary ms-2">Edit Info</button>
-                    <button onClick={() => setShowTerminate(true)} className={subsDetail.isTerminated ? 'btn btn-success ms-2 me-2' : 'btn btn-danger ms-2 me-2'}>{subsDetail.isTerminated ? 'Active User' : 'Terminated User'}</button>
+                    }} type="button" className="btn btn-outline-secondary ms-2 me-3">Edit Info</button>
                 </div>
             </div>
         </div>
@@ -279,26 +260,6 @@ export default function SubscriberDetails() {
                 <button onClick={handleUpdate} className='btn btn-primary'>Update</button>
                 <button onClick={() => setShowModal(false)} className='btn btn-outline-secondary'>Close</button>
            </Modal.Footer>
-        </Modal>
-
-        <Modal show={showTerminate} onHide={() => setShowTerminate(false)}>
-            <Modal.Header>
-                <Modal.Title>
-                    Remark for Termination
-                </Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-                <div className='container'>
-                    <div className='col-md'>
-                        <label className='form-label'>Enter Remarks</label>
-                        <input onChange={(e) => setTerminateRemark(e.target.value)} className='form-control' type='text' placeholder='e.g reason for termination'></input>
-                    </div>
-                </div>
-            </Modal.Body>
-            <Modal.Footer>
-                <button onClick={teminateUser} className='btn btn-outline-danger'>Terminate User</button>
-                <button onClick={() => setShowTerminate(false)} className='btn btn-secondary'>Close</button>
-            </Modal.Footer>
         </Modal>
     </>
     

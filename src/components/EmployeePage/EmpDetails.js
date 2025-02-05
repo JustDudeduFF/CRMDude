@@ -55,7 +55,8 @@ export default function EmpDetails() {
       CREATE_TICKET: false,
       CLOSE_TICKET: false,
       REASSING_TICKET: false,
-      ROLLBACK_PLAN: false
+      ROLLBACK_PLAN: false,
+      RESEND_CODE: false
       
     });
 
@@ -367,7 +368,8 @@ export default function EmpDetails() {
                     CREATE_TICKET: userData.customerpermission?.CREATE_TICKET || false,
                     CLOSE_TICKET: userData.customerpermission?.CLOSE_TICKET || false,
                     REASSING_TICKET: userData.customerpermission?.REASSING_TICKET || false,
-                    ROLLBACK_PLAN: userData.customerpermission?.ROLLBACK_PLAN || false
+                    ROLLBACK_PLAN: userData.customerpermission?.ROLLBACK_PLAN || false,
+                    RESEND_CODE: userData.customerpermission?.RESEND_CODE || false
                   });
 
                   setMasterPermission({
@@ -787,6 +789,11 @@ export default function EmpDetails() {
                   <div className='form-check form-check-inline col-md-2'>
                     <input name='ROLLBACK_PLAN' onChange={handleCustomerIndividualChange} checked={customerpermission.ROLLBACK_PLAN} className='form-check-input' type='checkbox' id='rollbackplan'disabled={!isEditing} ></input>
                     <label className='form-check-label' for='rollbackplan'>Plan Rollback</label>
+                  </div>
+
+                  <div className='form-check form-check-inline col-md-2'>
+                    <input name='RESEND_CODE' onChange={handleCustomerIndividualChange} checked={customerpermission.RESEND_CODE} className='form-check-input' type='checkbox' id='resendcode' disabled={!isEditing}></input>
+                    <label className='form-check-label' for='resendcode'>Resend Code</label>
                   </div>
 
                   

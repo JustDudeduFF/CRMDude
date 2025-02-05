@@ -44,6 +44,7 @@ export default function Subscriber() {
       const [loading, setLoading] = useState(false);
       const [isTerminated, setIsTeminated] = useState(false);
       const [terminateRemark, setTerminateRemark] = useState('');
+      const [temptermstatus, setTempTermStatus] = useState();
 
 
 
@@ -166,7 +167,6 @@ export default function Subscriber() {
             dueAmount: newDue,
             bandwidth: bandwidth
           }
-          console.log(newDue);
 
         await set(ref(db, `Subscriber/${username}/ledger/${ledgerKey}`), ledgerData);
 
@@ -182,7 +182,6 @@ export default function Subscriber() {
            
             const sendMail = async () => {
                 const response = await axios.post(api+'/sendmail', emailData);
-                console.log(response.data.message);
             }
 
             const sendWhatsapp = async () => {
@@ -308,7 +307,6 @@ export default function Subscriber() {
                 const ispResponse = await axios.get(api+'/master/ISPs');
     
                 if(ispResponse.status !== 200){
-                    console.log(ispResponse.statusText);
                     return;
                 };
     
@@ -371,16 +369,29 @@ export default function Subscriber() {
        const teminateUser = async() => {
             const key = Date.now();
             const terminate = {
-                isTerminate:true
+                isTerminate:temptermstatus
             }
             const terminatelog = {
                 date: new Date().toISOString().split('T')[0],
                 description: `User Terminated: ${terminateRemark}`,
                 modifiedby: localStorage.getItem('contact')
             }
-            await update(ref(db, `Subscriber/${userid}`), terminate);
-            await update(ref(db, `Subscriber/${userid}/logs/${key}`), terminatelog);
-            alert("User id Terminated");
+            try{
+                await update(ref(db, `Subscriber/${username}`), terminate);
+                await update(ref(db, `Subscriber/${username}/logs/${key}`), terminatelog);
+
+                toast.success(`User Status Updated`, {
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: false,
+                    progress: undefined,
+                })
+            }catch(e){
+                console.log(e);
+            }
+            
         }
     
 
@@ -791,15 +802,18 @@ export default function Subscriber() {
                 <div className='container'>
                     <div className='col-md'>
                         <label className='form-label'>Select Account Status</label>
-                        <select className='form-select'>
-                            <option>Choose...</option>
-                            <option>{isTerminated ? "Active" : "Terminate"}</option>
+                        <select 
+                            onChange={(e) => setTempTermStatus(e.target.value === "true")} 
+                            className='form-select'
+                        >
+                            <option value={isTerminated}>Choose...</option>
+                            <option value={isTerminated ? "false" : "true"}>{isTerminated ? "Active" : "Terminated"}</option>
                         </select>
                     </div>
 
                     <div className='col-md mt-2'>
                         <label className='form-label'>Enter Remarks</label>
-                        <input className='form-control' type='text' placeholder='e.g. Reason or Remark'></input>
+                        <input onChange={(e) => setTerminateRemark(e.target.value)} className='form-control' type='text' placeholder='e.g. Reason or Remark'></input>
                     </div>
                 </div>
             </Modal.Body>

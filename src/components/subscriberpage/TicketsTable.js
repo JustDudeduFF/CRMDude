@@ -33,7 +33,7 @@ export default function TicketsTable() {
             <Routes>
                 <Route path='/' element={<TicketTable/>}/>
                 <Route path='newticket' element={<ProtectedRoute permission="CREATE_TICKET"><NewTicket/></ProtectedRoute>}/>
-                <Route path='modifyticket' element={<ModifyTicket/>}/>
+                <Route path='modifyticket' element={<ProtectedRoute permission="CLOSE_TICKET"><ModifyTicket/></ProtectedRoute>}/>
             </Routes>
         </div>
         </>

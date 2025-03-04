@@ -97,13 +97,14 @@ export default function NewUserAdd() {
 
   const initialData = async() => {
     try{
-      const [responsePlan, responseColony, responseUsers] = await Promise.all([
+      const [responsePlan, responseColony, responseIsp, responseUsers] = await Promise.all([
         axios.get(api+"/master/Broadband Plan"),
         axios.get(api+"/master/Colonys?data=colony"),
+        axios.get(api+'/master/ISPs'),
         axios.get(api+'/users')
       ]);
   
-      if(responsePlan.status !== 200 || responseColony.status !== 200 || responseUsers.status !== 200){
+      if(responsePlan.status !== 200 || responseColony.status !== 200 || responseUsers.status !== 200 || responseIsp.status !== 200){
         return;
       }
   
@@ -121,11 +122,19 @@ export default function NewUserAdd() {
 
           array.push({...plan, planKey});
         });
-        const isp = [...new Set(array.map((data) => data.isp))];
         const provider = [...new Set(array.map((data) => data.provider))];
-        setArrayisp(isp);
         setArrayProvider(provider);
         setArrayplan(array);
+      }
+
+      const ispData = responseIsp.data;
+      if(ispData){
+        const array = [];
+        Object.keys(ispData).forEach((key) => {
+          const isp = ispData[key];
+          array.push(isp);
+        });
+        setArrayisp(array);
       }
 
       const userData = responseUsers.data;
@@ -365,9 +374,6 @@ export default function NewUserAdd() {
       filterArray = filterArray.filter((data) => data.provider === planData.provider);
     }
 
-    if(planData.isp !== 'All'){
-      filterArray = filterArray.filter((data) => data.isp === planData.isp);
-    }
 
     setFilterPlans(filterArray);
 
@@ -569,7 +575,7 @@ export default function NewUserAdd() {
             {
               arrayisp.length > 0 ? (
                 arrayisp.map((isp, index) => (
-                  <option key={index} value={isp}>{isp}</option>
+                  <option key={index} value={isp.ispname}>{isp.ispname}</option>
                 ))
               ) : (
                 <option value=''>No Isp Available</option>
@@ -616,7 +622,7 @@ export default function NewUserAdd() {
                 plancode:selectedPlanName,
                 bandwidth:selectedPlanObj.bandwidth,
                 provider:selectedPlanObj.provider,
-                isp:selectedPlanObj.isp,
+                isp:planData.isp,
                 planname:selectedPlanObj.planname
               })
 

@@ -15,8 +15,6 @@ import { ProgressBar } from 'react-loader-spinner';
 import axios from 'axios';
 import { db } from '../../FirebaseConfig'
 import { ref, get, set, update, onValue } from 'firebase/database'
-import RenewalModal from './RenewalModal';
-import PlanChangeModal from './PlanChangeModal';
 import { toast, ToastContainer } from 'react-toastify';
 import { usePermissions } from '../PermissionProvider';
 import { Modal, Spinner } from 'react-bootstrap';
@@ -180,7 +178,6 @@ export default function Subscriber() {
 
     const fetchData = async () => {
         try {
-            setLoader(true);
 
             const userResponse = await axios.get(api+'/subscriber/'+username+'?data=wholeuser');
             const ispResponse = await axios.get(api+'/master/ISPs');
@@ -224,6 +221,9 @@ export default function Subscriber() {
 
 
 
+
+
+
             
 
             const ispData = ispResponse.data;
@@ -256,9 +256,7 @@ export default function Subscriber() {
             }
         } catch (error) {
             console.error('Error fetching data:', error);
-        } finally {
-            setLoader(false);
-        }
+        } 
     };
 
 
@@ -266,9 +264,14 @@ export default function Subscriber() {
 
     useEffect(() => {
         fetchData();
-    }, [username]);
+        const interval = setInterval(() => {
+            fetchData();
+        }, 2000);
     
-    // Separate useEffect to calculate remaining days when expiryDate is updated
+        return () => clearInterval(interval); // Cleanup on unmount or `username` change
+    }, [username]); // Runs when `username` changes
+    
+
     useEffect(() => {
         if (expiryDate) {
             const calculateDaysBetween = () => {
@@ -373,10 +376,6 @@ export default function Subscriber() {
             filterArray = filterArray.filter((data) => data.provider === changePlanData.provider);
         }
 
-        if(changePlanData.isp !== 'All'){
-            filterArray = filterArray.filter((data) => data.isp === changePlanData.isp);
-        }
-
         setFilterPlans(filterArray);
     }, [changePlanData]);
 
@@ -462,7 +461,7 @@ export default function Subscriber() {
             setModalChangePlan(false);
             setChangePlanData({
                 provider:'All',
-                isp:'All',
+                isp:'',
                 planname:'',
                 activationDate:new Date().toISOString().split('T')[0],
                 expiryDate:'',
@@ -641,7 +640,7 @@ export default function Subscriber() {
                                             setChangePlanData({
                                                 ...changePlanData,
                                                 provider:cuObj.provider,
-                                                isp:cuObj.isp,
+                                                isp:isp,
                                                 planname:cuObj.planname,
                                                 bandwidth:cuObj.bandwidth,
                                                 expiryDate:updateExpirationDate(new Date().toISOString().split('T')[0], cuObj.periodtime, cuObj.planperiod),
@@ -895,8 +894,8 @@ export default function Subscriber() {
                             })} className='form-select'>
                                 <option>Choose...</option>
                                 {
-                                    isps.map((data, index) => (
-                                        <option key={index}>{data}</option>
+                                    ispArray.map((data, index) => (
+                                        <option key={index} value={data}>{data}</option>
                                     ))
                                 }
                             </select>
@@ -913,7 +912,7 @@ export default function Subscriber() {
                                 setChangePlanData({
                                     ...changePlanData,
                                     provider:selectedObj.provider,
-                                    isp:selectedObj.isp,
+                                    isp:changePlanData.isp,
                                     planAmount:selectedObj.planamount,
                                     planname:selectedObj.planname, 
                                     bandwidth:selectedObj.bandwidth,

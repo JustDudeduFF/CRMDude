@@ -19,7 +19,7 @@ export default function BroadBandPlans() {
         provider:'',
         planperiod:'',
         periodtime:'',
-        isp:'',
+        isp:'All',
         bandwidth:'',
         company:'',
         isWeb:false,
@@ -33,6 +33,18 @@ export default function BroadBandPlans() {
 
     const saveplan = async() => {
         const planCode = planDetails.planamount+planDetails.planperiod+planDetails.periodtime+planDetails.bandwidth+Date.now();
+
+        if(planDetails.planamount === '' || planDetails.periodtime === '' || planDetails.planname === '' || planDetails.bandwidth === ''){
+            toast.error('Fill All Details', {
+                autoClose:2000,
+                hideProgressBar:false,
+                closeOnClick:true,
+                pauseOnHover:false,
+                draggable:false,
+                progress:undefined
+            })
+            return;
+        }
 
         try{
             await update(ref(db, `Master/Broadband Plan/${planCode}`), planDetails);
@@ -176,6 +188,7 @@ export default function BroadBandPlans() {
 
     return (
         <div className='d-flex ms-3 flex-column'>
+            <ToastContainer/>
             <div className='d-flex flex-row'>
                 <h5 style={{ flex: '1' }}>Broadband Plan List</h5>
                 <button onClick={() => hasPermission("ADD_PLAN") ? setShowModal(true) : alert("Permission Denied")} className='btn btn-outline-success justify-content-end mb-2'>
@@ -296,7 +309,7 @@ export default function BroadBandPlans() {
                                             ...planDetails,
                                             isp:e.target.value
                                         })
-                                    }} className='form-select'>
+                                    }} className='form-select' disabled>
                                         <option value=''>Choose...</option>
                                         {
                                             isps.map((data, index) => (

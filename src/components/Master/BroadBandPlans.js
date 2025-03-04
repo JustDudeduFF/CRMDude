@@ -89,7 +89,8 @@ export default function BroadBandPlans() {
         // });
 
         const fetchData = async() => {
-            const provResponse = await axios.get(api+'/master/Provider');
+            try{
+                const provResponse = await axios.get(api+'/master/Provider');
             const ispResponse = await axios.get(api+'/master/ISPs');
             const compResponse = await axios.get(api+'/master/companys');
             const planResponse = await axios.get(api+'/master/Broadband Plan');
@@ -157,12 +158,15 @@ export default function BroadBandPlans() {
                 setCompanys(array);
 
             }
+
+            }catch(e){
+                console.log(e)
+            }
         }
 
-        return () => {
-            fetchData();
-            
-        }
+
+        fetchData();
+
     }, [])
 
 

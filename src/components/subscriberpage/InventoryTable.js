@@ -29,7 +29,7 @@ export default function InventoryTable() {
             <Routes>
                 <Route path='/' element={<InventorysTable/>}/>
                 <Route path='addproduct' element={<ProtectedRoute permission="ADD_DEVICE"><AddInvetory/></ProtectedRoute>}/> 
-                <Route path='modinvent' element={<ProtectedRoute permission="CHANGE_DEVICE"><InventryModify/></ProtectedRoute>}/>
+                <Route path='modinvent' element={<ProtectedRoute permission="CHANGE_DEVICE_STATUS"><InventryModify/></ProtectedRoute>}/>
             </Routes>
         </div>
         </>

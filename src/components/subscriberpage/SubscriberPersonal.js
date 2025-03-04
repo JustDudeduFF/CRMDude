@@ -1,8 +1,9 @@
 import Lottie from 'lottie-react'
 import React, {useState, useEffect} from 'react'
 import LocationAnimation from './drawables/locationanimation.json'
-import { db } from '../../FirebaseConfig';
+import { api, db } from '../../FirebaseConfig';
 import { ref, get } from 'firebase/database';
+import axios from 'axios';
 
 export default function SubscriberPersonal() {
   const username = localStorage.getItem('susbsUserid')
@@ -26,7 +27,9 @@ export default function SubscriberPersonal() {
   
   const userRef = ref(db, `Subscriber/${username}`);
   const fieldRef = ref(db, `Subscriber/${username}/fieldFiberDetails`);
-  const inventRef = ref(db, `Subscriber/${username}/inventoryDeviceDetails`)
+  const inventRef = ref(db, `Subscriber/${username}/inventoryDeviceDetails`);
+
+
   useEffect(() => {
       const fetchsubsdata = async () => {
           const userSnap = await get(userRef);
@@ -36,10 +39,7 @@ export default function SubscriberPersonal() {
               setInstallationAddress(userSnap.val().installationAddress);
               setMobileNo(userSnap.val().mobileNo);
               setAlternateNo(userSnap.val().alternatNo);
-
           }
-
-
       }
 
       const fetchConnectivityInfo = async () => {
@@ -58,13 +58,33 @@ export default function SubscriberPersonal() {
           }
         }
         
-    }
+      }
+
+      const fetchInventory = async() => {
+        try{
+          const response = await axios.get(api+`/subscriber/${username}?data=inventory`);
+
+          if(response.status !== 200) return;
+
+          const data = response.data;
+          if(data){
+            console.log(data);
+          }
+
+        }catch(e){
+          console.log(e);
+        }
+      }
 
       fetchConnectivityInfo();
 
       fetchsubsdata();
 
+      fetchInventory();
+
   }, [username]);
+
+
   return (
     <div style={{display:'flex', flexDirection:'column'}}>
         <div style={{ flex:'1', display:'flex', flexDirection:'row', padding:'8px'}}>

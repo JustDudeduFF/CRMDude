@@ -24,7 +24,7 @@ export default function RechargeTable() {
                     const planAmount = parseFloat(Childplan.val().planAmount);
                     const completedby = Childplan.val().completedby;
                     const action = Childplan.val().action;
-                    const date = Childplan.val().date;
+                    const date = Childplan.val().compeletedate;
                     const remarks = Childplan.val().remarks;
                     planArray.push({plankey, planAmount, action, activationDate, expiryDate, isp, completedby, planName, date, remarks});
                 });
@@ -149,11 +149,11 @@ export default function RechargeTable() {
                                 </ul>
                                 <td>{planAmount.toFixed(2)}</td>
                                 <td>{isp}</td>
-                                <td>{activationDate}</td>
-                                <td>{expiryDate}</td>
+                                <td>{new Date(activationDate).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}</td>
+                                <td>{new Date(expiryDate).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}</td>
                                 <td>{action}</td>
                                 <td>{completedby}</td>
-                                <td>{date}</td>
+                                <td>{new Date(date).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}</td>
                                 <td>{remarks}</td>
                                 
                                 

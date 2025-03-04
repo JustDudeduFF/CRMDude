@@ -7,7 +7,7 @@ import axios from 'axios';
 
 
 export default function NewTicket() {
-  const userid = localStorage.getItem('userid')
+  const company = localStorage.getItem('company');
   const username = localStorage.getItem('susbsUserid');
   const fullname = localStorage.getItem('subsname');
   const mobile = localStorage.getItem('subscontact');
@@ -66,8 +66,8 @@ export default function NewTicket() {
       const encodedMessage = encodeURIComponent(newMessage);
       const exMessage = `Dear Executive,\n\nYou have been assigned a new ticket. Below are the details:\n\n🎫 *Ticket No:* ${ticketno}\n👤 *Customer Name:* ${fullname}\n📱 *Mobile Number:* ${mobile}\n💼 *User ID:* ${username}\n\nFor more details, please visit the application.\n\nThank you!\nRegards,\n*Sigma Business Solutions*`
       const enCodedExMessage = encodeURIComponent(exMessage);
-      await axios.post(api+`/send-message?number=91${mobile}&message=${encodedMessage}`);
-      await axios.post(api+`/send-message?number=91${assignemp}&message=${enCodedExMessage}`);
+      await axios.post(api+`/send-message?number=91${mobile}&message=${encodedMessage}&company=${company}`);
+      await axios.post(api+`/send-message?number=91${assignemp}&message=${enCodedExMessage}&company=${company}`);
     }
 
 

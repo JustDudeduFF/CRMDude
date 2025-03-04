@@ -88,21 +88,21 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
 
     const savePlan = async () => {
         setRenewBtn(true);
-        const newDue = (parseInt(dueamount, 10) || 0) + (parseInt(customecharge, 10) || parseInt(planamount, 10));
+        const newDue = (Number(dueamount, 10) || 0) + (Number(customecharge, 10) || Number(planamount, 10));
         // Add disabled Amount
 
         const ledgerData = {
             type:'Plan Change',
             date: new Date().toISOString().split('T')[0],
             particular: `${planName} From ${activationDate} to ${expirydate}`,
-            debitamount: parseInt(customecharge, 10) || parseInt(planamount, 10),
+            debitamount: Number(customecharge, 10) || Number(planamount, 10),
             creditamount: 0
         }
 
         const planinfo ={
             compeletedate: new Date().toISOString().split('T')[0],
             planName: planName,
-            planAmount: parseInt(customecharge, 10).toString() || parseInt(planamount, 10).toString(),
+            planAmount: Number(customecharge, 10).toString() || Number(planamount, 10).toString(),
             isp: isp,
             activationDate: activationDate,
             expiryDate: expirydate,
@@ -115,7 +115,7 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
           const newconnectioninfo = {
             activationDate: activationDate,
             expiryDate: expirydate,
-            planAmount: parseInt(customecharge, 10) || parseInt(planamount, 10),
+            planAmount: Number(customecharge, 10) || Number(planamount, 10),
             dueAmount: newDue,
             planName: planName,
             bandwidth: `${bandwidth} Mbps`,
@@ -125,11 +125,11 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
           const emailData = {
             to: mailId,
             subject: 'Broadband Subscription Renwal',
-            text: `🌐 Broadband Recharge Successful! 🎉\n\nDear ${fullName},\n\n✅ Your broadband recharge for ${planName} has been successfully completed.\n\n💳 *Amount Paid:* ₹${planamount}\n📅 *Validity:* ${new Date(activationDate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})} to ${new Date(expirydate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})}\n🚀 *Speed:* Up to ${bandwidth} Mbps\n\nThank you for choosing *Sigma Business Solutions*! 😊\n\n✨ Enjoy uninterrupted browsing and streaming! 🎬📱\n\nFor support or queries, feel free to reach out to us:\n📞 *Customer Care:* 9999118971\n💬 *WhatsApp Support:* 9999118971    *24x7*\n\nStay connected, stay happy! 🌟`
+            text: `🌐 Broadband Recharge Successful! 🎉\n\nDear ${fullName},\n\n✅ Your broadband recharge for ${planinfo.planName} has been successfully completed.\n\n💳 *Amount Paid:* ₹${ledgerData.debitamount}\n📅 *Validity:* ${new Date(planinfo.activationDate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})} to ${new Date(planinfo.expirydate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})}\n🚀 *Speed:* Up to ${planinfo.bandwidth}\n\nThank you for choosing *Sigma Business Solutions*! 😊\n\n✨ Enjoy uninterrupted browsing and streaming! 🎬📱\n\nFor support or queries, feel free to reach out to us:\n📞 *Customer Care:* 9999118971\n💬 *WhatsApp Support:* 9999118971    *24x7*\n\nStay connected, stay happy! 🌟`
         }
 
           const sendMessage = async() => {
-            const message = `🌐 Broadband Recharge Successful! 🎉\n\nDear ${fullName},\n\n✅ Your broadband recharge for ${planName} has been successfully completed.\n\n💳 *Amount Paid:* ₹${planamount}\n📅 *Validity:* ${new Date(activationDate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})} to ${new Date(expirydate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})}\n🚀 *Speed:* Up to ${bandwidth} Mbps\n\nThank you for choosing *Sigma Business Solutions*! 😊\n\n✨ Enjoy uninterrupted browsing and streaming! 🎬📱\n\nFor support or queries, feel free to reach out to us:\n📞 *Customer Care:* 9999118971\n💬 *WhatsApp Support:* 9999118971    *24x7*\n\nStay connected, stay happy! 🌟`
+            const message = `🌐 Broadband Recharge Successful! 🎉\n\nDear ${fullName},\n\n✅ Your broadband recharge for ${planinfo.planName} has been successfully completed.\n\n💳 *Amount Paid:* ₹${ledgerData.debitamount}\n📅 *Validity:* ${new Date(planinfo.activationDate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})} to ${new Date(planinfo.expirydate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})}\n🚀 *Speed:* Up to ${planinfo.bandwidth}\n\nThank you for choosing *Sigma Business Solutions*! 😊\n\n✨ Enjoy uninterrupted browsing and streaming! 🎬📱\n\nFor support or queries, feel free to reach out to us:\n📞 *Customer Care:* 9999118971\n💬 *WhatsApp Support:* 9999118971    *24x7*\n\nStay connected, stay happy! 🌟`
             const encodedMessage = encodeURIComponent(message);
             await axios.post(api+`/send-message?number=91${mobile}&message=${encodedMessage}`);
             alert(`Plan Is Changed Succesfully!`);
@@ -139,9 +139,7 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
         if(planName === '' || planamount === ''){
             alert('something went wrong');
         }else{
-            await set(ref(db, `Subscriber/${username}/ledger/${ledgerKey}`), ledgerData);
-
-            await set(ref(db, `Subscriber/${username}/planinfo/${ledgerKey}`), planinfo);
+            
 
             await update(ref(db, `Subscriber/${username}/connectionDetails`), newconnectioninfo).then(() => {
                 sendMessage();
@@ -162,11 +160,11 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
     
         // Extend the date based on the unit from Firebase
         if (unit === 'Months') {
-          date.setMonth(date.getMonth() + parseInt(duration));
+          date.setMonth(date.getMonth() + Number(duration));
         } else if (unit === 'Years') {
-          date.setFullYear(date.getFullYear() + parseInt(duration));
+          date.setFullYear(date.getFullYear() + Number(duration));
         } else if (unit === 'Days') {
-          date.setDate(date.getDate() + parseInt(duration));
+          date.setDate(date.getDate() + Number(duration));
         }
     
         // Format the new expiration date to YYYY-MM-DD
@@ -187,7 +185,11 @@ const PlanChangeModal = ({show, modalShow, handleMin, dueamount}) => {
         <div className='modal-content1 d-flex flex-column'>
         <h5>Renew Customer Plan</h5>
             <div className='d-flex flex-row bg-success rounded'>
-                <div className='m-2 d-flex flex-column col-md-5'>
+                <div className='m-2 d-flex flex-column col-md-3'>
+                    <span className='ms-2 text-white'></span>
+
+                </div>
+                <div className='m-2 d-flex flex-column col-md-3'>
                     <span className='ms-2 text-white'>
                         Select Plan
                     </span>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import linked from './whatappdrawable/linked.png'
 import unlinked from './whatappdrawable/link.png'
+import { api } from '../../FirebaseConfig';
 
 const LoginWhatsapp = () => {
     const [qrCode, setQrCode] = useState(null);
@@ -9,9 +10,15 @@ const LoginWhatsapp = () => {
     const [header, setHeader] = useState('');
 
 
+    const [qrCode2, setQrCode2] = useState(null);
+    const [loading2, setLoading2] = useState(true);
+    const [header2, setHeader2] = useState('');
+
+
     const fetchStatus = async () => {
       try {
-          const response = await axios.post('https://api.justdude.in/status');
+          const responsenoida = await axios.post(api+'/statusnoida');
+          const response = await axios.post(api+'/status');
 
           if (response.data.status === 'QR_RECEIVED') {
               setHeader('Please scan the QR code to login to WhatsApp');
@@ -27,8 +34,27 @@ const LoginWhatsapp = () => {
             console.log('User Connected')
             setHeader('WhatsApp is already connected');
             setQrCode(linked);
-            setLoading(false); // Clear QR code if connected
-      }
+            setLoading(false);
+           } // Clear QR code if connected
+
+
+
+            if (responsenoida.data.status === 'QR_RECEIVED') {
+                setHeader2('Please scan the QR code to login to WhatsApp');
+                setLoading2(false);
+                setQrCode2(response.data.qr); // Set QR code if available
+  
+            }else if(responsenoida.data.status === 'DISCONNECTED'){
+              console.log('User Disconnected')
+              setHeader2('Whatsapp Service is Down For Some Reason!')
+              setQrCode2(unlinked);
+              setLoading2(false);
+            }else {
+              console.log('User Connected')
+              setHeader2('WhatsApp is already connected');
+              setQrCode2(linked);
+              setLoading2(false); // Clear QR code if connected
+            }
       } catch (error) {
             setHeader('Error For get API Service');
             setQrCode(unlinked);
@@ -97,8 +123,26 @@ const LoginWhatsapp = () => {
     // }
 
     return (
-        <div style={{marginTop:'4.5%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
-            <h1>WhatsApp Bot</h1>
+        <div className='d-flex flex-row align-item-center justify-content-center'>
+
+        <div className='me-5' style={{marginTop:'4.5%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
+            <h1>WhatsApp Bot Noida</h1>
+            {loading2 ? (
+                <p style={{marginTop:'10%'}}>Loading QR code...</p>
+            ) : qrCode2 ? (
+                <div style={{display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', marginTop:'10%'}}>
+                    <p>{header2}</p>
+                    <img style={{width:'200px', height:'200px', padding:'10px'}} src={qrCode2} alt="QR Code" />
+                </div>
+
+                
+            ) : (
+                <p>Failed to load QR code.</p>
+            )}
+        </div>
+
+        <div className='ms-5' style={{marginTop:'4.5%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
+            <h1>WhatsApp Bot Shahdara</h1>
             {loading ? (
                 <p style={{marginTop:'10%'}}>Loading QR code...</p>
             ) : qrCode ? (
@@ -111,6 +155,8 @@ const LoginWhatsapp = () => {
             ) : (
                 <p>Failed to load QR code.</p>
             )}
+        </div>
+
         </div>
     );
 };

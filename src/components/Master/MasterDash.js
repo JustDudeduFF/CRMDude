@@ -10,6 +10,7 @@ import Colony from './Colony'
 import TicketConcerns from './TicketConcerns'
 import DebitCreditNotesConcern from './DebitCreditNotesConcern'
 import RemarksFollow from './RemarksFollow'
+import PlanProvider from './PlanProvider'
 
 
 export default function MasterDash() {
@@ -33,6 +34,9 @@ export default function MasterDash() {
 
             <Link id='link' to='dmaker' className='rounded mt-2 ms-1 me-1'>
             <li className="list-group-item shadow">Device Maker</li></Link>
+
+            <Link id='link' to='planprovider' className='rounded mt-2 ms-1 me-1'>
+            <li className="list-group-item shadow">Plan Provider</li></Link>
 
             <Link id='link' to='designation' className='rounded mt-2 ms-1 me-1'>
             <li className="list-group-item shadow">Designations</li></Link>
@@ -82,6 +86,7 @@ export default function MasterDash() {
                     <Route path='ticketconcern' element={<TicketConcerns/>}/>
                     <Route path='dbparticular' element={<DebitCreditNotesConcern/>}/>
                     <Route path='remarkfollow' element={<RemarksFollow/>}/>
+                    <Route path='planprovider' element={<PlanProvider/>}/>
                     
                 </Routes>
             </div>

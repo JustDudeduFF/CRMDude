@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom'
 import { db } from '../../FirebaseConfig';
 
 
+
 export default function InventryModify() {
   const location = useLocation();
   const username = localStorage.getItem('susbsUserid');
@@ -17,63 +18,7 @@ export default function InventryModify() {
   const [status, setStatus] = useState('');
   const [inatinventry, setInAtInventry] = useState('');
 
-  useEffect(() => {
-    const fetchdata = async () => {
-      const inventref = ref(db, `Subscriber/${username}/Inventory/${productcode}`);
-      const inventSnap = await get(inventref);
 
-      setDate(inventSnap.val().date);
-      setAmount(inventSnap.val().
-      amount);
-      setProductName(inventSnap.val().devicename);
-      setSerialNo(inventSnap.val().deviceSerialNumber);
-
-    }
-
-    return () => fetchdata();
-  }, [productcode]);
-
-  const updateSubInventry = async() => {
-    const words = produtname.split(' ');
-    const inventref = ref(db, `Subscriber/${username}/Inventory/${productcode}`);
-    const newinventdata = {
-      remarks2: remarks2,
-      status: status,
-      inatinventry: inatinventry
-    }
-
-    await update(inventref, newinventdata);
-
-    if(inatinventry === 'On Repair'){
-      const RepairRef = ref(db, `Inventory/Device on Repair/${words[0]}/${words[1]}/${serialno}`);
-      const data = {
-        macno: serialno,
-        devicecategry: words[1],
-        makername:words[0]
-      }
-      await set(RepairRef, data);
-    }else if(inatinventry === 'Re-Stocked'){
-      const StockRef = ref(db, `Inventory/New Stock/${words[0]}/${words[1]}/${serialno}`);
-      const data = {
-        macno: serialno,
-        devicecategry: words[1],
-        makername:words[0],
-        serialno:''
-      }
-      await set(StockRef, data);
-    }else if(inatinventry === 'Non Repairable'){
-      const StockRef = ref(db, `Inventory/Non Repairable/${words[0]}/${words[1]}/${serialno}`);
-      const data = {
-        macno: serialno,
-        devicecategry: words[1],
-        makername:words[0],
-        serialno:''
-      }
-      await set(StockRef, data);
-    }else{
-      alert('Select a Valid Operation');
-    }
-  }
 
   return (
     <div style={{display:'flex', flexDirection:'column'}}>
@@ -112,27 +57,17 @@ export default function InventryModify() {
             <label className="form-label">Action On Product</label>
             <select onChange={(e) => setStatus(e.target.value)} className="form-select">
               <option value=''>Choose...</option>
-              <option value='Damaged' >Damaged</option>
-              <option value='Refunded'>Refunded</option>
+              <option value='damaged' >Damaged</option>
+              <option value='repair'>On Repair</option>
             </select>
           </div>
-
-          <div className="col-md-4">
-            <label className="form-label">Product Current Status</label>
-            <select onChange={(e) => setInAtInventry(e.target.value)} className="form-select">
-              <option value=''>Choose...</option>
-              <option value='On Repair'>On Repair</option>
-              <option value='Non Repairable'>Non Repairable</option>
-              <option value='Re-Stocked'>Re-Stocked</option>
-              
-            </select>
-          </div>
-
           
         </form>
-        <button onClick={updateSubInventry} type="button" className="btn btn-outline-secondary col-md-3 mt-3">Update</button>
+        <button type="button" className="btn btn-outline-secondary col-md-3 mt-3">Update</button>
 
       </div>
+
+
 
     </div>  
   )

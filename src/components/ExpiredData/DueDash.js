@@ -1,4 +1,9 @@
-import React from 'react'
+import React, {useState, useEffect} from 'react'
+import * as XLSX from 'xlsx';
+import ExcelIcon from '../subscriberpage/drawables/xls.png'
+import axios from 'axios';
+import { api } from '../../FirebaseConfig';
+
 
 export default function DueDash() {
 
@@ -7,8 +12,10 @@ export default function DueDash() {
   const [filterData, setFilteredData] = useState([]);
   
   const [uniqueColony, setUniqueColony] = useState([]);
-  const [uniqueMode, setUniqueMode] = useState([]);
+  const [unique, setUniqueUser] = useState([]);
   const [uniqueCompany, setUniqueCompany] = useState([]);      
+  const [uniquestatus, setUniqueStatus] = useState([]);
+  const [totalDue, setTotalDue] = useState(0);
 
   const downloadExcel = () => {
     const dataToDownload = filterData;
@@ -19,33 +26,37 @@ export default function DueDash() {
   
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(dataToDownload);
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Revenue data');
-    XLSX.writeFile(workbook, `Revenue Data.xlsx`);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Due data');
+    XLSX.writeFile(workbook, `Due Data.xlsx`);
   }         
   
   const fetchRevenue = async () => {
     try {
       // Fetch data from the API
-      const response = await axios.get(api+`/subscriber/revenue?date=${filter.startDate} ${filter.endDate}`);
+      const response = await axios.get(api+`/dueAmount?data=report&date=${filter.startDate} ${filter.endDate}`);
   
       if (response.status !== 200 || !response.data) {
         return;
       }
       const arrayData = response.data;
-      const array = [];
-      Object.keys(arrayData).forEach((key) => {
-        const userData = arrayData[key];
-        array.push(userData);
-      });
-      const paymentModes = [...new Set(array.map((data) => data.PaymentMode))];
-      const colonies = [...new Set(array.map((data) => data.colonyName))];
-      const company = [...new Set(array.map((data) => data.company))];
       
-      // Update state
-      setUniqueMode(paymentModes);
-      setUniqueColony(colonies);   
-      setUniqueCompany(company);   
-      setArrayData(array);
+      if(arrayData){
+        setArrayData(arrayData.dueArray);
+        setTotalDue(arrayData.totalDue);
+
+        const complete = [...new  Set(arrayData.dueArray.map((data) => data.lastrenew))]
+        const colonies = [...new Set(arrayData.dueArray.map((data) => data.colony))];
+        const company = [...new Set(arrayData.dueArray.map((data) => data.company))];
+        const status = [...new Set(arrayData.dueArray.map((data) => data.status))]
+        
+        // Update state
+        setUniqueUser(complete);
+        setUniqueColony(colonies);   
+        setUniqueCompany(company);  
+        setUniqueStatus(status)
+      }
+       
+      
   
   
     } catch (error) {
@@ -58,39 +69,43 @@ export default function DueDash() {
     fetchRevenue();
 }, [filter.startDate, filter.endDate]);
 
-useEffect(() => {
+  useEffect(() => {
     let filteredArray = arrayData;
     
 
-    if (filter.Status !== 'All') {
-        filteredArray = filteredArray.filter((data) => data.authorized === filter.Status);
-    }
 
     if(filter.Company !== 'All'){
         filteredArray = filteredArray.filter((data) => data.company === filter.Company);
     }
 
     if(filter.isp !== 'All'){
-      filteredArray = filteredArray.filter((data) => data.PaymentMode === filter.isp);
+      filteredArray = filteredArray.filter((data) => data.lastrenew === filter.isp);
     }
 
     if(filter.Colony !== 'All'){
-      filteredArray = filteredArray.filter((data) => data.colonyName === filter.Colony);
+      filteredArray = filteredArray.filter((data) => data.colony === filter.Colony);
     }
 
-    setFilteredData(filteredArray);
-}, [arrayData, filter]);
+    if(filter.Status !== 'All'){
+      filteredArray = filteredArray.filter((data) => data.status === filter.Status);
+    }
 
-const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilter({ ...filter, [name]: value });    
-        };
+
+
+    setFilteredData(filteredArray);
+  }, [arrayData, filter]);
+
+  const handleFilterChange = (e) => {
+      const { name, value } = e.target;
+      setFilter({ ...filter, [name]: value });    
+  };
 
 
   return (
     <div style={{ marginLeft:'10px', marginRight:'10px'}}>
         <div className='d-flex flex-row'>
-        <h5 style={{flex:'1'}}>Your All Revenue Data</h5>
+        <h5 style={{flex:'1'}}>Your All Due Amount Data</h5>
+        <span className='me-5 fw-bold'>Total Due Amount of Sheet: {totalDue}</span>
         <img alt='Excel' onClick={downloadExcel} src={ExcelIcon} className='img_download_icon'></img>
         </div>
 
@@ -119,7 +134,7 @@ const handleFilterChange = (e) => {
           />
         </div>
         <div className='col-md-4'>
-        <label className='form-label'>Payment Mode</label>
+        <label className='form-label'>Renewed By</label>
         <select 
             type="text" 
             className="form-control" 
@@ -129,7 +144,7 @@ const handleFilterChange = (e) => {
             >
               <option value='All'>All</option>
               {
-                uniqueMode.map((ispname, index) => (
+                unique.map((ispname, index) => (
                   <option key={index} value={ispname}>{ispname}</option>
                 ))
               }
@@ -167,8 +182,11 @@ const handleFilterChange = (e) => {
             >
 
               <option value="All">All</option>
-              <option value={true}>Authorized</option>
-              <option value={false}>UnAuthorized</option>
+              {
+                uniquestatus.map((data, index) => (
+                  <option key={index} value={data}>{data}</option>
+                ))
+              }
 
             </select>
         </div>
@@ -205,15 +223,14 @@ const handleFilterChange = (e) => {
             <tr>
               <th scope='col'>S No</th>
               <th scope="col">User ID</th>
-              <th scope="col">Date</th>
+              <th scope="col">Activate Date</th>
               <th scope="col">Customer Name</th>
               <th scope="col">Mobile</th>
-              <th scope="col">Amount</th>
-              <th scope="col">Discount</th>
+              <th scope="col">Due Amount</th>
               <th scope="col">Installation Address</th>
-              <th scope='col'>Payment Mode</th>
+              <th scope='col'>Renew By</th>
               <th scope="col">Colony</th>
-              <th scope="col">Collected By</th>
+              <th scope="col">Company</th>
               <th scope='col'>Status</th>
               {/* Add more headers as needed */}
             </tr>
@@ -224,17 +241,16 @@ const handleFilterChange = (e) => {
                 filterData.map((filterData, index) => (
                   <tr key={index}>
                     <td>{index + 1}</td>
-                    <td>{filterData.UserID}</td>
-                    <td>{new Date(filterData.Receipt_Date).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}</td>
-                    <td>{filterData.fullName}</td>
-                    <td>{filterData.mobileNo}</td>
-                    <td>{filterData.Amount}</td>
-                    <td>{filterData.discount}</td>
+                    <td>{filterData.userid}</td>
+                    <td>{new Date(filterData.activateDate).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}</td>
+                    <td>{filterData.name}</td>
+                    <td>{filterData.mobile}</td>
+                    <td>{filterData.dueAmount}</td>
                     <td style={{maxWidth:'250px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{filterData.address}</td>
-                    <td>{filterData.PaymentMode}</td>
-                    <td>{filterData.colonyName}</td>
-                    <td>{filterData.Collected_By}</td>
-                    <td>{filterData.authorized ? "Authorized" : "UnAuthorized"}</td>
+                    <td>{filterData.lastrenew}</td>
+                    <td>{filterData.colony}</td>
+                    <td>{filterData.company}</td>
+                    <td>{filterData.status}</td>
                   </tr>
                 ))
               ) : (

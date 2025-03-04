@@ -9,6 +9,7 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
     const [assignemp, setAssignEmp] = useState('');
     const [subsData, setSubsData] = useState({});
     const [userLookup, setUserLookup] = useState({});
+    const [description, setDescription] = useState('');
     const empRef = ref(db, `users`);
 
     useEffect(() => {
@@ -45,9 +46,9 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
         const encodedMessage = encodeURIComponent(newMessage);
         const exMessage = `Dear Executive,\n\nYou have been assigned a new ticket. Below are the details:\n\n🎫 *Ticket No:* ${ticketno}\n👤 *Customer Name:* ${customername}\n📱 *Mobile Number:* ${mobileNo}\n💼 *User ID:* ${userid}\n\nFor more details, please visit the application.\n\nThank you!\nRegards,\n*Sigma Business Solutions*`
         const enCodedExMessage = encodeURIComponent(exMessage);
-        await axios.post(api+`/send-message?number=91${mobileNo}&message=${encodedMessage}`);
+        await axios.post(api+`/send-message?number=91${mobileNo}&message=${encodedMessage}&company=${ticketno.company}`);
         //Message For Executive
-        await axios.post(api+`/send-message?number=91${assignemp}&message=${enCodedExMessage}`);
+        await axios.post(api+`/send-message?number=91${assignemp}&message=${enCodedExMessage}&company=${ticketno.company}`);
 
     }
 
@@ -63,7 +64,8 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
                 assigndate: new Date().toISOString().split('T')[0],
                 assigntime: new Date().toLocaleTimeString(),
                 assignto: assignemp,
-                status:'Pending'
+                status:'Pending',
+                description:description
             }
             // update(globalTicketsRef, assigndata);
             update(ticketRef, assigndata);
@@ -108,8 +110,13 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
 
           </select>
           </div>
+
+        <div className='col-md'>
+            <label className='form-label'>Description</label>
+            <input onChange={(e) => setDescription(e.target.value)} className='form-control' type='text'></input>
+        </div>
       
-      <button className='btn btn-success' onClick={assignTicket}>Assign Ticket</button>
+      <button className='btn btn-success mt-3' onClick={assignTicket}>Assign Ticket</button>
     </div>
     </div>
   );

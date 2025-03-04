@@ -20,6 +20,7 @@ export default function ModifyTicket() {
   const {ticket} = location.state || {};
   const subsname = localStorage.getItem('subsname');
   const subscontact = localStorage.getItem('subscontact');
+  const company = localStorage.getItem('company');
 
   const empRef = ref(db, `users`);
 
@@ -39,7 +40,7 @@ export default function ModifyTicket() {
     try{
       await update(ticketRef, newticketdata);
       // await update(globaltickets, newticketdata);
-      await axios.post(api+`/send-message?number=91${subscontact}&message=${encodedMessage}`)
+      await axios.post(api+`/send-message?number=91${subscontact}&message=${encodedMessage}&company=${company}`)
       navigate(-1);
     }catch(error){
       console.log(`Error :- ${error}`);

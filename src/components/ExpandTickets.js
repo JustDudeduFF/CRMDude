@@ -212,13 +212,13 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                             className='btn btn-outline-success me-3'
                                             disabled={Status === 'Completed'}
                                         >
-                                            {Status === 'unassigned' ? 'Assign' : 'Re Assign'}
+                                            {Status === 'Unassigned' ? 'Assign' : 'Re Assign'}
                                         </button>
                                         <button
                                             onClick={() => {
                                                 if(hasPermission("CLOSE_TICKET")){
                                                     setTicketCloseModal(true);
-                                                    setTicketno({ Ticketno, subsID, Concern, UserKey });
+                                                    setTicketno({ Ticketno, subsID, Concern, UserKey, company });
                                                 }else{
                                                     alert("Permission Denied");
                                                 }

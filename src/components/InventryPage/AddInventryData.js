@@ -4,8 +4,6 @@ import axios from 'axios';
 
 
 const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, DeviceMac, modalshow, devicetype, company}) => {
-    const [isVisible, setIsVisible] = useState(true);
-    const [isVisible2, setIsVisible2] = useState(false);
     const [note, setNote] = useState('Please Confirm Company');
     const [buttontext, setButtonText] = useState('Add Device');
     const [arraymakerm, setArrayMaker] = useState([]);
@@ -61,29 +59,11 @@ const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, 
 
     
     if(!show) return null;
-
-    const handleChange = (event) => {
-        const Target = event.target.value;
-
-        if(Target === 'Individual'){
-            setNote('Please Confirm Company')
-            setIsVisible(true);
-            setIsVisible2(false);
-            setButtonText('Add Device');
-
-        }else{
-            setNote('First Download Sample File')
-            setIsVisible(false);
-            setIsVisible2(true);
-            setButtonText('Upload Data');
-        }
-
-    }
     return(
        <div className='modal-overlay1'>
         <div className='modal-content1 d-flex flex-column'>
             <div className='d-flex flex-row bg-info rounded'>
-                <div className='m-2 d-flex flex-column col-md-2'>
+                <div className='m-2 d-flex flex-column col-md'>
                     <span className='ms-2'>
                         Device Type
                     </span>
@@ -97,7 +77,7 @@ const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, 
                     </select>
                 </div>
 
-                <div className='m-2 d-flex flex-column col-md-3'>
+                <div className='m-2 d-flex flex-column col-md'>
                     <span className='ms-2'>Device Added For</span>
                     <select onChange={TypeDevice} className='form-select'>
                         <option value=''>Choose</option>
@@ -107,16 +87,8 @@ const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, 
                     </select>
                 </div>
 
-                <div className='m-2 d-flex flex-column col-md-3'>
-                    <span className='ms-2'>Entry Type</span>
-                    <select onChange={handleChange} className='form-select'>
-                        <option>Choose...</option>
-                        <option>Individual</option>
-                        <option>Bulk</option>
-                    </select>
-                </div>
 
-                <div className='m-2 d-flex flex-column col-md-3'>
+                <div className='m-2 d-flex flex-column col-md'>
                     <span className='ms-2'>Select Company</span>
                     <select onChange={company} className='form-select'>
                         <option value=''>Choose...</option>
@@ -138,7 +110,7 @@ const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, 
             <div className='d-flex flex-column'>
                 <span>{`Note :- ${note}`}</span>
                 <div>
-                    {isVisible &&
+    
                                 <form className='row g-3 mt-2 mb-3'>
                                 <div className='col-md-4'>
                                     <label className='form-label ms-1'>Device Maker Name</label>
@@ -166,23 +138,7 @@ const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, 
                                     <input onChange={DeviceMac} className='form-control'></input>
                                 </div>
 
-                            </form>
-                    }
-
-                    {
-                        isVisible2 &&
-
-                        
-                    <form className='row g-3 mt-2'>
-                    <div className='col'>
-                        <label className='form-label'>Select Excel File</label>
-                        <div class="input-group mb-3">
-                        <input type="file" class="form-control" id="inputGroupFile02"></input>
-                        </div>
-                    </div>
-
-                </form>
-                    }
+                                </form>
                     
 
                 </div>

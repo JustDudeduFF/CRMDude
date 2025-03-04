@@ -2,8 +2,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import RouterImg from './inventrydrawables/technology.png';
 import AddInventryData from './AddInventryData';
 import { ToastContainer, toast } from 'react-toastify';
-import { db } from '../../FirebaseConfig';
+import { api, db } from '../../FirebaseConfig';
 import { get, ref, set } from 'firebase/database';
+import axios from 'axios';
 
 export default function InventryDash() {
   const [showModal, setShowModal] = useState(false);
@@ -17,53 +18,54 @@ export default function InventryDash() {
   const [backgroundD, setBackgroundD] = useState('');
   const [backgroundR, setBackgroundR] = useState('');
 
-  const [getmakers, setGetMakers] = useState([]);
-  const [arraycategory, setArrayCategory] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchDevice, setSearchDevice] = useState('');
-  const [searchcategory, setSearcCategory] = useState('');
-  const [currentmaker, setCurrentMaker] = useState('');
+  const [deviceArray, setDeviceArray] = useState([]);
+  const [category, setCategory] = useState([]);
+  const [maker, setMaker] = useState([]);
+  const [company, setCompany] = useState([]);
 
-  const [getdevice, setGetDevice] = useState([]);
+  const [filter, setFilter] = useState({
+    search:'All',
+    category:'All', 
+    maker:'All', 
+    company:'All'
+  });
+
+  const [filterArray, seyFilterArray] = useState([]);
   const [devicecategry, setDeviceCategry] = useState('');
 
-  const [selectedindex, setSelectedIndex] = useState(null);
-  const [indexcategory, setIndexCategory] = useState(null);
 
 
-  const fetchData = useCallback(async () => {
-    setGetMakers([]);
-    setArrayCategory([]);
-    setGetDevice([]);
-    
-    const deviceRef = ref(db, `Inventory/${devicetype}`);
-    const deviceSnap = await get(deviceRef);
+  const fetchData = async(type) => {
+    try{
+      const response = await axios.get(api+'/inventory/'+type);
+      if(response.status !== 200) return;
 
-    if (deviceSnap.exists()) {
-      const Makers = {};
+      const data = response.data;
+      if(data){
+        setDeviceArray(data);
 
-      deviceSnap.forEach((childSnap) => {
-        const makername = childSnap.key;
-        const deviceCount = Object.keys(childSnap.val()).length;
+        const arraycategory = [...new Set(data.map((data) => data.devicecategry))];
+        const arraymaker = [...new Set(data.map((data) => data.makername))];
+        const arraycompany = [...new Set(data.map((data) => data.company))];
 
-        Makers[makername] = deviceCount;
-      });
-
-      const makerArray = Object.entries(Makers);
-      setGetMakers(makerArray);
-    } else {
-      console.log('snap not found');
+        setCategory(arraycategory);
+        setMaker(arraymaker);
+        setCompany(arraycompany);
+      }
+    }catch(e){
+      console.log(e);
     }
-  }, [devicetype]);
+  }
 
   useEffect(() => {
     
-    fetchData();
+    fetchData("free");
   }, []);
 
   const getDevices = (type) => {
     setDeviceType(type);
-    setGetDevice([]);
+
+    fetchData(type);
 
     if (type === 'free') {
       setBackgroundF('green');
@@ -80,65 +82,23 @@ export default function InventryDash() {
     }
   };
 
-  const fetchcategory = useCallback(async (maker) => {
-    setArrayCategory([]);
-    setGetDevice([]);
-    const categoryRef = ref(db, `Inventory/${devicetype}/${maker}`);
-    const categorySnap = await get(categoryRef);
-
-    if(categorySnap.exists()){
-      const Category = {};
-
-      categorySnap.forEach((childSnap) => {
-        const categoryname = childSnap.key;
-        const deviceCount = Object.keys(childSnap.val()).length;
-
-        Category[categoryname] = deviceCount;
-      });
-
-      const categoryArray = Object.entries(Category);
-      setArrayCategory(categoryArray);
-    }else{
-      alert('No any Category');
-    }
-  })
-  const fetchDevices = async (category) => {
-    const DeviceRef = ref(db, `Inventory/${devicetype}/${currentmaker}/${category}`);
-    const DeviceSnap = await get(DeviceRef);
-
-    if (DeviceSnap.exists()) {
-      const deviceList = [];
-
-      DeviceSnap.forEach((childSnap) => {
-        const mac = childSnap.key;
-        const serial = childSnap.val().serialno;
-
-        deviceList.push({ serial, mac });
-      });
-
-      
-      setGetDevice(deviceList);
-    } else {
-      setGetDevice([]); // Clear device list if no devices found
-      toast.error('No devices found for this maker.', {
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-        progress: undefined,
-      });
-    }
-  };
-
-  const showDevices = (maker) => {
-    fetchcategory(maker);
-    
-  };
 
   
 
   const AddInventry = async () => {
+
+    if(serial === '' || mac === '' || makername === '' || devicecategry === '' || companyname === '' || devicetype === ''){
+      toast.error('Select Criteria', {
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+      });
+      return;
+    }
+
     const inventryData = {
       serialno: serial,
       macno: mac,
@@ -148,7 +108,7 @@ export default function InventryDash() {
       date:new Date().toISOString().split('T')[0],
       status: devicetype
     };
-    const inventryRef = ref(db, `Inventory/${companyname}/${mac}`);
+    const inventryRef = ref(db, `Inventory/${mac}`);
     try {
       await set(inventryRef, inventryData);
       toast.success('Device Added!', {
@@ -159,7 +119,6 @@ export default function InventryDash() {
         draggable: true,
         progress: undefined,
       });
-      // setShowModal(false);
     } catch (error) {
       toast.error('Error adding device: ' + error.message, {
         autoClose: 2000,
@@ -169,45 +128,52 @@ export default function InventryDash() {
         draggable: true,
         progress: undefined,
       });
-      // setShowModal(false);
+    }finally{
+      fetchData('free');
     }
   };
 
-  const filteredMakers = getmakers.filter(([maker]) =>
-    maker.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    let array = deviceArray;
 
-  const filteredDevice = getdevice.filter(({ serial }) =>
-    serial.toLowerCase().includes(searchDevice.toLowerCase())
-  
-  );
+    if(filter.category !== 'All'){
+      array = array.filter((data) => data.devicecategry === filter.category);
+    }
 
-  const filteredCategory = arraycategory.filter(( [category] ) =>
-    category.toLowerCase().includes(searchcategory.toLowerCase())
-  
-  );
+    if(filter.maker !== 'All'){
+      array = array.filter((data) => data.makername === filter.maker);
+    }
+
+    if(filter.company !== 'All'){
+      array = array.filter((data) => data.company === filter.company);
+    }
+
+    if(filter.search !== 'All'){
+      array = array.filter((data) => (data.serialno).includes(filter.search));
+    }
+
+
+    seyFilterArray(array);
+    
+
+  }, [filter, deviceArray]);
+
+
   return (
     
     <div style={{ display: 'flex', flexDirection: 'column', marginTop: '4.5%' }}>
       <div style={{ display: 'flex', flexDirection: 'row', margin: '10px' }}>
         <div style={{ flex: '1', display:'flex' }}>
           <h4>Inventory Details</h4>
+          <span className='ms-auto me-auto fw-bold'>{`Selected Query Device Quantity: ${filterArray.length}`}</span>
           <button onClick={() => setShowModal(true)} className='btn btn-outline-primary ms-auto me-2'>Add Devices</button>
-        </div>
-        <label className='form-lable me-2'>Select Company :</label>
-        <div className='col-md-2'>
-          
-          <select className='form-select'>
-            <option value=''>Choose...</option>
-          </select>
-
         </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'row' }}>
         <div style={{ flex: '1.1', marginLeft: '10px', display: 'flex', flexDirection: 'column' }}>
           <div
-            onClick={() => getDevices('New Stock')}
+            onClick={() => getDevices('free')}
             style={{ display: 'flex', flexDirection: 'row', border: `1px solid ${backgroundF}`, borderRadius: '5px', boxShadow: `0 0 8px ${backgroundF}`, cursor: 'pointer' }}
           >
             <div>
@@ -220,7 +186,7 @@ export default function InventryDash() {
           </div>
 
           <div
-            onClick={() => getDevices('Damaged Devices')}
+            onClick={() => getDevices('damaged')}
             style={{ display: 'flex', flexDirection: 'row', border: `1px solid ${backgroundD}`, borderRadius: '5px', boxShadow: `0 0 8px ${backgroundD}`, marginTop: '20px', cursor: 'pointer' }}
           >
             <div>
@@ -233,7 +199,7 @@ export default function InventryDash() {
           </div>
 
           <div
-            onClick={() => getDevices('Device on Repair')}
+            onClick={() => getDevices('repair')}
             style={{ display: 'flex', flexDirection: 'row', border: `1px solid ${backgroundR}`, borderRadius: '5px', boxShadow: `0 0 8px ${backgroundR}`, marginTop: '20px', cursor: 'pointer' }}
           >
             <div>
@@ -246,96 +212,102 @@ export default function InventryDash() {
           </div>
         </div>
 
-        <div className='d-flex flex-column' style={{ flex: '2'}}>
-          <div className='ms-3'>
-            <input
-              className='form-control'
-              type='search'
-              aria-label='search'
-              placeholder='Enter Device Maker name'
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <div style={{flex:'8'}}>
+          <div className='container d-flex'>
+            <div className='col-md-2 me-2'>
+              <label className='form-label'>Search Serial No.</label>
+              <input onChange={(e) => {
+                setFilter({
+                  ...filter, 
+                  search:e.target.value
+                })
+              }} className='form-control' type='text' placeholder='e.g. GPONxxxx'></input>
+            </div>
+
+            <div className='col-md-2 me-2'>
+              <label className='form-label'>Device Category</label>
+              <select onChange={((e) => {
+                setFilter({
+                  ...filter,
+                  category:e.target.value
+                })
+              })} className='form-select'>
+                <option value='All'>All</option>
+                {
+                  category.map((data, index) => (
+                    <option key={index} value={data}>{data}</option>
+                  ))
+                }
+              </select>
+            </div>
+
+            <div className='col-md-2 me-2'>
+              <label className='form-label'>Device Maker</label>
+              <select onChange={(e) => {
+                setFilter({
+                  ...filter,
+                  maker:e.target.value
+                })
+              }} className='form-select'>
+                <option value='All'>All</option>
+                {
+                  maker.map((data, index) => (
+                    <option key={index} value={data}>{data}</option>
+                  ))
+                }
+              </select>
+            </div>
+
+            <div className='col-md-2 me-2'>
+              <label className='form-label'>Company</label>
+              <select onChange={(e) => {
+                setFilter({
+                  ...filter, 
+                  company:e.target.value
+                })
+              }} className='form-select'>
+                <option value='All'>All</option>
+                {
+                  company.map((data, index) => (
+                    <option key={index} value={data}>{data}</option>
+                  ))
+                }
+              </select>
+            </div>
+
           </div>
-          <ol className="list-group list-group ms-5 mt-3">
-            {filteredMakers.map(([maker, count], index) => (
-              <li onClick={() => {showDevices(maker); setCurrentMaker(maker); setSelectedIndex(index)}} key={index}>
-                <div style={{boxShadow:selectedindex === index ? '0 0 10px blue' : '0 0 10px gray'}} className='col mt-2 border border-secondary rounded p-2 me-3'>
-                  <label className='form-label'>{`Device Maker :- ${maker}`}</label><br></br>
-                  <label className='form-label'>Category :- </label><span className="badge text-bg-secondary ms-2 mt-1">{count}</span>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
 
+          <table className='table table-striped table-hover align-middle ms-2 mt-2'>
+            <thead className='table-secondary'>
+              <tr>
+                <th>S No.</th>
+                <th>Add Date</th>
+                <th>Device Maker</th>
+                <th>Device Type</th>
+                <th>Serial No.</th>
+                <th>MAC Address</th>
+                <th>Company</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                filterArray.map((data, index) => (
+                  <tr key={index}>
+                    <td>{index + 1}</td>
+                    <td>{new Date(data.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:"2-digit"})}</td>
+                    <td>{data.makername}</td>
+                    <td>{data.devicecategry}</td>
+                    <td>{data.serialno}</td>
+                    <td>{data.macno}</td>
+                    <td>{data.company}</td>
+                    <td>{data.status}</td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
 
-        <div className='d-flex flex-column' style={{ flex: '2'}}>
-          <div className='ms-3'>
-            <input
-              className='form-control'
-              type='search'
-              aria-label='search'
-              placeholder='Enter Device Category Name'
-              value={searchcategory}
-              onChange={(e) => setSearcCategory(e.target.value)}
-            />
-          </div>
-          <ol className="list-group list-group ms-5 mt-3">
-            {filteredCategory.map(([category, count], index) => (
-              <li onClick={() => {fetchDevices(category); setIndexCategory(index)}} key={index}>
-                <div style={{boxShadow: indexcategory === index ? '0 0 10px blue' : '0 0 10px gray'}} className='col mt-2 border border-secondary rounded p-2 me-3'>
-                  <label className='form-label'>{`Device Category :- ${category}`}</label><br></br>
-                  <label className='form-label'>Quantity :- </label><span className="badge text-bg-secondary ms-2 mt-1">{count}</span>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
-
-        
-
-
-
-        
-        <div className='d-flex flex-column' style={{ flex: '3' }}>
-          <div className='col ms-3 me-3'>
-            <input
-              className='form-control'
-              type='search'
-              aria-label='search'
-              placeholder='Enter Device Serial'
-              value={searchDevice}
-              onChange={(e) => setSearchDevice(e.target.value)}
-            />
-          </div>
-          <ol className="list-group list-group ms-5 mt-3">
-            {filteredDevice.length > 0 ? (
-              filteredDevice.map(({ serial, mac }, index) => (
-                <li key={index}>
-                  <div className='col mt-2 border border-secondary rounded p-2 me-3'>
-                    <form className='row g-4'>
-                      <div className='col'>
-                      <label className='form-label'>Device Serial No.</label>
-                      <input className='form-control' value={serial} readOnly></input>
-                      </div>
-
-                      <div className='col'>
-                      <label className='form-label'>Device MAC No.</label>
-                      <input className='form-control' value={mac} readOnly></input>
-                      </div>
-
-                    </form>
-                    
-                  </div>
-                </li>
-              ))
-            ) : (
-              <li className='col mt-2 border rounded p-2 me-3'>
-                <label className='form-label'>No Devices Found</label>
-              </li>
-            )}
-          </ol>
         </div>
       </div>
       <ToastContainer />

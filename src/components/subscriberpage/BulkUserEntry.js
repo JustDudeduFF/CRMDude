@@ -87,8 +87,8 @@ export default function BulkUserEntry() {
       const userData = {
         company: row.COMPANYNAME,
         fullName: row.FULLNAME,
-        username: row.BBUSERNAME, // Correct field for username
-        mobileNo: row.MOBILE,
+        username: String(row.BBUSERNAME), // Correct field for username
+        mobileNo: String(row.MOBILE),
         alternatNo: row.LANDLINENO,
         email: row.EMAIL,
         installationAddress: row.FULLADDRESSINST,

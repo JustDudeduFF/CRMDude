@@ -45,6 +45,10 @@ export default function Subscriber() {
       const [isTerminated, setIsTeminated] = useState(false);
       const [terminateRemark, setTerminateRemark] = useState('');
       const [temptermstatus, setTempTermStatus] = useState();
+      const [cuPlanCode, setCuPlanCode] = useState({
+        isPlanCode:false,
+        plancode:''
+      });
 
 
 
@@ -59,9 +63,8 @@ export default function Subscriber() {
   const [registerationdate, setRegistrationDate] = useState('');
   const [remaindays, setRemainDays] = useState(0);
   const [status, setStatus] = useState('Active');
-  const [dueamount, setDueAmount] = useState(10);
+  const [dueamount, setDueAmount] = useState(0);
 
-  const [showmodal, setShowModal] = useState(false);
   const [showplanchange, setPlanChange] = useState(false);
   const [ispChangeModal, setIspChangeModal] = useState(false);
   const [ispArray, setIspArray] = useState([]);
@@ -72,7 +75,6 @@ export default function Subscriber() {
 
   const [customesharge, setCustomCharge] = useState(0);
   const [renewactdate, setRenewActDate] = useState(new Date().toISOString().split('T')[0]);
-  const [arrayplan, setArrayPlan] = useState([]);
   const [remarks, setRemarks] = useState('');
   const [expdate, setExpDate] = useState('');
   const [userEmail, setUserEmail] = useState('');
@@ -81,10 +83,29 @@ export default function Subscriber() {
   const [renew, setRenew] = useState(false);
   const [bandwidth, setBandwidth] = useState('');
 
+  const [modalChangeplan, setModalChangePlan] = useState(false);
+  const [renewmodal, setRenewModal] = useState(false);
+  const [changePlanData, setChangePlanData] = useState({
+    provider:'All',
+    isp:'All',
+    planname:'',
+    activationDate:new Date().toISOString().split('T')[0],
+    expiryDate:'',
+    planAmount:'',
+    bandwidth:'',
+    planperiod:'',
+    periodtime:'',
+    baseamount:'',
+    remarks:'',
+    plancode:''
+  });
 
+  const [provide, setProvide] = useState([]);
+  const [isps, setIsps] = useState([]);
+  const [plans, setPlans] = useState([]);
 
-
-
+  const [filterPlan, setFilterPlans] = useState([]);
+  
 
   const [renewbtn, setRenewBtn] = useState(true);
 
@@ -110,97 +131,13 @@ export default function Subscriber() {
       }
 
 
-    const userRef = ref(db, `Subscriber/${username}`);
     const planRef = ref(db, `Subscriber/${username}/connectionDetails`);
-    const plansRef = ref(db, `Master/Broadband Plan`);
 
     
 
     const ledgerKey = Date.now();
     
 
-    const handleSavePlan = async () => {
-        setLoader(true);
-        setRenewBtn(true);
-
-        let newDue = parseInt(dueamount);
-
-
-        
-        // Parse values once
-        const parsedCustomesharge = parseInt(customesharge, 10) || 0;
-        const parsedPlanAmount = parseInt(planAmount, 10) || 0;
-
-        if(parsedCustomesharge !== 0){
-            newDue = parseInt(dueamount) + parsedCustomesharge
-        }else{
-            newDue = parseInt(dueamount) + parsedPlanAmount
-        }
-
-
-        const currentDate = new Date().toISOString().split('T')[0];
-
-        const ledgerData = {
-            type: 'Renewal',
-            date: currentDate,
-            particular: `${planName} From ${renewactdate} to ${expdate}`,
-            debitamount: parseInt(customesharge, 10) || parseInt(planAmount, 10),
-            creditamount: 0
-        }
-
-        const planinfo ={
-            compeletedate: new Date().toISOString().split('T')[0],
-            planName: planName,
-            planAmount: parseInt(customesharge, 10) || parseInt(planAmount, 10),
-            isp: isp,
-            activationDate: renewactdate,
-            expiryDate: expdate,
-            action: 'Renewal',
-            completedby: localStorage.getItem('Name'),
-            remarks: remarks
-          }
-
-          const newconnectioninfo = {
-            activationDate: renewactdate,
-            expiryDate: expdate,
-            planAmount: parseInt(customesharge, 10) || parseInt(planAmount, 10),
-            dueAmount: newDue,
-            bandwidth: bandwidth
-          }
-
-        await set(ref(db, `Subscriber/${username}/ledger/${ledgerKey}`), ledgerData);
-
-        await set(ref(db, `Subscriber/${username}/planinfo/${ledgerKey}`), planinfo);
-
-        await update(planRef, newconnectioninfo).then(() => {
-            const emailData = {
-                to: userEmail,
-                subject: 'Broadband Subscription Renwal',
-                text: `🌐 Broadband Recharge Successful! 🎉\n\nDear ${fullName},\n\n✅ Your broadband recharge for ${planName} has been successfully completed.\n\n💳 *Amount Paid:* ₹${planAmount}\n📅 *Validity:* ${new Date(renewactdate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})} to ${new Date(expdate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})}\n🚀 *Speed:* Up to ${bandwidth} Mbps\n\nThank you for choosing *Sigma Business Solutions*! 😊\n\n✨ Enjoy uninterrupted browsing and streaming! 🎬📱\n\nFor support or queries, feel free to reach out to us:\n📞 *Customer Care:* 9999118971\n💬 *WhatsApp Support:* 9999118971    *24x7*\n\nStay connected, stay happy! 🌟`
-            }
-
-           
-            const sendMail = async () => {
-                const response = await axios.post(api+'/sendmail', emailData);
-            }
-
-            const sendWhatsapp = async () => {
-                const message = `🌐 Broadband Recharge Successful! 🎉\n\nDear ${fullName},\n\n✅ Your broadband recharge for ${planName} has been successfully completed.\n\n💳 *Amount Paid:* ₹${planAmount}\n📅 *Validity:* ${new Date(renewactdate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})} to ${new Date(expdate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})}\n🚀 *Speed:* Up to ${bandwidth} Mbps\n\nThank you for choosing *Sigma Business Solutions*! 😊\n\n✨ Enjoy uninterrupted browsing and streaming! 🎬📱\n\nFor support or queries, feel free to reach out to us:\n📞 *Customer Care:* 9999118971\n💬 *WhatsApp Support:* 9999118971    *24x7*\n\nStay connected, stay happy! 🌟`
-                const encodedMessage = encodeURIComponent(message);
-                await axios.post(api+`/send-message?number=91${contact}&message=${encodedMessage}`);
-
-            }
-            sendMail();
-            sendWhatsapp();
-            setShowModal(false);
-            setLoader(false);
-        });
-
-          
-
-
-          
-    }
 
     const updateExpiry = async() => {
         setExpiryModal(false);
@@ -241,101 +178,94 @@ export default function Subscriber() {
     }
 
 
+    const fetchData = async () => {
+        try {
+            setLoader(true);
+
+            const userResponse = await axios.get(api+'/subscriber/'+username+'?data=wholeuser');
+            const ispResponse = await axios.get(api+'/master/ISPs');
+            const planResponse = await axios.get(api+'/master/Broadband Plan');
+
+            if(ispResponse.status !== 200 || planResponse.status !== 200 || userResponse.status !== 200){
+                return;
+            };
+
+            const userData = userResponse.data;
+            if(userData){
+                setFullName(userData.name);
+                setCompany(userData.company);
+                setUserID(userData.userid);
+                setRegistrationDate(userData.creation);
+                setContact(userData.mobile);
+                setIsTeminated(userData.isTerminated);
+                setPlanName(userData.plan);
+                setPlanAmount(userData.amount);
+                setActivationDate(userData.start);
+                setExpiryDate(userData.end);
+                setIsp(userData.isp);
+                setDueAmount(userData.due);
+                setUserEmail(userData.email);
+                setCuPlanCode({
+                    isPlanCode:userData.plancode !== 'N/A',
+                    plancode:userData.plancode
+                });
+
+                
+
+
+                localStorage.setItem('subsname', userData.name);
+                localStorage.setItem('subsemail', userData.email);
+                localStorage.setItem('subscontact', userData.mobile);
+                localStorage.setItem('subsaddress', userData.address);
+                localStorage.setItem('subsplan', userData.plan);  
+                localStorage.setItem('company', userData.company);  
+
+            }
+
+
+
+            
+
+            const ispData = ispResponse.data;
+            if(ispData){
+                const Array = [];
+                Object.keys(ispData).forEach((key) => {
+                    const isp = ispData[key];
+                    const ispname = isp.ispname;
+                    Array.push(ispname);
+                });
+                setIspArray(Array);
+            }
+
+            const planData = planResponse.data;
+
+            if(planData){
+                const array = [];
+                Object.keys(planData).forEach((key) => {
+                    const plans = planData[key];
+                    const planKey = key;
+                    array.push({...plans, planKey});
+                });
+
+                const provider = [...new Set(array.map((data) => data.provider))];
+                const isp = [...new Set(array.map((data) => data.isp))];
+
+                setProvide(provider);
+                setIsps(isp);
+                setPlans(array);
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        } finally {
+            setLoader(false);
+        }
+    };
+
+
 
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoader(true);
-    
-                onValue(userRef, (subsSnap) => {
-                    if (subsSnap.exists()) {
-                        setFullName(subsSnap.val().fullName);
-                        setCompany(subsSnap.val().company);
-                        setUserID(subsSnap.val().username);
-                        setRegistrationDate(subsSnap.val().createdAt);
-                        setUserEmail(subsSnap.val().email);
-                        setContact(subsSnap.val().mobileNo);
-                        setIsTeminated(subsSnap.val().isTerminate);
-    
-    
-                        localStorage.setItem('subsname', subsSnap.val().fullName);
-                        localStorage.setItem('subsemail', subsSnap.val().email);
-                        localStorage.setItem('subscontact', subsSnap.val().mobileNo);
-                        localStorage.setItem('subsaddress', subsSnap.val().installationAddress);
-                        localStorage.setItem('subsplan', subsSnap.child("connectionDetails").val().planName)
-                    }
-                })
-
-
-                
-    
-                // Fetch Available Plans
-                const planSnap = await get(plansRef);
-                if (planSnap.exists()) {
-                    const planArray = [];
-                    planSnap.forEach((childPlan) => {
-                        const planname = childPlan.val().planname;
-                        const planperiod = childPlan.val().planperiod;
-                        const periodtime = childPlan.val().periodtime;
-                        const bandwidth = childPlan.val().bandwidth;
-                        planArray.push({ planname, periodtime, planperiod, bandwidth });
-
-                        if (planname === planName){
-                            setRenew(true);
-                        }else{
-                            setRenew(false);
-                        }
-                    });
-                    setArrayPlan(planArray);
-                }
-    
-                // Setup real-time connection info listener
-                const unsubscribe = onValue(planRef, (planSnap) => {
-                    if (planSnap.exists()) {
-                        setPlanName(planSnap.val().planName);
-                        setPlanAmount(planSnap.val().planAmount);
-                        setActivationDate(convertExcelDateSerial(planSnap.val().activationDate));
-                        setExpiryDate(convertExcelDateSerial(planSnap.val().expiryDate));
-                        setIsp(planSnap.val().isp);
-                        setDueAmount(planSnap.val().dueAmount);
-                    } else {
-                        console.log('Connection Data Not Found');
-                    }
-                });
-
-                const ispResponse = await axios.get(api+'/master/ISPs');
-    
-                if(ispResponse.status !== 200){
-                    return;
-                };
-    
-                const ispData = ispResponse.data;
-                if(ispData){
-                    const Array = [];
-                    Object.keys(ispData).forEach((key) => {
-                        const isp = ispData[key];
-                        const ispname = isp.ispname;
-                        Array.push(ispname);
-                    });
-                    setIspArray(Array);
-                }
-    
-                return unsubscribe;
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            } finally {
-                setLoader(false);
-            }
-        };
-
-        
-    
         fetchData();
-    
-        return () => {
-            fetchData?.();
-        };
     }, [username]);
     
     // Separate useEffect to calculate remaining days when expiryDate is updated
@@ -366,7 +296,7 @@ export default function Subscriber() {
         }
     }, [expiryDate]);
 
-       const teminateUser = async() => {
+    const teminateUser = async() => {
             const key = Date.now();
             const terminate = {
                 isTerminate:temptermstatus
@@ -392,58 +322,9 @@ export default function Subscriber() {
                 console.log(e);
             }
             
-        }
+    }
     
 
-
-
-
-
-      const getperiod = (dateValue) => {
-        const currentplan = planName;
-
-
-        const selectePlanObj = arrayplan.find(plan => plan.planname === currentplan);
-
-        if(selectePlanObj){
-            const planperiod = selectePlanObj.planperiod;
-            const periodtime = selectePlanObj.periodtime;
-            const bandwidth = selectePlanObj.bandwidth;
-
-            const date = new Date(dateValue);
-
-// Extend the date based on the unit from Firebase
-            if (planperiod === 'Months') {
-            date.setMonth(date.getMonth() + parseInt(periodtime));
-            } else if (planperiod === 'Years') {
-            date.setFullYear(date.getFullYear() + parseInt(periodtime));
-            } else if (planperiod === 'Days') {
-            date.setDate(date.getDate() + parseInt(periodtime));
-            }
-
-            // Format the new expiration date to YYYY-MM-DD
-            const expDate = new Date(date.setDate(date.getDate() - 1)).toISOString().split('T')[0];
-            setExpDate(expDate);
-            setBandwidth(bandwidth);
-
-        }
-
-        else{
-            setShowModal(false);
-            toast.error('No Plan Found Please Change Plan!', {
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-              });
-            console.log('No Plan Found');
-            
-        }
-        
-
-    }
 
     const updateISP = async() => {
         setIspChangeModal(false);
@@ -484,6 +365,147 @@ export default function Subscriber() {
 
 
     }
+
+    useEffect(() => {
+        let filterArray = plans;
+
+        if(changePlanData.provider !== 'All'){
+            filterArray = filterArray.filter((data) => data.provider === changePlanData.provider);
+        }
+
+        if(changePlanData.isp !== 'All'){
+            filterArray = filterArray.filter((data) => data.isp === changePlanData.isp);
+        }
+
+        setFilterPlans(filterArray);
+    }, [changePlanData]);
+
+
+    const savePlan = async(text) => {
+
+        if(changePlanData.provider === 'All' || changePlanData.isp === 'All' || changePlanData.planAmount === '' || changePlanData.planname === ''){
+            toast.error('Something went wrong', {
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            
+            });
+            return;
+        }
+
+
+
+        const newDue = Number(dueamount) + Number(changePlanData.planAmount);
+
+        const ledgerData = {
+            type:text,
+            date: new Date().toISOString().split('T')[0],
+            particular: `${changePlanData.planname} From ${changePlanData.activationDate} to ${changePlanData.expiryDate}`,
+            debitamount: Number(changePlanData.planAmount),
+            creditamount: 0
+        }
+
+        const planinfo ={
+            compeletedate: new Date().toISOString().split('T')[0],
+            planName: changePlanData.planname,
+            planAmount: Number(changePlanData.planAmount),
+            isp: changePlanData.isp,
+            activationDate: changePlanData.activationDate,
+            expiryDate: changePlanData.expiryDate,
+            action: text,
+            completedby: localStorage.getItem('Name'),
+            remarks: changePlanData.remarks,
+            bandwidth: `${changePlanData.bandwidth} Mbps`
+          }
+
+        const newconnectioninfo = {
+            activationDate: changePlanData.activationDate,
+            expiryDate: changePlanData.expiryDate,
+            planAmount: Number(changePlanData.planAmount),
+            dueAmount: newDue,
+            planName: changePlanData.planname,
+            bandwidth: `${changePlanData.bandwidth} Mbps`,
+            isp: changePlanData.isp,
+            provider:changePlanData.provider,
+            plancode:changePlanData.plancode
+        }
+
+        try{
+            await set(ref(db, `Subscriber/${username}/ledger/${ledgerKey}`), ledgerData);
+            await set(ref(db, `Subscriber/${username}/planinfo/${ledgerKey}`), planinfo);
+            await update(ref(db, `Subscriber/${username}/connectionDetails`), newconnectioninfo).then(() => {sendMessage();})
+
+            toast.success(`Successfull ${text}`, {
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            })
+
+        }catch(e){
+            toast.error('Failed to Update Plan', {
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            });
+            console.log(e);
+        }finally{
+            fetchData();
+            setModalChangePlan(false);
+            setChangePlanData({
+                provider:'All',
+                isp:'All',
+                planname:'',
+                activationDate:new Date().toISOString().split('T')[0],
+                expiryDate:'',
+                planAmount:'',
+                bandwidth:'',
+                planperiod:'',
+                periodtime:'',
+                baseamount:'',
+                remarks:'',
+                plancode:''
+            });
+        }
+
+    }
+
+    const updateExpirationDate = (newActivationDate, duration, unit) => {
+        const date = new Date(newActivationDate);
+    
+        // Extend the date based on the unit from Firebase
+        if (unit === 'Months') {
+          date.setMonth(date.getMonth() + Number(duration));
+        } else if (unit === 'Years') {
+          date.setFullYear(date.getFullYear() + Number(duration));
+        } else if (unit === 'Days') {
+          date.setDate(date.getDate() + Number(duration));
+        }
+        
+        const expDate = new Date(date.setDate(date.getDate() - 1)).toISOString().split('T')[0];
+        return expDate;
+      };
+
+      const sendMessage = async() => {
+        const emailData = {
+            to: userEmail,
+            subject: 'Broadband Subscription Renwal',
+            text: `🌐 Broadband Recharge Successful! 🎉\n\nDear ${fullName},\n\n✅ Your broadband recharge for ${changePlanData.planname} has been successfully completed.\n\n💳 *Amount Paid:* ₹${changePlanData.planAmount}\n📅 *Validity:* ${new Date(changePlanData.activationDate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})} to ${new Date(changePlanData.expiryDate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})}\n🚀 *Speed:* Up to ${changePlanData.bandwidth}\n\nThank you for choosing *Sigma Business Solutions*! 😊\n\n✨ Enjoy uninterrupted browsing and streaming! 🎬📱\n\nFor support or queries, feel free to reach out to us:\n📞 *Customer Care:* 9999118971\n💬 *WhatsApp Support:* 9999118971    *24x7*\n\nStay connected, stay happy! 🌟`
+        }
+        const message = `🌐 Broadband Recharge Successful! 🎉\n\nDear ${fullName},\n\n✅ Your broadband recharge for ${changePlanData.planname} has been successfully completed.\n\n💳 *Amount Paid:* ₹${changePlanData.planAmount}\n📅 *Validity:* ${new Date(changePlanData.activationDate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})} to ${new Date(changePlanData.expiryDate).toLocaleDateString('en-GM',{day:'2-digit', month:'2-digit', year:'2-digit'})}\n🚀 *Speed:* Up to ${changePlanData.bandwidth}\n\nThank you for choosing *Sigma Business Solutions*! 😊\n\n✨ Enjoy uninterrupted browsing and streaming! 🎬📱\n\nFor support or queries, feel free to reach out to us:\n📞 *Customer Care:* 9999118971\n💬 *WhatsApp Support:* 9999118971    *24x7*\n\nStay connected, stay happy! 🌟`
+        const encodedMessage = encodeURIComponent(message);
+        await axios.post(api+`/send-message?number=91${contact}&message=${encodedMessage}&company=${company}`);
+        alert(`Plan Is Changed Succesfully!`);
+        await axios.post(api+'/sendmail', emailData);
+      }
 
 
 
@@ -598,16 +620,43 @@ export default function Subscriber() {
                             </div>
                             <div style={{flex:'2', display:'flex', flexDirection:"column"}}>
                                 <div style={{flex:'2', marginTop:'50px', display:"flex", flexDirection:'row'}}>
-                                <button onClick={() => hasPermission("RENEW_PLAN") ? setShowModal(true) : toast.error("Permission Denied", {
-                                    autoClose: 3000,
-                                    hideProgressBar: false,
-                                    closeOnClick: true,
-                                    pauseOnHover: true,
-                                    draggable: true,
-                                    progress: undefined,
-                                })} style={{marginRight:'10px'}} type="button" className="btn btn-info" disabled = {renew || isTerminated}>Renew Subscription</button>
                                 <button onClick={() => {
-                                    hasPermission("CHANGE_PLAN") ? setPlanChange(true) : toast.error("Permission Denied", {
+                                    console.log(cuPlanCode);
+                                    if(!hasPermission("RENEW_PLAN")){
+                                        toast.error('Permission Denied!', {
+                                            autoClose: 3000,
+                                            hideProgressBar: false,
+                                            closeOnClick: true,
+                                            pauseOnHover: true,
+                                            draggable: true,
+                                            progress: undefined,
+                                        });
+                                        return;
+                                    }
+
+                                    if(cuPlanCode.isPlanCode){
+                                        setRenewModal(true);
+                                        const cuObj = plans.find((data) => data.planKey === cuPlanCode.plancode);
+                                        if(cuObj){
+                                            setChangePlanData({
+                                                ...changePlanData,
+                                                provider:cuObj.provider,
+                                                isp:cuObj.isp,
+                                                planname:cuObj.planname,
+                                                bandwidth:cuObj.bandwidth,
+                                                expiryDate:updateExpirationDate(new Date().toISOString().split('T')[0], cuObj.periodtime, cuObj.planperiod),
+                                                planAmount:planAmount,
+                                                planperiod:cuObj.planperiod,
+                                                periodtime:cuObj.periodtime,
+                                                plancode:cuPlanCode.plancode
+                                            });
+                                        }
+                                    }
+
+
+                                }} style={{marginRight:'10px'}} type="button" className="btn btn-info" disabled = {!cuPlanCode.isPlanCode || isTerminated}>Renew Subscription</button>
+                                <button onClick={() => {
+                                    hasPermission("CHANGE_PLAN") ? setModalChangePlan(true) : toast.error("Permission Denied", {
                                         autoClose: 3000,
                                         hideProgressBar: false,
                                         closeOnClick: true,
@@ -635,29 +684,20 @@ export default function Subscriber() {
                 </div>
                 </div>
 
-                <RenewalModal modalShow={() => setShowModal(false)} show={showmodal} planName = {planName} planAmount={parseInt(planAmount)} isp={isp} 
+                {/* <RenewalModal planName = {planName} planAmount={parseInt(planAmount)} isp={isp} 
                         handleMin={expiryDate}
                         handleAmount={(e) => setCustomCharge(e.target.value)}
                         handleActivation={(e) => {
                             setRenewBtn(false);
                             const newActivationDate = e.target.value;
                             setRenewActDate(newActivationDate);
-                            getperiod(newActivationDate);
                         }}
                         handleexpiry={expdate}
                         handleRemarks={(e) => setRemarks(e.target.value)}
-                        renewbtn={renewbtn}
-                        savePlan={handleSavePlan}
-                    />
+                        renewbtn={renewbtn}savePlan={handleSavePlan}/>
 
-                <PlanChangeModal modalShow={() => setPlanChange(false)} show={showplanchange} dueamount={dueamount}
-                                        handleMin={activationDate}
-                                        
-                                        
-                                        
-                                        
-                                    />
-        </div>
+                <PlanChangeModal modalShow={() => setPlanChange(false)} show={showplanchange} dueamount={dueamount} handleMin={activationDate}/> */}
+                </div>
         <div style={{flex:'5', display:'flex', flexDirection:'row'}}>
             <div style={{flex:'1', display:'flex', flexDirection:'column'}}>
                 
@@ -822,6 +862,177 @@ export default function Subscriber() {
                 <button onClick={() => setShowTerminate(false)} className='btn btn-outline-secondary'>Cancel</button>
             </Modal.Footer>
         </Modal>    
+
+        <Modal show={modalChangeplan} onHide={() => setModalChangePlan(false)}>
+            <Modal.Header>
+                <Modal.Title>
+                    Change Customer Plan
+                </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <div className='container'>
+                    <div className='d-flex flex-row mt-2'>
+                        <div className='col-md me-2'>
+                            <label className='form-label'>Select Provider *</label>
+                            <select onChange={(e) => setChangePlanData({
+                                ...changePlanData,
+                                provider:e.target.value
+                            })} className='form-select'>
+                                <option>Choose...</option>
+                                {
+                                    provide.map((data, index) => (
+                                        <option key={index}>{data}</option>
+                                    ))
+                                }
+                            </select>
+                        </div>
+
+                        <div className='col-md ms-2'>
+                            <label className='form-label'>Select ISP *</label>
+                            <select onChange={(e) => setChangePlanData({
+                                ...changePlanData,
+                                isp:e.target.value
+                            })} className='form-select'>
+                                <option>Choose...</option>
+                                {
+                                    isps.map((data, index) => (
+                                        <option key={index}>{data}</option>
+                                    ))
+                                }
+                            </select>
+
+                        </div>
+                    </div>
+
+                    <div className='col-md mt-2'>
+                        <label className='form-label'>Select Plan *</label>
+                        <select onChange={(e) => {
+                            const selectKey = e.target.value;
+                            const selectedObj = plans.find((data) => data.planKey === selectKey);
+                            if(selectedObj){
+                                setChangePlanData({
+                                    ...changePlanData,
+                                    provider:selectedObj.provider,
+                                    isp:selectedObj.isp,
+                                    planAmount:selectedObj.planamount,
+                                    planname:selectedObj.planname, 
+                                    bandwidth:selectedObj.bandwidth,
+                                    periodtime:selectedObj.periodtime,
+                                    planperiod:selectedObj.planperiod,
+                                    expiryDate:updateExpirationDate(changePlanData.activationDate, selectedObj.periodtime, selectedObj.planperiod),
+                                    baseamount:selectedObj.planamount,
+                                    plancode:selectedObj.planKey
+                                });
+
+
+                                
+                            }
+                        }} className='form-select'>
+                            <option>Choose...</option>
+                            {
+                                filterPlan.map((data, index) => (
+                                    <option key={index} value={data.planKey}>{data.planname}</option>
+                                ))
+                            }
+                        </select>
+                    </div>
+
+                    <div className='d-flex flex-row mt-2'>
+                        <div className='col-md me-2'>
+                            <label className='form-label'>Activation Date *</label>
+                            <input defaultValue={changePlanData.activationDate} onChange={(e) => {
+                                setChangePlanData({
+                                    ...changePlanData,
+                                    activationDate:e.target.value,
+                                    expiryDate:updateExpirationDate(e.target.value, changePlanData.periodtime, changePlanData.planperiod),
+                                    
+                                })
+                            }} className='form-control' type='date'></input>
+                        </div>
+
+                        <div className='col-md ms-2'>
+                            <label className='form-label'>Expiry Date</label>
+                            <input value={changePlanData.expiryDate} className='form-control' type='date' disabled></input>
+                        </div>
+                    </div>
+
+                    <div className='d-flex flex-row mt-2'>
+                        <div className='col-md me-2'>
+                            <label className='form-label'>Base Amount</label>
+                            <input value={changePlanData.baseamount} className='form-control' type='text' disabled></input>
+
+                        </div>
+
+                        <div className='col-md ms-2'>
+                            <label className='form-label'>Custom Amount *</label>
+                            <input defaultValue={changePlanData.planAmount} onChange={(e) => setChangePlanData({
+                                ...changePlanData,
+                                planAmount:e.target.value
+                            })} className='form-control' type='text'></input>
+                        </div>
+
+                    </div>
+
+                    <div className='col-md mt-2'>
+                        <label className='form-label'>Remarks</label>
+                        <input onChange={(e) => setChangePlanData({
+                            ...changePlanData,
+                            remarks:e.target.value
+                        })} className='form-control' type='text'></input>
+                    </div>
+                </div>
+            </Modal.Body>
+            <Modal.Footer>
+                <div className='container d-flex flex-row'>
+                    <button onClick={() => savePlan('Plan Change')} className='col-md btn btn-success me-3'>Update Plan</button>
+                    <button onClick={() => setModalChangePlan(false)} className='col-md btn btn-outline-secondary ms-3'>Cancel</button>
+                </div>
+            </Modal.Footer>
+        </Modal>
+
+        <Modal show={renewmodal} onHide={() => setRenewModal(false)}>
+            <Modal.Header>
+                <Modal.Title>Renew Customer Plan</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <div className='container'>
+                    <div className='col-md mt-2'>
+                        <label className='form-label'>Current Plan</label>
+                        <input defaultValue={changePlanData.planname} className='form-control'></input>
+                    </div>
+
+                    <div className='d-flex flex-row mt-2'>
+                        <div className='col-md me-2'>
+                            <label className='form-label'>Activation Date</label>
+                            <input className='form-control' type='date' defaultValue={changePlanData.activationDate} onChange={(e) => setChangePlanData({
+                                ...changePlanData,
+                                activationDate:e.target.value,
+                                expiryDate:updateExpirationDate(e.target.value, changePlanData.periodtime, changePlanData.planperiod)
+                            })}></input>
+                        </div>
+
+                        <div className='col-md ms-2'>
+                            <label className='form-label'>Expiry Date</label>
+                            <input value={changePlanData.expiryDate} className='form-control' type='date' disabled></input>
+                        </div>
+                    </div>
+
+                    <div className='col-md'>
+                        <label className='form-label'>Remarks</label>
+                        <input onChange={(e) => setChangePlanData({
+                            ...changePlanData,
+                            remarks:e.target.value
+                        })} className='form-control' type='text'></input>
+                    </div>
+                </div>
+            </Modal.Body>
+            <Modal.Footer>
+                <div className='container d-flex flex-row'>
+                    <button onClick={(e) => savePlan('Renewal')} className='col-md me-3 btn btn-primary'>Renew Plan</button>
+                    <button onClick={() => setRenewModal(false)} className='col-md ms-3 btn btn-outline-secondary'>Cancel</button>
+                </div>
+            </Modal.Footer>
+        </Modal>
   </div>
   )
 }

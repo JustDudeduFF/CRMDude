@@ -15,6 +15,7 @@ export default function ReceiptModify() {
   const name = localStorage.getItem('subsname');
   const address = localStorage.getItem('subsaddress');
   const planname = localStorage.getItem('subsplan');
+  const company = localStorage.getItem('company');
 
   const navigate = useNavigate();
 
@@ -46,6 +47,20 @@ export default function ReceiptModify() {
   
     try {
       const newLedgerKey2 = Date.now();
+
+
+      if(amount === 0 || collectedBy === '' || paymentMode === '' || billingPeriod === '' || collectedBy === '' || discount === 0){
+        toast.error('Please Fill Details', {
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        setIsDisabled(false);
+        return;
+      }
   
       const receiptData = {
         source: 'Manual',
@@ -192,7 +207,7 @@ export default function ReceiptModify() {
             ['S. No.', '', 'Quantity', 'Rate', 'Discount', 'Amount']
           ],
           body: [
-            ['1', `${planname}`, `${receiptData.billing}`, `${parseInt(receiptData.amount) + parseInt(receiptData.discount)}`, `${receiptData.discount}`, `${receiptData.amount}`]
+            ['1', `${planname}`, `${receiptData.billing}`, `${Number(receiptData.amount) + Number(receiptData.discount)}`, `${receiptData.discount}`, `${receiptData.amount}`]
           ],
           theme: 'striped',
           headStyles: {
@@ -250,7 +265,7 @@ export default function ReceiptModify() {
 
         const mailData = new FormData();
         mailData.append('pdf', pdfBlob, `${receiptData.receiptDate}.pdf`);
-        mailData.append('to', 'justdudehere@gmail.com');
+        mailData.append('to', subsemail);
         mailData.append('subject', 'Payment Status And Invoice');
         mailData.append('text', `Dear ${name}, \nYour Payment has been done for receipt period ${receiptData.billingPeriod}.\n\nPayment Mode: ${receiptData.paymentMode}\n\nReceipt Date: ${receiptData.receiptDate}\n\nReceipt No.: ${receiptData.receiptNo}\n\nThank you for your business.\nRegards,\nSigma Business Solutions`)
     
@@ -278,19 +293,19 @@ export default function ReceiptModify() {
         return;
       }
   
-      const dueAmount = parseInt(dueSnap.val().dueAmount);
+      const dueAmount = Number(dueSnap.val().dueAmount);
       const newDue = {
-        dueAmount: dueAmount - (parseInt(amount) + parseInt(discount)),
+        dueAmount: dueAmount - (Number(amount) + Number(discount)),
       };
 
-      const newDueAmount = dueAmount - (parseInt(amount) + parseInt(discount));
+      const newDueAmount = dueAmount - (Number(amount) + Number(discount));
 
 
     const sendWhatsapp = async () => {
       const newMessage = `Dear ${name},\n\n💸 **Payment Confirmation** 💸\n\nWe have successfully received your payment. Here are the details:\n\n🔹 **Amount Paid**: ₹${amount}\n🔹 **Payment Mode**: ${receiptData.paymentMode}\n🔹 **Payment Date**: ${new Date(receiptData.receiptDate).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}\n🔹 **Current Due**: ₹${newDueAmount}\n\nIf you have any questions or need further assistance, please contact our support team.\n\n📞 **Support**: +91 99991 18971\n\nThank you for choosing **Sigma Business Solutions**!\n\nBest regards,\n**Sigma Business Solutions** Team`
       const encodedMessage = encodeURIComponent(newMessage);
 
-      const response = await axios.post(api+`/send-message?number=91${contact}&message=${encodedMessage}`);
+      const response = await axios.post(api+`/send-message?number=91${contact}&message=${encodedMessage}&company=${company}`);
       console.log(response.data.status);
   }
   
@@ -335,9 +350,14 @@ export default function ReceiptModify() {
       navigate(-1);
     } catch (error) {
       console.error('Error during form submission:', error);
-      toast.error('An error occurred during submission.');
-    } finally {
-      setIsDisabled(false);
+      toast.error('An error occurred during submission.', {
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
     }
   };
   
@@ -506,7 +526,7 @@ export default function ReceiptModify() {
             </label>
             <input
               onChange={(e) => settransactionNo(e.target.value)}
-              type="number"
+              type="text"
               className="form-control"
               id="inputCity"
             />

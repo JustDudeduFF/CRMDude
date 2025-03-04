@@ -176,7 +176,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
         setFilteredArray(filterArray);
     }, [selectCompany, arrayData])
 
-    const handleSavePlan = async (username, expireDate, planAmount, planName, mobile, fullName) => {
+    const handleSavePlan = async (username, expireDate, planAmount, planName, mobile, fullName, company) => {
         setLoader(true);
         if (heading.split(' ')[0] === 'Expiring') {
             const dueRef = ref(db, `Subscriber/${username}/connectionDetails`);
@@ -234,7 +234,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
             const sendMessage = async (mobile, planName, fullName, expireDate, planAmount, date) => {
                 const message = `Dear ${fullName},\nYour Plan ${planName}  ₹${planAmount}  Recharge Successfully for period of  ${date} to ${expireDate} thanks for being with us. For any query call (9999118971) SIGMA BUSINESS SOLUTIONS .`;
                 const encodedMessage = encodeURIComponent(message);
-                const response = await axios.post(api+`/send-message?number=91${mobile}&message=${encodedMessage}`);
+                const response = await axios.post(api+`/send-message?number=91${mobile}&message=${encodedMessage}&company=${company}`);
                 const responsemail = await axios.post(api+'/sendmail', {
                     to: "justdudehere@gmail.com",
                     subject: 'Broadband Subscription Renewal',
@@ -285,9 +285,10 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                     const planName = data.planName;
                     const newmessage = `Dear ${fullName.split(" ")[1]}\n\nWe hope you are enjoying your broadband experience with us! Your current plan is set to expire on ${new Date(expire).toLocaleDateString("en-GB", {day:'2-digit', month:'long', year:"numeric"})}. To continue enjoying uninterrupted internet service, we recommend renewing your plan today.\n\n*Plan Details:*\n- *Current Plan*: ${planName}\n- *Data Limit*: Unlimited\n- *Expiration Date*: ${new Date(expire).toLocaleDateString("en-GM", {day:'2-digit', month:'long', year:'numeric'})}\n\n*How to Renew:*\n\n- *Online*: Log in to your account at sigmanetworks.in/CustomerLogin and follow the renewal instructions.\n- *Mobile App*: Open our app, Click on "Renew Plan" and complete your payment.\n- *Whatsapp Bot Support*: Contact us 24x7 9999118971.\n\nStay connected with blazing-fast internet and uninterrupted service. Renew your plan today!\n\nBest regards,\n*Sigma Business Solutions*`;
                     const encoedeMessage = encodeURIComponent(newmessage);
+                    const company = data.company;
                     
                     
-                    await axios.post(api+`/send-message?number=91${mobile}&message=${encoedeMessage}`);
+                    await axios.post(api+`/send-message?number=91${mobile}&message=${encoedeMessage}&company=${company}`);
                 });
             }else{
                 alert("Permission Denied");
@@ -306,15 +307,16 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                     const fullName = data.fullName;
                     const amount = data.planAmount;
                     const username = data.username;
+                    const company = data.company;
                     const message = `Hi ${fullName.split(" ")[1]},\n\nThis is a gentle reminder from *Sigma Business Solutions* regarding your broadband service account.\n\nBill Details:\n- *Account Number*: ${username}\n- *Due Amount*: ₹${amount}\n\nTo ensure uninterrupted service, kindly make the payment as early as possible. You can make the payment via login to sigmanetworks.in/CustomerLogin.\nYour Login Credentials is:\n- *UserName*: ${username}\n- *Password*: 123456}\n\nFor any assistance, feel free to contact us at *99991 18971*.\n\nThank you for choosing\n*Sigma Business Soltions*!\nWe value your association with us.`;
                     const encodedMessage = encodeURIComponent(message);
-                    await axios.post(api+`/send-message?number=91${mobile}&message=${encodedMessage}`); 
+                    await axios.post(api+`/send-message?number=91${mobile}&message=${encodedMessage}&company=${company}`); 
                 });
             }else{
                 alert("Permission Denied");
             }
         }
-        }
+    }
         
 
     if (!show) return null;
@@ -373,7 +375,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                         </thead>
                         <tbody>
                             {filteredArray.length > 0 ? (
-                                filteredArray.map(({ username, expiredDate, fullName, mobile, installationAddress, planAmount, planName }, index) => (
+                                filteredArray.map(({ username, expiredDate, fullName, mobile, installationAddress, planAmount, planName, company }, index) => (
                                     <tr key={index}>
                                         <td>{index + 1}</td>
                                         <td style={{maxWidth:'900px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{fullName}</td>
@@ -389,7 +391,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                                             year:'numeric'
                                         }).replace(',','')}</td>
                                         <td>
-                                            <button onClick={() =>{ handleSavePlan(username, expiredDate, planAmount, planName, mobile, fullName);}} className='btn btn-outline-success'>{heading.split(' ')[0] === 'Expiring' ? 'Renew' : 'Collect'}</button>
+                                            <button onClick={() =>{ handleSavePlan(username, expiredDate, planAmount, planName, mobile, fullName, company);}} className='btn btn-outline-success'>{heading.split(' ')[0] === 'Expiring' ? 'Renew' : 'Collect'}</button>
                                         </td>
                                     </tr>
                                 ))

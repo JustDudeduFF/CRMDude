@@ -6,6 +6,7 @@ import { api } from '../FirebaseConfig';
 import TicketdataDash from './TicketData/TicketdataDash';
 import RevenueDash from './ExpiredData/RevenueDash';
 import ExpiredDash from './ExpiredData/ExpiredDash';
+import DueDash from './ExpiredData/DueDash';
 
 export default function Reports() {
 
@@ -80,7 +81,7 @@ export default function Reports() {
 
                     <li onClick={() => {
                         setText(0);
-                        navigate("/dashboard/reports/tickets");
+                        navigate("/dashboard/reports/dueamount");
                     }} className='list-group-item justify-content-between align-items-start mt-2'>
                         <div>Due Amount</div>
                         <div className='fw-light'>{`Total Due : ${due}`}</div>
@@ -111,6 +112,7 @@ export default function Reports() {
                     <Route path='/tickets/*' element={<TicketdataDash/>}/>
                     <Route path='/revenue/*' element={<RevenueDash/>}/>
                     <Route path='/expired/*' element={<ExpiredDash/>}/>
+                    <Route path='/dueamount/*' element={<DueDash/>}/>
                 </Routes>
             </div>
 

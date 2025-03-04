@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from "react";
 import {api, db, storage} from '../FirebaseConfig'
 import {  uploadBytes, getDownloadURL, ref as dbRef } from "firebase/storage";
-import { ref, set, onValue, update } from "firebase/database";
+import { ref, set, update } from "firebase/database";
 import { toast, ToastContainer } from "react-toastify";
 import { ProgressBar } from "react-loader-spinner";
 import { useNavigate } from "react-router-dom";
@@ -37,11 +37,13 @@ export default function NewUserAdd() {
   const [expiryDate, setExpiryDate] = useState(null);
   const [conectiontyp, setConnectionTyp] = useState('');
 
-  // Inventory & Device Details
-  const [deviceMaker, setDeviceMaker] = useState("");
-  const [deviceSerialNumber, setDeviceSerialNumber] = useState("");
-  const [connectionPowerInfo, setConnectionPowerInfo] = useState("");
-  const [category, setCategory] = useState('');
+  const [category, setCategory] = useState('All');
+  const [deviceMaker, setDeviceMaker] = useState('All');
+  const [filterDevice, setFilterDevice] = useState([]);
+  const [deviceSerialNumber, setDeviceSerialNumber] = useState({
+    serial:'',
+    mac:''
+  });
 
 
 
@@ -54,215 +56,54 @@ export default function NewUserAdd() {
   const [arraycolony, setArraycolony] = useState([]);
   const [arrayplan, setArrayplan] = useState([]);
   const [arrayisp, setArrayisp] = useState([]);
+  const [arrayprovider, setArrayProvider] = useState([]);
   const [arraydevice, setArraydevice] = useState([]);
-  const [arrayserial, setArrayserial] = useState([]);
   const [arraycategory, setArrayCategory] = useState([]);
+  const [arraymaker, setArrayMaker] = useState([]);
 
   const [planDuration, setPlanDuration] = useState(0); // Duration value from Firebase
   const [durationUnit, setDurationUnit] = useState(''); 
 
+
+  const [planData, setPlanData] = useState({
+    provider:'All',
+    isp:'All',
+    planname:'',
+    activationDate:new Date().toISOString().split('T')[0],
+    expiryDate:'',
+    planAmount:'',
+    bandwidth:'',
+    planperiod:'',
+    periodtime:'',
+    baseamount:'',
+    remarks:'',
+    plancode:'',
+    installby:'',
+    leadby:''
+  });
+  const [arrayuser, setArrayUser] = useState([]);
+
+  const [filterPlans, setFilterPlans] = useState([]);
+
   const [loader, setLoader] = useState(false);
-  
-
-
-  const [isListVisible, setIsListVisible] = useState(false);
-  const handleListItemClick = (value) => {
-    setDeviceSerialNumber(value)
-    setIsListVisible(false); // Optionally hide the list after selection
-  };
-
-  const serialRef = ref(db, `Inventory/New Stock/${deviceMaker}/${category}`);
-  const categoryRef = ref(db, `Inventory/New Stock/${deviceMaker}`);
 
   const ledgerkey = Date.now();
 
 
 
   useEffect(() => {
-    if (deviceMaker) {
-      // Fetch data only when deviceMaker is updated
-      getCategory();
-    }
-  }, [deviceMaker]); // Make sure to include dependencies
-
-  const getCategory =() => {
-    setArrayCategory([]);
-    setArrayserial([]);
-
-    onValue(categoryRef, (categorySnap => {
-      if(categorySnap.exists()){
-        const categoryArray = [];
-        categorySnap.forEach(Childcategory => {
-          const categoryname = Childcategory.key;
-          categoryArray.push(categoryname);
-        });
-        setArrayCategory(categoryArray);
-      }else {
-        toast.error('No Data Found!', {
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-      }
-    }));
-  }
-
-  const getchSerials = () => {
-    setArrayserial([]);
-    // Firebase call to get data
-    onValue(serialRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const Serialarray = [];
-        snapshot.forEach((childSnapshot) => {
-          const serialnumber = childSnapshot.key;
-          Serialarray.push(serialnumber);
-        });
-        setArrayserial(Serialarray);
-      } else {
-        toast.error('No Data Found!', {
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-      }
-    });
-  };
-
-  const handleDeviceMakerChange = (e) => {
-    setDeviceMaker(e.target.value);
-  };
-
-  // function generateCustomUniqueKey() {
-  //   // Generate a random string and append it to the current timestamp
-  //   const randomString = Math.random().toString(36).substr(2, 9); // Random alphanumeric string
-  //   const timestamp = Date.now().toString();
-  //   return `${timestamp}_${randomString}`;
-  // }
-
-
-  useEffect(() => {
-    const deviceRef = ref(db, `Inventory/New Stock`);
-
-
-    // const unsubscribecolony = onValue(colonyRef, (colonySnap) => {
-    //   if (colonySnap.exists()) {
-    //     const colonyArray = [];
-    //     colonySnap.forEach((Childcolony) => {
-    //       const colonyname = Childcolony.key;
-    //       const companyname = Childcolony.val().undercompany;
-    //       colonyArray.push({colonyname, companyname});
-
-    //     });
-    //     setArraycolony(colonyArray);
-       
-    //   } else {
-    //     toast.error('Please Add an colony Location', {
-    //       autoClose: 3000,
-    //       hideProgressBar: false,
-    //       closeOnClick: true,
-    //       pauseOnHover: true,
-    //       draggable: true,
-    //       progress: undefined,
-    //     });
-    //   }
-    // });
-
-    // const unsubscribeplan = onValue(planRef, (planSnap) => {
-    //   if (planSnap.exists()) {
-    //     const planArray = [];
-    //     planSnap.forEach((Childplan) => {
-    //       const planname = Childplan.val().planname;
-    //       const planamount = Childplan.val().planamount;
-    //       const planperiod = Childplan.val().planperiod;
-    //       const periodtime = Childplan.val().periodtime;
-    //       planArray.push({planname, planamount, planperiod, periodtime});
-    //     });
-        
-    //     setArrayplan(planArray);
-        
-    //   } else {
-    //     toast.error('Please Add an plan Location', {
-    //       autoClose: 3000,
-    //       hideProgressBar: false,
-    //       closeOnClick: true,
-    //       pauseOnHover: true,
-    //       draggable: true,
-    //       progress: undefined,
-    //     });
-    //   }
-    // });
-
-    // const unsubscribeisp = onValue(ispRef, (ispSnap) => {
-    //   if (ispSnap.exists()) {
-    //     const ispArray = [];
-    //     ispSnap.forEach((Childisp) => {
-    //       const ispname = Childisp.val().ispname;
-          
-    //       ispArray.push(ispname);
-    //     });
-    //     setArrayisp(ispArray);
-        
-    //   } else {
-    //     toast.error('Please Add an isp Location', {
-    //       autoClose: 3000,
-    //       hideProgressBar: false,
-    //       closeOnClick: true,
-    //       pauseOnHover: true,
-    //       draggable: true,
-    //       progress: undefined,
-    //     });
-    //   }
-    // });
-
-    
-    const unsubscribedevice = onValue(deviceRef, (deviceSnap) => {
-      if (deviceSnap.exists()) {
-        const deviceArray = [];
-        deviceSnap.forEach((Childdevice) => {
-          const devicename = Childdevice.key;
-          
-          deviceArray.push(devicename);
-        });
-        setArraydevice(deviceArray);
-        
-      } else {
-        toast.error('Please Add an device Location', {
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-      }
-    });
-
-
     initialData();
-
-
-    return () => {
-      
-      unsubscribedevice();
-
-    };
   }, []); 
 
   const initialData = async() => {
     try{
-      const [responseIsp, responsePlan, responseColony] = await Promise.all([
-        axios.get(api+"/master/ISPs?data=isp"),
-        axios.get(api+"/master/Broadband Plan?data=plans"),
-        axios.get(api+"/master/Colonys?data=colony")
+      const [responsePlan, responseColony, responseUsers] = await Promise.all([
+        axios.get(api+"/master/Broadband Plan"),
+        axios.get(api+"/master/Colonys?data=colony"),
+        axios.get(api+'/users')
       ]);
   
-      if(responseIsp.status !== 200 || responsePlan.status !== 200 || responseColony.status !== 200){
+      if(responsePlan.status !== 200 || responseColony.status !== 200 || responseUsers.status !== 200){
         return;
       }
   
@@ -273,13 +114,33 @@ export default function NewUserAdd() {
   
       const planData = responsePlan.data;
       if(planData){
-        setArrayplan(planData);
+        const array = [];
+        Object.keys(planData).forEach((key) => {
+          const plan = planData[key];
+          const planKey = key;
+
+          array.push({...plan, planKey});
+        });
+        const isp = [...new Set(array.map((data) => data.isp))];
+        const provider = [...new Set(array.map((data) => data.provider))];
+        setArrayisp(isp);
+        setArrayProvider(provider);
+        setArrayplan(array);
+      }
+
+      const userData = responseUsers.data;
+      if(userData){
+        const array = [];
+        Object.keys(userData).forEach((key) => {
+          const user = userData[key];
+
+          const name = user.FULLNAME;
+          const mobile = user.MOBILE;
+          array.push({name, mobile});
+        });
+        setArrayUser(array);
       }
   
-      const ispData = responseIsp.data;
-      if(ispData){
-        setArrayisp(ispData);
-      }
     }catch(e){
       console.log(e);
     }
@@ -310,7 +171,7 @@ export default function NewUserAdd() {
     const onekey = Date.now();
     const userKey = username+onekey;
 
-    if(fullName === '' || username === '' || mobileNo === '' || company === '' || installationAddress === '' || conectiontyp === '' || isp === ''){
+    if(fullName === '' || username === '' || mobileNo === '' || company === '' || installationAddress === '' || conectiontyp === '' || isp === '' || deviceSerialNumber.serial === ''){
       toast.error('Manadaratry Field will not be empty', {
         autoClose: 3000,
           hideProgressBar: false,
@@ -348,19 +209,16 @@ export default function NewUserAdd() {
           pinCode,
           connectionDetails: {
             isp,
-            planName,
+            planName:planData.planname,
             planAmount,
             securityDeposit,
             refundableAmount,
             activationDate: activationDate,
             expiryDate: expiryDate,
             conectiontyp: conectiontyp,
-            dueAmount: parseInt(planAmount) + parseInt(securityDeposit)
-          },
-          inventoryDeviceDetails: {
-            deviceMaker,
-            deviceSerialNumber,
-            connectionPowerInfo,
+            dueAmount: Number(planAmount) + Number(securityDeposit),
+            bandwidth:planData.bandwidth,
+            provider:planData.provider
           },
           documents: {
             addressProof: {
@@ -391,10 +249,12 @@ export default function NewUserAdd() {
             }
           },
           createdAt: activationDate,
+          installedby:planData.installby,
+          leadby:planData.leadby
         };
         
         const ledgerdata = {
-            type:'Security',
+            type:'Inventory',
             date:new Date().toISOString().split('T')[0],
             particular: 'Device Security',
             debitamount: securityDeposit,
@@ -407,7 +267,7 @@ export default function NewUserAdd() {
           particular: 'New Subscriber',
           debitamount: planAmount,
           creditamount: 0,
-      }
+        }
 
         const planinfo ={
           planName: planName,
@@ -422,19 +282,24 @@ export default function NewUserAdd() {
         const inventrydata = {
           devicename: `${deviceMaker} ${category}`,
           date: new Date().toISOString().split('T')[0],
-          deviceSerialNumber : deviceSerialNumber,
+          deviceSerialNumber : deviceSerialNumber.serial,
+          macaddress: deviceSerialNumber.mac,
           remarks: securityDeposit === '0' || null ? 'Free to Use' : 'Device On Security',
           amount: securityDeposit,
           status: 'Activated',
           modifiedby: localStorage.getItem('Name'),
           ledgerkey: onekey
+        }
 
+        const updateDevice = {
+          status:userKey
         }
 
 
   
         // Add to Firestore
         await update(ref(db, `Subscriber/${userKey}`), userData);
+        await update(ref(db, `Inventory/${deviceSerialNumber.mac}`), updateDevice);
         await set(ref(db, `Subscriber/${userKey}/ledger/${ledgerkey}`), ledgerdata2);
         await set(ref(db, `Subscriber/${userKey}/ledger/${onekey}`), ledgerdata);
         await set(ref(db, `Subscriber/${userKey}/Inventory/${onekey}`), inventrydata);
@@ -449,21 +314,69 @@ export default function NewUserAdd() {
         alert("There was an error uploading the details.");
         setLoader(false);
       }
+    }  
+  };
+  const getDevices = async(company) => {
+    try{
+
+      const deviceResponse = await axios.get(api+`/inventory/free?company=${company}`);
+
+      if(deviceResponse.status !== 200){
+        console.log(deviceResponse.status)
+        return;
+      }
+
+      const data = deviceResponse.data;
+      if(data){
+        setArraydevice(data);
+
+        const arraycategory = [...new Set(data.map((data) => data.devicecategry))];
+        const arraymaker = [...new Set(data.map((data) => data.makername))];
+
+        setArrayCategory(arraycategory);
+        setArrayMaker(arraymaker);
+
+      }
+
+    }catch(e){
+      console.log(e);
+    }
+  }
+
+
+  useEffect(() => {
+    let deviceFilter = arraydevice;
+
+    if(category !== 'All'){
+      deviceFilter = deviceFilter.filter((device) => device.devicecategry === category);
     }
 
-    
-  };
+    if(deviceMaker !== 'All'){
+      deviceFilter = deviceFilter.filter((device) => device.makername === deviceMaker);
+    }
 
-  const filteredSerial = arrayserial.filter(serial =>
-    serial.toLowerCase().includes(deviceSerialNumber.toLowerCase())
-  );
+    setFilterDevice(deviceFilter);
+  }, [category, deviceMaker]);
+
+  useEffect(() => {
+    let filterArray = arrayplan;
+
+    if(planData.provider !== 'All'){
+      filterArray = filterArray.filter((data) => data.provider === planData.provider);
+    }
+
+    if(planData.isp !== 'All'){
+      filterArray = filterArray.filter((data) => data.isp === planData.isp);
+    }
+
+    setFilterPlans(filterArray);
+
+  }, [planData.provider, planData.isp])
   
 
 
 
   return (
-
-    //Personal Details Section
     
     <div style={{width: '100%', display:'flex', flexDirection: 'column', marginTop: '5.5%'}}>
       {loader &&
@@ -589,6 +502,9 @@ export default function NewUserAdd() {
               setCompany("");
             }
 
+
+            getDevices(selectedColonyObj.companyname);
+
             
           }} className="form-select" id="validationCustom04" required>
             <option>Choose...</option>
@@ -599,7 +515,7 @@ export default function NewUserAdd() {
                 </option>
               ))
             ) : (
-              <option value="">No Plan Available</option>
+              <option value="">No Colony Availabale</option>
             )}
           </select>
           <div className="invalid-feedback">Please select a valid state.</div>
@@ -639,11 +555,14 @@ export default function NewUserAdd() {
       <h3 style={{marginLeft: '20px', marginTop: '10px'}}>Connection Details</h3>
       <div style={{padding: '10px', borderRadius: '5px', boxShadow:'0 0 10px skyblue', margin: '10px'}} className="UserInfo">
       <form className="row g-3 needs-validation" noValidate>
-        <div className="col-md-3">
+        <div className="col-md-2">
           <label htmlFor="validationCustom04" className="form-label">
             Select ISP *
           </label>
-          <select onChange={(e) => setIsp(e.target.value)} className="form-select" id="validationCustom04" required>s
+          <select onChange={(e) => setPlanData({
+            ...planData,
+            isp:e.target.value
+          })} className="form-select" id="validationCustom04" required>s
             <option value="">  
               Choose...
             </option>
@@ -660,22 +579,46 @@ export default function NewUserAdd() {
           </select>
           <div className="invalid-feedback">Please select a valid state.</div>
           
-        </div><br></br>
+        </div>
+
+        <div className="col-md-2">
+          <label className='form-label'>Provider Name</label>
+          <select onChange={(e) => setPlanData({
+            ...planData,
+            provider:e.target.value
+          })} className='form-select'>
+            <option value=''>Choose...</option>
+            {
+              arrayprovider.map((data, index) => (
+                <option key={index} value={data}>{data}</option>
+              ))
+            }
+          </select>
+
+        </div>
       
-        <div className="col-md-4">
+        <div className="col-md-3">
           <label htmlFor="validationCustom01" className="form-label">
             Plan Name
           </label>
           <select onChange={(e) => {
             const selectedPlanName = e.target.value;
-            setPlanName(selectedPlanName);
           
             // Find the selected plan's amount
-            const selectedPlanObj = arrayplan.find(plan => plan.planname === selectedPlanName);
+            const selectedPlanObj = arrayplan.find(plan => plan.planKey === selectedPlanName);
             if (selectedPlanObj) {
               setPlanAmount(selectedPlanObj.planamount);
               const periodtyp = selectedPlanObj.planperiod;
               const periodtime = selectedPlanObj.periodtime;
+
+              setPlanData({
+                ...planData,
+                plancode:selectedPlanName,
+                bandwidth:selectedPlanObj.bandwidth,
+                provider:selectedPlanObj.provider,
+                isp:selectedPlanObj.isp,
+                planname:selectedPlanObj.planname
+              })
 
               setPlanDuration(periodtime);
               setDurationUnit(periodtyp);
@@ -690,9 +633,9 @@ export default function NewUserAdd() {
           
           className="form-select" id="validationCustom04" required>
             <option>Choose...</option>
-          {arrayplan.length > 0 ? (
-              arrayplan.map((plan, index) => (
-                <option key={index} value={plan.planname}>
+          {filterPlans.length > 0 ? (
+              filterPlans.map((plan, index) => (
+                <option key={index} value={plan.planKey}>
                   {plan.planname}
                 </option>
               ))
@@ -784,21 +727,17 @@ export default function NewUserAdd() {
       <h3 style={{marginLeft: '20px', marginTop: '10px'}}>Inventry & Device Details</h3>
       <div style={{padding: '10px', borderRadius: '5px', boxShadow:'0 0 10px skyblue', margin: '10px', height:'15vh'}} className="UserInfo">
       <form className="row g-3 needs-validation" noValidate>
-        <div className="col-md-3">
+        <div className="col-md-2">
           <label htmlFor="validationCustom04" className="form-label">
             Select Device Maker  
           </label>
-          <select onClick={() => setIsListVisible(false)}  onChange={
-            handleDeviceMakerChange
-
-            
-          } className="form-select" id="validationCustom04" required>s
-            <option value="">  
+          <select onChange={(e) => setDeviceMaker(e.target.value)} className="form-select" id="validationCustom04" required>s
+            <option value="All">  
               Choose...
             </option>
             {
-              arraydevice.length > 0 ? (
-                arraydevice.map((devicename, index) => (
+              arraymaker.length > 0 ? (
+                arraymaker.map((devicename, index) => (
                   <option key={index} value={devicename}>{devicename}</option>
                 ))
               ) : (
@@ -811,9 +750,9 @@ export default function NewUserAdd() {
         </div>
 
 
-        <div className="col-md-3">
+        <div className="col-md-2">
           <label className="form-label">Select Category</label>
-          <select onClick={() => getchSerials()} onChange={(e) => setCategory(e.target.value)} className="form-select">
+          <select onChange={(e) => setCategory(e.target.value)} className="form-select">
             <option value=''>Choose...</option>
             {arraycategory.length > 0 ? (
               arraycategory.map((category, index) => (
@@ -825,48 +764,52 @@ export default function NewUserAdd() {
             </select> 
 
         </div>
-      
-        <div className="col-md-3">
-      <label htmlFor="validationCustom01" className="form-label">
-        Device Serial Number
-      </label>
-      <div className="input-group has-validation">
-        <input
-          onClick={() => setIsListVisible(!isListVisible)}
-          value={deviceSerialNumber}
-          onChange={(e) => setDeviceSerialNumber(e.target.value)}
-          type="text"
-          className="form-control"
-          
-          aria-describedby="inputGroupPrepend"
-          required
-        />
-      </div>
 
-      {isListVisible && (
-        <div 
-          className="mt-3 p-2 border border-info shadow rounded w-25" 
-          style={{
-            height: '25vh',
-            position: 'absolute',
-            overflow: 'hidden',
-            overflowY: 'auto',
-            zIndex: '1000',
-            backgroundColor: 'white'
-          }}
-        >
-          {filteredSerial.map((serial, index) => (
-            <div 
-              key={index} 
-              className="list-item" 
-              onClick={() => handleListItemClick(serial)}
-            >
-              {serial}
-            </div>
-          ))}
+
+        <div className="col-md-2">
+          <label className="form-label">Search Serial No or MAC Address *</label>
+          <input className="form-control" list="data" type="text"></input>
+          <datalist id="data">
+            {
+              filterDevice.map((data, index) => (
+                <option key={index} value={data.macno}>{data.serialno + " : " + data.macno}</option>
+              ))
+            }
+          </datalist>
+
         </div>
-      )}
-    </div>
+
+        <div className='col-md-2'>
+          <label className="form-label">Installation By *</label>
+          <select onChange={(e) => setPlanData({
+            ...planData,
+            installby:e.target.value
+          })} className="form-select">
+            <option value=''>Choose...</option>
+            {
+              arrayuser.map((data, index) => (
+                <option key={index} value={data.name}>{data.name}</option>
+              ))
+            }
+          </select>
+        </div>
+
+        <div className='col-md-2'>
+          <label className="form-label">Lead By *</label>
+          <select onChange={(e) => setPlanData({
+            ...planData,
+            leadby:e.target.value
+          })} className="form-select">
+            <option value=''>Choose...</option>
+            {
+              arrayuser.map((data, index) => (
+                <option key={index} value={data.name}>{data.name}</option>
+              ))
+            }
+          </select>
+        </div>
+
+        
 
         
       </form>

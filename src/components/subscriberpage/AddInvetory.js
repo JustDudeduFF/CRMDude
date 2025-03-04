@@ -1,97 +1,186 @@
-import { get, ref } from 'firebase/database';
+import { ref, update } from 'firebase/database';
 import React, { useEffect, useState } from 'react';
-import { db } from '../../FirebaseConfig';
+import { api, db } from '../../FirebaseConfig';
+import axios from 'axios';
+import { toast, ToastContainer } from "react-toastify";
+import { useNavigate } from 'react-router-dom';
 
 export default function AddInventory() {
+  const username = localStorage.getItem('susbsUserid');
+
+  const navigate =  useNavigate();
   const [arraymaker, setArrayMaker] = useState([]);
   const [arraycategory, setArrayCategory] = useState([]);
   const [arrayserial, setArraySerial] = useState([]);
-  const [selectedcategory, setSelectedCategoty] = useState('');
-  const [selectedMaker, setSelectedMaker] = useState('');
-  const [serial, setSerial] = useState('');
-  const [amount, setAmount] = useState('');
-  const [remarks, setRemarks] = useState('');
-  const [addDate, setAddDate] = useState('');
+  const [filterArray, setFilterArray] = useState([]);
+  const [dueAmount, setDueAmount] = useState(0);
+  const [currentDevice, setCurrentDevice] = useState(true);
 
-  const inventRef = ref(db, `Inventory/New Stock`);
+
+  const [deviceInfo, setDeviceInfo] = useState({
+    serial:'',
+    mac:'',
+    category:'',
+    maker:'',
+    amount:0,
+    remarks:'',
+    date:''
+  })
+
 
   // Fetch makers on component mount
   useEffect(() => {
-    const fetchMaker = async () => {
-      const makerSnap = await get(inventRef);
-      if (makerSnap.exists()) {
-        const makerArray = [];
-        makerSnap.forEach((Childmaker) => {
-          const maker = Childmaker.key;
-          makerArray.push(maker);
-        });
-        setArrayMaker(makerArray);
+    const fetchMaker = async() => {
+      const response = await axios.get(api+`/inventory/free`);
+      const subsResponse = await axios.get(api+`/subscriber/${username}?data=wholeuser`);
+
+
+      if(response.status !== 200 && subsResponse.status !== 200){
+        console.log('can not get api data');
+        return;
       }
-    };
+      
+      const data = response.data;
+      if(data){
+        setArraySerial(data);
+
+        const category = [...new Set(data.map((sn) => sn.devicecategry))];
+        const maker = [...new Set(data.map((sn) => sn.makername))];
+
+        setArrayMaker(maker);
+        setArrayCategory(category);
+      }
+
+      const subsData = subsResponse.data;
+      if(subsData){
+        setDueAmount(subsData.due);
+        if(subsData.serialNumber !== 'N/A'){
+          toast.error('Remove Activated Device', {
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
+          return;
+        }
+      }
+
+      setCurrentDevice(false);
+
+    }
 
     fetchMaker();
-  }, [inventRef]);
+  }, []);
 
-  // Fetch categories based on the selected maker
-  const getCategory = async (maker) => {
-    try {
-      const categoryRef = ref(db, `Inventory/New Stock/${maker}`);
-      const categorySnap = await get(categoryRef);
+  const saveDevices = async() => {
 
-      if (categorySnap.exists()) {
-        const categoryArray = [];
-        categorySnap.forEach((childCategory) => {
-          const category = childCategory.key;
-          categoryArray.push(category);
-        });
-        setArrayCategory(categoryArray);
-      } else {
-        setArrayCategory([]);
-        console.log('No categories found for this maker.');
-      }
-    } catch (error) {
-      console.error('Error fetching categories:', error);
+    console.log(deviceInfo);
+
+    if(deviceInfo.serial === '' || deviceInfo.mac === '' || deviceInfo.category === '' || deviceInfo.maker === ''){
+      toast.error('Fill All Details!', {
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+      });
+
+      return;
     }
-  };
 
-  const getserial = async (category) => {
-    console.log(category)
-    try {
-      const serialRef = ref(db, `Inventory/New Stock/${selectedMaker}/${selectedcategory}`);
-      const serialSnap = await get(serialRef);
+    const oneKey = Date.now();
 
-      if (serialSnap.exists()) {
-        const categoryArray = [];
-        serialSnap.forEach((childCategory) => {
-          const category = childCategory.key;
-          categoryArray.push(category);
-        });
-        console.log(categoryArray);
-        setArraySerial(categoryArray);
-      } else {
-        setArraySerial([]);
-        console.log('No Serial found for this Category.');
-      }
-    } catch (error) {
-      console.error('Error fetching Serial Numbers:', error);
+    const inventrydata = {
+      devicename: `${deviceInfo.maker} ${deviceInfo.category}`,
+      date: new Date().toISOString().split('T')[0],
+      deviceSerialNumber : deviceInfo.serial,
+      macaddress: deviceInfo.mac,
+      remarks: deviceInfo.remarks,
+      amount: parseInt(deviceInfo.amount),
+      status: 'Activated',
+      modifiedby: localStorage.getItem('contact'),
+      ledgerkey: oneKey
     }
-  };
 
-  // Handle maker selection and fetch categories
-  const handleMakerChange = (e) => {
-    const maker = e.target.value;
-    setSelectedMaker(maker);
-    getCategory(maker);
-  };
+    const ledgerData = {
+      creditamount:'',
+      date:'',
+      debitamount:'',
+      particular:'',
+      type:''
+    }
 
-  const handleCategoryChange = (e) => {
-    const category = e.target.value;
-    setSelectedCategoty(category);
-    getserial(category);
-  };
+    const newDue = {
+      dueAmount:inventrydata.amount + parseInt(dueAmount)
+    }
+
+    const status = {
+      status:username
+    }
+
+    
+
+    try{
+      await update(ref(db, `Subscriber/${username}/Inventory/${oneKey}`), inventrydata);
+      await update(ref(db, `Inventory/${inventrydata.macaddress}`), status);
+      toast.success('Device Added', {
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+    });
+
+      if(inventrydata.amount === 0) return;
+
+      
+      await update(ref(db, `Subscriber/${username}/ledger/${oneKey}`), ledgerData);
+      await update(ref(db, `Subscriber/${username}/connectionDetails/dueAmount`), newDue);
+
+      toast.success('Device Added', {
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+      });
+      
+      
+    }catch(e){
+      console.log(e);
+    }
+  }
+
+
+  useEffect(() => {
+    let array = arrayserial;
+
+
+    if(deviceInfo.category !== 'All'){
+      array = array.filter((data) => data.devicecategry === deviceInfo.category)
+    }
+
+    if(deviceInfo.maker !== 'All'){
+      array = array.filter((data) => data.makername === deviceInfo.maker);
+    }
+
+    setFilterArray(array)
+
+
+    
+  }, [deviceInfo.maker, deviceInfo.category]);
+
+
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <ToastContainer/>
       <div
         style={{
           flex: '1',
@@ -124,8 +213,10 @@ export default function AddInventory() {
               className="form-control"
               type="date"
               id="addDate"
-              value={addDate}
-              onChange={(e) => setAddDate(e.target.value)}
+              onChange={(e) => setDeviceInfo({
+                ...deviceInfo,
+                date:e.target.value
+              })}
             />
           </div>
 
@@ -137,22 +228,25 @@ export default function AddInventory() {
               type="number"
               className="form-control"
               id="amount"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => setDeviceInfo({
+                ...deviceInfo, 
+                amount:e.target.value
+              })}
             />
           </div>
 
           <div className="col-md-2">
-            <label htmlFor="productMaker" className="form-label">
+            <label className="form-label">
               Product Maker
             </label>
             <select
-              id="productMaker"
               className="form-select"
-              value={selectedMaker}
-              onChange={handleMakerChange}
+              onChange={(e) => setDeviceInfo({
+                ...deviceInfo,
+                maker:e.target.value
+              })}
             >
-              <option value="">
+              <option value="All">
                 Choose...
               </option>
               {arraymaker.length > 0 ? (
@@ -168,11 +262,14 @@ export default function AddInventory() {
           </div>
 
           <div className="col-md-3">
-            <label htmlFor="productCategory" className="form-label">
+            <label className="form-label">
               Product Category
             </label>
-            <select onChange={handleCategoryChange} id="productCategory" className="form-select">
-              <option value="" >
+            <select onChange={(e) => setDeviceInfo({
+              ...deviceInfo, 
+              category:e.target.value
+            })} className="form-select">
+              <option value="All" >
                 Choose...
               </option>
               {arraycategory.length > 0 ? (
@@ -187,28 +284,38 @@ export default function AddInventory() {
             </select>
           </div>
 
-          <div className="col-md-3">
-            <label className="form-label">
-              Product Serial No.
-            </label>
+          <div className="col-md-4">
+            <label className="form-label">Search Serial No or MAC Address</label>
             <input
-              type="text"
+              onChange={(e) => {
+                const selectedDevice = filterArray.find(
+                  (data) => data.macno === e.target.value || data.serialno === e.target.value
+                );
+                setDeviceInfo({
+                  ...deviceInfo,
+                  serial: selectedDevice ? selectedDevice.serialno : e.target.value,
+                  mac: selectedDevice ? selectedDevice.macno : "",
+                });
+              }}
               className="form-control"
-              id="serial"
-              list="serials" // Match this with the datalist ID
+              list="data"
+              type="text"
+              placeholder="Enter Serial No or MAC Address"
             />
-            <datalist id="serials"> {/* Corrected ID */}
-              {arrayserial && arrayserial.length > 0 ? (
-                arrayserial.map((serial, index) => (
-                  <option key={index} value={serial}>
-                    {serial}
-                  </option>
-                ))
-              ) : (
-                <option value="No serials available" disabled />
-              )}
+            <datalist id="data">
+              {filterArray.map((data, index) => (
+                <option key={index} value={data.serialno}>
+                  {data.serialno} : {data.macno}
+                </option>
+              ))}
+              {filterArray.map((data, index) => (
+                <option key={`mac-${index}`} value={data.macno}>
+                  {data.macno} : {data.serialno}
+                </option>
+              ))}
             </datalist>
           </div>
+
 
 
           <div className="col-md-6">
@@ -219,13 +326,15 @@ export default function AddInventory() {
               type="text"
               className="form-control"
               id="remarks"
-              value={remarks}
-              onChange={(e) => setRemarks(e.target.value)}
+              onChange={(e) => setDeviceInfo({
+                ...deviceInfo, 
+                remarks:e.target.value
+              })}
             />
           </div>
 
           <div className="col-8">
-            <button type="button" className="btn btn-outline-success">
+            <button onClick={saveDevices} type="button" className="btn btn-outline-success" disabled={currentDevice}>
               Save Details
             </button>
           </div>

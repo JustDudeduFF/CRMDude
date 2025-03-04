@@ -42,8 +42,7 @@ const LoginWhatsapp = () => {
             if (responsenoida.data.status === 'QR_RECEIVED') {
                 setHeader2('Please scan the QR code to login to WhatsApp');
                 setLoading2(false);
-                setQrCode2(response.data.qr); // Set QR code if available
-  
+                setQrCode2(responsenoida.data.qr);
             }else if(responsenoida.data.status === 'DISCONNECTED'){
               console.log('User Disconnected')
               setHeader2('Whatsapp Service is Down For Some Reason!')

@@ -329,11 +329,7 @@ export default function BroadBandPlans() {
                                     }} className='form-control' type='number'></input>
                                 </div>
 
-                            </div>
-
-                            
-
-                            
+                            </div>  
 
                             <div className='col-md mt-2'>
                                 <label className='form-label'>Company Name *</label>

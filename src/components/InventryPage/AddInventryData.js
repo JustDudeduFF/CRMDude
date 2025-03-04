@@ -54,9 +54,7 @@ const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, 
 
 
     useEffect(() => {
-          return () => {
-            fetchmakername();
-          }
+          fetchmakername();
     }, [])
 
     

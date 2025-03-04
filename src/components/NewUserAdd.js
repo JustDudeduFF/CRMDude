@@ -180,7 +180,66 @@ export default function NewUserAdd() {
     const onekey = Date.now();
     const userKey = username+onekey;
 
-    if(fullName === '' || username === '' || mobileNo === '' || company === '' || installationAddress === '' || conectiontyp === '' || isp === '' || deviceSerialNumber.serial === ''){
+    const userData = {
+      company,
+      fullName,
+      username,
+      mobileNo,
+      email,
+      installationAddress,
+      colonyName,
+      state,
+      pinCode,
+      connectionDetails: {
+        isp:planData.isp,
+        planName:planData.planname,
+        planAmount,
+        securityDeposit,
+        refundableAmount,
+        activationDate: activationDate,
+        expiryDate: expiryDate,
+        conectiontyp: conectiontyp,
+        dueAmount: Number(planAmount) + Number(securityDeposit),
+        bandwidth:planData.bandwidth,
+        provider:planData.provider
+      },
+      // documents: {
+      //   addressProof: {
+      //     source: 'Manual',
+      //     date: new Date().toISOString().split('T')[0],
+      //     modifiedby: localStorage.getItem('Name'),
+      //     documentname: 'Address Proof',
+      //     url: addressProofURL,
+      //     key: "addressProof"
+      //   },
+
+      //   cafDocuments: {
+      //     source: 'Manual',
+      //     date: new Date().toISOString().split('T')[0],
+      //     modifiedby: localStorage.getItem('Name'),
+      //     documentname: 'Caf Proof',
+      //     url: cafDocumentsURL,
+      //     key: "cafDocuments"
+      //   },
+
+      //   identityProof: {
+      //     source: 'Manual',
+      //     date: new Date().toISOString().split('T')[0],
+      //     modifiedby: localStorage.getItem('Name'),
+      //     documentname: 'Identity Proof',
+      //     url: identityProofURL,
+      //     key: "identityProof"
+      //   }
+      // },
+      createdAt: activationDate,
+      installedby:planData.installby,
+      leadby:planData.leadby
+    };
+
+    console.log(userData);
+    console.log(deviceSerialNumber.serial);
+
+    if(fullName === '' || username === '' || mobileNo === '' || company === '' || installationAddress === '' || conectiontyp === '' || planData.isp === '' || deviceSerialNumber.serial === ''){
       toast.error('Manadaratry Field will not be empty', {
         autoClose: 3000,
           hideProgressBar: false,
@@ -217,7 +276,7 @@ export default function NewUserAdd() {
           state,
           pinCode,
           connectionDetails: {
-            isp,
+            isp:planData.isp,
             planName:planData.planname,
             planAmount,
             securityDeposit,
@@ -774,7 +833,23 @@ export default function NewUserAdd() {
 
         <div className="col-md-2">
           <label className="form-label">Search Serial No or MAC Address *</label>
-          <input className="form-control" list="data" type="text"></input>
+          <input onChange={(e) => {
+
+            const devicemac = e.target.value;
+            const current_device = arraydevice.find((data) => data.macno === devicemac);
+
+            if(current_device){
+              setDeviceSerialNumber({
+                ...deviceSerialNumber,
+                mac:e.target.value,
+                serial:current_device.serialno
+
+              });
+            }
+
+
+            
+          }} className="form-control" list="data" type="text"></input>
           <datalist id="data">
             {
               filterDevice.map((data, index) => (

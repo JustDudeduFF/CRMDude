@@ -10,39 +10,43 @@ const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, 
     const [companyArray, setCompanyArray] = useState([]);
 
     const fetchmakername = async() => {
-        const response = await axios.get('https://api.justdude.in/master/dMakers');
+        
         
 
-        const [makerResponse, companyResponse] = await Promise.all([
-            await axios.get('https://api.justdude.in/master/dMakers'),
-            await axios.get('https://api.justdude.in/master/companys')
-        ]);
-
-        if(makerResponse.status !== 200 || companyResponse.status !== 200) {
-            console.log("One or More API Failed");
-            return;
-        }
-
-        const data = makerResponse.data;
-        const companyData = companyResponse.data;
-
-
-        if(data){
-            const array = [];
-            Object.keys(data).forEach((key) => {
-                array.push(key);
-            });
-            setArrayMaker(array);
-        }
-
-        if(companyData){
-            const array = [];
-            Object.keys(companyData).forEach((key) => {
-                if(key !== "global"){
+        try{
+            const [makerResponse, companyResponse] = await Promise.all([
+                await axios.get('https://api.justdude.in/master/dMakers'),
+                await axios.get('https://api.justdude.in/master/companys')
+            ]);
+    
+            if(makerResponse.status !== 200 || companyResponse.status !== 200) {
+                console.log("One or More API Failed");
+                return;
+            }
+    
+            const data = makerResponse.data;
+            const companyData = companyResponse.data;
+    
+    
+            if(data){
+                const array = [];
+                Object.keys(data).forEach((key) => {
                     array.push(key);
-                }
-            });
-            setCompanyArray(array);
+                });
+                setArrayMaker(array);
+            }
+    
+            if(companyData){
+                const array = [];
+                Object.keys(companyData).forEach((key) => {
+                    if(key !== "global"){
+                        array.push(key);
+                    }
+                });
+                setCompanyArray(array);
+            }
+        }catch(e){
+            console.log(e);
         }
 
       }

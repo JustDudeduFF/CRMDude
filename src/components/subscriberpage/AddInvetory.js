@@ -334,7 +334,7 @@ export default function AddInventory() {
           </div>
 
           <div className="col-8">
-            <button onClick={saveDevices} type="button" className="btn btn-outline-success" disabled={currentDevice}>
+            <button onClick={saveDevices} type="button" className="btn btn-outline-success">
               Save Details
             </button>
           </div>

@@ -67,7 +67,7 @@ export default function Navbar() {
 
   const getSearchUser = async() => {
     setIsSearchFocused(true)
-    const response = await axios.get(`https://api.justdude.in/subscriber/${subssearch}`);
+    const response = await axios.get(api+`/subscriber/${subssearch}`);
     if(response.status !== 200) return;
 
     const data = response.data;
@@ -109,7 +109,7 @@ export default function Navbar() {
       progress: undefined,
     });
     try {
-      const response = await axios.get("https://api.justdude.in/subscriber?data=alluserexcel", {
+      const response = await axios.get(api+"/subscriber?data=alluserexcel", {
         responseType: "blob",
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));

@@ -176,50 +176,51 @@ export default function Subscriber() {
     }
 
 
+    const fetchUserData = () => {
+        const userRef = ref(db, `Subscriber/${username}`);
+        onValue(userRef, (snap) => {
+            const userData = snap.val();
+
+            localStorage.setItem('subsname', userData.fullName);
+            localStorage.setItem('subsemail', userData.email);
+            localStorage.setItem('subscontact', userData.mobileNo);
+            localStorage.setItem('subsaddress', userData.installationAddress);
+            localStorage.setItem('subsplan', userData.connectionDetails.planName);  
+            localStorage.setItem('company', userData.company);         
+
+            setFullName(userData.fullName);
+            setCompany(userData.company);
+            setUserID(userData.username);
+            setRegistrationDate(userData.createdAt);
+            setContact(userData.mobileNo);
+            setIsTeminated(userData.isTerminated);
+            setPlanName(userData.connectionDetails.planName);
+            setPlanAmount(userData.connectionDetails.planAmount);
+            setActivationDate(userData.connectionDetails.activationDate);
+            setExpiryDate(userData.connectionDetails.expiryDate);
+            setIsp(userData.connectionDetails.isp);
+            setDueAmount(userData.connectionDetails.dueAmount);
+            setUserEmail(userData.email);
+            setCuPlanCode({
+                isPlanCode:userData?.plancode,
+                plancode:userData.plancode
+            });        
+            
+
+        })
+    }
+
+
     const fetchData = async () => {
         try {
 
-            const userResponse = await axios.get(api+'/subscriber/'+username+'?data=wholeuser');
             const ispResponse = await axios.get(api+'/master/ISPs');
             const planResponse = await axios.get(api+'/master/Broadband Plan');
 
-            if(ispResponse.status !== 200 || planResponse.status !== 200 || userResponse.status !== 200){
+            if(ispResponse.status !== 200 || planResponse.status !== 200){
+                console.log('One or More API Issue for fetch')
                 return;
             };
-
-            const userData = userResponse.data;
-            if(userData){
-                setFullName(userData.name);
-                setCompany(userData.company);
-                setUserID(userData.userid);
-                setRegistrationDate(userData.creation);
-                setContact(userData.mobile);
-                setIsTeminated(userData.isTerminated);
-                setPlanName(userData.plan);
-                setPlanAmount(userData.amount);
-                setActivationDate(userData.start);
-                setExpiryDate(userData.end);
-                setIsp(userData.isp);
-                setDueAmount(userData.due);
-                setUserEmail(userData.email);
-                setCuPlanCode({
-                    isPlanCode:userData.plancode !== 'N/A',
-                    plancode:userData.plancode
-                });
-
-                
-
-
-                localStorage.setItem('subsname', userData.name);
-                localStorage.setItem('subsemail', userData.email);
-                localStorage.setItem('subscontact', userData.mobile);
-                localStorage.setItem('subsaddress', userData.address);
-                localStorage.setItem('subsplan', userData.plan);  
-                localStorage.setItem('company', userData.company);  
-
-            }
-
-
 
 
 
@@ -260,17 +261,22 @@ export default function Subscriber() {
     };
 
 
+    
+    
+    
+
+
 
 
     useEffect(() => {
         fetchData();
+        fetchUserData();
         const interval = setInterval(() => {
             fetchData();
         }, 2000);
     
-        return () => clearInterval(interval); // Cleanup on unmount or `username` change
-    }, [username]); // Runs when `username` changes
-    
+        return () => clearInterval(interval); 
+    }, [username]);
 
     useEffect(() => {
         if (expiryDate) {

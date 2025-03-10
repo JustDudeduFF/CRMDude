@@ -338,13 +338,14 @@ export default function NewUserAdd() {
         }
 
         const planinfo ={
-          planName: planName,
+          planName: planData.planname,
           planAmount: planAmount,
-          isp: isp,
+          isp: planData.isp,
           activationDate: activationDate,
           expiryDate: expiryDate,
           action: 'Registeration',
-          completedby: localStorage.getItem('Name')
+          completedby: localStorage.getItem('Name'),
+          date:new Date().toISOString().split('T')[0]
         }
 
         const inventrydata = {
@@ -461,7 +462,10 @@ export default function NewUserAdd() {
         </div>
         
       }
+        <div className="d-flex flex-row">
         <h2 style={{marginLeft: '20px'}}>Create User ID</h2>
+        <button onClick={initialData} className="ms-auto btn btn-primary me-3">Refresh</button> 
+        </div>
         <div style={{padding: '10px', borderRadius: '5px', boxShadow:'0 0 10px skyblue', margin: '10px'}} className="UserInfo">
       <form className="row g-3 needs-validation" noValidate>
         <div className="col-md-3">

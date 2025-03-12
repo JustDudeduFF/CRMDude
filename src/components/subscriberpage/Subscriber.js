@@ -193,7 +193,7 @@ export default function Subscriber() {
             setUserID(userData.username);
             setRegistrationDate(userData.createdAt);
             setContact(userData.mobileNo);
-            setIsTeminated(userData.isTerminated);
+            setIsTeminated(userData.isTerminate);
             setPlanName(userData.connectionDetails.planName);
             setPlanAmount(userData.connectionDetails.planAmount);
             setActivationDate(userData.connectionDetails.activationDate);
@@ -204,7 +204,9 @@ export default function Subscriber() {
             setCuPlanCode({
                 isPlanCode:userData?.plancode,
                 plancode:userData.plancode
-            });        
+            });   
+            
+            
             
 
         })

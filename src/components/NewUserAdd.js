@@ -239,7 +239,7 @@ export default function NewUserAdd() {
     console.log(userData);
     console.log(deviceSerialNumber.serial);
 
-    if(fullName === '' || username === '' || mobileNo === '' || company === '' || installationAddress === '' || conectiontyp === '' || planData.isp === '' || deviceSerialNumber.serial === ''){
+    if(fullName === '' || username === '' || mobileNo === '' || company === '' || installationAddress === '' || conectiontyp === '' || planData.isp === ''){
       toast.error('Manadaratry Field will not be empty', {
         autoClose: 3000,
           hideProgressBar: false,
@@ -371,7 +371,7 @@ export default function NewUserAdd() {
         await update(ref(db, `Inventory/${deviceSerialNumber.mac}`), updateDevice);
         await set(ref(db, `Subscriber/${userKey}/ledger/${ledgerkey}`), ledgerdata2);
         await set(ref(db, `Subscriber/${userKey}/ledger/${onekey}`), ledgerdata);
-        await set(ref(db, `Subscriber/${userKey}/Inventory/${onekey}`), inventrydata);
+        // await set(ref(db, `Subscriber/${userKey}/Inventory/${onekey}`), inventrydata);
         await set(ref(db, `Subscriber/${userKey}/planinfo/${ledgerkey}`), planinfo);
   
         // Reset form or show success message 

@@ -447,7 +447,7 @@ export default function ReceiptModify() {
                   </option>
                 ))
               ) : (
-                <option value="">No Bill Found!</option>
+                <option value="dueamount">No Bill Found!</option>
               )}
             </select>
           </div>

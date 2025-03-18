@@ -15,6 +15,22 @@ const removeUndefinedValues = (obj) => {
   return obj;
 };
 
+function convertExcelDateSerial(input) {
+  const excelDateSerialPattern = /^\d+$/; // matches only digits (Excel date serial number)
+  if (excelDateSerialPattern.test(input)) {
+    const excelDateSerial = parseInt(input, 10);
+    const baseDate = new Date("1900-01-01");
+    const date = new Date(baseDate.getTime() + excelDateSerial * 86400000);
+
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${year}-${month}-${day}`;
+  } else {
+    return input; // return original input if it's not a valid Excel date serial number
+  }
+}
+
 
 const deleteRef = async() => {
   const reference = ref(db, 'Subscriber');
@@ -98,11 +114,11 @@ export default function BulkUserEntry() {
         connectionDetails: {
           isp: row.ISP,
           planName: row.PRODUCTNAME,
-          planAmount: parseInt(row.PLANAMOUNT),
+          planAmount: Number(row.PLANAMOUNT),
           securityDeposit: row.securityDeposit,
           refundableAmount: row.refundableAmount,
-          activationDate: row.STARTDATE,
-          expiryDate: row.ENDDATE,
+          activationDate: convertExcelDateSerial(row.STARTDATE),
+          expiryDate: convertExcelDateSerial(row.ENDDATE),
           conectiontyp: row.CONNECTIONTYP,
           dueAmount: row.BALANCENUMERIC,
           bandwidth: row.BANDWIDTH
@@ -114,7 +130,7 @@ export default function BulkUserEntry() {
         },
 
 
-        createdAt: row.REGDATE,
+        createdAt: convertExcelDateSerial(row.REGDATE),
       };
 
       
@@ -133,8 +149,8 @@ export default function BulkUserEntry() {
       
 
       // Store user under their username
-      const userRef = ref(db, 'Subscriber/' + row.BBUSERNAME);
-      const ledgerRef = ref(db, `Subscriber/${row.BBUSERNAME}/ledger/${ledgerkey}` );
+      const userRef = ref(db, 'Subscriber/' + row.MOBILE+ledgerkey);
+      const ledgerRef = ref(db, `Subscriber/${row.MOBILE+ledgerkey}/ledger/${ledgerkey}` );
       await update(userRef, cleanedUserData)
         .then(async() => {
           await update(ledgerRef, cleanLedgerData);

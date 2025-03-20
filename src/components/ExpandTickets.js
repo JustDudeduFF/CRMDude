@@ -204,7 +204,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                             onClick={() => {
                                                 if(hasPermission("REASSING_TICKET")){
                                                     setShowSmallModal(true);
-                                                    setTicketno({ Ticketno, subsID, Concern, UserKey });
+                                                    setTicketno({ Ticketno, subsID, Concern, UserKey, company });
                                                 }else{
                                                     alert("Permission Denied");
                                                 }

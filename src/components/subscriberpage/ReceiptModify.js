@@ -302,7 +302,7 @@ export default function ReceiptModify() {
 
 
     const sendWhatsapp = async () => {
-      const newMessage = `Dear ${name},\n\n💸 **Payment Confirmation** 💸\n\nWe have successfully received your payment. Here are the details:\n\n🔹 **Amount Paid**: ₹${amount}\n🔹 **Payment Mode**: ${receiptData.paymentMode}\n🔹 **Payment Date**: ${new Date(receiptData.receiptDate).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}\n🔹 **Current Due**: ₹${newDueAmount}\n\nIf you have any questions or need further assistance, please contact our support team.\n\n📞 **Support**: +91 99991 18971\n\nThank you for choosing **Sigma Business Solutions**!\n\nBest regards,\n**Sigma Business Solutions** Team`
+      const newMessage = `Dear ${name},\n\n💸 **Payment Confirmation** 💸\n\nWe have successfully received your payment. Here are the details:\n\n🔹 **Amount Paid**: ₹${amount}\n🔹 **Payment Mode**: ${receiptData.paymentMode}\n🔹 **Payment Date**: ${new Date(receiptData.receiptDate).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}\n🔹 **Current Due**: ₹${newDueAmount}\n\nIf you have any questions or need further assistance, please contact our support team.\n\n**Support:- **${company === 'Sigma - Greator Noida' ? '+91 92661 55122' : '+91 99991 18971'}\n\nThank you for choosing **Sigma Business Solutions**!\n\nBest regards,\n**Sigma Business Solutions** Team`
       const encodedMessage = encodeURIComponent(newMessage);
 
       const response = await axios.post(api+`/send-message?number=91${contact}&message=${encodedMessage}&company=${company}`);

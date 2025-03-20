@@ -41,14 +41,16 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
         }
     }, [ticketno]);
 
-    const sendMessage = async (mobileNo, ticketno, customername, userid, concern) => {
-        const newMessage = `👋 *Hello ${customername}*,\n\nWe are notifying you that your complaint has been assigned for resolution. Below are the details:\n\n🔹 *Complaint ID:* ${ticketno}\n🔹 *Complaint Subject:* ${concern}\n\n🛠️ *Assigned Team Member Details:* \n\n👤 Name: ${userLookup[assignemp]}\n📞 Contact: +91 ${assignemp}\n\n🎯 *Next Steps:* Our representative will contact you shortly to resolve your issue.\n\nFor further assistance, you can always reach out to us:\n📱 *Phone:* +91 99991 18971\n\nThank you for your patience. 🙏\nRegards\n*Sigma Business Solutions*`
+    const sendMessage = async (mobileNo, ticketno, customername, userid, concern, company) => {
+
+        console.log(company);
+        const newMessage = `👋 *Hello ${customername}*,\n\nWe are notifying you that your complaint has been assigned for resolution. Below are the details:\n\n🔹 *Complaint ID:* ${ticketno}\n🔹 *Complaint Subject:* ${concern}\n\n🛠️ *Assigned Team Member Details:* \n\n👤 Name: ${userLookup[assignemp]}\n📞 Contact: +91 ${assignemp}\n\n🎯 *Next Steps:* Our representative will contact you shortly to resolve your issue.\n\nFor further assistance, you can always reach out to us:\n📱 *Phone:* ${company === 'Sigma - Greator Noida' ? '+91 92661 55122' : '+91 99991 18971'}\n\nThank you for your patience. 🙏\nRegards\n*Sigma Business Solutions*`
         const encodedMessage = encodeURIComponent(newMessage);
         const exMessage = `Dear Executive,\n\nYou have been assigned a new ticket. Below are the details:\n\n🎫 *Ticket No:* ${ticketno}\n👤 *Customer Name:* ${customername}\n📱 *Mobile Number:* ${mobileNo}\n💼 *User ID:* ${userid}\n\nFor more details, please visit the application.\n\nThank you!\nRegards,\n*Sigma Business Solutions*`
         const enCodedExMessage = encodeURIComponent(exMessage);
-        await axios.post(api+`/send-message?number=91${mobileNo}&message=${encodedMessage}&company=${ticketno.company}`);
+        await axios.post(api+`/send-message?number=91${mobileNo}&message=${encodedMessage}&company=${company}`);
         //Message For Executive
-        await axios.post(api+`/send-message?number=91${assignemp}&message=${enCodedExMessage}&company=${ticketno.company}`);
+        await axios.post(api+`/send-message?number=91${assignemp}&message=${enCodedExMessage}&company=${company}`);
 
     }
 
@@ -70,7 +72,7 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
             // update(globalTicketsRef, assigndata);
             update(ticketRef, assigndata);
             closeModal();
-            sendMessage(subsMobile, ticketno.Ticketno, subsData.fullName, ticketno.subsID, ticketno.Concern);
+            sendMessage(subsMobile, ticketno.Ticketno, subsData.fullName, ticketno.subsID, ticketno.Concern, ticketno.company);
             alert(`${ticketno.Ticketno} is now assigned to ${assignemp}`)
         }else{
             const assigndata = {
@@ -78,7 +80,7 @@ const SmallModal = ({ show, ticketno, closeModal}) => {
             }
             // update(globalTicketsRef, assigndata);
             update(ticketRef, assigndata).then(() => {
-                sendMessage(subsMobile, ticketno.Ticketno, subsfullname, ticketno.subsID, ticketno.Concern);
+                sendMessage(subsMobile, ticketno.Ticketno, subsfullname, ticketno.subsID, ticketno.Concern, ticketno.company);
                 closeModal();
                 alert(`${ticketno.Ticketno} is now assigned to ${assignemp}`);
             })

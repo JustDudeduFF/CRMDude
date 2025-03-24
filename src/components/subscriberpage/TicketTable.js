@@ -20,6 +20,7 @@ export default function TicketTable() {
     happycode: "",
     name:""
   });
+  const company = localStorage.getItem('company');
   const [showpermission, setshowpermission] = useState(false);
 
 
@@ -69,7 +70,7 @@ export default function TicketTable() {
     setCodeModal(false);
     const message = `Dear ${selecticket.name} 👋,\n\n🔒 Your Happy Code: ${selecticket.happycode}\n\nFor Ticket No: ${selecticket.ticketno}\n\nStay connected with\nSigma Business Solutions`
     const encodedmsg = encodeURIComponent(message);
-    const msgresponse = await axios.post(api+`/send-message?number=91${selecticket.mobile}&message=${encodedmsg}`);
+    const msgresponse = await axios.post(api+`/send-message?number=91${selecticket.mobile}&message=${encodedmsg}&company=${company}`);
 
 
 

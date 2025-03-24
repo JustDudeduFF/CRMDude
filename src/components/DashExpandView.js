@@ -232,7 +232,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
             };
 
             const sendMessage = async (mobile, planName, fullName, expireDate, planAmount, date) => {
-                const message = `Dear ${fullName},\nYour Plan ${planName}  ₹${planAmount}  Recharge Successfully for period of  ${date} to ${expireDate} thanks for being with us. For any query call (9999118971) SIGMA BUSINESS SOLUTIONS .`;
+                const message = `Dear ${fullName},\nYour Plan ${planName}  ₹${planAmount}  Recharge Successfully for period of  ${date} to ${expireDate} thanks for being with us. For any query call ${company === 'Sigma - Greator Noida' ? '92661 55122' : '99991 18971'} SIGMA BUSINESS SOLUTIONS .`;
                 const encodedMessage = encodeURIComponent(message);
                 const response = await axios.post(api+`/send-message?number=91${mobile}&message=${encodedMessage}&company=${company}`);
                 const responsemail = await axios.post(api+'/sendmail', {
@@ -283,7 +283,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                     const fullName = data.fullName;
                     const expire = data.expiredDate;
                     const planName = data.planName;
-                    const newmessage = `Dear ${fullName.split(" ")[1]}\n\nWe hope you are enjoying your broadband experience with us! Your current plan is set to expire on ${new Date(expire).toLocaleDateString("en-GB", {day:'2-digit', month:'long', year:"numeric"})}. To continue enjoying uninterrupted internet service, we recommend renewing your plan today.\n\n*Plan Details:*\n- *Current Plan*: ${planName}\n- *Data Limit*: Unlimited\n- *Expiration Date*: ${new Date(expire).toLocaleDateString("en-GM", {day:'2-digit', month:'long', year:'numeric'})}\n\n*How to Renew:*\n\n- *Online*: Log in to your account at sigmanetworks.in/CustomerLogin and follow the renewal instructions.\n- *Mobile App*: Open our app, Click on "Renew Plan" and complete your payment.\n- *Whatsapp Bot Support*: Contact us 24x7 9999118971.\n\nStay connected with blazing-fast internet and uninterrupted service. Renew your plan today!\n\nBest regards,\n*Sigma Business Solutions*`;
+                    const newmessage = `Dear ${fullName.split(" ")[1]}\n\nWe hope you are enjoying your broadband experience with us! Your current plan is set to expire on ${new Date(expire).toLocaleDateString("en-GB", {day:'2-digit', month:'long', year:"numeric"})}. To continue enjoying uninterrupted internet service, we recommend renewing your plan today.\n\n*Plan Details:*\n- *Current Plan*: ${planName}\n- *Data Limit*: Unlimited\n- *Expiration Date*: ${new Date(expire).toLocaleDateString("en-GM", {day:'2-digit', month:'long', year:'numeric'})}\n\n*How to Renew:*\n\n- *Online*: Log in to your account at sigmanetworks.in/CustomerLogin and follow the renewal instructions.\n- *Mobile App*: Open our app, Click on "Renew Plan" and complete your payment.\n- *Whatsapp Bot Support*: Contact us 24x7 ${company === 'Sigma - Greator Noida' ? '9266155122' : '9266155122'}.\n\nStay connected with blazing-fast internet and uninterrupted service. Renew your plan today!\n\nBest regards,\n*Sigma Business Solutions*`;
                     const encoedeMessage = encodeURIComponent(newmessage);
                     const company = data.company;
                     
@@ -308,7 +308,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                     const amount = data.planAmount;
                     const username = data.username;
                     const company = data.company;
-                    const message = `Hi ${fullName.split(" ")[1]},\n\nThis is a gentle reminder from *Sigma Business Solutions* regarding your broadband service account.\n\nBill Details:\n- *Account Number*: ${username}\n- *Due Amount*: ₹${amount}\n\nTo ensure uninterrupted service, kindly make the payment as early as possible. You can make the payment via login to sigmanetworks.in/CustomerLogin.\nYour Login Credentials is:\n- *UserName*: ${username}\n- *Password*: 123456}\n\nFor any assistance, feel free to contact us at *99991 18971*.\n\nThank you for choosing\n*Sigma Business Soltions*!\nWe value your association with us.`;
+                    const message = `Hi ${fullName.split(" ")[1]},\n\nThis is a gentle reminder from *Sigma Business Solutions* regarding your broadband service account.\n\nBill Details:\n- *Account Number*: ${username}\n- *Due Amount*: ₹${amount}\n\nTo ensure uninterrupted service, kindly make the payment as early as possible. You can make the payment via login to sigmanetworks.in/CustomerLogin.\nYour Login Credentials is:\n- *UserName*: ${username}\n- *Password*: 123456}\n\nFor any assistance, feel free to contact us at ${company === 'Sigma - Greator Noida' ? '92661 55122' : '99991 18971'}.\n\nThank you for choosing\n*Sigma Business Soltions*!\nWe value your association with us.`;
                     const encodedMessage = encodeURIComponent(message);
                     await axios.post(api+`/send-message?number=91${mobile}&message=${encodedMessage}&company=${company}`); 
                 });

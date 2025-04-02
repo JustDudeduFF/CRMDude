@@ -30,13 +30,17 @@ export default function TicketTable() {
   useEffect(() => {
 
     const fetchTicket = async() => {
-      const response = await axios.get(api+`/subscriber/${username}?data=webticket`);
+      try{
+        const response = await axios.get(api+`/subscriber/${username}?data=webticket`);
 
-      if(response.status !== 200) return;
+        if(response.status !== 200) return;
 
-      const ticketData = response.data;
-      if(ticketData){
-        setArrayTicket(ticketData);
+        const ticketData = response.data;
+        if(ticketData){
+          setArrayTicket(ticketData);
+        }
+      }catch(e){
+        console.log(e);
       }
     }
 
@@ -64,13 +68,13 @@ export default function TicketTable() {
     // });
 
     // return () => unsubscribe();
-  }, []);
+  }, [username]);
 
   const resendcode = async() => {
     setCodeModal(false);
     const message = `Dear ${selecticket.name} 👋,\n\n🔒 Your Happy Code: ${selecticket.happycode}\n\nFor Ticket No: ${selecticket.ticketno}\n\nStay connected with\nSigma Business Solutions`
     const encodedmsg = encodeURIComponent(message);
-    const msgresponse = await axios.post(api+`/send-message?number=91${selecticket.mobile}&message=${encodedmsg}&company=${company}`);
+    const msgresponse = await axios.post(api+`/send-message?number=91${selecticket.mobile}&message=${encodedmsg}&company=${company}`);  
 
 
 

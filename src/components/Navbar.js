@@ -67,25 +67,30 @@ export default function Navbar() {
 
   const getSearchUser = async() => {
     setIsSearchFocused(true)
-    const response = await axios.get(api+`/subscriber/${subssearch}`);
-    if(response.status !== 200) return;
+    try{
+      const response = await axios.get(api+`/subscriber/${subssearch}`);
+      if(response.status !== 200) return;
 
-    const data = response.data;
-    if(data){
-      const userArray = [];
-      Object.keys(data).forEach((dataKey) => {
-        const userData = data[dataKey];
+      const data = response.data;
+      if(data){
+        const userArray = [];
+        Object.keys(data).forEach((dataKey) => {
+          const userData = data[dataKey];
 
-        const {key, name, mobile, userid} = userData;
-        userArray.push({
-          username:userid,
-          fullname: name,
-          mobile,
-          userKey:key
+          const {key, name, mobile, userid, status} = userData;
+          userArray.push({
+            username:userid,
+            fullname: name,
+            mobile,
+            userKey:key,
+            status
+          });
+          
         });
-        
-      });
-      setArrayUser(userArray);
+        setArrayUser(userArray);
+      }
+    }catch(e){
+      console.log(e);
     }
   }
     
@@ -247,7 +252,7 @@ export default function Navbar() {
         issearcfocused && (
           <div style={{flex:'1', border: '1px solid gray', borderRadius: '5px', marginTop: '10px',position:'fixed',right:'0',top:'10%', width:'500px', marginRight:'15%', backgroundColor:'white', padding:'5px', height:'350px'}}>
           <button className="btn-close" onClick={() => setIsSearchFocused(false)}></button>
-            <div style={{maxHeight: '300px', overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+            <div style={{maxHeight: '300px', overflowY: 'auto', scrollbarWidth:'thin', msOverflowStyle: 'none'}}>
                 <table className="table">
                     <thead className='table-primary' style={{position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1}}>
                         <tr>
@@ -258,19 +263,25 @@ export default function Navbar() {
                         </tr>
                     </thead>
                     <tbody className="table-group-divider">
-                    {arrayuser.map(({username, fullname, mobile, userKey}, index) => (
-                          <tr key={index}>
-                            <td>{index + 1}</td>
-                            <td>{fullname}</td>
-                            <td 
-                              style={{color:'blue', cursor:'pointer'}} 
-                              onClick={() => handleSubsView(userKey, username)}
-                            >
-                              {username}
-                            </td>
-                            <td>{mobile}</td>
-                          </tr>
-                        ))}
+                    {arrayuser.length > 0 ? (
+                      arrayuser.map(({username, fullname, mobile, userKey, status}, index) => (
+                        <tr className={status === 'Terminated' ? "table-danger" : status === 'InActive' ? 'table-secondary' : ""} key={index}>
+                          <td>{index + 1}</td>
+                          <td>{fullname}</td>
+                          <td 
+                            style={{color:'blue', cursor:'pointer'}} 
+                            onClick={() => handleSubsView(userKey, username)}
+                          >
+                            {username}
+                          </td>
+                          <td>{mobile}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="6" style={{textAlign:'center'}}>No Data Found</td>
+                      </tr>
+                    )}
                     </tbody>
                 </table>
             </div>

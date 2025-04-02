@@ -53,7 +53,7 @@ export default function NewTicket() {
       }));
 
       return () => {fetchconcerns();
-        fetchemp();
+        fetchemp();  
       };
     }, []);
 
@@ -168,7 +168,6 @@ export default function NewTicket() {
             Ticket Date
           </label>
           <input value={new Date().toISOString().split('T')[0]} type='date' className='form-control' readOnly></input>
-              
         </div>
 
         <div className='col-md-2'>

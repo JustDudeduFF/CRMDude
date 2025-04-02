@@ -202,8 +202,8 @@ export default function Subscriber() {
             setDueAmount(userData.connectionDetails.dueAmount);
             setUserEmail(userData.email);
             setCuPlanCode({
-                isPlanCode:userData?.plancode,
-                plancode:userData.plancode
+                isPlanCode:userData?.connectionDetails?.plancode,
+                plancode:userData.connectionDetails.plancode
             });   
             
             

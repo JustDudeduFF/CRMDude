@@ -12,6 +12,7 @@ export default function BroadBandPlans() {
     const [arrayplan, setArrayPlan] = useState([]);
     const planRef = ref(db, 'Master/Broadband Plan');
     const [showmodal, setShowModal] = useState(false);
+    const [editModal, setEditModal] = useState(false);
 
     const [planDetails, setPlanDetails] = useState({
         planname:'',
@@ -24,6 +25,16 @@ export default function BroadBandPlans() {
         company:'',
         isWeb:false,
         isActive:true,
+    });
+
+    const [editPlan, SetEditPlan] = useState({
+        plankey:'',
+        planname:'',
+        planamount:'',
+        periodtype:'',
+        periodtime:'',
+        isActive:'',
+        isWebShow:''
     });
 
     const [provider, setProvider] = useState([]);
@@ -179,7 +190,11 @@ export default function BroadBandPlans() {
 
         fetchData();
 
-    }, [])
+    }, []);
+
+    const handleDoubleClick = (data) => {
+        setEditModal()
+    }
 
 
     
@@ -212,7 +227,7 @@ export default function BroadBandPlans() {
                 </thead>
                 <tbody className="table-group-divider">
                     {arrayplan.map((data, index) => (
-                        <tr className={data.isActive !== true ? 'table-danger' : ''} key={index}>
+                        <tr onDoubleClick={handleDoubleClick} className={data.isActive !== true ? 'table-danger' : ''} key={index}>
                             <td>{index + 1}</td>
                             <td>{data.planname}</td>
                             <td>{data.planamount}</td>
@@ -370,6 +385,64 @@ export default function BroadBandPlans() {
                         <button onClick={() => setShowModal(false)} className='btn btn-outline-secondary'>Close</button>
                     </Modal.Footer>
                 
+            </Modal>
+            
+
+            <Modal show={editModal} onHide={() => setEditModal(false)}>
+                <Modal.Header>
+                    <Modal.Title>Edit Plan</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <div className='container'>
+                        <div className='col-md mt-2'>
+                            <label className='form-label'>Plan Name</label>
+                            <input className='form-control' type='text' disabled></input>
+                        </div>
+
+                        <div className='col-md mt-2'>
+                            <label className='form-label'>Plan Amount *</label>
+                            <input className='form-control' type='number'></input>
+                        </div>
+
+                        <div className='d-flex flex-row mt-2'>
+                            <div className='col-md me-2'>
+                                <label className='form-label'>Period Type *</label>
+                                <select className='form-select'>
+                                    <option value=''>Choose...</option>
+
+                                </select>
+                            </div>
+
+
+                            <div className='col-md ms-2'>
+                                <label className='form-label'>Period Time *</label>
+                                <input className='form-control' type='number'></input>
+                            </div>
+
+                            
+                        </div>
+
+                        <div className='form-check from-check-inline col-md mt-2'>
+                                <input onChange={(e) => setPlanDetails({
+                                    ...planDetails,
+                                    isWeb:e.target.checked
+                                })}  checked={planDetails.isWeb} className='form-check-input' id='isOnline' type='checkbox'></input>
+                                <label className='form-check-label' htmlFor='isOnline'>Is Website Show?</label>
+                        </div>
+
+                        <div className='form-check from-check-inline col-md mt-2'>
+                                <input checked={planDetails.isActive} onChange={(e) => setPlanDetails({
+                                    ...planDetails,
+                                    isActive:e.target.checked
+                                })} className='form-check-input' id='isActive' type='checkbox'></input>
+                                <label className='form-check-label' htmlFor='isActive'>Is Active?</label>
+                        </div>
+                    </div>
+                </Modal.Body>
+                <Modal.Footer>
+                    <button className='btn btn-primary'>Update</button>
+                    <button className='btn btn-outline-secondary'>Cancel</button>
+                </Modal.Footer>
             </Modal>
         </div>
     );

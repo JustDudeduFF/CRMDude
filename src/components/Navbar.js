@@ -68,7 +68,7 @@ export default function Navbar() {
   const getSearchUser = async() => {
     setIsSearchFocused(true)
     try{
-      const response = await axios.get(api+`/subscriber/${subssearch}`);
+      const response = await axios.get(api+`/search/${subssearch}`);
       if(response.status !== 200) return;
 
       const data = response.data;

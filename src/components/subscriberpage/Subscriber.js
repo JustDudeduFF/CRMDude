@@ -263,11 +263,6 @@ export default function Subscriber() {
     };
 
 
-    
-    
-    
-
-
 
 
     useEffect(() => {

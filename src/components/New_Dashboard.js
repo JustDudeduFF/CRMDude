@@ -14,6 +14,7 @@ import LeadDash from './LeadManagment/LeadDash';
 import RackDashBoard from './NetworkRack/RackDashBoard';
 import PayrollandAttendence from './PayoutandAttendence/PayrollandAttendence';
 import LoginWhatsapp from './Templates/LoginWhatsapp';
+import TemplateDash from './Templates/TemplateDash';
 import TicketdataDash from './TicketData/TicketdataDash';
 import ProtectedRoute from './ProtectedRoute';
 import { PermissionProvider } from './PermissionProvider';
@@ -49,7 +50,7 @@ function New_Dashboard() {  // Renamed to PascalCase
           <Route path='/payrollandattendence/*' element={<ProtectedRoute permission="VIEW_PAYOUT">
             <PayrollandAttendence/>
           </ProtectedRoute>}/>
-          <Route path='/templates/*' element={<LoginWhatsapp/>}/>
+          <Route path='/templates/*' element={<TemplateDash/>}/>
           <Route path='/reports/*' element={<Reports/>}/>
           <Route path='/tickets/*' element={<TicketdataDash/>}/>
           <Route path='/revenue/*' element={<RevenueDash/>}/>

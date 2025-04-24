@@ -34,7 +34,7 @@ export default function BroadBandPlans() {
         periodtype:'',
         periodtime:'',
         isActive:'',
-        isWebShow:''
+        isWeb:''
     });
 
     const [provider, setProvider] = useState([]);
@@ -114,9 +114,9 @@ export default function BroadBandPlans() {
         const fetchData = async() => {
             try{
                 const provResponse = await axios.get(api+'/master/Provider');
-            const ispResponse = await axios.get(api+'/master/ISPs');
-            const compResponse = await axios.get(api+'/master/companys');
-            const planResponse = await axios.get(api+'/master/Broadband Plan');
+                const ispResponse = await axios.get(api+'/master/ISPs');
+                const compResponse = await axios.get(api+'/master/companys');
+                const planResponse = await axios.get(api+'/master/Broadband Plan');
 
             if(planResponse.status !== 200){
                 toast.error('Failed To get Plans', {
@@ -139,7 +139,6 @@ export default function BroadBandPlans() {
                         ...plans
                     });
                 });
-                console.log(array);
                 setArrayPlan(array)
             }
 
@@ -193,7 +192,93 @@ export default function BroadBandPlans() {
     }, []);
 
     const handleDoubleClick = (data) => {
-        setEditModal()
+        console.log(data);
+        SetEditPlan({
+            plankey:data.key,
+            planname:data.planname,
+            planamount:data.planamount,
+            periodtype:data.planperiod,
+            periodtime:data.periodtime,
+            isActive:data.isActive,
+            isWeb:data.isWeb
+        });
+
+
+        setEditModal(true);
+    }
+
+
+    const updatePlan = async() => {
+        if(editPlan.planamount === '' || editPlan.periodtime === ''){
+            toast.error('Fill All Details', {
+                autoClose:2000,
+                hideProgressBar:false,
+                closeOnClick:true,
+                pauseOnHover:false,
+                draggable:false,
+                progress:undefined
+            })
+            return;
+        }
+
+
+        try{
+            await update(ref(db, `Master/Broadband Plan/${editPlan.plankey}`), editPlan);
+
+            setEditModal({
+                plankey:'',
+                planname:'',
+                planamount:'',
+                periodtype:'',
+                periodtime:'',
+                isActive:'',
+                isWeb:''
+            });
+            toast.success('Plan Updated', {
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,});
+
+        }catch(e){
+            toast.error('Something went wrong!', {
+                autoClose:2000,
+                hideProgressBar:false,
+                closeOnClick:true,
+                pauseOnHover:false,
+                draggable:false,
+                progress:undefined
+            })
+            console.log(e);
+        }finally{
+            const planResponse = await axios.get(api+'/master/Broadband Plan');
+
+            try{
+                const planData = planResponse.data;
+                if(planData){
+                    const array = [];
+                    Object.keys(planData).forEach((key) => {
+                        const plans = planData[key];
+                        array.push({
+                            key,
+                            ...plans
+                        });
+                    });
+                    setArrayPlan(array)
+                }
+
+            }catch(e){
+                console.log(e);
+
+            }
+
+        }
+
+
+        
+        
     }
 
 
@@ -227,7 +312,7 @@ export default function BroadBandPlans() {
                 </thead>
                 <tbody className="table-group-divider">
                     {arrayplan.map((data, index) => (
-                        <tr onDoubleClick={handleDoubleClick} className={data.isActive !== true ? 'table-danger' : ''} key={index}>
+                        <tr onDoubleClick={() => handleDoubleClick(data)} className={data.isActive !== true ? 'table-danger' : ''} key={index}>
                             <td>{index + 1}</td>
                             <td>{data.planname}</td>
                             <td>{data.planamount}</td>
@@ -396,43 +481,54 @@ export default function BroadBandPlans() {
                     <div className='container'>
                         <div className='col-md mt-2'>
                             <label className='form-label'>Plan Name</label>
-                            <input className='form-control' type='text' disabled></input>
+                            <input value={editPlan.planname} className='form-control' type='text' disabled></input>
                         </div>
 
                         <div className='col-md mt-2'>
                             <label className='form-label'>Plan Amount *</label>
-                            <input className='form-control' type='number'></input>
+                            <input onChange={(e) => SetEditPlan({
+                                ...editPlan,
+                                planamount:e.target.value
+                            })} defaultValue={editPlan.planamount} className='form-control' type='number'></input>
                         </div>
 
                         <div className='d-flex flex-row mt-2'>
                             <div className='col-md me-2'>
                                 <label className='form-label'>Period Type *</label>
-                                <select className='form-select'>
-                                    <option value=''>Choose...</option>
-
+                                <select onChange={(e) => SetEditPlan({
+                                    ...editPlan,
+                                    periodtype:e.target.value
+                                })} defaultValue={editPlan.periodtype} className='form-select'>
+                                        <option value=''>Choose...</option>
+                                        <option>Months</option>
+                                        <option>Days</option>
+                                        <option>Years</option>
                                 </select>
                             </div>
 
 
                             <div className='col-md ms-2'>
                                 <label className='form-label'>Period Time *</label>
-                                <input className='form-control' type='number'></input>
+                                <input onChange={(e) => SetEditPlan({
+                                    ...editPlan,
+                                    periodtime:e.target.value
+                                })} defaultValue={editPlan.periodtime} className='form-control' ></input>
                             </div>
 
                             
                         </div>
 
                         <div className='form-check from-check-inline col-md mt-2'>
-                                <input onChange={(e) => setPlanDetails({
-                                    ...planDetails,
+                                <input defaultChecked={editPlan.isWeb} onChange={(e) => SetEditPlan({
+                                    ...editPlan,
                                     isWeb:e.target.checked
-                                })}  checked={planDetails.isWeb} className='form-check-input' id='isOnline' type='checkbox'></input>
+                                })} className='form-check-input' id='isOnline' type='checkbox'></input>
                                 <label className='form-check-label' htmlFor='isOnline'>Is Website Show?</label>
                         </div>
 
                         <div className='form-check from-check-inline col-md mt-2'>
-                                <input checked={planDetails.isActive} onChange={(e) => setPlanDetails({
-                                    ...planDetails,
+                                <input defaultChecked={editPlan.isActive} onChange={(e) => SetEditPlan({
+                                    ...editPlan,
                                     isActive:e.target.checked
                                 })} className='form-check-input' id='isActive' type='checkbox'></input>
                                 <label className='form-check-label' htmlFor='isActive'>Is Active?</label>
@@ -440,8 +536,8 @@ export default function BroadBandPlans() {
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
-                    <button className='btn btn-primary'>Update</button>
-                    <button className='btn btn-outline-secondary'>Cancel</button>
+                    <button onClick={updatePlan} className='btn btn-primary'>Update</button>
+                    <button onClick={() => setEditModal(false)} className='btn btn-outline-secondary'>Cancel</button>
                 </Modal.Footer>
             </Modal>
         </div>

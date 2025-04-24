@@ -215,15 +215,46 @@ export default function Subscriber() {
 
     const fetchData = async () => {
         try {
-
+            const userResponse = await axios.get(api+'/wholeuser/'+username);
             const ispResponse = await axios.get(api+'/master/ISPs');
             const planResponse = await axios.get(api+'/master/Broadband Plan');
 
-            if(ispResponse.status !== 200 || planResponse.status !== 200){
+            if(ispResponse.status !== 200 || planResponse.status !== 200 || userResponse.status !== 200){
                 console.log('One or More API Issue for fetch')
                 return;
             };
 
+
+            
+            const userData = userResponse.data;
+            if(userData){
+
+                // localStorage.setItem('subsname', userData.name);
+                // localStorage.setItem('subsemail', userData.email);
+                // localStorage.setItem('subscontact', userData.mobile);
+                // localStorage.setItem('subsaddress', userData.address);
+                // localStorage.setItem('subsplan', userData.plan);  
+                // localStorage.setItem('company', userData.company);         
+    
+                // setFullName(userData.name);
+                // setCompany(userData.company);
+                // setUserID(userData.userid);
+                // setRegistrationDate(userData.creation);
+                // setContact(userData.mobile);
+                // setIsTeminated(userData.isTerminated);
+                // setPlanName(userData.plan);
+                // setPlanAmount(userData.amount); 
+                // setActivationDate(userData.start);
+                // setExpiryDate(userData.end);
+                // setIsp(userData.isp);
+                // setDueAmount(userData.due); 
+                // setUserEmail(userData.email);
+                // setCuPlanCode({
+                //     isPlanCode:userData.plancode !== "N/A",
+                //     plancode:userData.plancode
+                // });   
+            }
+            
 
 
 

@@ -54,10 +54,6 @@ export default function TicketdataDash() {
   // };
 
 
- 
-  
-  
-
 
     useEffect(() => {
 

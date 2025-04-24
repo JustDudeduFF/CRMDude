@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Form, Modal } from 'react-bootstrap'
 import { ref, set, onValue } from 'firebase/database'
 import { db } from '../../FirebaseConfig';
+import IPhone11 from '../Iphone11';
 
 
 export default function TemplateDash() {
@@ -12,6 +13,10 @@ export default function TemplateDash() {
   const [templateType, setTemplateType] = useState('');
   const [templateName, setTemplateName] = useState('');
   const [templatePreview, setTemplatePreview] = useState('');
+
+  const whatsappTemplate = {
+    body: templatePreview
+  };
 
   const inputRefs = useRef([]);
 
@@ -55,7 +60,7 @@ export default function TemplateDash() {
 
   return (
     <div className='d-flex flex-column' style={{marginTop:'4.5%', padding:'10px'}}>
-        <h4>Create Messaging Templates</h4>
+        
         <div className='d-flex flex-row'>
             <div style={{flex:'1'}} className='d-flex flex-column'>
             <h5 className='text-decoration-underline ms-3'>Whatsapp Templates</h5>
@@ -64,7 +69,7 @@ export default function TemplateDash() {
             <ul className="list-group list-group-flush rounded m-2">
 
 
-            <li className="list-group-item shadow">Renewal Message</li>
+            <li className="list-group-item shadow">Renewal Message <span>hello</span></li>
 
             <li className="list-group-item shadow">Ticket Created</li>
 
@@ -97,14 +102,14 @@ export default function TemplateDash() {
             <div style={{flex:'7'}}>
               <div className='d-flex flex-column ms-3'>
                 <div className='d-flex flex-row'>
-                  <h5 style={{flex:'1'}}>Template List</h5>
-                  <button className='btn btn-outline-success' onClick={handleShow}>Create Template</button>
+                  <h5 style={{flex:'1'}}>Template Preview</h5>
+                  
                 </div>
 
                 <div className='d-flex flex-column'>
-                  <div className='d-flex flex-row'>
-                    <h6>{templateName}</h6>
-                    <p>{templatePreview}</p>
+                  <div className='align-items-center'>
+                    <IPhone11 template={whatsappTemplate}/>
+                    
                   </div>
                 </div>
 
@@ -120,6 +125,7 @@ export default function TemplateDash() {
           </Modal.Header>
 
           <Modal.Body>
+            <div className='d-flex flex-row'>
             <Form>
               <Form.Group className='mb-3 d-flex flex-row'>
                 <Form.Group className='m-3'>
@@ -144,7 +150,7 @@ export default function TemplateDash() {
                   <Form.Label 
                     className='ms-2 p-2 bg-light rounded pointer' 
                     draggable 
-                    onDragStart={(e) => handleDragStart(e, 'customer_name')}
+                    onDragStart={(e) => handleDragStart(e, '${fullName}')}
                   >
                     Name
                   </Form.Label>
@@ -200,23 +206,14 @@ export default function TemplateDash() {
                 </Form.Group>
               </Form.Group>
               <Form.Group className='mb-3'>
-                <Form.Label>Enter Template Data</Form.Label>
-                {Array.from({ length: 7 }).map((_, index) => (
-                  <Form.Control 
-                    key={index} 
-                    type='text' 
-                    className='mb-2' 
-                    ref={el => inputRefs.current[index] = el} 
-                    onDrop={(e) => handleDrop(e, index)} 
-                    onDragOver={handleDragOver} 
-                  />
-                ))}
-              </Form.Group>
-              <Form.Group className='mb-3'>
                 <Form.Label>Template Preview</Form.Label>
                 <Form.Control as='textarea' rows={5} value={templatePreview} onChange={(e) => setTemplatePreview(e.target.value)} />
               </Form.Group>
             </Form>
+            <IPhone11 
+              template={whatsappTemplate}
+            />
+            </div>
           </Modal.Body>
           <Modal.Footer>
             <button className='btn btn-outline-success' onClick={uploadTemplate}>Upload Template</button>

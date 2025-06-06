@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PlanModal from './PlanModal';
 import { api, db } from '../../FirebaseConfig';
-import { onValue, ref, update } from 'firebase/database';
+import { ref, update } from 'firebase/database';
 import { toast, ToastContainer } from 'react-toastify';
 import { usePermissions } from '../PermissionProvider';
 import { Modal } from 'react-bootstrap';
@@ -10,7 +10,7 @@ import axios from 'axios';
 export default function BroadBandPlans() {
     const [showplanmodal, setShowPlanModal] = useState(false);
     const [arrayplan, setArrayPlan] = useState([]);
-    const planRef = ref(db, 'Master/Broadband Plan');
+    // const planRef = ref(db, 'Master/Broadband Plan');
     const [showmodal, setShowModal] = useState(false);
     const [editModal, setEditModal] = useState(false);
 
@@ -188,7 +188,6 @@ export default function BroadBandPlans() {
 
 
         fetchData();
-
     }, []);
 
     const handleDoubleClick = (data) => {

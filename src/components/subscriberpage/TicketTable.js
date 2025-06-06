@@ -124,7 +124,7 @@ export default function TicketTable() {
           <tbody className='table-group-divider'>
             {
               arrayticket.length > 0 ? (
-                arrayticket.slice().reverse().map(({ ticketno, source, ticketconcern, assignto, description, assigntime, assigndate, status, closeby, closedate, closetime, rac, generatedDate, generateby, mobile, name, happycode }, index) => (
+                arrayticket.slice().reverse().map(( { ticketno, source, ticketconcern, assignto, description, assigntime, assigndate, status, closeby, closedate, closetime, rac, generatedDate, generateby, mobile, name, happycode }, index) => (
                   <tr className={status === "Completed" ? "table-success" : status === "Canceled" ? "table-danger" : "table-secondary"} key={index}> 
                     <td style={{ color: 'green', cursor: 'pointer' }} className="btn" data-bs-toggle="dropdown" aria-expanded="false">{ticketno}</td>
                     <ol className="dropdown-menu">

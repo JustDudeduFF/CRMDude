@@ -50,7 +50,7 @@ function New_Dashboard() {  // Renamed to PascalCase
           <Route path='/payrollandattendence/*' element={<ProtectedRoute permission="VIEW_PAYOUT">
             <PayrollandAttendence/>
           </ProtectedRoute>}/>
-          <Route path='/templates/*' element={<TemplateDash/>}/>
+          <Route path='/templates/*' element={<LoginWhatsapp/>}/>
           <Route path='/reports/*' element={<Reports/>}/>
           <Route path='/tickets/*' element={<TicketdataDash/>}/>
           <Route path='/revenue/*' element={<RevenueDash/>}/>

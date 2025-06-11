@@ -8,11 +8,40 @@ import IPhone11 from '../Iphone11';
 export default function TemplateDash() {
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
+
 
   const [templateType, setTemplateType] = useState('');
   const [templateName, setTemplateName] = useState('');
-  const [templatePreview, setTemplatePreview] = useState('');
+  const [templatePreview, setTemplatePreview] = useState(``);
+  const [eventShow, setEventShow] = useState({
+    c_name:false,
+    c_email:false,
+    c_phone:false,
+    expiry_date:false,
+    activate_date:false,
+    ticket_id:false,
+    ticket_concern:false,
+    ticket_status:false,
+    ticet_creation_date:false,
+    happy_code:false,
+    company_number:false,
+    ticket_assign_emp:false,
+    ticket_assign_emp_mobile:false
+  });
+
+  const handleShow = (text) => {
+    if(text==='ticket_created'){
+      setEventShow({
+        ...eventShow,
+        c_email:true,
+        c_phone:true,
+        expiry_date:true,
+        activate_date:true,
+
+      })
+    }
+    setShow(true);
+  }
 
   const whatsappTemplate = {
     body: templatePreview
@@ -69,11 +98,11 @@ export default function TemplateDash() {
             <ul className="list-group list-group-flush rounded m-2">
 
 
-            <li className="list-group-item shadow">Renewal Message <span>hello</span></li>
+            <li className="list-group-item shadow">Renewal Message <span className='ms-3 badge text-bg-success'>+ Add</span></li>
 
-            <li className="list-group-item shadow">Ticket Created</li>
+            <li className="list-group-item shadow">Ticket Created <span onClick={() => handleShow('ticket_created')} className='ms-3 badge text-bg-success'>+ Add</span></li>
 
-            <li className="list-group-item shadow">Ticket Closed</li>
+            <li className="list-group-item shadow">Ticket Closed <span className='ms-3 badge text-bg-success'>+ Add</span></li>
 
 
             
@@ -128,86 +157,118 @@ export default function TemplateDash() {
             <div className='d-flex flex-row'>
             <Form>
               <Form.Group className='mb-3 d-flex flex-row'>
-                <Form.Group className='m-3'>
-                    <Form.Label>Template Type</Form.Label>
-                    <Form.Select value={templateType} onChange={(e) => setTemplateType(e.target.value)}>
-                      <option value=''>Select Template Type</option>
-                      <option value='1'>Whatsapp Template</option>
-                      <option value='2'>Mail Template</option>
-                    </Form.Select>
-                  </Form.Group>
-                  <Form.Group className='m-3'>
-                    <Form.Label>Template Name</Form.Label>
-                    <Form.Select value={templateName} onChange={(e) => setTemplateName(e.target.value)}>
-                      <option value=''>Select Template</option>
-                      <option value='1'>Renewal Message</option>
-                      <option value='2'>Ticket Created</option>
-                      <option value='3'>Ticket Closed</option>
-                    </Form.Select>
-                </Form.Group>
+
                 <Form.Group className='m-3 '>
                   <Form.Label className='ms-2 text-decoration-underline'>Event Selection</Form.Label><br/>
                   <Form.Label 
                     className='ms-2 p-2 bg-light rounded pointer' 
                     draggable 
                     onDragStart={(e) => handleDragStart(e, '${fullName}')}
+                    visuallyHidden={eventShow.c_name}
                   >
-                    Name
+                    Customer Name
                   </Form.Label>
                   <Form.Label 
                     className='ms-2 p-2 bg-light rounded pointer' 
                     draggable 
-                    onDragStart={(e) => handleDragStart(e, 'customer_email')}
+                    onDragStart={(e) => handleDragStart(e, '${customer_email}')}
+                    visuallyHidden={eventShow.c_email}
                   >
-                    Email
+                    Customer Email
                   </Form.Label>
                   <Form.Label 
                     className='ms-2 p-2 bg-light rounded pointer' 
                     draggable 
-                    onDragStart={(e) => handleDragStart(e, 'customer_phone')}
+                    onDragStart={(e) => handleDragStart(e, '${customer_phone}')}
+                    visuallyHidden={eventShow.c_phone}
                   >
-                    Phone
+                    Customer Phone
                   </Form.Label>
                   <Form.Label 
                     className='ms-2 p-2 bg-light rounded pointer' 
                     draggable 
-                    onDragStart={(e) => handleDragStart(e, 'expiry_date')}
+                    onDragStart={(e) => handleDragStart(e, '${expiry_date}')}
+                    visuallyHidden={eventShow.expiry_date}
                   >
                     Expiry Date
                   </Form.Label>
                   <Form.Label 
                     className='ms-2 p-2 bg-light rounded pointer' 
                     draggable 
-                    onDragStart={(e) => handleDragStart(e, 'activation_date')}
+                    onDragStart={(e) => handleDragStart(e, '${activation_date}')}
+                    visuallyHidden={eventShow.activate_date}
                   >
                     Activation Date
                   </Form.Label>
                   <Form.Label 
                     className='ms-2 p-2 bg-light rounded pointer' 
                     draggable 
-                    onDragStart={(e) => handleDragStart(e, 'ticket_id')}
+                    onDragStart={(e) => handleDragStart(e, '${ticket_id}')}
+                    visuallyHidden={eventShow.ticket_id}
                   >
                     Ticket ID
                   </Form.Label>
                   <Form.Label 
                     className='ms-2 p-2 bg-light rounded pointer' 
                     draggable 
-                    onDragStart={(e) => handleDragStart(e, 'ticket_concern')}
+                    onDragStart={(e) => handleDragStart(e, '${ticket_concern}')}
+                    visuallyHidden={eventShow.ticket_concern}
                   >
                     Ticket Concern
                   </Form.Label>
                   <Form.Label 
                     className='ms-2 p-2 bg-light rounded pointer' 
                     draggable 
-                    onDragStart={(e) => handleDragStart(e, 'ticket_status')}
+                    onDragStart={(e) => handleDragStart(e, '${ticket_status}')}
+                    visuallyHidden={eventShow.ticket_status}
                   >
                     Ticket Status
+                  </Form.Label>
+                  <Form.Label 
+                    className='ms-2 p-2 bg-light rounded pointer' 
+                    draggable 
+                    onDragStart={(e) => handleDragStart(e, '${ticket_create_date}')}
+                    visuallyHidden={eventShow.ticet_creation_date}
+                  >
+                    Ticket Create Date
+                  </Form.Label>
+                  <Form.Label 
+                    className='ms-2 p-2 bg-light rounded pointer' 
+                    draggable 
+                    onDragStart={(e) => handleDragStart(e, '${happy_code}')}
+                    visuallyHidden={eventShow.happy_code}
+                  >
+                    Happy Code
+                  </Form.Label>
+                  <Form.Label 
+                    className='ms-2 p-2 bg-light rounded pointer' 
+                    draggable 
+                    onDragStart={(e) => handleDragStart(e, '${company_contact_number}')}
+                    visuallyHidden={eventShow.company_number}
+                  >
+                    Company Contact Number
+                  </Form.Label>
+                  <Form.Label 
+                    className='ms-2 p-2 bg-light rounded pointer' 
+                    draggable 
+                    onDragStart={(e) => handleDragStart(e, '${ticket_assignempemp}')}
+                    visuallyHidden={eventShow.ticket_assign_emp}
+                  >
+                    Ticket Assign Emp Name
+                  </Form.Label>
+                  <Form.Label 
+                    className='ms-2 p-2 bg-light rounded pointer' 
+                    draggable 
+                    onDragStart={(e) => handleDragStart(e, '${ticket_assignempmobile}')}
+                    visuallyHidden={eventShow.ticket_assign_emp_mobile}
+                  >
+                    Ticket Assign Emp Mobile
                   </Form.Label>
                 </Form.Group>
               </Form.Group>
               <Form.Group className='mb-3'>
                 <Form.Label>Template Preview</Form.Label>
-                <Form.Control as='textarea' rows={5} value={templatePreview} onChange={(e) => setTemplatePreview(e.target.value)} />
+                <Form.Control as='textarea' rows={15} value={templatePreview} onChange={(e) => setTemplatePreview(e.target.value)} />
               </Form.Group>
             </Form>
             <IPhone11 

@@ -101,7 +101,7 @@ const lastFiveDays = Array.from({ length: 5 }, (_, i) => {
 
 // Filter and count leads for the last five days
 const leadCountByDate = filteredLeads.reduce((acc, lead) => {
-  const dateString = lead.date.toISOString().split('T')[0]; // Convert to 'YYYY-MM-DD'
+  const dateString = new Date(lead.date).toLocaleDateString('en-GB',{day:'2-digit', month:'short', year:'2-digit'}); // Convert to 'YYYY-MM-DD'
   if (lastFiveDays.includes(dateString)) {
     acc[dateString] = (acc[dateString] || 0) + 1;
   }

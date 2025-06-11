@@ -21,8 +21,8 @@ const ExpiredUsersBarChart = ({ data, type, onBarClick }) => {
       {
         label: type === "expire" ? "Expired Users" : "Upcoming Renewal",
         data: sortedCounts, // Use counts corresponding to sorted labels
-        backgroundColor: type === "expire" ? "rgba(255, 0, 0, 0.5)" : "rgba(60, 255, 0, 0.5)", // Use red for bars
-        borderColor: type === "expire" ? "rgba(255, 0, 0, 1)" : "rgb(0, 105, 9)", // Border color for the bars
+        backgroundColor: type === "expire" ? "rgba(85, 85, 85, 0.5)" : "rgb(255, 0, 128)", // Use red for bars
+        borderColor: type === "expire" ? "rgb(0, 0, 0)" : "rgb(255, 0, 0)", // Border color for the bars
         borderWidth: 1,
       },
     ],

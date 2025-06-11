@@ -14,10 +14,15 @@ const LoginWhatsapp = () => {
     const [loading2, setLoading2] = useState(true);
     const [header2, setHeader2] = useState('');
 
+    const [qrCode3, setQrCode3] = useState(null);
+    const [loading3, setLoading3] = useState(true);
+    const [header3, setHeader3] = useState('');
+
 
     const fetchStatus = async () => {
       try {
           const responsenoida = await axios.post(api+'/statusnoida');
+          const responsepersonal = await axios.post(api+'/statuspersonal');
           const response = await axios.post(api+'/status');
 
           if (response.data.status === 'QR_RECEIVED') {
@@ -54,6 +59,22 @@ const LoginWhatsapp = () => {
               setQrCode2(linked);
               setLoading2(false); // Clear QR code if connected
             }
+
+            if (responsepersonal.data.status === 'QR_RECEIVED') {
+                setHeader3('Please scan the QR code to login to WhatsApp');
+                setLoading3(false);
+                setQrCode3(responsepersonal.data.qr);
+            }else if(responsepersonal.data.status === 'DISCONNECTED'){
+              console.log('User Disconnected')
+              setHeader3('Whatsapp Service is Down For Some Reason!')
+              setQrCode3(unlinked);
+              setLoading3(false);
+            }else {
+              console.log('User Connected')
+              setHeader3('WhatsApp is already connected');
+              setQrCode3(linked);
+              setLoading3(false); // Clear QR code if connected
+            }
       } catch (error) {
             setHeader('Error For get API Service');
             setQrCode(unlinked);
@@ -70,6 +91,19 @@ const LoginWhatsapp = () => {
       const interval = setInterval(fetchStatus, 5000); // Poll every 5 seconds
       return () => clearInterval(interval); // Cleanup interval on unmount
     }, []);
+
+
+    const sendBulkMessage = async() => {
+        //   for (let i = 0; i < 300; i++) {
+        //         try {
+        //         await axios.post('https://api.justdude.in/personal/send-message?number=918368665327&message=bhuuukkk lgg rhi ha mujheeee')
+        //         console.log(`POST Call ${i + 1} done`);
+        //         } catch (error) {
+        //         console.error(`POST Call ${i + 1} failed:`, error);
+        //         }
+        //     }
+
+    }
 
 
     // const handlePayment = async () => {
@@ -154,6 +188,24 @@ const LoginWhatsapp = () => {
             ) : (
                 <p>Failed to load QR code.</p>
             )}
+        </div>
+
+        <div className='ms-5' style={{marginTop:'4.5%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
+            <h1>WhatsApp Bot Personal</h1>
+            {loading ? (
+                <p style={{marginTop:'10%'}}>Loading QR code...</p>
+            ) : qrCode ? (
+                <div style={{display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', marginTop:'10%'}}>
+                    <p>{header3}</p>
+                    <img style={{width:'200px', height:'200px', padding:'10px'}} src={qrCode3} alt="QR Code" />
+                </div>
+
+                
+            ) : (
+                <p>Failed to load QR code.</p>
+            )}
+
+            <button onClick={sendBulkMessage} className='btn-success'>Send Message</button>
         </div>
 
         </div>

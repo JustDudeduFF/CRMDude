@@ -78,19 +78,21 @@ export default function DashFirstDiv() {
     // };
 
     const downloadExcel =()=> {
+        console.log(filterInsArray);
         const extractedData = filterInsArray.map((item, index) => ({
             "S No.": index + 1,
+            "UserName":item.username,
             "Customer Name": item.fullName,
             "Mobile": item.mobileNo,
             "Installation Address": item.installationAddress,
             "Email": item.email,
-            "Registration Date": item.createdAt,
+            "Registration Date": new Date(item.createdAt).toLocaleDateString("en-GB", {day:"2-digit", month:"short", year:'2-digit'}),
             "Plan Name": item.connectionDetails.planName,
             "Plan Amount": item.connectionDetails.planAmount,
             "Colony": item.colonyName,
             "Company": item.company,
-            "Activation Date": new Date(item.connectionDetails.activationDate).toISOString().split('T')[0],
-            "Expiry Date": new Date(item.connectionDetails.expiryDate).toISOString().split('T')[0],
+            "Activation Date": new Date(item.connectionDetails.activationDate).toLocaleDateString("en-GB", {day:'2-digit', month:'short', year:'2-digit'}),
+            "Expiry Date": new Date(item.connectionDetails.expiryDate).toLocaleDateString("en-GB", {day:'2-digit', month:'short', year:'2-digit'}),
             "ISP": item.connectionDetails.isp,
             "Status":item.isTerminate === true ? "Terminated" : new Date(item.connectionDetails?.expiryDate) < new Date() ? "InActive" : "Active"
  

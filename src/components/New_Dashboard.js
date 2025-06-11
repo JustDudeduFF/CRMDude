@@ -21,6 +21,7 @@ import { PermissionProvider } from './PermissionProvider';
 import ExpiredDash from './ExpiredData/ExpiredDash';
 import RevenueDash from './ExpiredData/RevenueDash';
 import Reports from './Reports';
+import MessageTemplateCreator from './Templates/MessageTemplateCreator';
 
 function New_Dashboard() {  // Renamed to PascalCase
   const navigate = useNavigate();
@@ -50,7 +51,7 @@ function New_Dashboard() {  // Renamed to PascalCase
           <Route path='/payrollandattendence/*' element={<ProtectedRoute permission="VIEW_PAYOUT">
             <PayrollandAttendence/>
           </ProtectedRoute>}/>
-          <Route path='/templates/*' element={<TemplateDash/>}/>
+          <Route path='/templates/*' element={<LoginWhatsapp/>}/>
           <Route path='/reports/*' element={<Reports/>}/>
           <Route path='/tickets/*' element={<TicketdataDash/>}/>
           <Route path='/revenue/*' element={<RevenueDash/>}/>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PlanModal from './PlanModal';
 import { api, db } from '../../FirebaseConfig';
-import { onValue, ref, update } from 'firebase/database';
+import { ref, update } from 'firebase/database';
 import { toast, ToastContainer } from 'react-toastify';
 import { usePermissions } from '../PermissionProvider';
 import { Modal } from 'react-bootstrap';
@@ -10,7 +10,7 @@ import axios from 'axios';
 export default function BroadBandPlans() {
     const [showplanmodal, setShowPlanModal] = useState(false);
     const [arrayplan, setArrayPlan] = useState([]);
-    const planRef = ref(db, 'Master/Broadband Plan');
+    // const planRef = ref(db, 'Master/Broadband Plan');
     const [showmodal, setShowModal] = useState(false);
     const [editModal, setEditModal] = useState(false);
 
@@ -25,6 +25,7 @@ export default function BroadBandPlans() {
         company:'',
         isWeb:false,
         isActive:true,
+        onLead:false
     });
 
     const [editPlan, SetEditPlan] = useState({
@@ -34,7 +35,8 @@ export default function BroadBandPlans() {
         periodtype:'',
         periodtime:'',
         isActive:'',
-        isWeb:''
+        isWeb:'',
+        onLead:''
     });
 
     const [provider, setProvider] = useState([]);
@@ -188,7 +190,6 @@ export default function BroadBandPlans() {
 
 
         fetchData();
-
     }, []);
 
     const handleDoubleClick = (data) => {
@@ -200,7 +201,8 @@ export default function BroadBandPlans() {
             periodtype:data.planperiod,
             periodtime:data.periodtime,
             isActive:data.isActive,
-            isWeb:data.isWeb
+            isWeb:data.isWeb,
+            onLead:data.onLead
         });
 
 
@@ -232,7 +234,8 @@ export default function BroadBandPlans() {
                 periodtype:'',
                 periodtime:'',
                 isActive:'',
-                isWeb:''
+                isWeb:'',
+                onLead:''
             });
             toast.success('Plan Updated', {
                 autoClose: 2000,
@@ -308,6 +311,7 @@ export default function BroadBandPlans() {
                         <th scope='col'>Company</th>
                         <th scope='col'>On WebShow</th>
                         <th scope='col'>Status</th>
+                        <th scope='col'>Show on Lead</th>
                     </tr>
                 </thead>
                 <tbody className="table-group-divider">
@@ -322,6 +326,7 @@ export default function BroadBandPlans() {
                             <td>{data.company}</td>
                             <td>{data.isWeb === true ? 'Enabled' : 'Disabled'}</td>
                             <td>{data.isActive === true? 'Active' : 'InActive'}</td>
+                            <td>{data.onLead === true? 'Enabled' : 'Disabled'}</td>
                         </tr>
                     ))}
                 </tbody>
@@ -463,6 +468,14 @@ export default function BroadBandPlans() {
                                 })} className='form-check-input' id='isActive' type='checkbox'></input>
                                 <label className='form-check-label' htmlFor='isActive'>Is Active?</label>
                             </div>
+
+                            <div className='form-check from-check-inline col-md mt-2'>
+                                <input checked={planDetails.onLead} onChange={(e) => setPlanDetails({
+                                    ...planDetails,
+                                    onLead:e.target.checked
+                                })} className='form-check-input' id='onLead' type='checkbox'></input>
+                                <label className='form-check-label' htmlFor='onLead'>Show on Lead Creation?</label>
+                            </div>
                         </div>
                     </Modal.Body>
                     <Modal.Footer>
@@ -532,6 +545,14 @@ export default function BroadBandPlans() {
                                     isActive:e.target.checked
                                 })} className='form-check-input' id='isActive' type='checkbox'></input>
                                 <label className='form-check-label' htmlFor='isActive'>Is Active?</label>
+                        </div>
+
+                         <div className='form-check from-check-inline col-md mt-2'>
+                                <input defaultChecked={editPlan.onLead} onChange={(e) => SetEditPlan({
+                                    ...editPlan,
+                                    onLead:e.target.checked
+                                })} className='form-check-input' id='onLead' type='checkbox'></input>
+                                <label className='form-check-label' htmlFor='onLead'>Show on Lead Creation?</label>
                         </div>
                     </div>
                 </Modal.Body>

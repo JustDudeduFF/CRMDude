@@ -70,8 +70,7 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                 const dataArray = [];
 
                 dataSnap.forEach((childSnap) => {
-                    const FirstName = childSnap.val().firstName;
-                    const LastName = childSnap.val().lastName;
+                    const FirstName = childSnap.val().fullName;
                     const Enquiry_LeadDate = childSnap.val().date; // This might be a string
                     const LeadSource = childSnap.val().leadsource;
                     const Type = childSnap.val().type;
@@ -80,13 +79,12 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                     const Address = childSnap.val().address;
                     const Status = childSnap.val().status;
                     const leadID = childSnap.key;
-                    const generatename = childSnap.val().generatename;
+                    const generatename = childSnap.val().referenceName;
                     const assignto = childSnap.val().assignedto;
 
                     dataArray.push({
                         generatedDate: childSnap.val().generatedDate,
                         FirstName,
-                        LastName,
                         Enquiry_Concern,
                         LeadSource,
                         Type,
@@ -245,14 +243,14 @@ export default function ExpandLeads({ showExpand, closeExpand }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {filterData.map(({ FirstName, LastName, Mobile, Address, generatedDate, LeadSource, Status, Type, leadID, generatename, assignto }, index) => (
+                            {filterData.map(({ FirstName, Mobile, Address, generatedDate, LeadSource, Status, Type, leadID, generatename, assignto }, index) => (
                                 <tr key={index}>
                                     <td>{new Date(generatedDate).toLocaleDateString("en-GB", {
                                         day:'2-digit',
                                         month:'short',
                                         year:'numeric'
                                     }).replace(",","")}</td>
-                                    <td>{`${FirstName} ${LastName}`}</td>
+                                    <td>{FirstName}</td>
                                     <td>{`"${Mobile}" : "${Address}"`}</td>
                                     <td>{userMap[assignto]}</td>
                                     <td>{LeadSource}</td>

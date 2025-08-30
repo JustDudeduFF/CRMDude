@@ -10,56 +10,99 @@ import whatsapp from './subscriberpage/drawables/whatsapp.png'
 import master from './subscriberpage/drawables/master.png'
 import './Reports_Others.css'
 
-export default function Reports_Others() {
+export default function Reports_Others({ onCloseSidebar }) {
   const navigate = useNavigate();
+
+  const handleNavigation = (path) => {
+    navigate(path);
+    if (onCloseSidebar) {
+      onCloseSidebar();
+    }
+  };
+
   return (
-    <div className='d-flex flex-row justify-content-center'>
-
-        <div style={{width:'140px'}} onClick={() => navigate('/dashboard/employees')} className='d-flex flex-column align-items-center justify-content-center border border-2 border-success p-4 ms-3 me-3 rounded hover-shadow'>
-          <label className='fw-bold mb-3 text-center label'>Manage Employees</label>
-          <img style={{width:'50px', height:'50px'}} alt='Emp_Report' src={Emp_Report}></img>
+    <div className="reports-others-container">
+      <div className="reports-others-grid">
+        <div 
+          onClick={() => handleNavigation('/dashboard/employees')} 
+          className="reports-others-card"
+        >
+          <div className="reports-others-icon">
+            <img alt='Emp_Report' src={Emp_Report} />
+          </div>
+          <label className="reports-others-label">Manage Employees</label>
         </div>
 
-
-        <div style={{width:'140px'}} onClick={() => navigate('reports')} className='d-flex flex-column align-items-center justify-content-center border border-2 border-success p-4 ms-3 me-3 rounded hover-shadow'>
-          <label className='fw-bold mb-3 text-center label'>All Reports</label>
-          <img style={{width:'50px', height:'50px'}} alt='reports' src={reports}></img>
+        <div 
+          onClick={() => handleNavigation('/dashboard/reports')} 
+          className="reports-others-card"
+        >
+          <div className="reports-others-icon">
+            <img alt='reports' src={reports} />
+          </div>
+          <label className="reports-others-label">All Reports</label>
         </div>
 
-        <div style={{width:'140px'}} onClick={() => navigate('networkrack')} className='d-flex flex-column align-items-center justify-content-center border border-2 border-success p-4 ms-3 me-3 rounded hover-shadow'>
-          <label className='fw-bold mb-3 text-center label'>Network Rack Info</label>
-          <img style={{width:'50px', height:'50px'}} alt='Network_Rack' src={Network_Rack}></img>
+        <div 
+          onClick={() => handleNavigation('/dashboard/networkrack')} 
+          className="reports-others-card"
+        >
+          <div className="reports-others-icon">
+            <img alt='Network_Rack' src={Network_Rack} />
+          </div>
+          <label className="reports-others-label">Network Rack Info</label>
         </div>
 
-        <div style={{width:'140px'}} onClick={() => navigate('/dashboard/leadmanagment')} className='d-flex flex-column align-items-center justify-content-center border border-2 border-success p-4 ms-3 me-3 rounded hover-shadow'>
-          <label className='fw-bold mb-3 text-center label'>Lead Managment</label>
-          <img style={{width:'50px', height:'50px'}} alt='Leads' src={Leads}></img>
+        <div 
+          onClick={() => handleNavigation('/dashboard/leadmanagment')} 
+          className="reports-others-card"
+        >
+          <div className="reports-others-icon">
+            <img alt='Leads' src={Leads} />
+          </div>
+          <label className="reports-others-label">Lead Management</label>
         </div>
 
-
-        <div style={{width:'140px'}} onClick={() => navigate('/dashboard/inventry')} className='d-flex flex-column align-items-center justify-content-center border border-2 border-success p-4 ms-3 me-3 rounded hover-shadow'>
-          <label className='fw-bold mb-3 text-center label'>Inventory</label>
-          <img style={{width:'50px', height:'50px'}} alt='Inventry' src={Inventry}></img>
+        <div 
+          onClick={() => handleNavigation('/dashboard/inventry')} 
+          className="reports-others-card"
+        >
+          <div className="reports-others-icon">
+            <img alt='Inventry' src={Inventry} />
+          </div>
+          <label className="reports-others-label">Inventory</label>
         </div>
 
-        <div style={{width:'140px'}} onClick={() => navigate('/dashboard/adduser')} className='d-flex flex-column align-items-center justify-content-center border border-2 border-success p-4 ms-3 me-3 rounded hover-shadow'>
-          <label className='fw-bold mb-3 text-center label'>Add Customer</label>
-          <img style={{width:'50px', height:'50px'}} alt='Customer_Add' src={Customer_Add}></img>
+        <div 
+          onClick={() => handleNavigation('/dashboard/adduser')} 
+          className="reports-others-card"
+        >
+          <div className="reports-others-icon">
+            <img alt='Customer_Add' src={Customer_Add} />
+          </div>
+          <label className="reports-others-label">Add Customer</label>
         </div>
 
-
-        <div style={{width:'140px'}} onClick={() => navigate('/dashboard/master')} className='d-flex flex-column align-items-center justify-content-center border border-2 border-success p-4 ms-3 me-3 rounded hover-shadow'>
-          <label className='fw-bold mb-3 text-center label'>Master</label>
-          <img style={{width:'50px', height:'50px'}} alt='master' src={master}></img>
+        <div 
+          onClick={() => handleNavigation('/dashboard/master')} 
+          className="reports-others-card"
+        >
+          <div className="reports-others-icon">
+            <img alt='master' src={master} />
+          </div>
+          <label className="reports-others-label">Master</label>
         </div>
         
-        
-        <div onClick={() => navigate('/dashboard/templates')} style={{width:'140px'}} className='d-flex flex-column align-items-center justify-content-center ms-3 me-3 border border-2 border-success p-4 rounded hover-shadow'>
-          <label className='fw-bold mb-3 text-center label'>WhatsApp</label>
-          <img style={{width:'50px', height:'50px'}} alt='whatsapp' src={whatsapp}></img>
+        <div 
+          onClick={() => handleNavigation('/dashboard/templates')} 
+          className="reports-others-card"
+        >
+          <div className="reports-others-icon">
+            <img alt='whatsapp' src={whatsapp} />
+          </div>
+          <label className="reports-others-label">WhatsApp</label>
         </div>
-
-      
+      </div>
     </div>
   )
 }

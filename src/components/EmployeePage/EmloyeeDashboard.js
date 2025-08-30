@@ -1,116 +1,120 @@
-import React, {  useEffect, useState } from 'react'
-
-import './EmpCSS.css'
-import { Link, Route, Routes, useNavigate } from 'react-router-dom'
-import NewEmployee from './NewEmployee'
-import EmpDash from './EmpDash'
-import { db } from '../../FirebaseConfig'
-import { onValue, ref } from 'firebase/database'
-import EmpDetails from './EmpDetails'
-
+import React, { useEffect, useState } from "react";
+import "./EmpCSS.css";
+import { Link, Route, Routes, useNavigate } from "react-router-dom";
+import NewEmployee from "./NewEmployee";
+import EmpDash from "./EmpDash";
+import { api2 } from "../../FirebaseConfig";
+import EmpDetails from "./EmpDetails";
+import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
 
 export default function EmloyeeDashboard() {
-  const [text, setText] = useState('1.1');
-  const [employeName, setEmployename] = useState([]);
-  const [employemobile, setEmployeMobile] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [filterEmployees, setFilterEmployees] = useState([]);
+  const [search, setSearch] = useState("All");
+  const partnerId = localStorage.getItem("partnerId");
+
   const navigate = useNavigate();
-  
-  
 
-  
+  const fetchEmp = async () => {
+    try {
+      const response = await axios.get(
+        api2 + "/subscriber/users?partnerId=" + partnerId
+      );
+
+      if (response.status !== 200)
+        return toast.error("Failed to Load Employees", { autoClose: 2000 });
+
+      setEmployees(response.data);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   useEffect(() => {
-    // Reference to the Firebase database path
-    const dbRef = ref(db, 'users');
-
-    // Set up a listener for real-time updates
-    const unsubscribe = onValue(dbRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const names = [];
-        const mobiles = [];
-        snapshot.forEach((childSnapshot) => {
-          const fullname = childSnapshot.val().FULLNAME;
-          const mobile = childSnapshot.val().MOBILE;
-          names.push(fullname);
-          mobiles.push(mobile);
-
-          console.log(names, mobiles);
-          
-        });
-        // Update state with the fetched names
-        setEmployename(names);
-        setEmployeMobile(mobiles);
-      } else {
-        console.log('No data available');
-      }
-    });
-
-    // Cleanup function to remove the listener when the component unmounts
-    return () => unsubscribe();
+    fetchEmp();
   }, []);
 
   const showEmpDetail = (mobile) => {
-    navigate('empdetail/*', { state:{mobile}});
+    navigate("/dashboard/employees/empdetail", { state: { mobile } });
+  };
 
-  }
-  
+  useEffect(() => {
+    let filter = employees;
 
-  const handleClickNew = () =>{
-    setText('1.1');
-  }
+    if (search !== "All") {
+      const searchLower = search.toLowerCase();
+
+      filter = filter.filter(
+        (emp) =>
+          emp.empname.toLowerCase().includes(searchLower) ||
+          emp.empmobile.toLowerCase().includes(searchLower)
+      );
+    }
+
+    setFilterEmployees(filter);
+  }, [search, employees]); // also add employees as dependency if it can change
+
+  const handleClickNew = () => {
+    // Navigation to main employee list
+  };
 
   const handleClick = () => {
-    
-    // Update the state with the new string
-    setText('0');
-
-    
+    // Navigation to add new employee
   };
-  
+
   return (
-    <div style={{marginTop:'4.5%', display:'flex', flexDirection:'column'}}>
-      <div style={{flex:'1', display:'flex', flexDirection:'row', margin:'10px'}}>
-        <div style={{flex:'1'}}>
-          <Link style={{color:'black'}} id='link' to='/dashboard/employees'>
-          <h3 style={{cursor:'pointer'}} onClick={handleClickNew} >Manage Employees</h3>
+    <div className="employee-dashboard-container">
+      <ToastContainer />
+      <div className="employee-header">
+        <div>
+          <Link to="/dashboard/employees">
+            <h3 className="employee-title" onClick={handleClickNew}>
+              Manage Employees
+            </h3>
           </Link>
         </div>
-        <div style={{width:'max-content', float:'right'}}>
-          <Link id='link' to='newemployee'> 
-          <button onClick={handleClick} className='btn btn-outline-info'>Add New Employee</button>
+        <div>
+          <Link to="/dashboard/employees/newemployee">
+            <button onClick={handleClick} className="add-employee-btn">
+              Add New Employee
+            </button>
           </Link>
-
         </div>
       </div>
 
-
-
-      <div style={{display:'flex', flexDirection:'row', margin:'10px'}}>
-
-
-        <div style={{flex:`${text}`, overflowY:'auto', height:'79vh', scrollbarWidth:'none', transition:'linear 0.3s'}}>
-        <ol className="list-group">
-          {employeName.map((name, index) => (
-            <li onClick={() => showEmpDetail(employemobile[index])} className="list-group-item justify-content-between align-items-start mt-2" key={index}>
-              <div className='fw-light'>{name}</div>
-              <div>{employemobile[index]}</div> 
-
-            </li>
-          ))}
-          
-        </ol>
-        
+      <div className="employee-layout">
+        <div className="employee-sidebar employee-sidebar-fixed">
+          <div className="employee-search-container">
+            <label className="employee-search-label">Search</label>
+            <input
+              className="employee-search-input"
+              placeholder="e.g. name, mobile"
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <ul className="employee-list">
+            {filterEmployees.map((emp, index) => (
+              <li
+                onClick={() => showEmpDetail(emp._id)}
+                className="employee-list-item"
+                key={index}
+              >
+                <div className="employee-name">{emp.empname}</div>
+                <div className="employee-mobile">{emp.empmobile}</div>
+              </li>
+            ))}
+          </ul>
         </div>
 
-        <div style={{flex:'7', marginLeft:'10px', height:'79vh'}}>
-          
+        <div className="employee-main-content employee-main-content-fixed">
           <Routes>
-            <Route path='/' element={<EmpDash/>}/>
-            <Route path='empdetail/*' element={<EmpDetails/>}/>
-            <Route path='newemployee/*' element={<NewEmployee/>}/>
+            <Route path="/" element={<EmpDash />} />
+            <Route path="empdetail/*" element={<EmpDetails />} />
+            <Route path="newemployee/*" element={<NewEmployee />} />
           </Routes>
         </div>
       </div>
-
     </div>
-  )
+  );
 }

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import '../Modal.css'
 import axios from 'axios';
+import { api } from '../../FirebaseConfig';
 
 
 const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, DeviceMac, modalshow, devicetype, company}) => {
@@ -15,8 +16,8 @@ const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, 
 
         try{
             const [makerResponse, companyResponse] = await Promise.all([
-                await axios.get('https://api.justdude.in/master/dMakers'),
-                await axios.get('https://api.justdude.in/master/companys')
+                await axios.get(api+'/master/dMakers'),
+                await axios.get(api+'/master/companys')
             ]);
     
             if(makerResponse.status !== 200 || companyResponse.status !== 200) {

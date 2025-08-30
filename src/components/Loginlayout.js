@@ -1,34 +1,21 @@
 import React, { useEffect, useState } from 'react'
-import { db } from '../FirebaseConfig'
-import { get, ref, update } from 'firebase/database'
 import { useNavigate } from 'react-router-dom'
-import PasswordModal from './PasswordModal'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css';
-
+import { api2 } from '../FirebaseConfig';
 
 export default function Loginlayout() {
-
   const navigate = useNavigate();
-  const [showModal, setShowModal] = useState(false);
-  const [password1, setPassword1] = useState('');
-  const [password2, setPassword2]= useState('');
-
-
+  const [loading, setLoading] = useState(false);
+  const [contact, setContact] = useState('');
+  const [password, setPassword] = useState('');
 
   useEffect(() => {
     if(localStorage.getItem('contact')){
       navigate('/dashboard');
     }
-  })
-  const [loading, setLoading] = useState(false);
-  const [contact, setContact] = useState('');
-  const [password, setPassword] = useState('');
-  
-  const userRef = ref(db, `users/${contact}`);
+  }, [navigate]);
 
-  
-  
   const contactChange = (event) => {
     setContact(event.target.value);
   }
@@ -40,54 +27,45 @@ export default function Loginlayout() {
   const handleClick = async () => {
     if(contact === ''){
       alert('Enter Contact No.')
-    }else{
-      
-    
+      return;
+    }
     setLoading(true);
-    
-    try{
-      
-      const snapshot = await get(userRef);
-
-      if(snapshot.exists()){
-        
-        const name = snapshot.val().FULLNAME;
-        const designation = snapshot.val().DESIGNATION;
-        
-        
-        
-
-       
-        
-        if(snapshot.hasChild('pass')){
-          const fetchPass = snapshot.val().pass;
-          if(fetchPass === password){
-            setLoading(false);
-          localStorage.setItem('contact', contact);
-          localStorage.setItem('Name', name);
-          localStorage.setItem('Designation', designation);
-          
-          
-          
-          navigate('/dashboard');
-          }else{
-            alert('Password Not Matched');
-          }  
-          
-        }else{
-          setShowModal(true);
-        } 
-      }else{
-        setLoading(false  );
-        alert('UserName Not Found');
+    try {
+      const res = await fetch(`${api2}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: contact, password })
+      });
+      const data = await res.json();
+      setLoading(false);
+      if (res.ok) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('contact', contact);
+        localStorage.setItem('empid', data.user.id);
+        localStorage.setItem('Name', data.user.name);
+        localStorage.setItem('Designation', data.user.role);
+        navigate('/dashboard');
+      } else {
+        toast.error(data.message || 'Login failed', {
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+        });
       }
-    }catch (error){
-      console.log(error);
+    } catch (error) {
+      setLoading(false);
+      toast.error('Error connecting to server', {
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+      });
     }
-    }
-  
-    
-    
   }
 
   return (
@@ -101,22 +79,6 @@ export default function Loginlayout() {
         <input onChange={passwordChange} value={password} className='input_login' type='password'></input><br></br>
         <button onClick={handleClick} className='btn_login'>Login</button>
         <ToastContainer/>
-
-        <PasswordModal show={showModal} changePassword2={(e)=> setPassword2(e.target.value)} changePassword={(e) => setPassword1(e.target.value)} onClose={() => {
-          if(password1 === password2){
-            update(userRef, {pass:password1})
-            setShowModal(false);
-          }else{
-            toast.error('Password is Not Matched', {
-              autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: false,
-              draggable: true,
-              progress: undefined,
-            });
-          }
-        }}/>
         {loading && <p>Loading...</p>}
     </div></>
   )

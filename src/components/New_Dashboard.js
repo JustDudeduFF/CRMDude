@@ -22,6 +22,9 @@ import ExpiredDash from './ExpiredData/ExpiredDash';
 import RevenueDash from './ExpiredData/RevenueDash';
 import Reports from './Reports';
 import MessageTemplateCreator from './Templates/MessageTemplateCreator';
+import EmployeeProfile from './EmployeePage/EmployeeProfileDash';
+import MongoDBDashboard from './MongoDBDashboard';
+import Dashboard from './Dashboard';
 
 function New_Dashboard() {  // Renamed to PascalCase
   const navigate = useNavigate();
@@ -38,6 +41,7 @@ function New_Dashboard() {  // Renamed to PascalCase
       <PermissionProvider>
       <Routes>
           <Route path='/*' element={<DashFirstDiv/>} />
+          <Route path='/myprofile' element={<EmployeeProfile/>} />
           <Route path='/adduser/*' element={<ProtectedRoute permission="ADD_CUSTOMER"><NewUserAdd/></ProtectedRoute>} />
           <Route path='/subscriber/*' element={<ProtectedRoute permission="VIEW_CUSTOMER"><Subscriber/></ProtectedRoute>} />
           <Route path='/employees/*' element={<ProtectedRoute permission="VIEW_EMP">
@@ -51,11 +55,13 @@ function New_Dashboard() {  // Renamed to PascalCase
           <Route path='/payrollandattendence/*' element={<ProtectedRoute permission="VIEW_PAYOUT">
             <PayrollandAttendence/>
           </ProtectedRoute>}/>
-          <Route path='/templates/*' element={<LoginWhatsapp/>}/>
+          <Route path='/templates/*' element={<MessageTemplateCreator/>}/>
           <Route path='/reports/*' element={<Reports/>}/>
           <Route path='/tickets/*' element={<TicketdataDash/>}/>
           <Route path='/revenue/*' element={<RevenueDash/>}/>
           <Route path='/expired/*' element={<ExpiredDash/>}/>
+          <Route path='/mongodb/*' element={<MongoDBDashboard/>}/>
+          <Route path='/partnerview/*' element={<Dashboard/>}/>
         </Routes>
       </PermissionProvider>
 

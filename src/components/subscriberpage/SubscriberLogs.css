@@ -1,0 +1,124 @@
+/* SubscriberLogs Component Professional Styling */
+.subscriber-logs-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.subscriber-logs-header {
+  flex: 2;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid rgba(138, 191, 211, 0.2);
+}
+
+.subscriber-logs-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #8abfd3;
+  margin: 0;
+}
+
+.subscriber-logs-content {
+  flex: 10;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.subscriber-logs-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+}
+
+.subscriber-logs-table thead {
+  background: linear-gradient(135deg, #8abfd3 0%, #78d6f5 100%);
+  color: white;
+}
+
+.subscriber-logs-table th {
+  padding: 15px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+}
+
+.subscriber-logs-table tbody tr {
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.3s ease;
+}
+
+.subscriber-logs-table tbody tr:hover {
+  background-color: rgba(138, 191, 211, 0.05);
+}
+
+.subscriber-logs-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.subscriber-logs-table td {
+  padding: 12px;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.subscriber-logs-no-data {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .subscriber-logs-container {
+    padding: 15px;
+  }
+  
+  .subscriber-logs-title {
+    font-size: 1.5rem;
+  }
+  
+  .subscriber-logs-table th,
+  .subscriber-logs-table td {
+    padding: 8px 6px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .subscriber-logs-container {
+    padding: 10px;
+  }
+  
+  .subscriber-logs-title {
+    font-size: 1.3rem;
+  }
+  
+  .subscriber-logs-content {
+    overflow-x: auto;
+  }
+  
+  .subscriber-logs-table {
+    min-width: 500px;
+  }
+}
+
+@media (max-width: 480px) {
+  .subscriber-logs-container {
+    padding: 5px;
+  }
+  
+  .subscriber-logs-title {
+    font-size: 1.2rem;
+  }
+}

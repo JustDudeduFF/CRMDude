@@ -1,0 +1,137 @@
+/* DocumetUploadTable Component Professional Styling */
+.document-upload-table-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.document-upload-table-wrapper {
+  overflow-x: auto;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.document-upload-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+}
+
+.document-upload-table thead {
+  background: linear-gradient(135deg, #8abfd3 0%, #78d6f5 100%);
+  color: white;
+}
+
+.document-upload-table th {
+  padding: 15px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+}
+
+.document-upload-table tbody tr {
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.3s ease;
+}
+
+.document-upload-table tbody tr:hover {
+  background-color: rgba(138, 191, 211, 0.05);
+}
+
+.document-upload-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.document-upload-table td {
+  padding: 12px;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.document-upload-action-icon {
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  transition: transform 0.3s ease, filter 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.document-upload-action-icon:hover {
+  transform: translateY(-2px);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.document-upload-expand-icon {
+  margin-right: 20px;
+}
+
+.document-upload-delete-icon {
+  transition: transform 0.3s ease;
+}
+
+.document-upload-delete-icon:hover {
+  transform: scale(1.1);
+}
+
+.document-upload-no-data {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .document-upload-table-container {
+    padding: 15px;
+  }
+  
+  .document-upload-table th,
+  .document-upload-table td {
+    padding: 8px 6px;
+    font-size: 0.8rem;
+  }
+  
+  .document-upload-action-icon {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 768px) {
+  .document-upload-table-container {
+    padding: 10px;
+  }
+  
+  .document-upload-table-wrapper {
+    overflow-x: auto;
+  }
+  
+  .document-upload-table {
+    min-width: 600px;
+  }
+  
+  .document-upload-action-icon {
+    width: 25px;
+    height: 25px;
+  }
+}
+
+@media (max-width: 480px) {
+  .document-upload-table-container {
+    padding: 5px;
+  }
+  
+  .document-upload-action-icon {
+    width: 22px;
+    height: 22px;
+  }
+}

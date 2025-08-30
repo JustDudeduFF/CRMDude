@@ -21,8 +21,8 @@ const ExpiredUsersBarChart = ({ data, type, onBarClick }) => {
       {
         label: type === "expire" ? "Expired Users" : "Upcoming Renewal",
         data: sortedCounts, // Use counts corresponding to sorted labels
-        backgroundColor: type === "expire" ? "rgba(85, 85, 85, 0.5)" : "rgb(255, 0, 128)", // Use red for bars
-        borderColor: type === "expire" ? "rgb(0, 0, 0)" : "rgb(255, 0, 0)", // Border color for the bars
+        backgroundColor: type === "expire" ? "#ff073a" : "#9fb9e2", // Use red for bars
+        borderColor: type === "expire" ? "rgb(255, 0, 0)" : "rgb(62, 9, 209)", // Border color for the bars
         borderWidth: 1,
       },
     ],
@@ -55,15 +55,13 @@ const ExpiredUsersBarChart = ({ data, type, onBarClick }) => {
       },
     },
     onClick: (event, elements) => {
-      if (elements.length > 0) {
+      if (elements.length > 0 && onBarClick) {
         const chartElement = elements[0]; // Get the clicked element
         const index = chartElement.index;
 
         const label = sortedLabels[index]; // Get the label of the clicked bar
-        // const value = sortedCounts[index]; // Get the value of the clicked bar
+        onBarClick(label, index); 
 
-        setshow(true);
-        setdatatype( "Expiring " +label);
 
 
       }
@@ -72,7 +70,6 @@ const ExpiredUsersBarChart = ({ data, type, onBarClick }) => {
 
   return <div>
     <Bar data={chartData} options={options} />
-    <DashExpandView show={show} datatype={datatype} modalShow={() => setshow(false)}/>
   </div>; // Render the Bar chart
 };
 

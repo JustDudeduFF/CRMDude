@@ -1,13 +1,15 @@
-import React, { useState } from 'react'
-import { db, storage } from '../../FirebaseConfig';
-import {  uploadBytes, getDownloadURL, ref as dbRef } from "firebase/storage";
-import { ref, update } from 'firebase/database';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { api2 } from "../../FirebaseConfig";
+import { toast } from "react-toastify";
+import "./AddNewDoc.css";
 
 export default function AddNewDoc() {
-  const userid = localStorage.getItem('susbsUserid');
+  const partnerId = localStorage.getItem("partnerId");
+  const userid = localStorage.getItem("susbsUserid");
   const navigate = useNavigate();
-  const [documentType, setDocumentType] = useState('');
+  const [documentType, setDocumentType] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [btnMode, setBtnMode] = useState(true);
   const maxSizeInMB = 5; // Maximum file size in MB
@@ -28,7 +30,9 @@ export default function AddNewDoc() {
       }
 
       if (!allowedTypes.includes(file.type)) {
-        alert(`Invalid file type. Allowed types are: ${allowedTypes.join(", ")}.`);
+        alert(
+          `Invalid file type. Allowed types are: ${allowedTypes.join(", ")}.`
+        );
         setSelectedFile(null);
         return;
       }
@@ -39,66 +43,77 @@ export default function AddNewDoc() {
     }
   };
 
-  const uploadFile = async (file, folder) => {
-    if (!file) return null;
-    const storageRef = dbRef(storage, `${folder}/${file.name}_${Date.now()}`);
-    await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(storageRef);
-    return url;
-  };      
-
-  const uploadDoc = async() => {
-    setBtnMode(true); 
-    if(selectedFile !== null && documentType !== null){
-      const timestamp = Date.now();
-      try{
-        const documetUrl = await uploadFile(selectedFile, documentType);
-
-        const documentData = {
-          source: 'Manual',
-          date: new Date().toISOString().split('T')[0],
-          modifiedby: localStorage.getItem('contact'),
-          documentname: documentType,
-          url: documetUrl,
-          key: timestamp               
-        }
-
-        await update(ref(db, `Subscriber/${userid}/documents/${timestamp}`), documentData);
-        alert(`${documentType} is uploded succesfully`);
-        navigate(-1);
-        
-      }catch(e){
-        console.log(e);
-      }
-    }else{
-      alert("Please Add All Details and try again!")
+  const uploadDoc = async () => {
+    if (!selectedFile || !documentType) {
+      alert("Please add all details and try again!");
+      return;
     }
-  }
 
+    setBtnMode(true);
+    const formData = new FormData();
+    formData.append("document", selectedFile);
+    formData.append("documentname", documentType);
+    formData.append("modifiedby", localStorage.getItem("contact"));
+    formData.append("partnerId", partnerId);
+    formData.append("source", "Web CRM");
 
+    try {
+      const response = await axios.post(
+        `${api2}/subscriber/documents/${userid}`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
+      if (response.status !== 200)
+        return toast.error("Failed to Upload Document", { autoClose: 2000 });
+
+      navigate(-1);
+    } catch (error) {
+      console.error("Upload failed:", error);
+      alert("Upload failed");
+    } finally {
+      setBtnMode(false);
+    }
+  };
 
   return (
-    
-        <div style={{display:'flex', flexDirection:'column'}} className="input-group">
-        <div style={{flex:'1'}} className="col-md-4">
-            <label className="form-label">Select Document Name</label>
-            <select onChange={(e) => setDocumentType(e.target.value)} className="form-select">
-              <option value=''>Choose...</option>
-              <option value="addressProof">Address Proof</option>
-              <option value="identityProof">Identity Proof</option>
-              <option value="cafDocuments">CAF Documents</option>
-
-            </select>
-            
-          </div>
-
-          <div style={{flex:'1', marginTop:'20px'}}>
-          <input onChange={handleFileChange} type="file" className="form-control"></input>
-          <span className='ms-2 text-danger'>*File is not more than 5mb*</span><br></br>
-          <button onClick={uploadDoc} className="btn btn-outline-secondary mt-2" disabled={btnMode}>Upload Document</button>
-          </div>
-
+    <div className="add-new-doc-container">
+      <div className="add-new-doc-form">
+        <div className="add-new-doc-form-group">
+          <label className="add-new-doc-form-label">Select Document Name</label>
+          <select
+            onChange={(e) => setDocumentType(e.target.value)}
+            className="add-new-doc-form-select"
+          >
+            <option value="">Choose...</option>
+            <option value="addressProof">Address Proof</option>
+            <option value="identityProof">Identity Proof</option>
+            <option value="cafDocuments">CAF Documents</option>
+            <option value="profilePhoto">Profile Photo</option>
+            <option value="other">Other</option>
+          </select>
         </div>
-  
-  )
+
+        <div className="add-new-doc-form-group">
+          <input
+            onChange={handleFileChange}
+            type="file"
+            className="add-new-doc-form-control"
+          />
+          <span className="add-new-doc-file-info">
+            *File is not more than 5mb*
+          </span>
+          <button
+            onClick={uploadDoc}
+            className="add-new-doc-btn add-new-doc-btn-outline-secondary"
+            disabled={btnMode}
+          >
+            Upload Document
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }

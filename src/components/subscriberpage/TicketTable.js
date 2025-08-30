@@ -1,84 +1,88 @@
-import { ref, update } from 'firebase/database';
-import React, { useEffect, useState } from 'react';
-import { api, db } from '../../FirebaseConfig';
-import { useNavigate } from 'react-router-dom';
-import { usePermissions } from '../PermissionProvider';
-import { Modal } from 'react-bootstrap';
-import PermissionDenied from '../PermissionDenied';
-import axios from 'axios';
-import { toast, ToastContainer } from 'react-toastify';
+import { ref, update } from "firebase/database";
+import React, { useEffect, useState } from "react";
+import { api, api2, db } from "../../FirebaseConfig";
+import { useNavigate } from "react-router-dom";
+import { usePermissions } from "../PermissionProvider";
+import { Modal } from "react-bootstrap";
+import PermissionDenied from "../PermissionDenied";
+import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
+import "./TicketTable.css";
 
 export default function TicketTable() {
-  const {hasPermission} = usePermissions();
-  const username = localStorage.getItem('susbsUserid');
+  const { hasPermission } = usePermissions();
+  const username = localStorage.getItem("susbsUserid");
+  const partnerId = localStorage.getItem("partnerId");
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const [arrayticket, setArrayTicket] = useState([]);
+  const [userMap, setUserMap] = useState({});
   const [codemodal, setCodeModal] = useState(false);
   const [selecticket, setSelectTicket] = useState({
     ticketno: "",
     mobile: "",
     happycode: "",
-    name:""
+    name: "",
   });
-  const company = localStorage.getItem('company');
+  const company = localStorage.getItem("company");
   const [showpermission, setshowpermission] = useState(false);
 
+  const fetchTicket = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(
+        `${api2}/subscriber/tickets/${username}`
+      );
+      if (response.status === 200) {
+        setArrayTicket(response.data);
+      } else {
+        toast.error("Failed to fetch tickets");
+      }
+    } catch (error) {
+      console.error("Error fetching tickets:", error);
+      toast.error("Something went wrong while fetching tickets");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-
-
+  const fetchUserData = async () => {
+    setIsLoading(true);
+    let maping = {};
+    try {
+      const response = await axios.get(
+        `${api2}/subscriber/users?partnerId=${partnerId}`
+      );
+      if (response.status !== 200)
+        return console.log("Error fetching user data");
+      const data = response.data;
+      Object.keys(data).forEach((key) => {
+        const user = data[key];
+        maping[user.empmobile] = user.empname;
+      });
+      setUserMap(maping);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-
-    const fetchTicket = async() => {
-      try{
-        const response = await axios.get(api+`/subscriber/${username}?data=webticket`);
-
-        if(response.status !== 200) return;
-
-        const ticketData = response.data;
-        if(ticketData){
-          setArrayTicket(ticketData);
-        }
-      }catch(e){
-        console.log(e);
-      }
-    }
-
     fetchTicket();
-    // const ticketRef = ref(db, `Subscriber/${username}/Tickets`);
-    
-    // const unsubscribe = onValue(ticketRef, (ticketSnap) => {
-    //   if (!ticketSnap.exists()) {
-    //     setArrayTicket([]);
-    //     return;
-    //   }
-
-    //   const ticketArray = [];
-    //   ticketSnap.forEach((Childticket) => {
-    //     const ticket = Childticket.val();
-    //     ticketArray.push({
-    //       ...ticket,
-    //       assignto: usersLookup[ticket.assignto] || 'Not Assigned',
-    //       closeby: usersLookup[ticket.closeby] || ticket.closeby,
-    //       generateby: usersLookup[ticket.generatedBy] || ticket.generatedBy
-    //     });
-    //   });
-      
-    //   setArrayTicket(ticketArray);
-    // });
-
-    // return () => unsubscribe();
+    fetchUserData();
   }, [username]);
 
-  const resendcode = async() => {
+  const resendcode = async () => {
     setCodeModal(false);
-    const message = `Dear ${selecticket.name} 👋,\n\n🔒 Your Happy Code: ${selecticket.happycode}\n\nFor Ticket No: ${selecticket.ticketno}\n\nStay connected with\nSigma Business Solutions`
+    const message = `Dear ${selecticket.name} 👋,\n\n🔒 Your Happy Code: ${selecticket.happycode}\n\nFor Ticket No: ${selecticket.ticketno}\n\nStay connected with\nSigma Business Solutions`;
     const encodedmsg = encodeURIComponent(message);
-    const msgresponse = await axios.post(api+`/send-message?number=91${selecticket.mobile}&message=${encodedmsg}&company=${company}`);  
+    const msgresponse = await axios.post(
+      api +
+        `/send-message?number=91${selecticket.mobile}&message=${encodedmsg}&company=${company}`
+    );
 
-
-
-    if(msgresponse.status !== 200){
+    if (msgresponse.status !== 200) {
       toast.error(`Couldn't send Message`, {
         autoClose: 3000,
         hideProgressBar: false,
@@ -86,7 +90,7 @@ export default function TicketTable() {
         pauseOnHover: false,
         draggable: false,
         progress: undefined,
-      });           
+      });
     }
 
     toast.success(`Message Send 👌`, {
@@ -96,136 +100,268 @@ export default function TicketTable() {
       pauseOnHover: false,
       draggable: false,
       progress: undefined,
-    });  
-
-  }
+    });
+  };
 
   return (
-    <div>
-      <ToastContainer className='mt-3'></ToastContainer>
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: 'max-content' }} className="table">
+    <>
+      <ToastContainer className="mt-3"></ToastContainer>
+      <div className="ticket-table-wrapper">
+        <table className="ticket-table">
           <thead>
-            <tr className='table-primary'>
-              <th style={{ width: '180px' }} scope="col">Ticket No.</th>
-              <th style={{ width: '100px' }} scope="col">Source</th>
-              <th style={{ width: '200px' }} scope='col'>Creation Date</th>
-              <th style={{ width: '200px' }} scope="col">Assigned Date</th>
-              <th style={{ width: '160px' }} scope="col">Generated By</th>
-              <th style={{ width: '160px' }} scope="col">Assigned to</th>
-              <th style={{ width: '200px' }} scope='col'>Concern</th>
-              <th style={{ width: '160px' }} scope="col">Closed By</th>
-              <th style={{ width: '200px' }} scope="col">Close Timing</th>
-              <th style={{ width: '150px' }} scope='col'>Current Status</th>
-              <th style={{ width: '220px' }} scope='col'>Description</th>
-              <th style={{ width: '200px' }} scope='col'>RAC</th>
+            <tr>
+              <th style={{ width: "180px" }} scope="col">
+                Ticket No.
+              </th>
+              <th style={{ width: "100px" }} scope="col">
+                Source
+              </th>
+              <th style={{ width: "200px" }} scope="col">
+                Creation Date
+              </th>
+              <th style={{ width: "200px" }} scope="col">
+                Assigned Date
+              </th>
+              <th style={{ width: "160px" }} scope="col">
+                Generated By
+              </th>
+              <th style={{ width: "160px" }} scope="col">
+                Assigned to
+              </th>
+              <th style={{ width: "200px" }} scope="col">
+                Concern
+              </th>
+              <th style={{ width: "160px" }} scope="col">
+                Closed By
+              </th>
+              <th style={{ width: "200px" }} scope="col">
+                Close Timing
+              </th>
+              <th style={{ width: "150px" }} scope="col">
+                Current Status
+              </th>
+              <th style={{ width: "220px" }} scope="col">
+                Description
+              </th>
+              <th style={{ width: "200px" }} scope="col">
+                RAC
+              </th>
             </tr>
           </thead>
-          <tbody className='table-group-divider'>
-            {
-              arrayticket.length > 0 ? (
-                arrayticket.slice().reverse().map(( { ticketno, source, ticketconcern, assignto, description, assigntime, assigndate, status, closeby, closedate, closetime, rac, generatedDate, generateby, mobile, name, happycode }, index) => (
-                  <tr className={status === "Completed" ? "table-success" : status === "Canceled" ? "table-danger" : "table-secondary"} key={index}> 
-                    <td style={{ color: 'green', cursor: 'pointer' }} className="btn" data-bs-toggle="dropdown" aria-expanded="false">{ticketno}</td>
-                    <ol className="dropdown-menu">
-                      <li onClick={() => {
-                        if (status === 'Completed') {
-                          alert('Ticket is Closed');
-                        } else {
-                          const ticketdata = {
-                            assigndate: `${assigndate} ${assigntime}`,
-                            ticketconcern: ticketconcern,
-                            assignto: assignto,
-                            description: description,
-                            ticketno: ticketno
-                          }
-                          navigate('modifyticket', { state: { ticket: ticketdata } });
-                        }
-                      }} className='dropdown-item'>Update Ticket</li>
-                      <li onClick={() => {
-                        if(hasPermission("CLOSE_TICKET")){
-                          if(status !== "Completed"){
-                            
-                            const ticketref = ref(db, `Subscriber/${username}/Tickets/${ticketno}`);
-    
-                            const data = {
-                              status: 'Canceled'
+          <tbody>
+            {isLoading ? (
+              <tr>
+                <td colSpan="11">
+                  <div className="ticket-loading">
+                    <div className="ticket-loading-spinner">
+                      <div
+                        className="spinner-border text-primary"
+                        role="status"
+                      >
+                        <span className="visually-hidden">Loading...</span>
+                      </div>
+                    </div>
+                    <div className="ticket-loading-text">Loading...</div>
+                  </div>
+                </td>
+              </tr>
+            ) : arrayticket.length > 0 ? (
+              arrayticket
+                .slice()
+                .reverse()
+                .map(
+                  (
+                    {
+                      ticketno,
+                      source,
+                      ticketconcern,
+                      assignto,
+                      description,
+                      assigntime,
+                      assigndate,
+                      status,
+                      closeby,
+                      closedate,
+                      closetime,
+                      rac,
+                      generatedDate,
+                      generateby,
+                      mobile,
+                      name,
+                      happycode,
+                    },
+                    index
+                  ) => (
+                    <tr
+                      className={
+                        status === "Completed"
+                          ? "table-success"
+                          : status === "Canceled"
+                          ? "table-danger"
+                          : "table-secondary"
+                      }
+                      key={index}
+                    >
+                      <td
+                        className="ticket-number-cell"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                      >
+                        {ticketno}
+                      </td>
+                      <ol className="dropdown-menu ticket-dropdown-menu">
+                        <li
+                          onClick={() => {
+                            if (status === "Completed") {
+                              alert("Ticket is Closed");
+                            } else {
+                              const ticketdata = {
+                                assigndate: `${assigndate} ${assigntime}`,
+                                ticketconcern: ticketconcern,
+                                assignto: assignto,
+                                description: description,
+                                ticketno: ticketno,
+                              };
+                              navigate("modifyticket", {
+                                state: { ticket: ticketdata },
+                              });
                             }
-    
-                            update(ticketref, data);
-                          }else{
-                            alert("Ticket is Closed Now")
-                          }
-                        }else{
-                          alert("Permission Denied")
-                        }
-                      }} className='dropdown-item'>Cancel Ticket</li>
-                      
-                      <li onClick={() => {
-                        if(hasPermission("RESEND_CODE") && status === "Pending" ){
-                          setSelectTicket({
-                            ticketno:ticketno,
-                            mobile:mobile,
-                            happycode:happycode,
-                            name:name
-                          });
-                          setCodeModal(true);
-                        }else{
-                          setshowpermission(true);
-                        }
-                      }} className='dropdown-item'>Re-Send Code</li>
-                    </ol>
-                    <td>{source}</td>
-                    <td>{generatedDate}</td>
-                    <td>{`${assigndate} ${assigntime}`}</td>
-                    <td>{generateby}</td>
-                    <td>{assignto}</td>
-                    <td>{ticketconcern}</td>
-                    <td>{closeby}</td>
-                    <td>{`${closedate} ${closetime}`}</td>
-                    <td style={{ color: status === 'Completed' ? 'green' : 'red' }}>{status}</td>
-                    <td>{description}</td>
-                    <td>{rac}</td>
-                  </tr>
-                ))
-              ) : (
-                <td colSpan="8" style={{ textAlign: 'center' }}>No Tickets Available</td>
-              )
-            }
+                          }}
+                          className="ticket-dropdown-item"
+                        >
+                          Update Ticket
+                        </li>
+                        <li
+                          onClick={() => {
+                            if (hasPermission("CLOSE_TICKET")) {
+                              if (status !== "Completed") {
+                                const ticketref = ref(
+                                  db,
+                                  `Subscriber/${username}/Tickets/${ticketno}`
+                                );
+
+                                const data = {
+                                  status: "Canceled",
+                                };
+
+                                update(ticketref, data);
+                              } else {
+                                alert("Ticket is Closed Now");
+                              }
+                            } else {
+                              alert("Permission Denied");
+                            }
+                          }}
+                          className="ticket-dropdown-item"
+                        >
+                          Cancel Ticket
+                        </li>
+
+                        <li
+                          onClick={() => {
+                            if (
+                              hasPermission("RESEND_CODE") &&
+                              status === "Pending"
+                            ) {
+                              setSelectTicket({
+                                ticketno: ticketno,
+                                mobile: mobile,
+                                happycode: happycode,
+                                name: name,
+                              });
+                              setCodeModal(true);
+                            } else {
+                              setshowpermission(true);
+                            }
+                          }}
+                          className="ticket-dropdown-item"
+                        >
+                          Re-Send Code
+                        </li>
+                      </ol>
+                      <td>{source}</td>
+                      <td>{generatedDate}</td>
+                      <td>{`${assigndate} ${assigntime}`}</td>
+                      <td>{generateby}</td>
+                      <td>{userMap[assignto]}</td>
+                      <td>{ticketconcern}</td>
+                      <td>{userMap[closeby]}</td>
+                      <td>{`${closedate} ${closetime}`}</td>
+                      <td
+                        className={`ticket-status-cell ${
+                          status === "Completed"
+                            ? "ticket-status-completed"
+                            : "ticket-status-pending"
+                        }`}
+                      >
+                        {status}
+                      </td>
+                      <td>{description}</td>
+                      <td>{rac}</td>
+                    </tr>
+                  )
+                )
+            ) : (
+              <td colSpan="12" className="ticket-no-data">
+                No Tickets Available
+              </td>
+            )}
           </tbody>
         </table>
       </div>
 
-      <PermissionDenied setshow={showpermission} setonHide={() => setshowpermission(false)}></PermissionDenied>
+      <PermissionDenied
+        setshow={showpermission}
+        setonHide={() => setshowpermission(false)}
+      ></PermissionDenied>
 
-      <Modal show={codemodal} onHide={() => setCodeModal(false)}>
+      <Modal
+        show={codemodal}
+        onHide={() => setCodeModal(false)}
+        className="ticket-modal"
+      >
         <Modal.Header>
-          <div className='d-flex flex-column'>
-            <Modal.Title>
-              Resend Happy Code
-            </Modal.Title>
+          <div className="d-flex flex-column">
+            <Modal.Title>Resend Happy Code</Modal.Title>
             <span>{`For Ticket No: ${selecticket.ticketno}`}</span>
           </div>
-          
         </Modal.Header>
         <Modal.Body>
-          <div className='container'>
-            <div className='col-md'>
-              <label className='form-label'>Customer Mobile Number</label>
-              <input defaultValue={selecticket.mobile} onChange={(e) => {
-                setSelectTicket({
-                  ...selecticket,
-                  mobile:e.target.value
-                });
-              }} className='form-control' type='phone' maxLength={10}></input>
+          <div className="container">
+            <div className="col-md">
+              <label className="ticket-form-label">
+                Customer Mobile Number
+              </label>
+              <input
+                defaultValue={selecticket.mobile}
+                onChange={(e) => {
+                  setSelectTicket({
+                    ...selecticket,
+                    mobile: e.target.value,
+                  });
+                }}
+                className="ticket-form-control"
+                type="phone"
+                maxLength={10}
+              />
             </div>
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <button onClick={resendcode} className='btn btn-primary'>Send</button>
-          <button onClick={() => setCodeModal(false)} className='btn btn-outline-secondary'>Cancel</button>
+          <button
+            onClick={resendcode}
+            className="ticket-btn ticket-btn-primary"
+          >
+            Send
+          </button>
+          <button
+            onClick={() => setCodeModal(false)}
+            className="ticket-btn ticket-btn-outline-secondary"
+          >
+            Cancel
+          </button>
         </Modal.Footer>
       </Modal>
-    </div>
+    </>
   );
 }

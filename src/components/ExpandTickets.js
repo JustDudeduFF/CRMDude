@@ -8,6 +8,7 @@ import SmallModal from './SmallModal'
 import CloseTicketModal from './CloseTicketModal';
 import { usePermissions } from './PermissionProvider';
 import axios from 'axios';
+import { FiRefreshCw, FiXCircle } from "react-icons/fi";
 
 
 const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
@@ -108,11 +109,11 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
     if (!viewShow) return null;
 
     return (
-        <div className="modal-body1">
-            <div className="modal-data1">
-                <div className="modal-inner1">
-                    <h4 className='me-4'>Ticket Summary</h4>
-                    <form style={{ flex: '4' }} className="row g-3 ms-4">
+        <div className="expand-modal">
+            <div className="expand-modal-content">
+                <div className="expand-modal-header">
+                    <h4 className='modal-title me-5'>Ticket Summary</h4>
+                    <form className="modal-actions">
                         <div className='col-md-3'>
                             <label className='form-label'>Enter UserID</label>
                             <input onChange={(e) => setFilterUserId(e.target.value)} placeholder='e.g. example' className='form-control' type='text'></input>
@@ -164,13 +165,14 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                         onClick={downloadExcel}
                         src={ExcelIcon}
                         alt="excel"
-                        className="img_download_icon"
+                        title='Download Excel'
+                        className="excel-download-icon ms-auto"
                     />
-                    <button style={{ right: '5%' }} className="btn-close" onClick={closeView}></button>
+                    <button style={{ right: '5%', marginLeft:'1%' }} className="btn-close" onClick={closeView}></button>
                 </div>
 
-                <div style={{ overflow: 'hidden', height: '80vh', overflowY: 'auto', marginTop: '10px' }}>
-                    <table className="table">
+                <div className='table-container'>
+                    <table className="dashboard-table">
                         <thead className='table-primary'>
                             <tr>
                                 <th scope='col'>S. No.</th>
@@ -200,7 +202,10 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                     <td>{createby}</td>
                                     <td>{`"${creationdate}" at "${Time}"`}</td>
                                     <td>
-                                        <button
+                                        <div className='modal-actions'>
+                                            <FiRefreshCw
+                                            className='action-icon'
+                                            title='Re-Assign Ticket'
                                             onClick={() => {
                                                 if(hasPermission("REASSING_TICKET")){
                                                     setShowSmallModal(true);
@@ -208,13 +213,27 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                                 }else{
                                                     alert("Permission Denied");
                                                 }
+                                            }}>
+
+                                            </FiRefreshCw>
+
+                                            <FiXCircle
+                                            className='action-icon'
+                                            title='Close Ticket'
+                                            onClick={() => {
+                                                if(hasPermission("CLOSE_TICKET")){
+                                                    setTicketCloseModal(true);
+                                                    setTicketno({ Ticketno, subsID, Concern, UserKey, company });
+                                                }else{
+                                                    alert("Permission Denied");
+                                                }
                                             }}
-                                            className='btn btn-outline-success me-3'
-                                            disabled={Status === 'Completed'}
-                                        >
-                                            {Status === 'Unassigned' ? 'Assign' : 'Re Assign'}
-                                        </button>
-                                        <button
+                                            >
+                                                
+                                            </FiXCircle>
+                                        </div>
+
+                                        {/* <button
                                             onClick={() => {
                                                 if(hasPermission("CLOSE_TICKET")){
                                                     setTicketCloseModal(true);
@@ -227,7 +246,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                             disabled={Status === 'Completed'}
                                         >
                                             {Status === 'Open' ? 'Re-Open' : 'Close it'}
-                                        </button>
+                                        </button> */}
                                     </td>
                                 </tr>
                             ))}

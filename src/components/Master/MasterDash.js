@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link, Route, Routes } from 'react-router-dom'
+import { Link, Route, Routes, useNavigate } from 'react-router-dom'
 import BroadBandPlans from './BroadBandPlans'
 import ISP from './ISP'
 import Offices from './Offices'
@@ -11,86 +11,66 @@ import TicketConcerns from './TicketConcerns'
 import DebitCreditNotesConcern from './DebitCreditNotesConcern'
 import RemarksFollow from './RemarksFollow'
 import PlanProvider from './PlanProvider'
+import '../Reports.css';
 
 
 export default function MasterDash() {
+    const navigate = useNavigate();
   return (
-    <div className='d-flex flex-column' style={{marginTop:'4.5%', padding:'10px'}}>
-        <h4>Master and Modification</h4>
-        <div className='d-flex flex-row'>
-            <div style={{flex:'1'}} className='d-flex flex-column'>
-            <h5 className='text-decoration-underline ms-3'>Inventory</h5>
-            <div style={{ overflow:'hidden', overflowY:'auto', scrollbarWidth:'none', height:'30vh'}} className='d-flex flex-column rounded   shadow'>
-                
-            <ul className="list-group list-group-flush rounded mb-2">
-                <Link id='link' to='broadbandplan' className='rounded mt-2 ms-1 me-1'>
-            <li className="list-group-item shadow">BroadBand Plans</li></Link>
-
-            <Link id='link' to='isps' className='rounded mt-2 ms-1 me-1'>
-            <li className="list-group-item shadow">ISPs</li></Link>
-
-            <Link id='link' to='offices' className='rounded mt-2 ms-1 me-1'>
-            <li className="list-group-item shadow">Offices</li></Link>
-
-            <Link id='link' to='dmaker' className='rounded mt-2 ms-1 me-1'>
-            <li className="list-group-item shadow">Device Maker</li></Link>
-
-            <Link id='link' to='planprovider' className='rounded mt-2 ms-1 me-1'>
-            <li className="list-group-item shadow">Plan Provider</li></Link>
-
-            <Link id='link' to='designation' className='rounded mt-2 ms-1 me-1'>
-            <li className="list-group-item shadow">Designations</li></Link>
-
-            <Link id='link' to='ticketconcern' className='rounded mt-2 ms-1 me-1'>
-            <li className="list-group-item shadow">Ticket Concerns</li></Link>
-
-
-            
-            </ul>
-            </div>
-
-            <h6 className='text-decoration-underline ms-3 mt-4'>Company and Colony</h6>
-            <div style={{ overflow:'hidden', overflowY:'auto', scrollbarWidth:'none', height:'30vh'}} className='d-flex flex-column rounded   shadow'>
-                
-            <ul className="list-group list-group-flush rounded mb-2">
-                <Link id='link' to='company' className='rounded mt-2 ms-1 me-1'>
-            <li className="list-group-item shadow">Companies</li></Link>
-
-            
-
-            <Link id='link' to='colony' className='rounded mt-2 ms-1 me-1'>
-            <li className="list-group-item shadow">Colony</li></Link>
-
-
-            <Link id='link' to='dbparticular' className='rounded mt-2 ms-1 me-1'>
-            <li className="list-group-item shadow">Debit or Credit</li></Link>
-
-            <Link id='link' to='remarkfollow' className='rounded mt-2 ms-1 me-1'>
-            <li className="list-group-item shadow">Remark or Follow Up</li></Link>
-
-            
-            
-            </ul>
-            </div>
-            </div>
-
-            <div style={{flex:'7'}}>
-                <Routes>
-                    <Route path='broadbandplan' element={<BroadBandPlans/>}/>
-                    <Route path='isps' element={<ISP/>}/>
-                    <Route path='offices' element={<Offices/>}/>
-                    <Route path='dmaker' element={<DeviceMakers/>}/>
-                    <Route path='designation' element={<Designation/>}/>
-                    <Route path='company' element={<Company/>}/>
-                    <Route path='colony' element={<Colony/>}/>
-                    <Route path='ticketconcern' element={<TicketConcerns/>}/>
-                    <Route path='dbparticular' element={<DebitCreditNotesConcern/>}/>
-                    <Route path='remarkfollow' element={<RemarksFollow/>}/>
-                    <Route path='planprovider' element={<PlanProvider/>}/>
+    <div className='reports-container'>
+        <div className='reports-content'>
+            <h4 className='reports-title'>Master and Modification</h4>
+            <div className='reports-layout'>
+                <div style={{flex:'1'}} className='reports-sidebar'>
+                <div >
                     
-                </Routes>
-            </div>
+                <ul className="reports-list">
 
+                <li onClick={() => navigate('/dashboard/master/broadbandplan')} className='reports-list-item'>BroadBand Plans</li>
+                <li onClick={() => navigate('/dashboard/master/isps')} className='reports-list-item'>ISPs</li>
+                <li onClick={() => navigate('/dashboard/master/offices')} className='reports-list-item'>Offices</li>
+                <li onClick={() => navigate('/dashboard/master/dmaker')} className='reports-list-item'>Device Maker</li>
+                <li onClick={() => navigate('/dashboard/master/planprovider')} className='reports-list-item'>Plan Provider</li>
+                <li onClick={() => navigate('/dashboard/master/designation')} className='reports-list-item'>Designations</li>
+                <li onClick={() => navigate('/dashboard/master/ticketconcern')} className='reports-list-item'>Tickets Concerns</li>
+                <li onClick={() => navigate('/dashboard/master/isps')} className='reports-list-item'>ISPs</li>
+                <li onClick={() => navigate('/dashboard/master/company')} className='reports-list-item'>Companies</li>
+                <li onClick={() => navigate('/dashboard/master/colony')} className='reports-list-item'>Colony</li>
+                <li onClick={() => navigate('/dashboard/master/dbparticular')} className='reports-list-item'>Debit or Credit</li>
+                <li onClick={() => navigate('/dashboard/master/remarkfollow')} className='reports-list-item'>Remark or Follow UP</li>
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+
+                </ul>
+                </div>
+                </div>
+
+                <div className='reports-main-content' style={{flex:'7'}}>
+                    <Routes>
+                        <Route path='broadbandplan' element={<BroadBandPlans/>}/>
+                        <Route path='isps' element={<ISP/>}/>
+                        <Route path='offices' element={<Offices/>}/>
+                        <Route path='dmaker' element={<DeviceMakers/>}/>
+                        <Route path='designation' element={<Designation/>}/>
+                        <Route path='company' element={<Company/>}/>
+                        <Route path='colony' element={<Colony/>}/>
+                        <Route path='ticketconcern' element={<TicketConcerns/>}/>
+                        <Route path='dbparticular' element={<DebitCreditNotesConcern/>}/>
+                        <Route path='remarkfollow' element={<RemarksFollow/>}/>
+                        <Route path='planprovider' element={<PlanProvider/>}/>
+                        
+                    </Routes>
+                </div>
+
+            </div>
         </div>
     </div>
 

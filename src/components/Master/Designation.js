@@ -1,82 +1,84 @@
-import React, { useState, useEffect } from 'react'
-import DesignationModal from './DesignationModal';
-import { ref, onValue } from 'firebase/database';
-import { db } from '../../FirebaseConfig';
-import { toast, ToastContainer } from 'react-toastify';
-import { usePermissions } from '../PermissionProvider';
+import React, { useState, useEffect } from "react";
+import DesignationModal from "./DesignationModal";
+import { ref, onValue } from "firebase/database";
+import { api2, db } from "../../FirebaseConfig";
+import { toast, ToastContainer } from "react-toastify";
+import { usePermissions } from "../PermissionProvider";
+import axios from "axios";
 
 export default function Designation() {
+  const partnerId = localStorage.getItem("partnerId");
+  const [showModal, setShowModal] = useState(false);
+  const { hasPermission } = usePermissions();
+  const [arraydesignation, setArraydesignation] = useState([]);
 
-    const [showModal, setShowModal] = useState(false);
-    const {hasPermission} = usePermissions();
-    const [arraydesignation, setArraydesignation] = useState([]);
-    const designationRef = ref(db, 'Master/Designations')
+  const fetchDesignations = async () => {
+    try {
+      const response = await axios.get(
+        api2 + "/master/designations?partnerId=" + partnerId
+      );
 
+      if (response.status !== 200)
+        return toast.error("Failed to load Designations", { autoClose: 2000 });
 
-    useEffect(() => {
-        const unsubscribedesignation = onValue(designationRef, (designationnap) => {
-            if (designationnap.exists()) {
-                const designationArray = [];
-                designationnap.forEach(childdesignation => {
-                    const designationname = childdesignation.key;
-                    const designationpermissions = childdesignation.val().designationapermission;
-    
-                    designationArray.push({ designationname, designationpermissions });
-                });
-                setArraydesignation(designationArray);
-                
-            } else {
-                toast.error('No Data Found!', {
-                    autoClose: 2000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: false,
-                    draggable: true,
-                    progress: undefined,
-                });
-            }
-        });
-    
-        return () => unsubscribedesignation(); // Correct cleanup
-    }, []);
-    
+      setArraydesignation(response.data);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  useEffect(() => {
+    fetchDesignations();
+  }, []);
 
   return (
-    <div className='d-flex flex-column ms-3'>
-        <div className='d-flex flex-row'>
-            <h5 style={{flex:'1'}}>Company designation Location and Address</h5>
-            <button onClick={() => hasPermission("ADD_DESIGNATION") ? setShowModal(true) : alert("Permission Denied")} className='btn btn-outline-success justify-content-right'>Add New designation</button>
+    <div className="report-component-container">
+      <div className="report-header">
+        <h5 className="report-title" style={{ flex: "1" }}>
+          Company designation Location and Address
+        </h5>
+        <button
+          onClick={() =>
+            hasPermission("ADD_DESIGNATION")
+              ? setShowModal(true)
+              : alert("Permission Denied")
+          }
+          className="btn btn-outline-success justify-content-right"
+        >
+          Add New designation
+        </button>
+      </div>
+      <ToastContainer />
+      <DesignationModal show={showModal} notshow={() => setShowModal(false)} />
+      <div className="report-table-container">
+        <table className="report-table">
+          <thead>
+            <tr>
+              <th scope="col">S. No.</th>
+              <th scope="col">Designation Name</th>
+              <th scope="col">Add Date</th>
+            </tr>
+          </thead>
 
-        </div>
-        <ToastContainer/>
-        <DesignationModal show={showModal} notshow={() => setShowModal(false)}/>
-
-        <table className='table'>
-            <thead>
-                <tr>
-                    <th scope='col'>S. No.</th>
-                    <th scope='col'>Designation Name</th>
-                    <th scope='col'>Defalut Permissions</th>
-                    
-
-                </tr>
-            </thead>
-
-            <tbody className='table-group-divider'>
-                {arraydesignation.map(({designationname, designationpermissions}, index) => (
-                    <tr key={designationname}>
-                        <td>{index + 1}</td>
-                        <td>{designationname}</td>
-                        <td>{designationpermissions}</td>
-                    </tr>
-                ))
-
-                }
-
-            </tbody>
-
+          <tbody className="table-group-divider">
+            {arraydesignation.map(({ name, createdAt }, index) => (
+              <tr key={name}>
+                <td>{index + 1}</td>
+                <td className="text-primary text-decoration-underline">
+                  {name}
+                </td>
+                <td>
+                  {new Date(createdAt).toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "2-digit",
+                  })}
+                </td>
+              </tr>
+            ))}
+          </tbody>
         </table>
-
+      </div>
     </div>
-  )
+  );
 }

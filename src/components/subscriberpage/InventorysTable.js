@@ -5,6 +5,7 @@ import { Modal } from 'react-bootstrap';
 import axios from 'axios';
 import { toast, ToastContainer } from "react-toastify";
 import { usePermissions } from '../PermissionProvider';
+import './InventorysTable.css';
 
 export default function InventorysTable() {
   const username = localStorage.getItem('susbsUserid');
@@ -147,10 +148,12 @@ export default function InventorysTable() {
   }
 
   return (
-    <div>
-      <ToastContainer/>
-      <div style={{ overflowY: 'auto' }}>
-        <table style={{ borderCollapse: 'collapse' }} className="table">
+
+  
+   <>
+         <ToastContainer/>
+      <div className="inventory-table-wrapper">
+        <table className="inventory-table">
           <thead>
             <tr>
               <th style={{ width: '120px' }} scope="col">Product Code</th>
@@ -163,12 +166,12 @@ export default function InventorysTable() {
               <th style={{ width: '90px' }}>Status</th>
             </tr>
           </thead>
-          <tbody className="table-group-divider">
+          <tbody>
             {arrayinventry.length > 0 ? (
               arrayinventry.map(({ ledgerkey, amount, date, deviceSerialNumber, devicename, modifiedby, remarks, status, macaddress }, index) => (
                 <tr key={index}>
                   <td
-                    style={{ color: 'green', cursor: 'pointer' }}
+                    className="inventory-mac-address"
                     onClick={() => {
 
                       if(!hasPermission("CHANGE_DEVICE_STATUS")){
@@ -212,10 +215,10 @@ export default function InventorysTable() {
                   <td>{date}</td>
                   <td>{devicename}</td>
                   <td>{deviceSerialNumber}</td>
-                  <td>{`${amount}.00`}</td>
+                  <td className="inventory-amount">{`${amount}.00`}</td>
                   <td>{remarks}</td>
                   <td>{modifiedby}</td>
-                  <td style={{ color: status === 'Activated' ? 'green' : 'red' }}>{status}</td>
+                  <td className={`inventory-status ${status === 'Activated' ? 'inventory-status-active' : 'inventory-status-inactive'}`}>{status}</td>
                 </tr>
               ))
             ) : (
@@ -226,7 +229,7 @@ export default function InventorysTable() {
           </tbody>
         </table>
       </div>
-      <Modal show={modify} onHide={() => setModify(false)}>
+      <Modal show={modify} onHide={() => setModify(false)} className="inventory-modal">
         <Modal.Header>
           <Modal.Title>
             Modify Device
@@ -235,19 +238,19 @@ export default function InventorysTable() {
           <Modal.Body>
             <div className='container d-flex flex-column'>
               <div className='col-md'>
-                <label className='form-label'>Device Amount</label>
+                <label className='inventory-form-label'>Device Amount</label>
                 <input onChange={(e) => setinfo({
                   ...info,
                   amount:e.target.value
-                })} defaultValue={selectData.amount} className='form-control' type='number'></input>
+                })} defaultValue={selectData.amount} className='inventory-form-control' type='number' />
               </div>
 
               <div className='col-md mt-3'>
-                <label className='form-label'>Device Status</label>
+                <label className='inventory-form-label'>Device Status</label>
                 <select onChange={(e) => setinfo({
                   ...info,
                   status:e.target.value
-                })} className="form-select">
+                })} className="inventory-form-control">
                   <option value='Activated'>Activated</option>
                   <option value='damaged' >Damaged</option>
                   <option value='repair'>On Repair</option>
@@ -256,10 +259,10 @@ export default function InventorysTable() {
             </div>
           </Modal.Body>
           <Modal.Footer>
-            <button onClick={updateDevice} className='btn btn-primary'>Update</button>
-            <button onClick={() => setModify(false)} className='btn btn-outline-secondary'>Close</button>
+            <button onClick={updateDevice} className='inventory-btn inventory-btn-primary'>Update</button>
+            <button onClick={() => setModify(false)} className='inventory-btn inventory-btn-outline-secondary'>Close</button>
           </Modal.Footer>
       </Modal>
-    </div>
+   </>
   );
 }

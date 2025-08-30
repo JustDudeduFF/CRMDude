@@ -4,30 +4,29 @@ import Excel_Icon from './drawables/xls.png'
 import PDF_Icon from './drawables/pdf.png'
 import DocumetUploadTable from './DocumetUploadTable';
 import AddNewDoc from './AddNewDoc';
+import './DocumentUpload.css';
 
 export default function DocumentUpload() {
   return (
-    <>
-    <div style={{flex:'1', display:'flex', flexDirection:'row'}}>
-        <div style={{flex:'2'}}>
-        <h2>Documets and Forms</h2>
+    <div className="document-upload-container">
+      <div className="document-upload-header">
+        <div className="document-upload-title">
+          <h2>Documents and Forms</h2>
         </div>
-        <div style={{flex:'4'}}>
-              <div style={{width:'max-content', float:'right'}}>
-                  <Link id='link' to='upload_doc'>
-                    <button type="button" className="btn btn-outline-secondary">Upload Document</button></Link>
-                  <img src={Excel_Icon} className='img_download_icon'></img>
-                  <img src={PDF_Icon} className='img_download_icon'></img>
-              </div>
-          </div>
-    </div>
-    <div style={{flex:'10', marginTop:'20px'}}>
-      <Routes>
-        <Route path='/' element={<DocumetUploadTable/>}/>
-        <Route path='upload_doc' element={<AddNewDoc/>}/>
-      </Routes>
-    </div>
-    </>
-    
+        <div className="document-upload-actions">
+          <Link to='upload_doc'>
+            <button type="button" className="document-upload-btn document-upload-btn-outline-secondary">Upload Document</button>
+          </Link>
+          <img src={Excel_Icon} className='document-upload-download-icon' alt="Download Excel" />
+          <img src={PDF_Icon} className='document-upload-download-icon' alt="Download PDF" />
+        </div>
+      </div>
+      <div className="document-upload-content">
+        <Routes>
+          <Route path='/' element={<DocumetUploadTable/>}/>
+          <Route path='upload_doc' element={<AddNewDoc/>}/>
+        </Routes>
+      </div>
+        </div>
   )
 }

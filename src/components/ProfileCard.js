@@ -53,7 +53,7 @@ export default function Profile_Card() {
     
 
     const items=[
-        {text: "Profile View", icon: profile},
+        {text: "Profile View", icon: profile, onClick: () => navigate('/dashboard/myprofile')},
         {text: "My Attenence", icon: MyAttendnence_logo},
         {text: "Change Password", icon: Change_Password, onClick: handlePassClick},
         {text: "Logout", icon: Arrow, onClick: handleUserLogout}

@@ -1,0 +1,152 @@
+/* InventoryTable Component Professional Styling */
+.inventory-table-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.inventory-table-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid rgba(138, 191, 211, 0.2);
+}
+
+.inventory-table-title {
+  flex: 2;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #8abfd3;
+  margin: 0;
+}
+
+.inventory-table-actions {
+  flex: 4;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 15px;
+}
+
+.inventory-table-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.inventory-table-btn-outline-warning {
+  background: transparent;
+  color: #ffc107;
+  border: 2px solid #ffc107;
+}
+
+.inventory-table-btn-outline-warning:hover {
+  background: #ffc107;
+  color: #212529;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+  text-decoration: none;
+}
+
+.inventory-table-download-icon {
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  transition: transform 0.3s ease, filter 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.inventory-table-download-icon:hover {
+  transform: translateY(-2px);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.inventory-table-content {
+  flex: 10;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .inventory-table-container {
+    padding: 15px;
+  }
+  
+  .inventory-table-title {
+    font-size: 1.5rem;
+  }
+  
+  .inventory-table-btn {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .inventory-table-container {
+    padding: 10px;
+  }
+  
+  .inventory-table-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .inventory-table-title {
+    flex: none;
+    width: 100%;
+  }
+  
+  .inventory-table-actions {
+    flex: none;
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .inventory-table-btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .inventory-table-download-icon {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .inventory-table-container {
+    padding: 5px;
+  }
+  
+  .inventory-table-title {
+    font-size: 1.3rem;
+  }
+  
+  .inventory-table-actions {
+    gap: 10px;
+  }
+  
+  .inventory-table-btn {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+}

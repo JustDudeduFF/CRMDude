@@ -1,0 +1,133 @@
+/* DebitCreditsTable Component Professional Styling */
+.debit-credits-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.debit-credits-wrapper {
+  overflow-y: auto;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.debit-credits-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0;
+}
+
+.debit-credits-table thead {
+  background: linear-gradient(135deg, #8abfd3 0%, #78d6f5 100%);
+  color: white;
+}
+
+.debit-credits-table th {
+  padding: 15px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+}
+
+.debit-credits-table tbody tr {
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.3s ease;
+}
+
+.debit-credits-table tbody tr:hover {
+  background-color: rgba(138, 191, 211, 0.05);
+}
+
+.debit-credits-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.debit-credits-table td {
+  padding: 12px;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.debit-credits-note-number {
+  cursor: pointer;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.debit-credits-note-number.debit {
+  color: #dc3545;
+}
+
+.debit-credits-note-number.credit {
+  color: #28a745;
+}
+
+.debit-credits-note-number:hover {
+  opacity: 0.8;
+}
+
+.debit-credits-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #8abfd3;
+}
+
+.debit-credits-loading-spinner {
+  margin-bottom: 15px;
+}
+
+.debit-credits-loading-text {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.debit-credits-no-data {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .debit-credits-container {
+    padding: 15px;
+  }
+  
+  .debit-credits-table th,
+  .debit-credits-table td {
+    padding: 8px 6px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .debit-credits-container {
+    padding: 10px;
+  }
+  
+  .debit-credits-wrapper {
+    overflow-x: auto;
+  }
+  
+  .debit-credits-table {
+    min-width: 600px;
+  }
+}
+
+@media (max-width: 480px) {
+  .debit-credits-container {
+    padding: 5px;
+  }
+}

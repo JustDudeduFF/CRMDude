@@ -1,0 +1,166 @@
+/* DebitCreditTable Component Professional Styling */
+.debit-credit-table-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.debit-credit-table-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid rgba(138, 191, 211, 0.2);
+}
+
+.debit-credit-table-title {
+  flex: 2;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #8abfd3;
+  margin: 0;
+}
+
+.debit-credit-table-actions {
+  flex: 4;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 15px;
+}
+
+.debit-credit-table-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.debit-credit-table-btn-outline-danger {
+  background: transparent;
+  color: #dc3545;
+  border: 2px solid #dc3545;
+}
+
+.debit-credit-table-btn-outline-danger:hover {
+  background: #dc3545;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+  text-decoration: none;
+}
+
+.debit-credit-table-btn-outline-success {
+  background: transparent;
+  color: #28a745;
+  border: 2px solid #28a745;
+}
+
+.debit-credit-table-btn-outline-success:hover {
+  background: #28a745;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+  text-decoration: none;
+}
+
+.debit-credit-table-download-icon {
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  transition: transform 0.3s ease, filter 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.debit-credit-table-download-icon:hover {
+  transform: translateY(-2px);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.debit-credit-table-content {
+  flex: 10;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .debit-credit-table-container {
+    padding: 15px;
+  }
+  
+  .debit-credit-table-title {
+    font-size: 1.5rem;
+  }
+  
+  .debit-credit-table-btn {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .debit-credit-table-container {
+    padding: 10px;
+  }
+  
+  .debit-credit-table-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .debit-credit-table-title {
+    flex: none;
+    width: 100%;
+  }
+  
+  .debit-credit-table-actions {
+    flex: none;
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .debit-credit-table-btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .debit-credit-table-download-icon {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .debit-credit-table-container {
+    padding: 5px;
+  }
+  
+  .debit-credit-table-title {
+    font-size: 1.3rem;
+  }
+  
+  .debit-credit-table-actions {
+    gap: 10px;
+  }
+  
+  .debit-credit-table-btn {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+}

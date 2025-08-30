@@ -1,9 +1,10 @@
 import Lottie from 'lottie-react'
 import React, {useState, useEffect} from 'react'
 import LocationAnimation from './drawables/locationanimation.json'
-import { api, db } from '../../FirebaseConfig';
+import { api, api2, db } from '../../FirebaseConfig';
 import { ref, get } from 'firebase/database';
 import axios from 'axios';
+import './SubscriberPersonal.css';
 
 export default function SubscriberPersonal() {
   const username = localStorage.getItem('susbsUserid')
@@ -25,21 +26,27 @@ export default function SubscriberPersonal() {
   const [uniqueJCNo, setUniqueJCNo] = useState("");
   const [connectedOlt, setConnectedOlt] = useState("");
   
-  const userRef = ref(db, `Subscriber/${username}`);
-  const fieldRef = ref(db, `Subscriber/${username}/fieldFiberDetails`);
-  const inventRef = ref(db, `Subscriber/${username}/inventoryDeviceDetails`);
 
 
   useEffect(() => {
       const fetchsubsdata = async () => {
-          const userSnap = await get(userRef);
-          if(userSnap.exists()){
-              setColonyName(userSnap.val().colonyName);
-              setEmail(userSnap.val().email);
-              setInstallationAddress(userSnap.val().installationAddress);
-              setMobileNo(userSnap.val().mobileNo);
-              setAlternateNo(userSnap.val().alternatNo);
+        try{
+          const response = await axios.get(`${api2}/subscriber/?id=${username}`);
+
+          if(response.status !== 200) return console.log("Error fetching subscriber data");
+
+          const data = response.data;
+          if(data){
+            setColonyName(data.colonyName);
+            setEmail(data.email);
+            setInstallationAddress(data.installationAddress);
+            setMobileNo(data.mobile);
+            setAlternateNo(data.alternate);
           }
+
+        }catch(e){
+          console.log(e);
+        }
       }
 
       const fetchConnectivityInfo = async () => {
@@ -86,71 +93,79 @@ export default function SubscriberPersonal() {
 
 
   return (
-    <div style={{display:'flex', flexDirection:'column'}}>
-        <div style={{ flex:'1', display:'flex', flexDirection:'row', padding:'8px'}}>
-            <div style={{display:'flex', flexDirection:'column'}}>
-            <h6 style={{borderBottom:'1px solid gray', width:'max-contant'}}>Address and Contact Info</h6>
-            <h5 style={{fontWeight:'bold'}}>Installation Address</h5>
-            <p style={{width:'250px', color:'blue'}}>{installationAddress}</p>
+        <div className="subscriber-personal-section">
+            <div className="subscriber-personal-info">
+            <h6 className="subscriber-personal-title">Address and Contact Info</h6>
+            <h5 className="subscriber-personal-label">Installation Address</h5>
+            <p className="subscriber-personal-value address">{installationAddress}</p>
 
-            <h6 style={{fontWeight:'bold'}}>Colony Name</h6>
-            <p style={{color:'blue'}}>{colonyName}</p>
+            <h6 className="subscriber-personal-label">Colony Name</h6>
+            <p className="subscriber-personal-value">{colonyName || 'N/A'}</p>
             
 
-            <h5 style={{fontWeight:'bold'}}>Mobile No.</h5>
-            <p style={{color:'blue'}}>{`+91 ${mobileNo}`}</p>
-            <p style={{color:'blue'}}>{`+91 ${alternateNo || 'N/A'}`}</p>
+            <h5 className="subscriber-personal-label">Mobile No.</h5>
+            <p className="subscriber-personal-value">{`+91 ${mobileNo || 'N/A'}`}</p>
+            <p className="subscriber-personal-value">{`+91 ${alternateNo || 'N/A'}`}</p>
 
 
-            <h5 style={{fontWeight:'bold'}}>Email Address</h5>
-            <p style={{color:'blue'}}>{email}</p>
+            <h5 className="subscriber-personal-label">Email Address</h5>
+            <p className="subscriber-personal-value">{email || 'N/A'}</p>
 
             
             
             </div>
 
-            <div style={{marginLeft:'20px', flex:'1'}}>
-            <h6 style={{borderBottom:'1px solid gray', width:'max-contant'}}>Connection Installation Location</h6>
-            <div style={{width:'200px', zIndex:'-1'}}>
-                <Lottie animationData={LocationAnimation}/>
-                <button style={{marginLeft:'40px'}} className='btn btn-outline-info'>Open Location</button>
-            
-
+            <div className="subscriber-personal-info">
+            <div className="subscriber-personal-info">
+            <h6 className="subscriber-personal-title">Connection Installation Location</h6>
+            <div className="subscriber-personal-animation-container">
+                <Lottie style={{width:'250px', height:'250px'}} animationData={LocationAnimation}/>
+                <button className='btn btn-outline-info' style={{marginLeft:'40px'}}>Open Location</button>
             </div>
             
             </div>
-
-            <div style={{marginLeft:'20px', flex:'1'}}>
-            <h6 style={{borderBottom:'1px solid gray', width:'max-contant'}}>Connection Connectivity Info</h6>
-            <span>Connected OLT :- </span>             <span style={{color:'blue', marginLeft:'10px'}}>{connectedOlt}</span><br></br>
-            <span>Connected FMS :- </span>             <span style={{color:'blue', marginLeft:'10px'}}>{connectedFMS}</span><br></br>
-            <span>Connected FMS Port :- </span>             <span style={{color:'blue', marginLeft:'10px'}}>{connectedPortNo}</span><br></br>
-            <span>Connected JC Box :- </span>             <span style={{color:'blue', marginLeft:'10px'}}>{uniqueJCNo}</span><br></br>
-            <span>Optical Info :- </span>             <span style={{color:'blue', marginLeft:'10px'}}>{connectionPowerInfo}</span><br></br>
-
-
             </div>
 
-
-            <div style={{marginLeft:'20px', flex:'1'}}>
-            <h6 style={{borderBottom:'1px solid gray', width:'max-contant'}}>Device Info</h6>
-            <span>Device Maker :- </span>             <span style={{color:'blue', marginLeft:'10px'}}>{deviceMaker}</span><br></br>
-            <span>Device MAC Addresss :- </span>             <span style={{color:'blue', marginLeft:'10px'}}>{deviceSerialNumber}</span><br></br>
-            <span>Device Serial No. :- </span>             <span style={{color:'blue', marginLeft:'10px'}}>{deviceSerialNumber}</span><br></br>
-            
-
-
+            <div className="subscriber-personal-info">
+            <h6 className="subscriber-personal-title">Connection Connectivity Info</h6>
+            <div className="subscriber-personal-field">
+                <div className="subscriber-personal-field-label">Connected OLT</div>
+                <div className={`subscriber-personal-field-value ${!connectedOlt ? 'empty' : ''}`}>{connectedOlt || 'N/A'}</div>
             </div>
-            
-            
+            <div className="subscriber-personal-field">
+                <div className="subscriber-personal-field-label">Connected FMS</div>
+                <div className={`subscriber-personal-field-value ${!connectedFMS ? 'empty' : ''}`}>{connectedFMS || 'N/A'}</div>
+            </div>
+            <div className="subscriber-personal-field">
+                <div className="subscriber-personal-field-label">Connected FMS Port</div>
+                <div className={`subscriber-personal-field-value ${!connectedPortNo ? 'empty' : ''}`}>{connectedPortNo || 'N/A'}</div>
+            </div>
+            <div className="subscriber-personal-field">
+                <div className="subscriber-personal-field-label">Connected JC Box</div>
+                <div className={`subscriber-personal-field-value ${!uniqueJCNo ? 'empty' : ''}`}>{uniqueJCNo || 'N/A'}</div>
+            </div>
+            <div className="subscriber-personal-field">
+                <div className="subscriber-personal-field-label">Optical Info</div>
+                <div className={`subscriber-personal-field-value ${!connectionPowerInfo ? 'empty' : ''}`}>{connectionPowerInfo || 'N/A'}</div>
+            </div>
+            </div>
 
+            <div className="subscriber-personal-info">
+            <h6 className="subscriber-personal-title">Device Info</h6>
+            <div className="subscriber-personal-field">
+                <div className="subscriber-personal-field-label">Device Maker</div>
+                <div className={`subscriber-personal-field-value ${!deviceMaker ? 'empty' : ''}`}>{deviceMaker || 'N/A'}</div>
+            </div>
+            <div className="subscriber-personal-field">
+                <div className="subscriber-personal-field-label">Device MAC Address</div>
+                <div className={`subscriber-personal-field-value ${!deviceSerialNumber ? 'empty' : ''}`}>{deviceSerialNumber || 'N/A'}</div>
+            </div>
+            <div className="subscriber-personal-field">
+                <div className="subscriber-personal-field-label">Device Serial No.</div>
+                <div className={`subscriber-personal-field-value ${!deviceSerialNumber ? 'empty' : ''}`}>{deviceSerialNumber || 'N/A'}</div>
+            </div>
+            </div>
             
         </div>
-
-        <div style={{flex:'1'}} >
-
-        </div>
-
-    </div>
   )
 }

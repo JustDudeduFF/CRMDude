@@ -1,0 +1,166 @@
+/* RemakFollowTable Component Professional Styling */
+.remark-follow-table-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.remark-follow-table-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid rgba(138, 191, 211, 0.2);
+}
+
+.remark-follow-table-title {
+  flex: 2;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #8abfd3;
+  margin: 0;
+}
+
+.remark-follow-table-actions {
+  flex: 4;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 15px;
+}
+
+.remark-follow-table-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.remark-follow-table-btn-outline-info {
+  background: transparent;
+  color: #17a2b8;
+  border: 2px solid #17a2b8;
+}
+
+.remark-follow-table-btn-outline-info:hover {
+  background: #17a2b8;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);
+  text-decoration: none;
+}
+
+.remark-follow-table-btn-outline-primary {
+  background: transparent;
+  color: #007bff;
+  border: 2px solid #007bff;
+}
+
+.remark-follow-table-btn-outline-primary:hover {
+  background: #007bff;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+  text-decoration: none;
+}
+
+.remark-follow-table-download-icon {
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  transition: transform 0.3s ease, filter 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.remark-follow-table-download-icon:hover {
+  transform: translateY(-2px);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.remark-follow-table-content {
+  flex: 10;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .remark-follow-table-container {
+    padding: 15px;
+  }
+  
+  .remark-follow-table-title {
+    font-size: 1.5rem;
+  }
+  
+  .remark-follow-table-btn {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .remark-follow-table-container {
+    padding: 10px;
+  }
+  
+  .remark-follow-table-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .remark-follow-table-title {
+    flex: none;
+    width: 100%;
+  }
+  
+  .remark-follow-table-actions {
+    flex: none;
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .remark-follow-table-btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .remark-follow-table-download-icon {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .remark-follow-table-container {
+    padding: 5px;
+  }
+  
+  .remark-follow-table-title {
+    font-size: 1.3rem;
+  }
+  
+  .remark-follow-table-actions {
+    gap: 10px;
+  }
+  
+  .remark-follow-table-btn {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+}

@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes,Route,Link, useLocation, useNavigate } 
 import ReceiptModify from './ReceiptModify';
 import PaymetTable from './PaymetTable';
 import ProtectedRoute from '../ProtectedRoute'
+import './Cust_PayRecpt.css';
 
 export default function Cust_PayRecpt() {
   const location = useLocation();
@@ -12,32 +13,26 @@ export default function Cust_PayRecpt() {
 
   const navigate = useNavigate();
   return (
-    <>
-    <div style={{flex:'1', display:'flex', flexDirection:'row'}}>
-        <div style={{flex:'2'}}>
+    <div className="cust-pay-receipt-container">
+      <div className="cust-pay-receipt-header">
+        <div className="cust-pay-receipt-title">
           <h2>Payments & Receipts</h2>
         </div>
-        <div style={{flex:'4'}}>
-            <div style={{width:'max-content', float:'right'}}>
-              
-                <button onClick={() => {
-                    navigate('collect', {state: {userid}});
-                }} type="button" className="btn btn-outline-success">Create Receipt</button>
-                <img src={Excel_Icon} className='img_download_icon'></img>
-                <img src={PDF_Icon} className='img_download_icon'></img>
-
-            </div>
+        <div className="cust-pay-receipt-actions">
+          <button onClick={() => {
+              navigate('collect', {state: {userid}});
+          }} type="button" className="cust-pay-receipt-btn cust-pay-receipt-btn-outline-success">Create Receipt</button>
+          <img src={Excel_Icon} className='cust-pay-receipt-download-icon' alt="Download Excel" />
+          <img src={PDF_Icon} className='cust-pay-receipt-download-icon' alt="Download PDF" />
         </div>
+      </div>
+      <div className="cust-pay-receipt-content">
+        <Routes>
+          <Route path='/' element={<PaymetTable/>}/>
+          <Route path='collect' element={<ProtectedRoute permission="COLLECT_PAYMENT"><ReceiptModify/></ProtectedRoute>}/>
+          <Route path='modify' element={<ReceiptModify/>}/>
+        </Routes>
+      </div>
     </div>
-    <div style={{flex:'9'}}>
-      <Routes>
-        <Route path='/' element={<PaymetTable/>}/>
-        <Route path='collect' element={<ProtectedRoute permission="COLLECT_PAYMENT"><ReceiptModify/></ProtectedRoute>}/>
-        <Route path='modify' element={<ReceiptModify/>}/>
-      </Routes>
-    </div>
-
-    </>
-
   )
 }

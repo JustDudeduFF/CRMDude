@@ -1,0 +1,198 @@
+/* Cust_Ledger Component Professional Styling */
+.cust-ledger-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.cust-ledger-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid rgba(138, 191, 211, 0.2);
+}
+
+.cust-ledger-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #8abfd3;
+  margin: 0;
+}
+
+.cust-ledger-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.cust-ledger-download-icon {
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  transition: transform 0.3s ease, filter 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.cust-ledger-download-icon:hover {
+  transform: scale(1.1);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.cust-ledger-table-container {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.cust-ledger-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+}
+
+.cust-ledger-table thead {
+  background: linear-gradient(135deg, #8abfd3 0%, #78d6f5 100%);
+  color: white;
+}
+
+.cust-ledger-table th {
+  padding: 15px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+}
+
+.cust-ledger-table tbody tr {
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.3s ease;
+}
+
+.cust-ledger-table tbody tr.table-success {
+    background-color: rgba(40, 167, 69, 0.1);
+    border-left: 4px solid #28a745;
+}
+
+.cust-ledger-table tbody tr.table-danger {
+    background-color: rgba(220, 53, 69, 0.1);
+    border-left: 4px solid #dc3545;
+}
+
+.cust-ledger-table tbody tr:hover {
+  background-color: rgba(138, 191, 211, 0.05);
+}
+
+.cust-ledger-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.cust-ledger-table td {
+  padding: 12px;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.cust-ledger-debit {
+  color: #dc3545 !important;
+  font-weight: 600;
+}
+
+.cust-ledger-credit {
+  color: #28a745 !important;
+  font-weight: 600;
+}
+
+.cust-ledger-balance {
+  font-weight: 600;
+  color: #8abfd3;
+}
+
+.cust-ledger-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #8abfd3;
+}
+
+.cust-ledger-loading-spinner {
+  margin-bottom: 15px;
+}
+
+.cust-ledger-loading-text {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.cust-ledger-no-data {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .cust-ledger-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .cust-ledger-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .cust-ledger-table {
+    font-size: 0.8rem;
+  }
+  
+  .cust-ledger-table th,
+  .cust-ledger-table td {
+    padding: 8px 6px;
+  }
+}
+
+@media (max-width: 768px) {
+  .cust-ledger-container {
+    padding: 15px;
+  }
+  
+  .cust-ledger-title {
+    font-size: 1.5rem;
+  }
+  
+  .cust-ledger-table-container {
+    overflow-x: auto;
+  }
+  
+  .cust-ledger-table {
+    min-width: 600px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cust-ledger-container {
+    padding: 10px;
+  }
+  
+  .cust-ledger-title {
+    font-size: 1.3rem;
+  }
+  
+  .cust-ledger-download-icon {
+    width: 28px;
+    height: 28px;
+  }
+}

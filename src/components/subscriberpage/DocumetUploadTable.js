@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import DeleteIcon from './drawables/trash.png'
 import ExpandIcon from './drawables/eye.png'
-import { onValue, ref, remove, set } from 'firebase/database';
-import { db } from '../../FirebaseConfig';
-import { getStorage, ref as dbRef, deleteObject } from "firebase/storage";
+import axios from 'axios';
+import { api2 } from '../../FirebaseConfig';
+import './DocumetUploadTable.css';
+
 
 
 export default function DocumetUploadTable() {
@@ -11,75 +12,43 @@ export default function DocumetUploadTable() {
 
   const [arraydocument, setArrayDocument] = useState([]);
 
-  const extractFilePathFromUrl = (url) => {
-    const decodedUrl = decodeURIComponent(url); // Decode URL-encoded characters
-    const match = decodedUrl.match(/\/o\/(.*?)\?/); // Extract the file path
-    return match ? match[1] : null;
-  };
 
-  const docRef = ref(db, `Subscriber/${username}/documents`);
+  const fetchdocs = async () => {
+    const response = await axios.get(`${api2}/subscriber/documents/${username}`);
+    setArrayDocument(response.data);
+  }
 
     useEffect(() => {
-      const fetchdocs = onValue(docRef, (docSnap => {
-        if(docSnap.exists()){
-          const docsArray = [];
-          docSnap.forEach(childs => {
-            const source = childs.val().source;
-            const date = childs.val().date;
-            const modifiedby = childs.val().modifiedby;
-            const documentname = childs.val().documentname;
-            const url = childs.val().url;
-            const key = childs.val().key;
-            docsArray.push({source, date, modifiedby, documentname, url, key});
-          });
-          setArrayDocument(docsArray);
-        }
-      }))
 
       fetchdocs();
     }, []);
 
 
-    const deleteFileFromUrl = async (downloadUrl, key) => {
-      const storage = getStorage();
-  
-      // Extract file path from the download URL
-      const filePath = extractFilePathFromUrl(downloadUrl);
-      if (!filePath) {
-          console.error("Invalid download URL. Unable to extract file path.");
-          return;
-      }
-  
-      // Create a reference to the file
-      const fileRef = dbRef(storage, filePath);
-      const deleteRef = ref(db, `Subscriber/${username}/documents/${key}`);
+    const deleteFileFromUrl = async (documentname, key) => {
+      const deleteData = {
+        _id: key,
+        modifiedby: localStorage.getItem('contact'),
+        documentname: documentname,
+      };
+    
       try {
-          await remove(deleteRef);
-          await deleteObject(fileRef).then(async() => {
-            const logRef = ref(db, `Subscriber/${username}/logs/${key}`);
-
-            const logData = {
-              date: new Date().toISOString().split('T')[0],
-              modifiedby: localStorage.getItem('contact'),
-              description: `Document Deleted`
-            }
-
-            await set(logRef, logData);
-            alert('Document Deleted Successfully');
-          });
-
-
-          
+        await axios.delete(`${api2}/subscriber/documents/${username}`, {
+          data: deleteData,
+        });
+        fetchdocs();
       } catch (error) {
-          console.error("Error deleting file:", error);
+        console.error("Error deleting file:", error);
       }
     };
+    
+
 
   
 
   return (
-    <div>
-        <table style={{ borderCollapse:'collapse'}} className="table">
+
+      <div className="document-upload-table-wrapper">
+        <table className="document-upload-table">
                 <thead>
                     <tr>
                       <th scope='col'>Source</th>
@@ -92,30 +61,35 @@ export default function DocumetUploadTable() {
                         
                     </tr>
                 </thead>
-                <tbody className='table-group-divider'>
+                <tbody>
 
                   {
                     arraydocument.length > 0 ? (
-                      arraydocument.map(({source, date, modifiedby, documentname, url, key}, index) => (
+                      arraydocument.map(({source, date, modifiedby, documentname, url, _id}, index) => (
                         <tr key={index}>
                           <td>{source}</td>
                           <td>{documentname}</td>
                           <td>{date}</td>
                           <td>{modifiedby}</td>
-                          <td><a href={url} target='_blank' rel="noreferrer">
-                          <img className='me-5' src={ExpandIcon} alt='delete' style={{width:'30px', cursor:'pointer'}}></img>
-                          </a>  <img onClick={() => deleteFileFromUrl(url, key)} src={DeleteIcon} alt='delete' style={{width:'30px', cursor:'pointer'}}></img></td>
+                          <td>
+                            <a href={url.includes('documentsCRM') ? `https://api.justdude.in:5000${url}` : url} target='_blank' rel="noreferrer">
+                              <img className='document-upload-action-icon document-upload-expand-icon' src={ExpandIcon} alt='expand' />
+                            </a>
+                            <img onClick={() => deleteFileFromUrl(documentname, _id)} src={DeleteIcon} alt='delete' className='document-upload-action-icon document-upload-delete-icon' />
+                          </td>
                         </tr>
                       ))
                     ) : (
-                      <tr></tr>
+                      <tr>
+                        <td colSpan="5" className="document-upload-no-data">No documents found</td>
+                      </tr>
                     )
                   }
                 
                 </tbody>
 
-                </table>
+        </table>
+      </div>
 
-    </div>
   )
 }

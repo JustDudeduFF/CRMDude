@@ -1,0 +1,127 @@
+/* RemarkFollowsTable Component Professional Styling */
+.remark-follows-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.remark-follows-wrapper {
+  overflow-y: auto;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.remark-follows-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0;
+}
+
+.remark-follows-table thead {
+  background: linear-gradient(135deg, #8abfd3 0%, #78d6f5 100%);
+  color: white;
+}
+
+.remark-follows-table th {
+  padding: 15px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+}
+
+.remark-follows-table tbody tr {
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.3s ease;
+}
+
+.remark-follows-table tbody tr:hover {
+  background-color: rgba(138, 191, 211, 0.05);
+}
+
+.remark-follows-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.remark-follows-table td {
+  padding: 12px;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.remark-follows-table tbody tr.table-danger {
+  background-color: rgba(220, 53, 69, 0.1);
+  border-left: 4px solid #dc3545;
+}
+
+.remark-follows-table tbody tr.table-success {
+  background-color: rgba(40, 167, 69, 0.1);
+  border-left: 4px solid #28a745;
+}
+
+.remark-follows-action-id {
+  color: #8abfd3;
+  cursor: pointer;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.remark-follows-action-id:hover {
+  color: #6bb0c8;
+}
+
+.remark-follows-action-id.follow-up {
+  color: #8abfd3;
+}
+
+.remark-follows-action-id.non-modifiable {
+  color: #333;
+  cursor: default;
+}
+
+.remark-follows-no-data {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .remark-follows-container {
+    padding: 15px;
+  }
+  
+  .remark-follows-table th,
+  .remark-follows-table td {
+    padding: 8px 6px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .remark-follows-container {
+    padding: 10px;
+  }
+  
+  .remark-follows-wrapper {
+    overflow-x: auto;
+  }
+  
+  .remark-follows-table {
+    min-width: 600px;
+  }
+}
+
+@media (max-width: 480px) {
+  .remark-follows-container {
+    padding: 5px;
+  }
+}

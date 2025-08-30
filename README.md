@@ -2,6 +2,33 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Environment Setup
+
+Before running the application, you need to set up your environment variables:
+
+1. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Update the `.env` file with your actual configuration values:
+   ```env
+   # API Configuration
+   REACT_APP_API_URL=https://api.justdude.in
+
+   # Firebase Configuration
+   REACT_APP_FIREBASE_API_KEY=your_firebase_api_key
+   REACT_APP_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
+   REACT_APP_FIREBASE_DATABASE_URL=your_firebase_database_url
+   REACT_APP_FIREBASE_PROJECT_ID=your_firebase_project_id
+   REACT_APP_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
+   REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
+   REACT_APP_FIREBASE_APP_ID=your_firebase_app_id
+   REACT_APP_FIREBASE_MEASUREMENT_ID=your_firebase_measurement_id
+   ```
+
+**Note:** All environment variables must be prefixed with `REACT_APP_` to be accessible in the React application.
+
 ## Available Scripts
 
 In the project directory, you can run:

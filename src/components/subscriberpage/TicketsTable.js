@@ -6,37 +6,33 @@ import TicketTable from './TicketTable';
 import NewTicket from './NewTicket';
 import ModifyTicket from './ModifyTicket';
 import ProtectedRoute from '../ProtectedRoute';
+import './TicketsTable.css';
 
 export default function TicketsTable() {
   const navigate = useNavigate();
   return (
-        <>
-    
-         <div style={{flex:'1', display:'flex', flexDirection:'row'}}>
-            <div style={{flex:'2'}}>
-            <h2>Tickets</h2>
-            </div>
-            <div style={{flex:'4'}}>
-                <div style={{width:'max-content', float:'right'}}>
-                
-                    <button
-                    onClick={() => {
-                        navigate('newticket');
-                    }}
-                     type="button" className="btn btn-outline-primary">Genearte Ticket</button>
-                    <img src={Excel_Icon} className='img_download_icon'></img>
-                    <img src={PDF_Icon} className='img_download_icon'></img>
-                </div>
-            </div>
+    <div className="tickets-table-container">
+      <div className="tickets-table-header">
+        <div className="tickets-table-title">
+          <h2>Tickets</h2>
         </div>
-        <div style={{flex:'10'}}>
-            <Routes>
-                <Route path='/' element={<TicketTable/>}/>
-                <Route path='newticket' element={<ProtectedRoute permission="CREATE_TICKET"><NewTicket/></ProtectedRoute>}/>
-                <Route path='modifyticket' element={<ProtectedRoute permission="CLOSE_TICKET"><ModifyTicket/></ProtectedRoute>}/>
-            </Routes>
+        <div className="tickets-table-actions">
+          <button
+            onClick={() => {
+              navigate('newticket');
+            }}
+            type="button" className="tickets-table-btn tickets-table-btn-outline-primary">Generate Ticket</button>
+          <img src={Excel_Icon} className='tickets-table-download-icon' alt="Download Excel" />
+          <img src={PDF_Icon} className='tickets-table-download-icon' alt="Download PDF" />
         </div>
-        </>
-    
+      </div>
+      <div className="tickets-table-content">
+        <Routes>
+          <Route path='/' element={<TicketTable/>}/>
+          <Route path='newticket' element={<ProtectedRoute permission="CREATE_TICKET"><NewTicket/></ProtectedRoute>}/>
+          <Route path='modifyticket' element={<ProtectedRoute permission="CLOSE_TICKET"><ModifyTicket/></ProtectedRoute>}/>
+        </Routes>
+      </div>
+    </div>
   )
 }

@@ -2,10 +2,10 @@ import React, { useEffect, useState, useCallback } from 'react';
 import './ExpandView.css';
 import { onValue, ref, set, update, get } from 'firebase/database';
 import * as XLSX from 'xlsx';
-import { api, db } from '../FirebaseConfig';
+import { api, api2, db } from '../FirebaseConfig';
 import ExcelIcon from './subscriberpage/drawables/xls.png'
 import WhatsappIcon from './subscriberpage/drawables/whatsapp.png'
-import { useNavigate } from 'react-router-dom';
+import { data, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from "react-toastify";
 import { ProgressBar } from 'react-loader-spinner';
 import axios from 'axios';
@@ -13,6 +13,7 @@ import { usePermissions } from './PermissionProvider';
 
 const DashExpandView = ({ show, datatype, modalShow }) => {
     const navigate = useNavigate();
+    const partnerId = localStorage.getItem('partnerId')
     const {hasPermission} = usePermissions();
     const [heading, setHeading] = useState('');
     const [arrayData, setArrayData] = useState([]);
@@ -21,6 +22,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
     const [companyArray, setCompanyArray] = useState([]);
     const [selectCompany, setSelectCompany] = useState('All');
     const [filteredArray, setFilteredArray] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
 
     //Download All Data to Excel File
 
@@ -69,78 +71,56 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
         return dueDate.toDateString() === currentDate.toDateString();
     }
 
-    const fetchExpandData = useCallback(() => {
-        const fetchData = async() => {
-            setHeading(datatype); // Set the heading from datatype prop
-            const words = datatype.split(' ');
-            const word = words[1]; // Get the second word
-            const datafor = words[0];
+    const fetchData = async() => {
+        setLoader(true)
+        const dataFor = datatype.split(' ')[0];
+        const dataArray = [];
+        if(dataFor === 'Expiring'){
+            const date = datatype.split(' ')[1];
+            try{
+                const response = await axios.get(api2+`/dashboard-data/chart?date=${date}&partnerId=${partnerId}`);
 
-            try {
-                const response = await axios.get(api+'/subscriber');
-                if(response.status !== 200) return;
-
-                const responseData = response.data;
-                if(responseData){
-                    const currentDate = new Date();
-                    const newCurrentdata = new Date(word);
-                    const dataArray = [];
-                    Object.keys(responseData).forEach((key) => {
-                        const childSnap = responseData[key];
-
-                        if(!childSnap || !childSnap.connectionDetails) return;
-
-                        const {
-                            username: username,
-                            fullName: fullName,
-                            mobileNo: mobile,
-                            company: company,
-                            installationAddress: installationAddress,
-                            connectionDetails: {
-                                planAmount: planAmount,
-                                planName: planName,
-                                dueAmount: dueAmount,
-                                expiryDate: expiryDateSerial,
-                                activationDate: activationDateSerial,
-                                isp: isp
-                            },
-                            isTerminate: isterminated
-                        } = childSnap;
-
-
-
-                        if(datafor === 'Expiring'){
-                            const expDate = convertExcelDateSerial(expiryDateSerial);
-                            if (isSameDay(expDate, newCurrentdata)) {
-                                dataArray.push({ username, expiredDate: expDate, fullName, mobile, installationAddress, planAmount, planName, company, isp });
-                            }
-                        }else if(datafor === 'Due'){
-                            const expDate = convertExcelDateSerial(expiryDateSerial);
-                            const actDate = convertExcelDateSerial(activationDateSerial);
-                            const isSameMonth = actDate.getFullYear() === currentDate.getFullYear() && actDate.getMonth() === currentDate.getMonth();
-                            if (word === 'Today' && isSameDay(actDate, currentDate) && dueAmount > 0) {
-                                dataArray.push({ username, ActivationDate: actDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp, "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active" });
-                            } else if (word === 'Tomorrow' && isTomorrowDay(actDate, currentDate) && dueAmount > 0) {
-                                dataArray.push({ username, ActivationDate: actDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp, "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active" });
-                            } else if (word === 'Week' && isSameISOWeek(actDate, currentDate) && dueAmount > 0) {
-                                dataArray.push({ username, ActivationDate: actDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp, "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active" });
-                            } else if (word === 'Month' && isSameMonth && dueAmount > 0) {
-                                dataArray.push({ username, ActivationDate: actDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp, "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active" });
-                            }else if(word === 'All' && dueAmount > 0){
-                                dataArray.push({ username, ActivationDate: actDate, fullName, mobile, installationAddress, planAmount: dueAmount, planName, company, isp, "status":isterminated === true ? "Terminated" : new Date(expDate) < new Date() ? "InActive" : "Active" });
-                            }
-                        }
-                    });
-
-                    const company = [...new Set(dataArray.map((data) => data.company))];
-                    setCompanyArray(company);
-                    setArrayData(dataArray);
-                }
+                if(response.status !== 200) return toast.error('Failed to LoadData', {autoClose:2000});
                 
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
+                const data = response.data.data;
+                const companys = [...new Set(data.map((data) => data.company))];
+
+                setCompanyArray(companys);
+                setArrayData(data);
+
+
+
+
+            }catch(e){
+                console.log(e);
+            }finally{setLoader(false)}
         }
+
+        if(dataFor === 'Due'){
+            const type = datatype.split(' ')[1];
+            
+            try{
+                const response = await axios.get(api2+`/dashboard-data/due?dataFor=${type}&partnerId=${partnerId}`);
+
+                if(response.status !== 200) return toast.error('Failed to LoadData', {autoClose:2000});
+
+                const data = response.data.data;
+
+
+                const companys = [...new Set(data.map((data) => data.company))];
+
+                setCompanyArray(companys);
+                setArrayData(data);
+
+            }catch(e){
+                console.log(e);
+            }finally{setLoader(false)}
+        }
+
+    }
+
+    const fetchExpandData = useCallback(() => {
+        setHeading(datatype)
 
         fetchData();
     }, [datatype]);
@@ -322,91 +302,86 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
     if (!show) return null;
 
     return (
-        <div className="modal-body1">
-            <div className="modal-data1">
-                <div className="modal-inner1">
-                    <h4 style={{flex:'1'}}>{heading}</h4>
-                    <div style={{flex:'1', marginTop:'-10px', marginBottom:'5px'}} className='col-md-3'>
+            <div className="expand-modal">
+                <div className="expand-modal-content">
+                    <div className="expand-modal-header">
+                        <h4 className='modal-title me-5'>{heading}</h4>
+                        <div className='col-md-2'>
                         <label className='form-label'>Select Company</label>
-                    <select onChange={(e) => setSelectCompany(e.target.value)} className='form-select'>
-                        <option value='All'>All</option>
-                        {
-                            companyArray.map((data, index) => (
-                                <option key={index} value={data}>{data}</option>
-                            ))
-                        }
-                    </select>
-                    </div>
-                    <img onClick={sendNotification} src={WhatsappIcon} alt='whatsapp' className='img_download_icon'></img>
-                    <img onClick={downloadExcel} src={ExcelIcon} alt='excel' className='img_download_icon'></img>
-                    <button style={{right:'5%'}} className="btn-close" onClick={modalShow}></button>
-                    <ToastContainer style={{marginTop:'4%'}}/>
-                    {loader &&
-                        <div className="spinner-wrapper" style={{position: 'fixed', width: '100%',top:'0' ,  height: '100%', backgroundColor: 'black', display: 'flex', justifyContent: 'center', alignItems: 'center', opacity:'0.5', zIndex:'900'}}>
-                        <div style={{width: '200px', height: '100px', position:'fixed'}}>
-                        <ProgressBar
-                            height="80"
-                            width="80"
-                            radius="9"
-                            color="blue"
-                            ariaLabel="three-dots-loading"
-                            wrapperStyle={{}}
-                            wrapperClass=""
-                        /><br></br>
-                        <label style={{color:'white', fontSize:'17px'}}>Loading Data...</label>
-                        </div>
-                        </div>
-                        
-                    }
-                </div>
-                <div style={{ overflow: 'hidden', height: '80vh', overflowY: 'auto' }}>
-                    <table className="table">
-                        <thead>
-                            <tr>
-                                <th>S. No.</th>
-                                <th>Customer Name</th>
-                                <th>UserName</th>
-                                <th>Mobile No.</th>
-                                <th>Installation Address</th>
-                                <th>Plan Name</th>
-                                <th>{heading.split(' ')[0] === 'Expiring' ? 'Plan Amount' : 'Due Amount'}</th>
-                                <th>{heading.split(' ')[0] === 'Expiring' ? 'Expiry Date' : 'Activate Date'}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredArray.length > 0 ? (
-                                filteredArray.map(({ username, expiredDate, fullName, mobile, installationAddress, planAmount, planName, company }, index) => (
-                                    <tr key={index}>
-                                        <td>{index + 1}</td>
-                                        <td style={{maxWidth:'900px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{fullName}</td>
-                                        <td>{username}</td>
-                                        <td>{mobile}</td>
-                                        <td style={{maxWidth:'250px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{installationAddress}</td>
-
-                                        <td style={{maxWidth:'180px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{planName}</td>
-                                        <td>{planAmount}</td>
-                                        <td>{new Date(expiredDate).toLocaleDateString('en-GB', {
-                                            day:'2-digit',
-                                            month:'short',
-                                            year:'numeric'
-                                        }).replace(',','')}</td>
-                                        <td>
-                                            <button onClick={() =>{ handleSavePlan(username, expiredDate, planAmount, planName, mobile, fullName, company);}} className='btn btn-outline-success'>{heading.split(' ')[0] === 'Expiring' ? 'Renew' : 'Collect'}</button>
-                                        </td>
-                                    </tr>
+                        <select onChange={(e) => setSelectCompany(e.target.value)} className='form-select'>
+                            <option value='All'>All</option>
+                            {
+                                companyArray.map((data, index) => (
+                                    <option key={index} value={data}>{data}</option>
                                 ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={8} style={{ textAlign: 'center' }}>
-                                        No Data Available
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                            }
+                        </select>
+                        </div>
+                        <div className='modal-actions'>
+                            <img onClick={sendNotification} src={WhatsappIcon} alt='whatsapp' className='excel-download-icon ms-auto'></img>
+                            <img onClick={downloadExcel} src={ExcelIcon} alt='excel' className='excel-download-icon ms-auto'></img>
+                        </div>
+                        <button style={{right:'5%'}} className="btn-close" onClick={() => {setSelectCompany('All'); modalShow()}}></button>
+
+                            
+                    </div>
+                    <div className='table-container'>
+                        {loader ? 
+                        <div className="loading-container">
+                            <div className="loading-spinner"></div>
+                            <p className="loading-text">Loading data...</p>
+                        </div> : 
+                                                <table className="dashboard-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>S. No.</th>
+                                                        <th>Customer Name</th>
+                                                        <th>UserName</th>
+                                                        <th>Mobile No.</th>
+                                                        <th>Installation Address</th>
+                                                        <th>Plan Name</th>
+                                                        <th>{heading.split(' ')[0] === 'Expiring' ? 'Plan Amount' : 'Due Amount'}</th>
+                                                        <th>{heading.split(' ')[0] === 'Expiring' ? 'Expiry Date' : 'Activate Date'}</th>
+                                                        <th></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {filteredArray.length > 0 ? (
+                                                        filteredArray.map(({ username, expiryDate, fullName, mobile, installationAddress, planAmount, planName, company, activationDate, dueAmount }, index) => (
+                                                            <tr key={index}>
+                                                                <td>{index + 1}</td>
+                                                                <td style={{maxWidth:'900px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{fullName}</td>
+                                                                <td>{username}</td>
+                                                                <td>{mobile}</td>
+                                                                <td style={{maxWidth:'250px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{installationAddress}</td>
+                    
+                                                                <td style={{maxWidth:'180px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{planName}</td>
+                                                                <td>{heading.split(' ')[0] === 'Expiring' ? planAmount : dueAmount}</td>
+                                                                <td>{new Date(heading.split(' ')[0] === 'Expiring' ? expiryDate : activationDate).toLocaleDateString('en-GB', {
+                                                                    day:'2-digit',
+                                                                    month:'short',
+                                                                    year:'numeric'
+                                                                }).replace(',','')}</td>
+                                                                <td>
+                                                                    <button onClick={() =>{ handleSavePlan(username, expiryDate, planAmount, planName, mobile, fullName, company);}} className='btn btn-outline-success'>{heading.split(' ')[0] === 'Expiring' ? 'Renew' : 'Collect'}</button>
+                                                                </td>
+                                                            </tr>
+                                                        ))
+                                                    ) : (
+                                                        <tr>
+                                                            <td colSpan={8} style={{ textAlign: 'center' }}>
+                                                                No Data Available
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                </tbody>
+                                            </table>
+                        }
+
+                    </div>
                 </div>
             </div>
-        </div>
+            
     );
 };
 

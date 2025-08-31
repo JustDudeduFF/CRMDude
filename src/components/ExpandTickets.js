@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './ExpandView.css';
 import * as XLSX from 'xlsx';
-import { api } from '../FirebaseConfig';
+import { api2 } from '../FirebaseConfig';
 import ExcelIcon from './subscriberpage/drawables/xls.png';
 import { isThisMonth, isThisWeek, isToday, subDays, parseISO } from 'date-fns';
 import SmallModal from './SmallModal'
@@ -12,6 +12,7 @@ import { FiRefreshCw, FiXCircle } from "react-icons/fi";
 
 
 const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
+    const partnerId = localStorage.getItem('partnerId');
     const {hasPermission} = usePermissions();
     const [arrayData, setArrayData] = useState([]);
     const [filterPeriod, setFilterPeriod] = useState('All Time');
@@ -36,7 +37,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
 
     const fetchExpandData = async() => {
         try{
-            const ticketResponse = await axios.get(api+'/tickets?data=open');
+            const ticketResponse = await axios.get(api2+'/dashboard-data/tickets/'+partnerId+'?data=Pending');
 
             if(ticketResponse.status !== 200) return;
             const ticketData = ticketResponse.data;
@@ -189,7 +190,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                             </tr>
                         </thead>
                         <tbody>
-                        {filterData.map(({ subsID, company, createby, Concern, creationdate, Time, Description, Status, Assign_to, Ticketno, generatedDate, UserKey }, index) => (
+                        {filterData.map(({ subsID, company, createby, Concern, creationdate, Time, Description, Status, Assign_to, Ticketno, generatedDate, UserKey, _id }, index) => (
                                 <tr key={index}>
                                     <td>{index + 1}</td>
                                     <td style={{maxWidth:'120px', overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis'}}>{subsID}</td>
@@ -209,7 +210,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                             onClick={() => {
                                                 if(hasPermission("REASSING_TICKET")){
                                                     setShowSmallModal(true);
-                                                    setTicketno({ Ticketno, subsID, Concern, UserKey, company });
+                                                    setTicketno({ Ticketno, subsID, Concern, UserKey, company, Description, _id });
                                                 }else{
                                                     alert("Permission Denied");
                                                 }
@@ -223,7 +224,7 @@ const ExpandTickets = ({ viewShow, ticketType, closeView }) => {
                                             onClick={() => {
                                                 if(hasPermission("CLOSE_TICKET")){
                                                     setTicketCloseModal(true);
-                                                    setTicketno({ Ticketno, subsID, Concern, UserKey, company });
+                                                    setTicketno({ Ticketno, subsID, Concern, UserKey, company, _id });
                                                 }else{
                                                     alert("Permission Denied");
                                                 }

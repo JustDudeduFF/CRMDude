@@ -1,143 +1,55 @@
 import React, { useEffect, useState } from "react";
 import "./SmallModal.css"; // Add your styles here
 import { onValue, ref, update } from "firebase/database";
-import { api, db } from "../FirebaseConfig";
+import { api, db, api2 } from "../FirebaseConfig";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const CloseTicketModal = ({ show, ticketno, closeModal }) => {
+  const partnerId = localStorage.getItem('partnerId');
   const [arrayemp, setEmpArray] = useState([]);
   const [closeby, setCloseBy] = useState("");
   const [rac, setRAC] = useState("");
-  const [subsData, setSubsData] = useState({});
-  const [userLookup, setUserLookup] = useState({});
   const empRef = ref(db, `users`);
 
+      const fetchEmp = async () => {
+        try{
+            const response = await axios.get(`${api2}/subscriber/users?partnerId=${partnerId}`);
+            const data = response.data
+            
+            setEmpArray(data.length > 0 ? data : [...data]);
+        }catch(e){
+            console.log(e);
+        }
+    }
+
   useEffect(() => {
-    const fetchUsers = onValue(empRef, (empSnap) => {
-      const nameArray = [];
-      const lookup = {};
-      empSnap.forEach((child) => {
-        const empname = child.val().FULLNAME;
-        const empmobile = child.key;
 
-        lookup[empmobile] = empname || "Unknown User";
-        nameArray.push({ empname, empmobile });
-      });
-      setUserLookup(lookup);
-      setEmpArray(nameArray);
-    });
+      fetchEmp();
 
-    const fetchSubs = onValue(
-      ref(db, `Subscriber/${ticketno.UserKey || ticketno.subsID}`),
-      (subsSnap) => {
-        const subsData = subsSnap.val();
-        setSubsData(subsData);
-      }
-    );
-
-    return () => {
-      fetchUsers();
-      fetchSubs();
-    };
   }, [ticketno]);
 
-  const sendMessage = async (mobileNo, ticketno, customername, Concern) => {
-    const newMessage = `Dear ${customername}, 👋\n\nWe’re delighted to inform you that your complaint has been successfully resolved. 🎉\n\nHere are the details of your complaint:\n\n🆔 *Complaint ID:* ${ticketno}\n📄 *Subject:* ${Concern}\n📅 *Resolution Date:* ${new Date().toLocaleDateString(
-      "en-GB",
-      { day: "2-digit", month: "short", year: "2-digit" }
-    )}\n👨‍💼 *Resolved By:* ${
-      userLookup[closeby]
-    }\n\nThank you for your patience and for bringing this to our attention. 🙏\n\nIf you have further questions or need assistance, feel free to reach out to us. 📞💻\n\nWarm regards,\n*Sigma Business Solutions*\n📱 +91 99991 18971`;
-    const encodedMessage = encodeURIComponent(newMessage);
-    await axios.post(
-      api + `/send-message?number=91${mobileNo}&message=${encodedMessage}`
-    );
-  };
 
-  const closrTicket = async (event) => {
-    event.preventDefault();
+  const closeTicket = async (e) => {
+    e.prevenDefault();
+    try{
+      const response = await axios.put("https://api.justdude.in:5000/mobile/updateticket/"+ticketno._id, {
+        status:"Completed",
+        closeby:closeby,
+        remarks:rac,
+        partnerId:partnerId
+      });
 
-    // Destructure ticketno to extract subsID and Ticketno
-    const ticketRef = ref(
-      db,
-      `Subscriber/${ticketno.UserKey || ticketno.subsID}/Tickets/${
-        ticketno.Ticketno
-      }`
-    );
-    // const globalTicketsRef = ref(db, `Global Tickets/${ticketno.Ticketno}`);
+      if(response.status !== 200) return toast.error("Failed to Update Ticket", {autoClose:2000})
 
-    const newTicketData = {
-      closedate: new Date().toISOString().split("T")[0],
-      closeby: closeby, // Assuming `closeby` is coming from the component's state
-      closetime: new Date().toLocaleTimeString(),
-      status: "Completed",
-      rac: rac, // Assuming `rac` is also coming from the component's state
-    };
+        toast.success("Ticket Closed Successfully", {autoClose:2000})
 
-    // Ensure both closeby and rac fields are filled before closing the ticket
-    if (closeby !== "" && rac !== "") {
-      try {
-        // Update Global Tickets data
-        // await update(globalTicketsRef, newTicketData);
-
-        // After Global Tickets update is successful, update Subscriber Tickets data
-        await update(ticketRef, newTicketData).then(() => {
-          sendMessage(
-            subsData.mobileNo,
-            ticketno.Ticketno,
-            subsData.fullName,
-            ticketno.Concern
-          );
-          closeModal();
-          alert(`${ticketno.Ticketno} is Closed By ${closeby}`);
-        });
-
-        // Close the modal and display the success alert
-      } catch (error) {
-        console.error("Error closing ticket:", error);
-        alert("Failed to close the ticket. Please try again.");
-      }
-    } else {
-      // Alert if closeby or rac is missing
-      alert("Please choose an employee name and fill in the RCA.");
+    }catch(e){
+      console.log(e)
     }
-  };
+  }
 
-  // const tempClose = async (event) => {
-  //   event.preventDefault();
-  //   // Destructure ticketno to extract subsID and Ticketno
-  //   const ticketRef = ref(db, `Subscriber/${ticketno.subsID}/Tickets/${ticketno.Ticketno}`);
-  //   const globalTicketsRef = ref(db, `Global Tickets/${ticketno.Ticketno}`);
 
-  //   const newTicketData = {
-  //     closedate: new Date().toISOString().split('T')[0],
-  //     closeby: closeby, // Assuming `closeby` is coming from the component's state
-  //     closetime: new Date().toLocaleTimeString(),
-  //     status: 'Open',
-  //     rac: rac, // Assuming `rac` is also coming from the component's state
-  //   };
-
-  //   // Ensure both closeby and rac fields are filled before closing the ticket
-  //   if (closeby !== '' && rac !== '') {
-  //     try {
-  //       // Update Global Tickets data
-  //       await update(globalTicketsRef, newTicketData);
-
-  //       // After Global Tickets update is successful, update Subscriber Tickets data
-  //       await update(ticketRef, newTicketData);
-
-  //       // Close the modal and display the success alert
-  //       closeModal();
-  //       alert(`${ticketno.Ticketno} is Closed By ${closeby}`);
-  //     } catch (error) {
-  //       console.error('Error closing ticket:', error);
-  //       alert('Failed to close the ticket. Please try again.');
-  //     }
-  //   } else {
-  //     // Alert if closeby or rac is missing
-  //     alert('Please choose an employee name and fill in the RCA.');
-  //   }
-  // };
 
   if (!show) return null;
 
@@ -145,7 +57,7 @@ const CloseTicketModal = ({ show, ticketno, closeModal }) => {
     <div className="modal-background">
       <div className="modal-data">
         <div className="d-flex flex-row">
-          <h4 style={{ flex: "1" }}>Close Subscriber Ticket</h4>
+          <h4 style={{ flex: "1", color:'blue' }}>Close Subscriber Ticket</h4>
           <button onClick={closeModal} className="btn-close"></button>
         </div>
         <p style={{ color: "blue" }}>{`Ticket Id :- ${ticketno.Ticketno}`}</p>
@@ -181,7 +93,7 @@ const CloseTicketModal = ({ show, ticketno, closeModal }) => {
           </form>
         </div>
 
-        <button className="btn btn-success" onClick={closrTicket}>
+        <button className="btn btn-success" onClick={closeTicket}>
           Close Ticket
         </button>
         {/* <button className='btn btn-warning ms-3' onClick={tempClose}>Close as Opened</button> */}

@@ -1,4 +1,4 @@
-import { onValue, ref, set } from "firebase/database";
+
 import React, { useEffect, useState } from "react";
 import { api, api2, db } from "../../FirebaseConfig";
 import { toast, ToastContainer } from "react-toastify";
@@ -20,8 +20,6 @@ export default function NewTicket() {
   const [ticketconcern, setTicketConcern] = useState("");
   const [assignemp, setAssignEmp] = useState("");
 
-  const concernRef = ref(db, `Master/Tickets`);
-  const empRef = ref(db, `users`);
 
   const fetchemp = async () => {
     try {
@@ -31,11 +29,7 @@ export default function NewTicket() {
       if (response.status !== 200)
         return console.log("Error fetching employee data");
       const data = response.data;
-      const empArray = Object.keys(data).map((key) => ({
-        empname: data[key].empname,
-        empmobile: data[key].empmobile,
-      }));
-      setArrayEmp(empArray);
+      setArrayEmp(data.length > 0 ? data : [...data]);
     } catch (error) {
       console.log(`Error:- ${error}`);
       toast.error("Failed to fetch employees", {
@@ -57,8 +51,7 @@ export default function NewTicket() {
       if (response.status !== 200)
         return console.log("Error fetching concern data");
       const data = response.data;
-      const concernArray = Object.keys(data).map((key) => data[key].ticketname);
-      setArrayConcern(concernArray);
+      setArrayConcern(data.length > 0 ? data : [...data]);
     } catch (error) {
       console.log(`Error:- ${error}`);
       toast.error("Failed to fetch concerns", {
@@ -75,10 +68,8 @@ export default function NewTicket() {
   useEffect(() => {
     setCurrentTime(new Date());
 
-    return () => {
       fetchconcerns();
       fetchemp();
-    };
   }, []);
 
   function generateHappyCode() {
@@ -197,7 +188,7 @@ export default function NewTicket() {
               <option value="">Choose...</option>
               {arrayconcern.length > 0 ? (
                 arrayconcern.map((concern, index) => (
-                  <option key={index}>{concern}</option>
+                  <option key={index}>{concern.ticketname}</option>
                 ))
               ) : (
                 <option value="">No Concern Availabale</option>

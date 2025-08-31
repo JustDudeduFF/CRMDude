@@ -6,50 +6,51 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 const CloseTicketModal = ({ show, ticketno, closeModal }) => {
-  const partnerId = localStorage.getItem('partnerId');
+  const partnerId = localStorage.getItem("partnerId");
   const [arrayemp, setEmpArray] = useState([]);
   const [closeby, setCloseBy] = useState("");
   const [rac, setRAC] = useState("");
   const empRef = ref(db, `users`);
 
-      const fetchEmp = async () => {
-        try{
-            const response = await axios.get(`${api2}/subscriber/users?partnerId=${partnerId}`);
-            const data = response.data
-            
-            setEmpArray(data.length > 0 ? data : [...data]);
-        }catch(e){
-            console.log(e);
-        }
+  const fetchEmp = async () => {
+    try {
+      const response = await axios.get(
+        `${api2}/subscriber/users?partnerId=${partnerId}`
+      );
+      const data = response.data;
+
+      setEmpArray(data.length > 0 ? data : [...data]);
+    } catch (e) {
+      console.log(e);
     }
+  };
 
   useEffect(() => {
-
-      fetchEmp();
-
+    fetchEmp();
   }, [ticketno]);
 
-
   const closeTicket = async (e) => {
-    e.prevenDefault();
-    try{
-      const response = await axios.put("https://api.justdude.in:5000/mobile/updateticket/"+ticketno._id, {
-        status:"Completed",
-        closeby:closeby,
-        remarks:rac,
-        partnerId:partnerId
-      });
+    e.preventDefault(); // ✅ fix typo
+    try {
+      const response = await axios.put(
+        `https://api.justdude.in:5000/mobile/updateticket/${ticketno._id}`,
+        {
+          status: "Completed",
+          closeby: closeby,
+          remarks: rac,
+          partnerId: partnerId,
+        }
+      );
 
-      if(response.status !== 200) return toast.error("Failed to Update Ticket", {autoClose:2000})
+      if (response.status !== 200) {
+        return toast.error("Failed to Update Ticket", { autoClose: 2000 });
+      }
 
-        toast.success("Ticket Closed Successfully", {autoClose:2000})
-
-    }catch(e){
-      console.log(e)
+      toast.success("Ticket Closed Successfully", { autoClose: 2000 });
+    } catch (err) {
+      console.error(err);
     }
-  }
-
-
+  };
 
   if (!show) return null;
 
@@ -57,7 +58,7 @@ const CloseTicketModal = ({ show, ticketno, closeModal }) => {
     <div className="modal-background">
       <div className="modal-data">
         <div className="d-flex flex-row">
-          <h4 style={{ flex: "1", color:'blue' }}>Close Subscriber Ticket</h4>
+          <h4 style={{ flex: "1", color: "blue" }}>Close Subscriber Ticket</h4>
           <button onClick={closeModal} className="btn-close"></button>
         </div>
         <p style={{ color: "blue" }}>{`Ticket Id :- ${ticketno.Ticketno}`}</p>

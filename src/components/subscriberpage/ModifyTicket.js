@@ -70,10 +70,8 @@ export default function ModifyTicket() {
       }
     };
 
-    return () => {
       fetchemp();
       clearInterval(timer);
-    };
   }, [username]);
 
   return (

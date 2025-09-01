@@ -167,8 +167,6 @@ export default function TicketTable() {
               </tr>
             ) : arrayticket.length > 0 ? (
               arrayticket
-                .slice()
-                .reverse()
                 .map(
                   (
                     {

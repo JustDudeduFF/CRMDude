@@ -3,7 +3,7 @@ import "./SmallModal.css"; // Add your styles here
 import { onValue, ref, update } from "firebase/database";
 import { api, db, api2 } from "../FirebaseConfig";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 
 const CloseTicketModal = ({ show, ticketno, closeModal }) => {
   const partnerId = localStorage.getItem("partnerId");
@@ -45,8 +45,7 @@ const CloseTicketModal = ({ show, ticketno, closeModal }) => {
       if (response.status !== 200) {
         return toast.error("Failed to Update Ticket", { autoClose: 2000 });
       }
-
-      toast.success("Ticket Closed Successfully", { autoClose: 2000 });
+      toast.success("Ticket Closed Successfully", { autoClose: 2000 });closeModal(true);
     } catch (err) {
       console.error(err);
     }
@@ -56,6 +55,7 @@ const CloseTicketModal = ({ show, ticketno, closeModal }) => {
 
   return (
     <div className="modal-background">
+      <ToastContainer/>
       <div className="modal-data">
         <div className="d-flex flex-row">
           <h4 style={{ flex: "1", color: "blue" }}>Close Subscriber Ticket</h4>

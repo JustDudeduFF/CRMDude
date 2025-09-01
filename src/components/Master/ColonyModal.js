@@ -1,9 +1,11 @@
 import { get, ref, set, onValue } from "firebase/database";
 import React, { useEffect, useState } from "react";
-import { db } from "../../FirebaseConfig";
+import { api2, db } from "../../FirebaseConfig";
 import { toast, ToastContainer } from "react-toastify";
+import axios from "axios";
 
 const ColonyModal = ({ show, notshow }) => {
+  const partnerId = localStorage.getItem("partnerId");
   const [colonyname, setColonyName] = useState("");
   const [undercompany, setUnderCompany] = useState("");
   const [arraycompany, setArrayCompany] = useState([]);
@@ -11,41 +13,42 @@ const ColonyModal = ({ show, notshow }) => {
   const capitalizeFirstLetter = (str) => {
     return str.replace(/\b\w/g, (char) => char.toUpperCase());
   };
+  const fetchCompany = async () => {
+    try {
+      const response = await axios.get(
+        api2 + "/master/company?partnerId=" + partnerId
+      );
 
-  useEffect(() => {
-    const officeRef = ref(db, `Master/companys`);
-    const unsubscribeOffice = onValue(officeRef, (officeSnap) => {
-      if (officeSnap.exists()) {
-        const CompanyeArray = [];
-        officeSnap.forEach((ChildOffice) => {
-          const officename = ChildOffice.key;
-          CompanyeArray.push(officename);
-        });
-        setArrayCompany(CompanyeArray);
-      } else {
-        toast.error("Please Add an Office Location", {
-          autoClose: 3000,
-        });
-      }
-    });
-
-    return () => unsubscribeOffice();
-  }, []);
-
-  const Colonydata = {
-    colonyname,
-    undercompany,
+      setArrayCompany(response.data);
+    } catch (e) {
+      console.log(e);
+    }
   };
 
-  const handleClick = async () => {
-    const colonyRef = ref(db, `Master/Colonys/${colonyname}`);
-    const colonySnap = await get(colonyRef);
+  useEffect(() => {
+    fetchCompany();
+  }, []);
 
-    if (colonySnap.exists()) {
-      toast.error("Colony Already Exists!", { autoClose: 2000 });
-    } else {
-      await set(colonyRef, Colonydata);
-      toast.success("Colony Added Successfully!", { autoClose: 2000 });
+  const handleClick = async () => {
+    const Colonydata = {
+      name: colonyname,
+      undercompany,
+      partnerId: partnerId,
+      code: colonyname,
+    };
+
+    try {
+      const response = await axios.post(
+        api2 + "/master/colony?partnerId=" + partnerId,
+        Colonydata
+      );
+
+      if (response .status !== 200)
+        return toast.error("Failed to add colony", { autoClose: 2000 });
+      notshow(true);
+    } catch (e) {
+      console.log(e);
+      toast.error("Failed to add colony", { autoClose: 2000 });
     }
   };
 
@@ -82,10 +85,11 @@ const ColonyModal = ({ show, notshow }) => {
               onChange={(e) => setUnderCompany(e.target.value)}
               className="form-select"
             >
+              <option value=''>Choose...</option>
               {arraycompany.length > 0 ? (
                 arraycompany.map((company, index) => (
-                  <option key={index} value={company}>
-                    {company}
+                  <option key={index} value={company.name}>
+                    {company.name}
                   </option>
                 ))
               ) : (

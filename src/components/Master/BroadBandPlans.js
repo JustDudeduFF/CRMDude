@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import PlanModal from "./PlanModal";
 import { api, db, api2 } from "../../FirebaseConfig";
 import { ref, update } from "firebase/database";
 import { toast, ToastContainer } from "react-toastify";
@@ -157,7 +156,7 @@ export default function BroadBandPlans() {
 
     try {
       const response = await axios.post(
-        api2 + "/master/broadbandplan?partnerId=687faf0f8cb6d47f12afa22b",
+        api2 + "/master/broadbandplan?partnerId=" + partnerId,
         {
           ...planDetails,
           code: planCode,
@@ -311,7 +310,6 @@ export default function BroadBandPlans() {
           Create New Plan
         </button>
       </div>
-      <PlanModal show={showplanmodal} onClose={() => setShowPlanModal(false)} />
 
       <div className="report-table-container">
         <table className="report-table">

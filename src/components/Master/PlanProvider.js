@@ -5,6 +5,7 @@ import { ref, update } from "firebase/database";
 import { api2, db } from "../../FirebaseConfig";
 import { toast, ToastContainer } from "react-toastify";
 import axios from "axios";
+import { Code } from "lucide-react";
 
 export default function PlanProvider() {
   const { hasPermission } = usePermissions();
@@ -38,30 +39,19 @@ export default function PlanProvider() {
 
     const data = {
       name: name,
-      date: new Date().toISOString().split("T")[0],
       modifiedby: localStorage.getItem("Name"),
+      partnerId:partnerId,
+      code:name
     };
 
-    try {
-      await update(ref(db, `Master/Provider/${providerKey}`), data);
+    try{
+      const response = await axios.post(api2+"/master/planprovider?partnerId="+partnerId, data);
 
-      toast.success("Provider Added", {
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-        progress: undefined,
-      });
-    } catch (e) {
-      toast.error("Failed To Add Provider", {
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-        progress: undefined,
-      });
+      if(response.status !==200 ) return toast.error("Failed to add Provider", {autoClose:2000});
+
+      toast.success("Provider Added Successfully", {autoClose:2000});
+      setShowModal(false);
+    }catch(e){
       console.log(e);
     }
   };

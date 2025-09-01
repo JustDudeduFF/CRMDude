@@ -1,25 +1,21 @@
 import { get, ref, set } from "firebase/database";
 import React, { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
-import { db } from "../../FirebaseConfig";
-import 'react-toastify/dist/ReactToastify.css';
+import { api2, db } from "../../FirebaseConfig";
+import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
 
 const ISPModal = ({ show, unShow }) => {
-  const [currentDate, setCurrentDate] = useState('');
-  const [ispCode, setIspCode] = useState('');
-  const [ispName, setIspName] = useState('');
-
-  const ispData = {
-    ispcode: ispCode,
-    ispname: ispName,
-    ispdate: currentDate,
-  };
+  const partnerId = localStorage.getItem("partnerId");
+  const [currentDate, setCurrentDate] = useState("");
+  const [ispCode, setIspCode] = useState("");
+  const [ispName, setIspName] = useState("");
 
   useEffect(() => {
     const today = new Date();
 
-    const day = String(today.getDate()).padStart(2, '0');
-    const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+    const day = String(today.getDate()).padStart(2, "0");
+    const month = String(today.getMonth() + 1).padStart(2, "0"); // Months are 0-based
     const year = today.getFullYear();
 
     const formattedDate = `${day}-${month}-${year}`;
@@ -28,30 +24,23 @@ const ISPModal = ({ show, unShow }) => {
   }, []);
 
   const handleClick = async () => {
-    const ispRef = ref(db, `Master/ISPs/${ispCode}`);
+    const data = {
+      code: ispCode,
+      name: ispName,
+      date: currentDate,
+    };
 
-    const ispSnap = await get(ispRef);
+    try {
+      const response = await axios.post(
+        api2 + "/master/isps?partnerId=" + partnerId,
+        data
+      );
 
-    if (ispSnap.exists()) {
-      toast.error('ISP Code Already exists!', {
-
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-        progress: undefined,
-      });
-    } else {
-      await set(ispRef, ispData);
-      toast.success('ISP Added Successfully!', {
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-        progress: undefined,
-      });
+      if (response.status !== 200)
+        return toast.error("Failed to Add ISP", { autoClose: 2000 });
+      unShow(true);
+    } catch (e) {
+      console.log(e);
     }
   };
 
@@ -61,7 +50,7 @@ const ISPModal = ({ show, unShow }) => {
     <div className="modal-overlay">
       <div className="modal-content">
         <div className="d-flex flex-row">
-          <h5 style={{ flex: '1' }}>Add ISP - Internet Service Provider</h5>
+          <h5 style={{ flex: "1" }}>Add ISP - Internet Service Provider</h5>
           <button onClick={unShow} className="btn-close"></button>
         </div>
 

@@ -1,10 +1,11 @@
 import { get, ref, set } from "firebase/database";
 import React, { useState } from "react";
-import { db } from "../../FirebaseConfig";
+import { api2, db } from "../../FirebaseConfig";
 import { toast, ToastContainer } from "react-toastify";
+import axios from "axios";
 
 const OfficeModal = ({show, notshow}) => {
-
+const partnerId = localStorage.getItem('partnerId');
     const [officename, setOfficeName] = useState('');
     const [officeaddress, setOfficeAddress] = useState('');
     const [officelat, setOfficeLat] = useState('');
@@ -16,37 +17,25 @@ const OfficeModal = ({show, notshow}) => {
         }
         
 
-    const officedata = {
-        officename: officename,
-        officeaddress: officeaddress,
-        officelat: officelat,
-        officelong: officelong
+    const handleClick = async () => {
+    const data = {
+        name: officename,
+        address: officeaddress,
+        lat: officelat,
+        long: officelong
     }
 
-    const handleClick = async () => {
-        const officeRef = ref(db, `Master/Offices/${officename}`);
-        const officeSnap = await get(officeRef);
+    try{
+        const response = await axios.post(api2 + "/master/offices?partnerId="+partnerId, data);
 
-        if(officeSnap.exists()){
-            toast.error('Office Already Exists!', {
-                autoClose: 2000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-            });
-        }else{
-            await set(officeRef, officedata);
-            toast.success('Office Added Succesfully!', {
-                autoClose: 2000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-            })
-        }
+        if(response !== 200) return toast.error('Failed to add Offices', {autoClose:2000});
+
+        notshow(true);
+
+    }catch(e){
+        console.log(e)
+    }
+
 
     };
 

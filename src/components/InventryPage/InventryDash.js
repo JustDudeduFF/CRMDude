@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import RouterImg from './inventrydrawables/technology.png';
 import AddInventryData from './AddInventryData';
 import { ToastContainer, toast } from 'react-toastify';
-import { api, db } from '../../FirebaseConfig';
+import { db } from '../../FirebaseConfig';
 import { get, ref, set } from 'firebase/database';
 import axios from 'axios';
 
@@ -35,37 +35,16 @@ export default function InventryDash() {
 
 
 
-  const fetchData = async(type) => {
-    try{
-      const response = await axios.get(api+'/inventory/'+type);
-      if(response.status !== 200) return;
 
-      const data = response.data;
-      if(data){
-        setDeviceArray(data);
-
-        const arraycategory = [...new Set(data.map((data) => data.devicecategry))];
-        const arraymaker = [...new Set(data.map((data) => data.makername))];
-        const arraycompany = [...new Set(data.map((data) => data.company))];
-
-        setCategory(arraycategory);
-        setMaker(arraymaker);
-        setCompany(arraycompany);
-      }
-    }catch(e){
-      console.log(e);
-    }
-  }
 
   useEffect(() => {
     
-    fetchData("free");
+
   }, []);
 
   const getDevices = (type) => {
     setDeviceType(type);
 
-    fetchData(type);
 
     if (type === 'free') {
       setBackgroundF('green');
@@ -128,8 +107,6 @@ export default function InventryDash() {
         draggable: true,
         progress: undefined,
       });
-    }finally{
-      fetchData('free');
     }
   };
 

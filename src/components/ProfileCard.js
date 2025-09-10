@@ -7,7 +7,7 @@ import Arrow from './subscriberpage/drawables/arrow.png'
 import { useNavigate } from 'react-router-dom';
 import { Modal } from 'react-bootstrap';
 import axios from 'axios';
-import { api, db } from '../FirebaseConfig';
+import {  db } from '../FirebaseConfig';
 import { ref, update } from 'firebase/database';
 
 export default function Profile_Card() {
@@ -28,28 +28,6 @@ export default function Profile_Card() {
         setShowPassModal(true);
     }
 
-    const updatePass = async() => {
-        const response = await axios.get(api+`/users/${localStorage.getItem('contact')}`);
-        if(response.status !== 200) return;
-
-        const data = response.data;
-        if(data){
-            const pass = data.pass;
-            if(oldpass === pass && newpass !==  null){
-                const newp = {
-                    pass:newpass
-                }
-
-                await update(ref(db, `users/${localStorage.getItem('contact')}`), newp).then(() => {
-                    alert("Password Changed")
-                    handleUserLogout();
-                });
-            }else{
-                alert("Old Password not matched or new Password is empty");
-            }
-        }
-
-    }
     
 
     const items=[
@@ -95,7 +73,7 @@ export default function Profile_Card() {
                 </div>
             </Modal.Body>
             <Modal.Footer>
-                <button onClick={updatePass} className='btn btn-primary'>Update</button>
+                <button  className='btn btn-primary'>Update</button>
                 <button onClick={() => setShowPassModal(false)} className='btn btn-outline-secondary'>Cancel</button>
             </Modal.Footer>
         </Modal>

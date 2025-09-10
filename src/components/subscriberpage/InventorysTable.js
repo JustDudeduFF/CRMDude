@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ref, update } from 'firebase/database';
-import { db, api } from '../../FirebaseConfig';
+import { db } from '../../FirebaseConfig';
 import { Modal } from 'react-bootstrap';
 import axios from 'axios';
 import { toast, ToastContainer } from "react-toastify";
@@ -28,20 +28,6 @@ export default function InventorysTable() {
 
   useEffect(() => {
 
-    const fetchInventoryData = async() => {
-      const response = await axios.get(api+`/subscriber/${username}?data=inventory`);
-
-      if(response.status !== 200) return;
-
-      const data = response.data;
-      if(data){
-        setDueAmount(data.dueAmount);
-        setArrayInventry(data.inventArray);
-      }
-
-    }
-
-    fetchInventoryData();
   }, []);
 
   const updateDevice = async() => {

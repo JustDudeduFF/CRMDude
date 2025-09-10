@@ -149,8 +149,8 @@ export default function Subscriber() {
         setIsTeminated(userData.status == "Terminated" || false);
         setPlanName(userData.planName || "");
         setPlanAmount(userData.planAmount || "");
-        setActivationDate(userData.activationDate || "");
-        setExpiryDate(userData.expiryDate || "");
+        setActivationDate(userData.activationDate === '' ? "2000-01-01" : userData.activationDate);
+        setExpiryDate(userData.expiryDate === '' ? "2000-01-01" : userData.expiryDate);
         setIsp(userData.isp || "");
         setDueAmount(userData.dueAmount || 0);
         setCuPlanCode({

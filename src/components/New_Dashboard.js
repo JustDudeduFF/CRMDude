@@ -25,6 +25,7 @@ import MessageTemplateCreator from './Templates/MessageTemplateCreator';
 import EmployeeProfile from './EmployeePage/EmployeeProfileDash';
 import MongoDBDashboard from './MongoDBDashboard';
 import Dashboard from './Dashboard';
+import CompanyManagement from './setting';
 
 function New_Dashboard() {  // Renamed to PascalCase
   const navigate = useNavigate();
@@ -62,6 +63,7 @@ function New_Dashboard() {  // Renamed to PascalCase
           <Route path='/expired/*' element={<ExpiredDash/>}/>
           <Route path='/mongodb/*' element={<MongoDBDashboard/>}/>
           <Route path='/partnerview/*' element={<Dashboard/>}/>
+          <Route path='/setting/*' element={<CompanyManagement/>}/>
         </Routes>
       </PermissionProvider>
 

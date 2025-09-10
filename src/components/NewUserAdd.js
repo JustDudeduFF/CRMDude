@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { api, db, storage, api2 } from "../FirebaseConfig";
+import {  db, storage, api2 } from "../FirebaseConfig";
 import { uploadBytes, getDownloadURL, ref as dbRef } from "firebase/storage";
 import { ref, set, update } from "firebase/database";
 import { toast, ToastContainer } from "react-toastify";
@@ -211,6 +211,7 @@ export default function NewUserAdd() {
       formData.append("installedby", planData.installby);
       formData.append("leadby", planData.leadby);
       formData.append("completedby", localStorage.getItem("contact"));
+      formData.append("plancode", planData.plancode)
       formData.append("source", "Web CRM");
 
       // Append document flags (if needed)
@@ -251,32 +252,6 @@ export default function NewUserAdd() {
     }
   };
 
-  const getDevices = async (company) => {
-    try {
-      const deviceResponse = await axios.get(
-        api + `/inventory/free?company=${company}`
-      );
-      if (deviceResponse.status !== 200) {
-        console.log(deviceResponse.status);
-        return;
-      }
-
-      const data = deviceResponse.data;
-      if (data) {
-        setArraydevice(data);
-
-        const arraycategory = [
-          ...new Set(data.map((data) => data.devicecategry)),
-        ];
-        const arraymaker = [...new Set(data.map((data) => data.makername))];
-
-        setArrayCategory(arraycategory);
-        setArrayMaker(arraymaker);
-      }
-    } catch (e) {
-      console.log(e);
-    }
-  };
 
   useEffect(() => {
     let deviceFilter = arraydevice;
@@ -435,7 +410,6 @@ export default function NewUserAdd() {
                   } else {
                     setCompany("");
                   }
-                  getDevices(selectedColonyObj.undercompany);
                 }}
                 className="new-user-add-form-select"
                 required

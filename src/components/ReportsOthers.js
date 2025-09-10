@@ -8,6 +8,7 @@ import Inventry from './subscriberpage/drawables/inventory.png'
 import Customer_Add from './subscriberpage/drawables/add-user.png'
 import whatsapp from './subscriberpage/drawables/whatsapp.png'
 import master from './subscriberpage/drawables/master.png'
+import setting from './subscriberpage/drawables/settings.png'
 import './Reports_Others.css'
 
 export default function Reports_Others({ onCloseSidebar }) {
@@ -100,7 +101,17 @@ export default function Reports_Others({ onCloseSidebar }) {
           <div className="reports-others-icon">
             <img alt='whatsapp' src={whatsapp} />
           </div>
-          <label className="reports-others-label">WhatsApp</label>
+          <label className="reports-others-label">Message & Communication</label>
+        </div>
+
+                <div 
+          onClick={() => handleNavigation('/dashboard/setting')} 
+          className="reports-others-card"
+        >
+          <div className="reports-others-icon">
+            <img alt='setting' src={setting} />
+          </div>
+          <label className="reports-others-label">Setting</label>
         </div>
       </div>
     </div>

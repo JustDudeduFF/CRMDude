@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { api, db, api2 } from "../../FirebaseConfig";
+import { db, api2 } from "../../FirebaseConfig";
 import { ref, update } from "firebase/database";
 import { toast, ToastContainer } from "react-toastify";
 import { usePermissions } from "../PermissionProvider";
@@ -36,9 +36,9 @@ export default function BroadBandPlans() {
     planamount: "",
     periodtype: "",
     periodtime: "",
-    isActive: "",
-    isWeb: "",
-    onLead: "",
+    isActive: false,
+    isWeb: false,
+    onLead: false,
   });
 
   const [provider, setProvider] = useState([]);
@@ -207,88 +207,32 @@ export default function BroadBandPlans() {
     fetchData();
   }, []);
 
-  const handleDoubleClick = (data) => {
-    console.log(data);
-    SetEditPlan({
-      plankey: data.key,
-      planname: data.planname,
-      planamount: data.planamount,
-      periodtype: data.planperiod,
-      periodtime: data.periodtime,
-      isActive: data.isActive,
-      isWeb: data.isWeb,
-      onLead: data.onLead,
-    });
-
-    setEditModal(true);
-  };
-
   const updatePlan = async () => {
-    if (editPlan.planamount === "" || editPlan.periodtime === "") {
-      toast.error("Fill All Details", {
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: false,
-        progress: undefined,
-      });
-      return;
-    }
+    const data = {
+      planamount: editPlan.planamount,
+      planperiod: editPlan.periodtype,
+      isActive: editPlan.isActive,
+      isWeb: editPlan.isWeb,
+      onLead: editPlan.onLead,
+      periodtime: editPlan.periodtime,
+      planname: editPlan.planname,
+    };
+
+    console.log(data);
 
     try {
-      await update(
-        ref(db, `Master/Broadband Plan/${editPlan.plankey}`),
-        editPlan
+      const response = await axios.put(
+        `${api2}/master/broadbandplan/${editPlan.plankey}?partnerId=${partnerId}`,
+        data
       );
 
-      setEditModal({
-        plankey: "",
-        planname: "",
-        planamount: "",
-        periodtype: "",
-        periodtime: "",
-        isActive: "",
-        isWeb: "",
-        onLead: "",
-      });
-      toast.success("Plan Updated", {
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-        progress: undefined,
-      });
-    } catch (e) {
-      toast.error("Something went wrong!", {
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: false,
-        progress: undefined,
-      });
-      console.log(e);
-    } finally {
-      const planResponse = await axios.get(api + "/master/Broadband Plan");
+      if (response.status !== 200)
+        return toast.error("Failed to Upate Plan Details", { autoClose: 2000 });
 
-      try {
-        const planData = planResponse.data;
-        if (planData) {
-          const array = [];
-          Object.keys(planData).forEach((key) => {
-            const plans = planData[key];
-            array.push({
-              key,
-              ...plans,
-            });
-          });
-          setArrayPlan(array);
-        }
-      } catch (e) {
-        console.log(e);
-      }
+      setEditModal(false);
+      fetchData();
+    } catch (e) {
+      console.log(e);
     }
   };
 
@@ -335,7 +279,20 @@ export default function BroadBandPlans() {
               >
                 <td>{index + 1}</td>
                 <td
-                  onClick={() => handleDoubleClick(data)}
+                  onClick={() => {
+                    SetEditPlan({
+                      plankey: data._id,
+                      planamount: data.planamount,
+                      planname: data.planname,
+                      isActive: data.isActive,
+                      isWeb: data.isWeb,
+                      onLead: data.onLead,
+                      periodtime: data.periodtime,
+                      periodtype: data.planperiod,
+                    });
+
+                    setEditModal(true);
+                  }}
                   className="text-primary text-decoration-underline"
                   style={{ cursor: "pointer" }}
                 >
@@ -634,9 +591,9 @@ export default function BroadBandPlans() {
               </div>
             </div>
 
-            <div className="form-check from-check-inline col-md mt-2">
+            <div className="form-check form-check-inline col-md mt-2">
               <input
-                defaultChecked={editPlan.isWeb}
+                checked={editPlan.isWeb}
                 onChange={(e) =>
                   SetEditPlan({
                     ...editPlan,
@@ -646,7 +603,7 @@ export default function BroadBandPlans() {
                 className="form-check-input"
                 id="isOnline"
                 type="checkbox"
-              ></input>
+              />
               <label className="form-check-label" htmlFor="isOnline">
                 Is Website Show?
               </label>
@@ -654,7 +611,7 @@ export default function BroadBandPlans() {
 
             <div className="form-check from-check-inline col-md mt-2">
               <input
-                defaultChecked={editPlan.isActive}
+                checked={editPlan.isActive}
                 onChange={(e) =>
                   SetEditPlan({
                     ...editPlan,
@@ -672,7 +629,7 @@ export default function BroadBandPlans() {
 
             <div className="form-check from-check-inline col-md mt-2">
               <input
-                defaultChecked={editPlan.onLead}
+                checked={editPlan.onLead}
                 onChange={(e) =>
                   SetEditPlan({
                     ...editPlan,

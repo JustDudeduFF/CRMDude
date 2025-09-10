@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import linked from './whatappdrawable/linked.png'
 import unlinked from './whatappdrawable/link.png'
-import { api } from '../../FirebaseConfig';
 
 const LoginWhatsapp = () => {
     const [qrCode, setQrCode] = useState(null);
@@ -19,78 +18,11 @@ const LoginWhatsapp = () => {
     const [header3, setHeader3] = useState('');
 
 
-    const fetchStatus = async () => {
-      try {
-          const responsenoida = await axios.post(api+'/statusnoida');
-          const responsepersonal = await axios.post(api+'/statuspersonal');
-          const response = await axios.post(api+'/status');
 
-          if (response.data.status === 'QR_RECEIVED') {
-              setHeader('Please scan the QR code to login to WhatsApp');
-              setLoading(false);
-              setQrCode(response.data.qr); // Set QR code if available
-
-          }else if(response.data.status === 'DISCONNECTED'){
-            console.log('User Disconnected')
-            setHeader('Whatsapp Service is Down For Some Reason!')
-            setQrCode(unlinked);
-            setLoading(false);
-          }else {
-            console.log('User Connected')
-            setHeader('WhatsApp is already connected');
-            setQrCode(linked);
-            setLoading(false);
-           } // Clear QR code if connected
-
-
-
-            if (responsenoida.data.status === 'QR_RECEIVED') {
-                setHeader2('Please scan the QR code to login to WhatsApp');
-                setLoading2(false);
-                setQrCode2(responsenoida.data.qr);
-            }else if(responsenoida.data.status === 'DISCONNECTED'){
-              console.log('User Disconnected')
-              setHeader2('Whatsapp Service is Down For Some Reason!')
-              setQrCode2(unlinked);
-              setLoading2(false);
-            }else {
-              console.log('User Connected')
-              setHeader2('WhatsApp is already connected');
-              setQrCode2(linked);
-              setLoading2(false); // Clear QR code if connected
-            }
-
-            if (responsepersonal.data.status === 'QR_RECEIVED') {
-                setHeader3('Please scan the QR code to login to WhatsApp');
-                setLoading3(false);
-                setQrCode3(responsepersonal.data.qr);
-            }else if(responsepersonal.data.status === 'DISCONNECTED'){
-              console.log('User Disconnected')
-              setHeader3('Whatsapp Service is Down For Some Reason!')
-              setQrCode3(unlinked);
-              setLoading3(false);
-            }else {
-              console.log('User Connected')
-              setHeader3('WhatsApp is already connected');
-              setQrCode3(linked);
-              setLoading3(false); // Clear QR code if connected
-            }
-      } catch (error) {
-            setHeader('Error For get API Service');
-            setQrCode(unlinked);
-            setLoading(false); // Clear QR code if connected
-            console.error('Error fetching status:', error);
-      }
-  };
 
     
     
 
-    useEffect(() => {
-      fetchStatus(); // Fetch status on component mount
-      const interval = setInterval(fetchStatus, 5000); // Poll every 5 seconds
-      return () => clearInterval(interval); // Cleanup interval on unmount
-    }, []);
 
 
     const sendBulkMessage = async() => {

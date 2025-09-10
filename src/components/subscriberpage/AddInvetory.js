@@ -1,6 +1,6 @@
 import { ref, update } from 'firebase/database';
 import React, { useEffect, useState } from 'react';
-import { api, db } from '../../FirebaseConfig';
+import {  db } from '../../FirebaseConfig';
 import axios from 'axios';
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate } from 'react-router-dom';
@@ -29,50 +29,7 @@ export default function AddInventory() {
 
 
   // Fetch makers on component mount
-  useEffect(() => {
-    const fetchMaker = async() => {
-      const response = await axios.get(api+`/inventory/free`);
-      const subsResponse = await axios.get(api+`/subscriber/${username}?data=wholeuser`);
 
-
-      if(response.status !== 200 && subsResponse.status !== 200){
-        console.log('can not get api data');
-        return;
-      }
-      
-      const data = response.data;
-      if(data){
-        setArraySerial(data);
-
-        const category = [...new Set(data.map((sn) => sn.devicecategry))];
-        const maker = [...new Set(data.map((sn) => sn.makername))];
-
-        setArrayMaker(maker);
-        setArrayCategory(category);
-      }
-
-      const subsData = subsResponse.data;
-      if(subsData){
-        setDueAmount(subsData.due);
-        if(subsData.serialNumber !== 'N/A'){
-          toast.error('Remove Activated Device', {
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-          });
-          return;
-        }
-      }
-
-      setCurrentDevice(false);
-
-    }
-
-    fetchMaker();
-  }, []);
 
   const saveDevices = async() => {
 

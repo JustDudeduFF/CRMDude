@@ -31,6 +31,38 @@ const Dashboard = () => {
   });
 
   const handleSaveplan = async () => {
+    if (selectedPartner) {
+      try {
+        const response = await axios.put(api2 + "/partner/" + selectedPartner, {
+          partnerData,
+        });
+        if (response.status === 200)
+          toast.success(`${partnerData.companyname} added succesfully`, {
+            autoClose: 2000,
+          });
+        setSelectedPartner(null);
+        setPartnerData({
+          name: "",
+          companyname: "",
+          phone: "",
+          address: "",
+          email: "",
+          gstin: "",
+          isWhatsapp: false,
+          isEmail: false,
+          isPayment: false,
+          whatsappApi: "",
+          emailhost: "",
+          emailport: "",
+          keyid: "",
+          keysecret: "",
+          status: "Active",
+        });
+      } catch (e) {
+        console.log(e);
+      }
+      return;
+    }
     try {
       const resposne = await axios.post(api2 + "/partner", { partnerData });
 
@@ -110,22 +142,30 @@ const Dashboard = () => {
   };
 
   const handleEdit = (id) => {
+    setSelectedPartner(id);
     const partner = tableData.find((item) => item._id === id);
     setPartnerData(partner);
     setIsModalOpen(true);
   };
 
   const handleDelete = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this partner?"
+    );
+    if (!confirmDelete) return; // Stop if user cancels
+
     try {
       const response = await axios.delete(api2 + "/partner/" + id);
 
-      if (response.status !== 200)
+      if (response.status !== 200) {
         return toast.error("Failed to Delete Partner", { autoClose: 2000 });
+      }
 
       toast.success("Partner Deleted Successfully", { autoClose: 2000 });
       fetchData();
     } catch (e) {
       console.log(e);
+      toast.error("An error occurred while deleting", { autoClose: 2000 });
     }
   };
 
@@ -319,7 +359,27 @@ const Dashboard = () => {
 
       <Modal
         show={isModalOpen}
-        onHide={() => setIsModalOpen(false)}
+        onHide={() => {
+          setIsModalOpen(false);
+          setSelectedPartner(null);
+          setPartnerData({
+            name: "",
+            companyname: "",
+            phone: "",
+            address: "",
+            email: "",
+            gstin: "",
+            isWhatsapp: false,
+            isEmail: false,
+            isPayment: false,
+            whatsappApi: "",
+            emailhost: "",
+            emailport: "",
+            keyid: "",
+            keysecret: "",
+            status: "Active",
+          });
+        }}
         className="payment-modal modal-lg"
       >
         <Modal.Header>
@@ -543,10 +603,30 @@ const Dashboard = () => {
         <Modal.Footer>
           <div className="d-flex justify-content-end gap-2 w-100">
             <button onClick={handleSaveplan} className="btn btn-success">
-              Add Partner
+              {selectedPartner ? "Update Partner" : "Add Partner"}
             </button>
             <button
-              onClick={() => setIsModalOpen(false)}
+              onClick={() => {
+                setIsModalOpen(false);
+                setSelectedPartner(null);
+                setPartnerData({
+                  name: "",
+                  companyname: "",
+                  phone: "",
+                  address: "",
+                  email: "",
+                  gstin: "",
+                  isWhatsapp: false,
+                  isEmail: false,
+                  isPayment: false,
+                  whatsappApi: "",
+                  emailhost: "",
+                  emailport: "",
+                  keyid: "",
+                  keysecret: "",
+                  status: "Active",
+                });
+              }}
               className="btn btn-secondary"
             >
               Cancel

@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { api, api2, db } from "../../FirebaseConfig";
+import { api2, db } from "../../FirebaseConfig";
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -75,28 +75,6 @@ export default function NewTicket() {
   function generateHappyCode() {
     return Math.floor(1000 + Math.random() * 9000);
   }
-
-  const sendmessage = async (assignemp, ticketconcern, ticketno, happycode) => {
-    const newMessage = `🎫 Ticket Registered Successfully! ✅\nHello ${fullname},\nWe have received your ticket and it has been successfully registered.\n\n🆔 *Ticket ID:* ${ticketno}\n📅 *Date:* ${new Date().toLocaleDateString(
-      "en-GB",
-      { day: "2-digit", month: "2-digit", year: "2-digit" }
-    )}\n📝 *Issue:* ${ticketconcern}\n\nOur support team is working on resolving your issue. 🔧\nPlease Share *${happycode}* Happy Code to executive, When Your Issue is Resolved.\n\n⏳ Estimated Resolution Time: 1-4 Hours\n\nFor updates, you can reply to this chat anytime. 📲\n📞 Customer Support: ${
-      company === "Sigma - Greator Noida"
-        ? "+91 92661 55122"
-        : "+91 99991 18971"
-    }\n\nThank you for reaching out to *Sigma Business Soltions*! We’ll get this sorted out for you soon. 😊\n\nStay connected! 🌐`;
-    const encodedMessage = encodeURIComponent(newMessage);
-    const exMessage = `Dear Executive,\n\nYou have been assigned a new ticket. Below are the details:\n\n🎫 *Ticket No:* ${ticketno}\n👤 *Customer Name:* ${fullname}\n📱 *Mobile Number:* ${mobile}\n💼 *User ID:* ${username}\n\nFor more details, please visit the application.\n\nThank you!\nRegards,\n*Sigma Business Solutions*`;
-    const enCodedExMessage = encodeURIComponent(exMessage);
-    await axios.post(
-      api +
-        `/send-message?number=91${mobile}&message=${encodedMessage}&company=${company}`
-    );
-    await axios.post(
-      api +
-        `/send-message?number=91${assignemp}&message=${enCodedExMessage}&company=${company}`
-    );
-  };
 
   const generateTicket = async () => {
     const ticketno = `TIC-${Date.now()}`;

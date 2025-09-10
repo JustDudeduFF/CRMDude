@@ -3,7 +3,7 @@ import "./ExpandView.css";
 import * as XLSX from "xlsx";
 import ExcelIcon from "./subscriberpage/drawables/xls.png";
 import { ref, update } from "firebase/database";
-import { api, db } from "../FirebaseConfig";
+import {  db } from "../FirebaseConfig";
 import LockIcon from "./subscriberpage/drawables/lock.png";
 import { usePermissions } from "./PermissionProvider";
 import axios from "axios";
@@ -14,22 +14,6 @@ export default function ExpandRevenue({ show, modalShow }) {
   const [selectedRows, setSelectedRows] = useState([]);
   const [filterUser, setFilterUser] = useState("");
 
-  const fetchRevenue = async () => {
-    try {
-      const response = await axios.get(
-        api + `/subscriber/revenue?count=50&search=${filterUser}`
-      );
-      if (response.status === 200 && response.data) {
-        setArrayData(response.data.data);
-      }
-    } catch (error) {
-      console.error("Error fetching revenue:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchRevenue();
-  }, []);
 
   const downloadExcel = (selectedOnly = false) => {
     const dataToDownload = selectedOnly ? selectedRows : arrayData;
@@ -53,8 +37,7 @@ export default function ExpandRevenue({ show, modalShow }) {
       for (let receipt of selectedRows) {
         const userId = receipt.UserKey;
         const receiptno = receipt.ReceiptNo;
-        const userRef = ref(db, `Subscriber/${userId}/payments/${receiptno}`);
-        await update(userRef, { authorized: true });
+
       }
       setSelectedRows([]);
     } catch (error) {
@@ -115,7 +98,6 @@ export default function ExpandRevenue({ show, modalShow }) {
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
-                  fetchRevenue();
                 }
               }}
             />

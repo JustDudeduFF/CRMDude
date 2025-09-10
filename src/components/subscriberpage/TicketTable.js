@@ -1,6 +1,6 @@
 import { ref, update } from "firebase/database";
 import React, { useEffect, useState } from "react";
-import { api, api2, db } from "../../FirebaseConfig";
+import {  api2, db } from "../../FirebaseConfig";
 import { useNavigate } from "react-router-dom";
 import { usePermissions } from "../PermissionProvider";
 import { Modal } from "react-bootstrap";
@@ -75,32 +75,6 @@ export default function TicketTable() {
 
   const resendcode = async () => {
     setCodeModal(false);
-    const message = `Dear ${selecticket.name} 👋,\n\n🔒 Your Happy Code: ${selecticket.happycode}\n\nFor Ticket No: ${selecticket.ticketno}\n\nStay connected with\nSigma Business Solutions`;
-    const encodedmsg = encodeURIComponent(message);
-    const msgresponse = await axios.post(
-      api +
-        `/send-message?number=91${selecticket.mobile}&message=${encodedmsg}&company=${company}`
-    );
-
-    if (msgresponse.status !== 200) {
-      toast.error(`Couldn't send Message`, {
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: false,
-        progress: undefined,
-      });
-    }
-
-    toast.success(`Message Send 👌`, {
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: false,
-      draggable: false,
-      progress: undefined,
-    });
   };
 
   return (

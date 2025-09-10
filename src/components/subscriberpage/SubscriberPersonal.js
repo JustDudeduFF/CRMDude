@@ -1,7 +1,7 @@
 import Lottie from 'lottie-react'
 import React, {useState, useEffect} from 'react'
 import LocationAnimation from './drawables/locationanimation.json'
-import { api, api2, db } from '../../FirebaseConfig';
+import {  api2, db } from '../../FirebaseConfig';
 import { ref, get } from 'firebase/database';
 import axios from 'axios';
 import './SubscriberPersonal.css';
@@ -67,27 +67,11 @@ export default function SubscriberPersonal() {
         
       }
 
-      const fetchInventory = async() => {
-        try{
-          const response = await axios.get(api+`/subscriber/${username}?data=inventory`);
-
-          if(response.status !== 200) return;
-
-          const data = response.data;
-          if(data){
-            console.log(data);
-          }
-
-        }catch(e){
-          console.log(e);
-        }
-      }
 
       fetchConnectivityInfo();
 
       fetchsubsdata();
 
-      fetchInventory();
 
   }, [username]);
 

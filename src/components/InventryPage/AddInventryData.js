@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import '../Modal.css'
 import axios from 'axios';
-import { api } from '../../FirebaseConfig';
 
 
 const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, DeviceMac, modalshow, devicetype, company}) => {
@@ -10,52 +9,10 @@ const AddInventryData = ({show, AddDevice, TypeDevice, DeviceSerial, makerName, 
     const [arraymakerm, setArrayMaker] = useState([]);
     const [companyArray, setCompanyArray] = useState([]);
 
-    const fetchmakername = async() => {
-        
-        
-
-        try{
-            const [makerResponse, companyResponse] = await Promise.all([
-                await axios.get(api+'/master/dMakers'),
-                await axios.get(api+'/master/companys')
-            ]);
-    
-            if(makerResponse.status !== 200 || companyResponse.status !== 200) {
-                console.log("One or More API Failed");
-                return;
-            }
-    
-            const data = makerResponse.data;
-            const companyData = companyResponse.data;
-    
-    
-            if(data){
-                const array = [];
-                Object.keys(data).forEach((key) => {
-                    array.push(key);
-                });
-                setArrayMaker(array);
-            }
-    
-            if(companyData){
-                const array = [];
-                Object.keys(companyData).forEach((key) => {
-                    if(key !== "global"){
-                        array.push(key);
-                    }
-                });
-                setCompanyArray(array);
-            }
-        }catch(e){
-            console.log(e);
-        }
-
-      }
-
 
 
     useEffect(() => {
-          fetchmakername();
+
     }, [])
 
     

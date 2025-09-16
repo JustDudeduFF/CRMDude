@@ -28,6 +28,8 @@ const Dashboard = () => {
     keyid: "",
     keysecret: "",
     status: "Active",
+    state: "",
+    pincode: "",
   });
 
   const handleSaveplan = async () => {
@@ -87,6 +89,8 @@ const Dashboard = () => {
         keyid: "",
         keysecret: "",
         status: "Active",
+        state: "",
+        pincode: "",
       });
       setIsModalOpen(false);
       fetchData();
@@ -378,6 +382,8 @@ const Dashboard = () => {
             keyid: "",
             keysecret: "",
             status: "Active",
+            state: "",
+            pincode: "",
           });
         }}
         className="payment-modal modal-lg"
@@ -446,6 +452,32 @@ const Dashboard = () => {
                   value={partnerData.email}
                   onChange={(e) =>
                     setPartnerData({ ...partnerData, email: e.target.value })
+                  }
+                  type="email"
+                  className="form-control"
+                />
+              </div>
+            </div>
+
+            <div className="row justify-content-center">
+              <div className="col-md-6 mb-2">
+                <label className="payment-form-label">State:</label>
+                <input
+                  value={partnerData.state}
+                  onChange={(e) =>
+                    setPartnerData({ ...partnerData, state: e.target.value })
+                  }
+                  type="text"
+                  className="form-control"
+                />
+              </div>
+
+              <div className="col-md-6 mb-2">
+                <label className="payment-form-label">Pincode:</label>
+                <input
+                  value={partnerData.pincode}
+                  onChange={(e) =>
+                    setPartnerData({ ...partnerData, pincode: e.target.value })
                   }
                   type="email"
                   className="form-control"
@@ -625,6 +657,8 @@ const Dashboard = () => {
                   keyid: "",
                   keysecret: "",
                   status: "Active",
+                  state: "",
+                  pincode: "",
                 });
               }}
               className="btn btn-secondary"

@@ -11,7 +11,7 @@ import {
   Mail,
   MapPin,
   CreditCard,
-  SquareCheckBig 
+  SquareCheckBig,
 } from "lucide-react";
 import axios from "axios";
 import { api2 } from "../FirebaseConfig";
@@ -36,7 +36,7 @@ const CompanyManagement = () => {
     isEmail: false,
     isWhatsapp: false,
     isOnline: false,
-    token:""
+    token: "",
   });
 
   const [whatsappQRData, setwhatsappQRData] = useState("");
@@ -62,7 +62,6 @@ const CompanyManagement = () => {
     setEditData((prev) => ({ ...prev, [field]: value }));
   };
 
-
   const fetchCompany = async () => {
     try {
       const response = await axios.get(api2 + "/partner/" + partnerId);
@@ -80,7 +79,7 @@ const CompanyManagement = () => {
         whatsappIntegration: data.isWhatsapp
           ? "Service Running"
           : "Not Activated",
-          token:data.whatsappApi
+        token: data.whatsappApi,
       });
 
       if (data.isWhatsapp) {
@@ -99,7 +98,9 @@ const CompanyManagement = () => {
       );
       const data = resposne.data;
       if (!data.ready) {
-        const res = await axios.get("https://api.justdude.in:4000/api/qr?token=" + token);
+        const res = await axios.get(
+          "https://api.justdude.in:4000/api/qr?token=" + token
+        );
         setwhatsappQRData(res.data.qrCode);
         setShowQR(true);
         return;
@@ -111,6 +112,15 @@ const CompanyManagement = () => {
   };
   useEffect(() => {
     fetchCompany();
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      fetchWhatsppStatus(companyData.token);
+    }, 5000); // run every 5 seconds
+
+    // cleanup on unmount
+    return () => clearInterval(interval);
   }, []);
 
   return (

@@ -17,5 +17,6 @@ const app = initializeApp(firebaseConfig)
 export const db = getDatabase(app);
 export const storage  = getStorage(app);
 
-export const api2 = 'https://api.justdude.in:5000/api'
+export const api2 = 'https://api.justdude.in:8520/api'
+export const mobile_api = 'https://api.justdude.in:8520/mobile'
 export default app; 

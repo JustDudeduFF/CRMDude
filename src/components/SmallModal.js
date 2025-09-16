@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./SmallModal.css";
 import { ref } from "firebase/database";
-import { api2, db } from "../FirebaseConfig";
+import { api2, db, mobile_api } from "../FirebaseConfig";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 
@@ -35,7 +35,7 @@ const SmallModal = ({ show, ticketno, closeModal }) => {
     e.preventDefault();
     try {
       const response = await axios.put(
-        `https://api.justdude.in:5000/mobile/updateticket/${ticketno._id}`,
+        `${mobile_api}/updateticket/${ticketno._id}`,
         {
           assignto: assignemp,
           partnerId: partnerId,

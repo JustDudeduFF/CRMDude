@@ -59,6 +59,19 @@
   box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
 }
 
+.link-pay-receipt-btn-outline-success {
+  background: transparent;
+  color: #283ba7;
+  border: 2px solid #2a28a7;
+}
+
+.link-pay-receipt-btn-outline-success:hover {
+  background: #283fa7;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(40, 59, 167, 0.3);
+}
+
 .cust-pay-receipt-download-icon {
   width: 32px;
   height: 32px;

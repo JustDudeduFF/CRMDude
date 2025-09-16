@@ -52,7 +52,7 @@ const TemplateManager = () => {
       "{description}"
     ],
 
-          reassign_ticket: [
+    reassign_ticket: [
       "{ticketconcern}",
       "{ticketassignto}",
       "{ticketassigntomobile}",
@@ -118,6 +118,10 @@ const TemplateManager = () => {
     }
         if (formData.category === "Ticket Employee") {
       vars = [...vars, ...variablesByCategory.emp_ticket];
+    }
+
+            if (formData.category === "Ticket ReAssign") {
+      vars = [...vars, ...variablesByCategory.reassign_ticket];
     }
     return vars;
   };

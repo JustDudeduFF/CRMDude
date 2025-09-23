@@ -106,6 +106,33 @@
     outline: none;
     box-shadow: 0 0 0 2px rgba(138, 191, 211, 0.3);
   }
+
+  .pagination-controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 15px;
+  align-items: center;
+}
+
+.pagination-controls button {
+  padding: 5px 10px;
+  background-color: #007bff;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pagination-controls button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.pagination-controls span {
+  font-weight: 500;
+}
+
   
   /* Buttons */
   .btn {

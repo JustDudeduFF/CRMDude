@@ -24,6 +24,10 @@ export default function Reports() {
     expire: 0,
   });
 
+  function formatRevenue(amount) {
+    return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
   // Check if current route is any specific report (not the main reports page)
   const isSpecificReport =
     location.pathname !== "/dashboard/reports" &&
@@ -87,9 +91,8 @@ export default function Reports() {
 
             <div className="reports-layout">
               <div
-                className={`reports-sidebar ${
-                  isSpecificReport ? "reports-sidebar-hidden" : ""
-                }`}
+                className={`reports-sidebar ${isSpecificReport ? "reports-sidebar-hidden" : ""
+                  }`}
                 style={{ flex: `${text}` }}
               >
                 <ul className="reports-list">
@@ -112,7 +115,7 @@ export default function Reports() {
                     className="reports-list-item"
                   >
                     <div className="reports-item-title">Due Amount</div>
-                    <div className="reports-item-value">{`Total Due : ${data.due}`}</div>
+                    <div className="reports-item-value">{`Total Due : ₹${formatRevenue(data.due)}`}</div>
                   </li>
 
                   <li
@@ -123,7 +126,7 @@ export default function Reports() {
                     className="reports-list-item"
                   >
                     <div className="reports-item-title">Payment Revenue</div>
-                    <div className="reports-item-value">{`Month Revenue : ${data.revenue}`}</div>
+                    <div className="reports-item-value">{`Mon Revenue : ₹${formatRevenue(data.revenue)}`}</div>
                   </li>
 
                   <li
@@ -151,9 +154,8 @@ export default function Reports() {
               </div>
 
               <div
-                className={`reports-main-content ${
-                  isSpecificReport ? "reports-main-content-expanded" : ""
-                }`}
+                className={`reports-main-content ${isSpecificReport ? "reports-main-content-expanded" : ""
+                  }`}
               >
                 <Routes>
                   <Route path="/" element={<ReportDash />} />

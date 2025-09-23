@@ -25,6 +25,10 @@ export default function DueDash() {
   const [totalDue, setTotalDue] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
+  function formatRevenue(amount) {
+    return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
   const downloadExcel = () => {
     const dataToDownload = filterData;
     if (dataToDownload.length === 0) {
@@ -44,9 +48,8 @@ export default function DueDash() {
       // Fetch data from the API
       const response = await axios.get(
         api2 +
-          `/reports/dueAmount?partnerId=${partnerId}&startDate=${
-            new Date(filter.startDate).toISOString().split("T")[0]
-          }&endDate=${new Date(filter.endDate).toISOString().split("T")[0]}`
+        `/reports/dueAmount?partnerId=${partnerId}&startDate=${new Date(filter.startDate).toISOString().split("T")[0]
+        }&endDate=${new Date(filter.endDate).toISOString().split("T")[0]}`
       );
 
       if (response.status !== 200 || !response.data) {
@@ -56,7 +59,7 @@ export default function DueDash() {
 
       if (arrayData) {
         setArrayData(arrayData.dueArray);
-        setTotalDue(arrayData.totalDue);
+        setTotalDue(arrayData.total.totalAmount);
 
         const complete = [
           ...new Set(arrayData.dueArray.map((data) => data.lastrenew)),
@@ -128,8 +131,8 @@ export default function DueDash() {
       <div className="report-header">
         <h5 className="report-title">Your All Due Amount Data</h5>
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <span className="report-total">
-            Total Due Amount of Sheet: {totalDue}
+          <span className="report-total-danger">
+            Total Due Amount of Sheet: ₹{formatRevenue(totalDue)}
           </span>
           <img
             alt="Excel"

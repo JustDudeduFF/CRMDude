@@ -111,7 +111,7 @@ export default function PaymetTable() {
       console.error("Error updating payment:", error);
       alert(
         error.response?.data?.error ||
-          "An error occurred while updating the payment."
+        "An error occurred while updating the payment."
       );
     }
   };
@@ -147,7 +147,10 @@ export default function PaymetTable() {
       return;
     }
 
-    const receiptNo = currentPayment.receiptNo.split("-")[1];
+    const receiptNo = currentPayment.receiptNo.includes("-")
+      ? currentPayment.receiptNo.split("-")[1]
+      : currentPayment.receiptNo;
+
     const discountKey = currentPayment?.discountkey;
     const logKey = Date.now();
     const receiptAmount =
@@ -175,226 +178,11 @@ export default function PaymetTable() {
     }
   };
 
+
   const handleDownloadInvoice = async () => {
-    // const doc = new jsPDF();
-
-    // autoTable(doc, {
-    //   body: [
-    //     [
-    //       {
-    //         content: companyData.companyname,
-    //         styles: {
-    //           halign: "left",
-    //           fontSize: 20,
-    //           textColor: "#ffffff",
-    //         },
-    //       },
-    //       {
-    //         content: "Invoice",
-    //         styles: {
-    //           halign: "right",
-    //           fontSize: 20,
-    //           fontWeight: "bold",
-    //           textColor: "#ffffff",
-    //         },
-    //       },
-    //     ],
-    //   ],
-    //   theme: "plain",
-    //   styles: {
-    //     fillColor: "#3366ff",
-    //   },
-    // });
-
-    // autoTable(doc, {
-    //   body: [
-    //     [
-    //       {
-    //         content:
-    //           `Reference : #INV${currentPayment.receiptNo.slice(10, 13)}` +
-    //           "\nDate: " +
-    //           currentPayment.receiptDate,
-    //         styles: {
-    //           halign: "right",
-    //         },
-    //       },
-    //     ],
-    //   ],
-    //   theme: "plain",
-    // });
-
-    // autoTable(doc, {
-    //   body: [
-    //     [
-    //       {
-    //         content:
-    //           "Billed to:" +
-    //           "\nCustomer Name: " +
-    //           customerData.fullName +
-    //           "\nAddress: " +
-    //           customerData.installationAddress +
-    //           "\nMobile No: " +
-    //           customerData.mobileNo +
-    //           "\nEmail: " +
-    //           customerData.email,
-    //         styles: {
-    //           halign: "left",
-    //         },
-    //       },
-    //       {
-    //         content:
-    //           "From:" +
-    //           "\n" +
-    //           companyData.companyname +
-    //           "\n" +
-    //           companyData.companyaddress +
-    //           "\nMobile No: " +
-    //           companyData.companymobile,
-    //         styles: {
-    //           halign: "right",
-    //         },
-    //       },
-    //     ],
-    //   ],
-    //   theme: "plain",
-    // });
-
-    // autoTable(doc, {
-    //   body: [
-    //     [
-    //       {
-    //         content: "Amount Paid: ",
-    //         styles: {
-    //           fontSize: 18,
-    //           halign: "right",
-    //         },
-    //       },
-    //     ],
-
-    //     [
-    //       {
-    //         content: currentPayment.amount + ".00 Rs",
-    //         styles: {
-    //           halign: "right",
-    //           fontSize: 15,
-    //           textColor: "#3366ff",
-    //         },
-    //       },
-    //     ],
-
-    //     [
-    //       {
-    //         content: "Payment Mode: " + currentPayment.paymentMode,
-    //         styles: {
-    //           halign: "right",
-    //         },
-    //       },
-    //     ],
-    //   ],
-    //   theme: "plain",
-    // });
-
-    // autoTable(doc, {
-    //   body: [
-    //     [
-    //       {
-    //         content: "Products and Services",
-    //         styles: {
-    //           halign: "left",
-    //           fontSize: 14,
-    //         },
-    //       },
-    //     ],
-    //   ],
-    //   theme: "plain",
-    // });
-
-    // autoTable(doc, {
-    //   head: [
-    //     [
-    //       "S. No.",
-    //       "Particular",
-    //       "Quantity/Period",
-    //       "Rate",
-    //       "Discount",
-    //       "Amount",
-    //     ],
-    //   ],
-    //   body: [
-    //     [
-    //       "1",
-    //       `${customerData.connectionDetails.planName}`,
-    //       `${currentPayment.billingPeriod}`,
-    //       `${
-    //         parseInt(currentPayment.amount) + parseInt(currentPayment.discount)
-    //       }`,
-    //       `${currentPayment.discount}`,
-    //       `${currentPayment.amount}`,
-    //     ],
-    //   ],
-    //   theme: "striped",
-    //   headStyles: {
-    //     fillColor: "#343a40",
-    //   },
-    // });
-
-    // autoTable(doc, {
-    //   body: [
-    //     [
-    //       {
-    //         content: "Total Amount: " + currentPayment.amount + ".00 Rs",
-    //         styles: {
-    //           halign: "right",
-    //           fontSize: 14,
-    //         },
-    //       },
-    //     ],
-    //   ],
-    //   theme: "plain",
-    // });
-
-    // autoTable(doc, {
-    //   body: [
-    //     [
-    //       {
-    //         content:
-    //           "Thank you for your business!" +
-    //           "\n" +
-    //           "For any queries, please contact us at " +
-    //           companyData.companymobile +
-    //           "\n" +
-    //           "This is an auto generated invoice and does not require any signature.",
-    //         styles: {
-    //           halign: "center",
-    //           fontSize: 12,
-    //         },
-    //       },
-    //     ],
-    //   ],
-    //   theme: "plain",
-    // });
-
-    // autoTable(doc, {
-    //   body: [
-    //     [
-    //       {
-    //         content: "Powered by: CRMDude",
-    //         styles: {
-    //           halign: "left",
-    //           fontSize: 12,
-    //         },
-    //       },
-    //     ],
-    //   ],
-    //   theme: "plain",
-    // });
-
-    // doc.save(`${currentPayment.receiptNo}.pdf`);
-
     try {
       const res = await axios.get(
-        `${api2}/pdf/download/${
-          currentPayment?._id
+        `${api2}/pdf/download/${currentPayment?._id
         }?partnerId=${partnerId}&subscriberId=${localStorage.getItem(
           "susbsUserid"
         )}`,
@@ -654,8 +442,8 @@ export default function PaymetTable() {
                     payment.status?.toLowerCase() === "cancel"
                       ? "table-danger"
                       : payment.status?.toLowerCase() === "pending"
-                      ? "table-secondary"
-                      : "table-success"
+                        ? "table-secondary"
+                        : "table-success"
                   }
                   key={index}
                 >

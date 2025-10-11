@@ -1,210 +1,128 @@
 import React, { useEffect, useState } from 'react';
-import { ref, update } from 'firebase/database';
-import { db } from '../../FirebaseConfig';
-import { Modal } from 'react-bootstrap';
 import axios from 'axios';
-import { toast, ToastContainer } from "react-toastify";
+import { Modal } from 'react-bootstrap';
+import { toast, ToastContainer } from 'react-toastify';
 import { usePermissions } from '../PermissionProvider';
 import './InventorysTable.css';
 
 export default function InventorysTable() {
   const username = localStorage.getItem('susbsUserid');
-  const {hasPermission} = usePermissions();
-  const [arrayinventry, setArrayInventry] = useState([]);
-  const [selectData, setSelectData] = useState({
-    mac:'',
-    amount:0,
-    key:'',
-    status:'',
-    date:''
-  })
+  const { hasPermission } = usePermissions();
+  const [inventoryArray, setInventoryArray] = useState([]);
+  const [selectedDevice, setSelectedDevice] = useState(null);
   const [modify, setModify] = useState(false);
-  const [info, setinfo] = useState({
-    amount:0,
-    status:'',
-  });
+  const [updateInfo, setUpdateInfo] = useState({ amount: 0, status: 'Activated' });
 
-  const [dueAmount, setDueAmount] = useState(0);
+  const apiBase = '/api/subscriber'; // Replace with your API base
+
+  // Fetch inventory from backend
+  const fetchInventory = async () => {
+    try {
+      const res = await axios.get(`${apiBase}/${username}/inventory`);
+      if (res.data?.inventory) {
+        setInventoryArray(res.data.inventory);
+      }
+    } catch (err) {
+      console.error('Failed to fetch inventory:', err);
+      toast.error('Failed to load inventory', { autoClose: 3000 });
+    }
+  };
 
   useEffect(() => {
-
+    fetchInventory();
   }, []);
 
-  const updateDevice = async() => {
-    const inventoryRef = ref(db, `Subscriber/${username}/Inventory/${selectData.key}`);
-    const maininvtRef = ref(db, `Inventory/${selectData.mac}`);
+  // Update device
+  const updateDevice = async () => {
+    if (!selectedDevice) return;
 
-    if(info.amount === selectData.amount && info.status === selectData.status){
-      toast.error('Please Update Details', {
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });          
+    const { _id, amount: oldAmount, status: oldStatus } = selectedDevice;
+    const { amount: newAmount, status: newStatus } = updateInfo;
+
+    if (Number(newAmount) === Number(oldAmount) && newStatus === oldStatus) {
+      toast.error('Please update some field', { autoClose: 3000 });
       return;
     }
 
-    if (Number(info.amount) !== Number(selectData.amount)) {
-      const deviceAmount = Number(info.amount);
-      const newDueAmount = (Number(info.amount) - Number(selectData.amount)) + Number(dueAmount);
-    
-      const newDue = { dueAmount: newDueAmount };
-      const invtAmount = { amount: deviceAmount };
+    const remark = {
+      action: '',
+      oldAmount,
+      newAmount,
+      oldStatus,
+      newStatus,
+      performedBy: username,
+      timestamp: new Date(),
+    };
 
-      const ledgerData = {
-        creditamount:0,
-        date:selectData.date,
-        debitamount:deviceAmount,
-        particular:'Device Security',
-        type:'Inventory'
+    if (Number(newAmount) !== Number(oldAmount)) remark.action += 'Amount Updated; ';
+    if (newStatus !== oldStatus) remark.action += 'Status Updated';
+
+    try {
+      const res = await axios.put(`${apiBase}/${username}/inventory/${_id}`, {
+        amount: newAmount,
+        status: newStatus,
+        remark,
+      });
+
+      if (res.data?.success) {
+        toast.success('Device updated successfully', { autoClose: 3000 });
+        fetchInventory();
+        setModify(false);
+        setSelectedDevice(null);
       }
-    
-      console.log(newDue);
-    
-      try {
-        await Promise.all([
-          update(inventoryRef, invtAmount),
-          update(ref(db, `Subscriber/${username}/connectionDetails`), newDue),
-          update(ref(db, `Subscriber/${username}/ledger/${selectData.key}`), ledgerData)
-        ]);
-    
-        setSelectData(prev => ({
-          ...prev,
-          amount: deviceAmount,
-          dueAmount: newDueAmount
-        }));
-    
-        toast.success('Device Amount Updated', {
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-    
-      } catch (error) {
-        toast.error('Failed To Update Amount', {
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-    
-        console.error('Error updating amount:', error);
-      }
+    } catch (err) {
+      console.error('Failed to update device:', err);
+      toast.error('Failed to update device', { autoClose: 3000 });
     }
-    
-    if(info.status !== selectData.status){
-      const newStatus = {
-        status:info.status
-      }
-
-      try{
-
-        await update(inventoryRef, newStatus);
-        await update(maininvtRef, newStatus);
-
-        toast.success('Device Status Updated', {
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });  
-
-      }catch(e){
-        toast.error('Failed To Update Status', {
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });  
-        console.log(e);
-      }
-
-      
-    }
-
-  }
+  };
 
   return (
-
-  
-   <>
-         <ToastContainer/>
+    <>
+      <ToastContainer />
       <div className="inventory-table-wrapper">
         <table className="inventory-table">
           <thead>
             <tr>
-              <th style={{ width: '120px' }} scope="col">Product Code</th>
-              <th style={{ width: '120px' }} scope="col">Date</th>
-              <th style={{ width: '160px' }} scope="col">Product Name</th>
-              <th style={{ width: '160px' }} scope="col">Product Serial No.</th>
-              <th style={{ width: '90px' }} scope="col">Amount</th>
-              <th style={{ width: '120px' }}>Remarks</th>
-              <th style={{ width: '130px' }}>Modified By</th>
-              <th style={{ width: '90px' }}>Status</th>
+              <th>Product Code</th>
+              <th>Date</th>
+              <th>Product Name</th>
+              <th>Serial No.</th>
+              <th>Amount</th>
+              <th>Remarks</th>
+              <th>Modified By</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
-            {arrayinventry.length > 0 ? (
-              arrayinventry.map(({ ledgerkey, amount, date, deviceSerialNumber, devicename, modifiedby, remarks, status, macaddress }, index) => (
-                <tr key={index}>
+            {inventoryArray.length ? (
+              inventoryArray.map((device, idx) => (
+                <tr key={idx}>
                   <td
-                    className="inventory-mac-address"
                     onClick={() => {
-
-                      if(!hasPermission("CHANGE_DEVICE_STATUS")){
-                        toast.error('Permission Denied', {
-                          autoClose: 3000,
-                          hideProgressBar: false,
-                          closeOnClick: true,
-                          pauseOnHover: true,
-                          draggable: true,
-                        });
+                      if (!hasPermission("CHANGE_DEVICE_STATUS")) {
+                        toast.error('Permission Denied', { autoClose: 3000 });
                         return;
                       }
-
-                      if(status !== "Activated"){
-                        toast.error('Device is Not Active', {
-                          autoClose: 3000,
-                          hideProgressBar: false,
-                          closeOnClick: true,
-                          pauseOnHover: true,
-                          draggable: true,
-                        });
+                      if (device.status !== 'Activated') {
+                        toast.error('Device is Not Active', { autoClose: 3000 });
                         return;
                       }
-
-                      setSelectData({
-                        mac:macaddress,
-                        amount:amount,
-                        key:ledgerkey,
-                        status:status,
-                        date:date
-                      });
-                      setinfo({
-                        amount:amount,
-                        status:status
-                      });
+                      setSelectedDevice(device);
+                      setUpdateInfo({ amount: device.amount, status: device.status });
                       setModify(true);
                     }}
                   >
-                    {ledgerkey}
+                    {device.ledgerkey || device._id}
                   </td>
-                  <td>{date}</td>
-                  <td>{devicename}</td>
-                  <td>{deviceSerialNumber}</td>
-                  <td className="inventory-amount">{`${amount}.00`}</td>
-                  <td>{remarks}</td>
-                  <td>{modifiedby}</td>
-                  <td className={`inventory-status ${status === 'Activated' ? 'inventory-status-active' : 'inventory-status-inactive'}`}>{status}</td>
+                  <td>{new Date(device.date).toLocaleDateString()}</td>
+                  <td>{device.devicename}</td>
+                  <td>{device.deviceSerialNumber}</td>
+                  <td>{device.amount.toFixed(2)}</td>
+                  <td>{device.remarks || '-'}</td>
+                  <td>{device.modifiedby || '-'}</td>
+                  <td className={`inventory-status ${device.status === 'Activated' ? 'inventory-status-active' : 'inventory-status-inactive'}`}>
+                    {device.status}
+                  </td>
                 </tr>
               ))
             ) : (
@@ -215,40 +133,44 @@ export default function InventorysTable() {
           </tbody>
         </table>
       </div>
+
+      {/* Modal for editing */}
       <Modal show={modify} onHide={() => setModify(false)} className="inventory-modal">
         <Modal.Header>
-          <Modal.Title>
-            Modify Device
-          </Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <div className='container d-flex flex-column'>
-              <div className='col-md'>
-                <label className='inventory-form-label'>Device Amount</label>
-                <input onChange={(e) => setinfo({
-                  ...info,
-                  amount:e.target.value
-                })} defaultValue={selectData.amount} className='inventory-form-control' type='number' />
-              </div>
-
-              <div className='col-md mt-3'>
-                <label className='inventory-form-label'>Device Status</label>
-                <select onChange={(e) => setinfo({
-                  ...info,
-                  status:e.target.value
-                })} className="inventory-form-control">
-                  <option value='Activated'>Activated</option>
-                  <option value='damaged' >Damaged</option>
-                  <option value='repair'>On Repair</option>
-                </select>
-              </div>
+          <Modal.Title>Modify Device</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className='container d-flex flex-column'>
+            <div className='col-md'>
+              <label className='inventory-form-label'>Device Amount</label>
+              <input
+                type='number'
+                className='inventory-form-control'
+                value={updateInfo.amount}
+                onChange={e => setUpdateInfo({ ...updateInfo, amount: e.target.value })}
+              />
             </div>
-          </Modal.Body>
-          <Modal.Footer>
-            <button onClick={updateDevice} className='inventory-btn inventory-btn-primary'>Update</button>
-            <button onClick={() => setModify(false)} className='inventory-btn inventory-btn-outline-secondary'>Close</button>
-          </Modal.Footer>
+
+            <div className='col-md mt-3'>
+              <label className='inventory-form-label'>Device Status</label>
+              <select
+                className='inventory-form-control'
+                value={updateInfo.status}
+                onChange={e => setUpdateInfo({ ...updateInfo, status: e.target.value })}
+              >
+                <option value='Activated'>Activated</option>
+                <option value='Damaged'>Damaged</option>
+                <option value='On Repair'>On Repair</option>
+                <option value='Returned'>Returned</option>
+              </select>
+            </div>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <button onClick={updateDevice} className='inventory-btn inventory-btn-primary'>Update</button>
+          <button onClick={() => setModify(false)} className='inventory-btn inventory-btn-outline-secondary'>Close</button>
+        </Modal.Footer>
       </Modal>
-   </>
+    </>
   );
 }

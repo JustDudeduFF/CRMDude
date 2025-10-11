@@ -5,19 +5,17 @@ import EthernetPort from './drawables/ethernet.png'
 import { get, onValue, ref, set } from 'firebase/database'
 import { db } from '../../FirebaseConfig'
 import { usePermissions } from '../PermissionProvider'
+import './SYOLT.css'
 
 const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename}) => {
   const {hasPermission} = usePermissions();
   
-
-
     const PON_RANGE = pons; // Set PON range dynamically
     const SFP_RANGE = sfps; // Set SFP range dynamically
     const ETHERNET_RANGE = ethernet;
     const isTwoRows = ETHERNET_RANGE > 7; // Determines if two rows are needed
     const lowerRowPorts = Array.from({ length: Math.ceil(ETHERNET_RANGE / 2) }).map((_, index) => 2 * index + 1); // 1, 3, 5...
     const upperRowPorts = Array.from({ length: Math.floor(ETHERNET_RANGE / 2) }).map((_, index) => 2 * index + 2); // 2, 4, 6...
-
 
     const [showModal, setShowModal] = useState(false);
     const [showModal2, setShowModal2] = useState(false);
@@ -37,23 +35,13 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename}) => {
 
     const [showAux, setShowAux] = useState(false);
 
-
-
     const [ponStatus, setPonStatus] = useState(Array(PON_RANGE).fill(false));
     const [sfpStatus, setSfpStatus] = useState(Array(SFP_RANGE).fill(false));
     const [ethernetStatus, setEthernetStatus] = useState(Array(ETHERNET_RANGE).fill(false));
 
-
-    
-
-
     const [fmsmaxrange, setFmsMaxRange] = useState(0);
     const [fmskey, setFmsKey] = useState(undefined);
     
-
-    
-    
-
     // Handle right-click on PON
     const handlePONRightClick = (e, index) => {
       e.preventDefault(); // Prevent the default right-click menu
@@ -100,7 +88,6 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename}) => {
   
        }
 
-
        const snapshot = await get(FmsRef);
       if (snapshot.exists()){
         const connectedTo = snapshot.child('connectedTo').val();
@@ -145,7 +132,6 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename}) => {
   
        }
 
-
        const snapshot = await get(FmsRef);
       if (snapshot.exists()){
         const connectedTo = snapshot.child('connectedTo').val();
@@ -173,8 +159,6 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename}) => {
     // Handle form submission to save PON details
     const savePONDetails = async() => {
      const FmsRef = ref(db, `Rack Info/${officename}/${fmskey}/Ports/${ponDetails.connectedPort}`);
-
-     
 
      const oltPort = {
       connectedTo : fmskey,
@@ -254,10 +238,6 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename}) => {
                 alloltdata.push({oltType, devicekey, serialNo, sfpRange});
               }
 
-             
-
-              
-
             });
 
             setOldData(alloltdata);
@@ -272,7 +252,6 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename}) => {
         return () => unsubscribe();
       
     }, [officename]);
-
 
     useEffect(() => {
       const fetchData = async () => {
@@ -307,198 +286,181 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename}) => {
 
     if (!show) return null
 
-
-
   return (
     <>
-            <div style={{display:'flex', flexDirection:'column', width:'max-content', border:'1px solid black', height:'max-content', padding:'10px', borderRadius:'15px', marginTop:'35px', backgroundColor:'orange', boxShadow:'0 0 10px gray'}}>
-                  <div style={{display:'flex', flexDirection:'row', width:'850px', height:'92px', border:'1px solid black', paddingBottom:'5px', alignItems:'center', backgroundColor:'whitesmoke', borderRadius:'5px'}}>
+      <div className="olt-container">
+        <div className="olt-device-panel">
+          
+          {/* Device Info Header */}
+          <div className="device-info-header">
+            {arrayolt.map(({manufacturer, serialNo, oltType}, index) => (
+              <div key={index} className="device-info">
+                <div className="device-brand">{manufacturer}</div>
+                <div className="device-model">{oltType}</div>
+                <div className="device-serial">{serialNo}</div>
+              </div>
+            ))}
+            
+            <div className="device-indicator">
+              <div className="power-led active"></div>
+              <span className="led-label">PWR</span>
+            </div>
+          </div>
 
-                  {
-                    arrayolt.map(({manufacturer, serialNo, oltType}, index) => (
-                      <div key={index} className='d-flex flex-column ms-1'>
-                        <span style={{fontSize:'12px'}}>{manufacturer}</span>
-                        <span style={{fontSize:'12px'}}>{oltType}</span>
-                        <span style={{fontSize:'12px'}}>{serialNo}</span>
+          {/* Ports Section */}
+          <div className="ports-container">
+            
+            {/* PON Ports Section */}
+            <div className="port-section pon-section">
+              <div className="section-label">PON PORTS</div>
+              <div className="ports-grid">
+                {Array.from({ length: PON_RANGE }).map((_, index) => (
+                  <div 
+                    key={index} 
+                    className={`port-item pon-port ${ponStatus[index] ? 'connected' : 'disconnected'}`}
+                    onContextMenu={(e) => handlePONRightClick(e, index)}
+                  >
+                    <img 
+                      alt="" 
+                      src={PONPort} 
+                      className="port-image"
+                    />
+                    <span className="port-number">{index + 1}</span>
+                    {ponStatus[index] && <div className="connection-indicator"></div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* SFP Ports Section */}
+            <div className="port-section sfp-section">
+              <div className="section-label">SFP+ PORTS</div>
+              <div className="ports-grid">
+                {Array.from({ length: SFP_RANGE }).map((_, index) => (
+                  <div 
+                    key={index} 
+                    className={`port-item sfp-port ${sfpStatus[index] ? 'connected' : 'disconnected'}`}
+                    onContextMenu={(e) => handleSFPRightClick(e, index)}
+                  >
+                    <div className="sfp-slot"></div>
+                    <span className="port-number">GE {index + 1}</span>
+                    {sfpStatus[index] && <div className="connection-indicator"></div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Ethernet Ports Section */}
+            <div className="port-section ethernet-section">
+              <div className="section-label">ETHERNET PORTS</div>
+              <div className={`ethernet-container ${isTwoRows ? 'two-rows' : 'single-row'}`}>
+                
+                {ETHERNET_RANGE < 8 ? (
+                  <div className="ethernet-row">
+                    {Array.from({ length: ETHERNET_RANGE }).map((_, index) => (
+                      <div 
+                        key={index} 
+                        className={`port-item ethernet-port ${ethernetStatus[index] ? 'connected' : 'disconnected'}`}
+                        onContextMenu={(e) => handleETHRightClick(e, index)}
+                      >
+                        <img
+                          alt=""
+                          src={EthernetPort}
+                          className={`port-image ${!isTwoRows ? 'rotated' : ''}`}
+                        />
+                        <span className="port-number">GE {index + 1}</span>
+                        {ethernetStatus[index] && <div className="connection-indicator"></div>}
                       </div>
-                    ))
-                  }
-
-                    {/* PONs Layout */}
-                    <div style={{display:'flex', flexDirection:'row', marginLeft:'-3px', flex:'1'}}>
-                    <div style={{display:'flex', flexDirection:'row', marginLeft:'5px', marginTop:'2px'}}>
-                    {Array.from({ length: PON_RANGE }).map((_, index) => (
-                        <div key={index} style={{width:'30px', height:'30px', display:'flex', flexDirection:'column', marginLeft:'5px', marginTop:'2px'}}  onContextMenu={(e) => handlePONRightClick(e, index)}>
-                          <img alt="" src={PONPort} style={{width:'22px', height:'22px', backgroundColor: ponStatus[index] ? 'green' : 'transparent'}} />
-                          <span style={{fontSize:'8px', width:'22px', textAlign:'center', fontFamily:'initial'}}>{index + 1}</span>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    <div className="ethernet-row upper-row">
+                      {upperRowPorts.map((portNumber, index) => (
+                        <div 
+                          key={index} 
+                          className={`port-item ethernet-port ${ethernetStatus[portNumber - 1] ? 'connected' : 'disconnected'}`}
+                          onContextMenu={(e) => handleETHRightClick(e, portNumber - 1)}
+                        >
+                          <span className="port-number top">GE {portNumber}</span>
+                          <img
+                            alt=""
+                            src={EthernetPort}
+                            className="port-image rotated"
+                          />
+                          {ethernetStatus[portNumber - 1] && <div className="connection-indicator"></div>}
                         </div>
                       ))}
                     </div>
 
-
-                    
-                    </div>
-                    
-
-                      {/* For SFP SLOT */}
-                      <div style={{display:'flex', flexDirection:'row', marginLeft:'10px', flex:'1'}}>
-                      {Array.from({ length: SFP_RANGE }).map((_, index) => (
-                       <div key={index} style={{ width: '40px', height: '40px', display: 'flex', flexDirection: 'column' }} onContextMenu={(e) => handleSFPRightClick(e, index)}>
-                       <div style={{width:'32px', height:'32px', backgroundColor: sfpStatus[index] ? 'green' : 'black', borderRadius:'3px'}}></div>
-                       <span style={{ fontSize: '9px', width: '32px', textAlign: 'center', fontFamily: 'initial' }}>
-                       GE {index + 1}
-                       </span>
-                   </div>
+                    <div className="ethernet-row lower-row">
+                      {lowerRowPorts.map((portNumber, index) => (
+                        <div 
+                          key={index} 
+                          className={`port-item ethernet-port ${ethernetStatus[portNumber - 1] ? 'connected' : 'disconnected'}`}
+                          onContextMenu={(e) => handleETHRightClick(e, portNumber - 1)}
+                        >
+                          <img
+                            alt=""
+                            src={EthernetPort}
+                            className="port-image"
+                          />
+                          <span className="port-number bottom">GE {portNumber}</span>
+                          {ethernetStatus[portNumber - 1] && <div className="connection-indicator"></div>}
+                        </div>
                       ))}
-
-
-                        
-                        </div>
-
-                        
-
-                      {/* For Ethernet Ports */}
-                      <div style={{ display: 'flex', flexDirection: 'row', flex: '1', marginLeft:'10px' }}>
-                        <div className='d-flex flex-column'>
-                          {/* Lower Row (starts with 1, 3, 5...) */}
-                          <div className='d-flex flex-row mb-1'>
-                            {
-                              ETHERNET_RANGE < 8 ? (
-                                <div className='d-flex flex-row'>
-                                  {Array.from({ length: ETHERNET_RANGE }).map((_, index) => (
-                                    <div onContextMenu={(e) => handleETHRightClick(e, index)} key={index} style={{ width: '30px', height: '30px', display: 'flex', flexDirection: 'column' }}>
-                                      <img
-                                        alt=""
-                                        src={EthernetPort}
-                                        style={{
-                                          width: '22px',
-                                          height: '22px',
-                                          transform: isTwoRows ? '' : 'rotate(180deg)',
-                                          backgroundColor: ethernetStatus[index] ? 'green' : 'transparent' // Conditional background color
-                                        }}
-                                      />
-                                      <span style={{ fontSize: '8px', width: '22px', textAlign: 'center', fontFamily: 'initial' }}>
-                                        GE {index + 1}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <div className='d-flex flex-row'>
-                                  {upperRowPorts.map((portNumber, index) => (
-                                    <div onContextMenu={(e) => handleETHRightClick(e, portNumber - 1)} key={index} style={{ width: '30px', height: '30px', display: 'flex', flexDirection: 'column' }}>
-                                      <span style={{ fontSize: '8px', width: '22px', textAlign: 'center', fontFamily: 'initial' }}>
-                                        GE {portNumber}
-                                      </span>
-                                      <img
-                                        alt=""
-                                        src={EthernetPort}
-                                        style={{
-                                          width: '22px',
-                                          height: '22px',
-                                          transform: 'rotate(180deg)',
-                                          backgroundColor: ethernetStatus[portNumber - 1] ? 'green' : 'transparent' // Conditional background color
-                                        }}
-                                      />
-                                    </div>
-                                  ))}
-                                </div>
-                              )
-                            }
-                          </div>
-
-                          {/* Upper Row (starts with 2, 4, 6...) */}
-                          {isTwoRows && (
-                            <div className='d-flex flex-row mt-1'>
-                              {
-                                ETHERNET_RANGE < 8 ? (
-                                  <div className='d-flex flex-row'>
-                                    {Array.from({ length: ETHERNET_RANGE }).map((_, index) => (
-                                      <div onContextMenu={(e) => handleETHRightClick(e, index)} key={index} style={{ width: '30px', height: '30px', display: 'flex', flexDirection: 'column' }}>
-                                        <img
-                                          alt=""
-                                          src={EthernetPort}
-                                          style={{
-                                            width: '22px',
-                                            height: '22px',
-                                            backgroundColor: ethernetStatus[index] ? 'green' : 'transparent' // Conditional background color
-                                          }}
-                                        />
-                                        <span style={{ fontSize: '8px', width: '22px', textAlign: 'center', fontFamily: 'initial' }}>
-                                          GE {index + 1}
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <div className='d-flex flex-row'>
-                                    {lowerRowPorts.map((portNumber, index) => (
-                                      <div onContextMenu={(e) => handleETHRightClick(e, portNumber - 1)} key={index} style={{ width: '30px', height: '30px', display: 'flex', flexDirection: 'column' }}>
-                                        <img
-                                          alt=""
-                                          src={EthernetPort}
-                                          style={{
-                                            width: '22px',
-                                            height: '22px',
-                                            backgroundColor: ethernetStatus[portNumber - 1] ? 'green' : 'transparent' // Conditional background color
-                                          }}
-                                        />
-                                        <span style={{ fontSize: '8px', width: '22px', textAlign: 'center', fontFamily: 'initial' }}>
-                                          GE {portNumber}
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )
-                              }
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* For MGMT and Console */}
-
-                      <div className='d-flex flex-column ms-2'>
-                         <div className='mb-1' style={{display:'flex', flexDirection:'column', width:'30px', height:'30px'}}>
-                            <span style={{fontSize:'8px', width:'22px', textAlign:'center', fontFamily:'initial'}}>Console</span>
-                            <img alt="" src={EthernetPort} style={{width:'22px', height:'22px', transform: 'rotate(180deg)'}} />
-                          </div>
-
-                          <div className='mt-1' style={{display:'flex', flexDirection:'column', width:'30px', height:'30px'}}>
-                            <img alt="" src={EthernetPort} style={{width:'22px', height:'22px'}} />
-                            <span style={{fontSize:'8px', width:'22px', textAlign:'center', fontFamily:'initial'}}>AUX</span>
-                          </div>
-                      </div>
                     </div>
-              </div>        
+                  </>
+                )}
+              </div>
+            </div>
 
+            {/* Management Ports */}
+            <div className="port-section management-section">
+              <div className="section-label">MGMT</div>
+              <div className="mgmt-ports">
+                <div className="port-item mgmt-port">
+                  <span className="port-number top">Console</span>
+                  <img alt="" src={EthernetPort} className="port-image rotated" />
+                </div>
 
+                <div className="port-item mgmt-port">
+                  <img alt="" src={EthernetPort} className="port-image" />
+                  <span className="port-number bottom">AUX</span>
+                </div>
+              </div>
+            </div>
 
-        {/* Modal for Editing PON Details */}
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
+          </div>
+        </div>
+      </div>
+
+      {/* Modal for Editing PON Details */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} className="custom-modal">
         <Modal.Header closeButton>
-          <Modal.Title>Edit PON {selectedPON} Details</Modal.Title>
-              
+          <Modal.Title>Configure PON Port {selectedPON}</Modal.Title>
         </Modal.Header>
-        
-        
-          <form className='p-2'>
-            <div className="mb-3">
+        <Modal.Body>
+          <form className='modal-form'>
+            <div className="form-group">
               <label className="form-label">Connected To</label>
-              <select onChange={(e) => {
-                const selectedfms = e.target.value;
-                setPONDetails({ ...ponDetails, connectedTo: selectedfms });
+              <select 
+                onChange={(e) => {
+                  const selectedfms = e.target.value;
+                  setPONDetails({ ...ponDetails, connectedTo: selectedfms });
 
-                const setSelectedFMS = arrayfms.find(fms => fms.fmsname === selectedfms);
-                if (setSelectedFMS) {
-                  setFmsMaxRange(parseInt(setSelectedFMS.fmsrange));
-                  setFmsKey(setSelectedFMS.devicekey);
-                }else{
-                  setFmsMaxRange(0);
-                  setFmsKey(undefined);
-                }
-              }} className='form-select'>
-                <option value=''>Choose...</option>
+                  const setSelectedFMS = arrayfms.find(fms => fms.fmsname === selectedfms);
+                  if (setSelectedFMS) {
+                    setFmsMaxRange(parseInt(setSelectedFMS.fmsrange));
+                    setFmsKey(setSelectedFMS.devicekey);
+                  }else{
+                    setFmsMaxRange(0);
+                    setFmsKey(undefined);
+                  }
+                }} 
+                className='form-select'
+              >
+                <option value=''>Choose FMS Device...</option>
                 {
                   arrayfms.length > 0 ? (
                     arrayfms.map(({ fmsname, serialNo }, index) => (
@@ -510,69 +472,72 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename}) => {
                 }
               </select>
             </div>
-            <div className="mb-3">
+            
+            <div className="form-group">
               <label className="form-label">Connected Port</label>
               <input
                 type="number"
                 className="form-control"
+                placeholder="Enter port number"
                 value={ponDetails.connectedPort}
                 onChange={(e) => setPONDetails({ ...ponDetails, connectedPort: e.target.value })}
               />
             </div>
 
-            <div className="mb-3">
+            <div className="form-group">
               <label className="form-label">Assigned Area/Name</label>
               <input
                 type="text"
                 className="form-control"
+                placeholder="Enter area or description"
                 value={ponDetails.assignedArea}
                 onChange={(e) => setPONDetails({ ...ponDetails, assignedArea: e.target.value })}
               />
             </div>
-            <Button variant="primary" onClick={savePONDetails}>
-              Save Details
+            
+            <Button variant="primary" onClick={savePONDetails} className="save-btn">
+              Save Configuration
             </Button>
           </form>
-       
+        </Modal.Body>
       </Modal>
 
       {/* Modal for Editing SFP Details */}
-      <Modal show={showModal2} onHide={() => setShowModal2(false)}>
+      <Modal show={showModal2} onHide={() => setShowModal2(false)} className="custom-modal">
         <Modal.Header closeButton>
-          <Modal.Title>Edit SFP {selectedSFP} Details</Modal.Title>
-              
+          <Modal.Title>Configure SFP+ Port {selectedSFP}</Modal.Title>
         </Modal.Header>
-        
-        
-          <form className='p-2'>
-            <div className='mb-3'>
-              <label className='form-label'>Connected Device</label>
-              <select onChange={(e) => {
-                const selectedValue = e.target.value;
-                setDeviceSelect(selectedValue);
-                if (selectedValue === 'Switch'){
-                  setSelectDevice(arrayswitch);
-                }else if(selectedValue === 'FMS'){
-                  setSelectDevice(arrayfms);
-                }else if (selectedValue === 'OLT'){
-                  setSelectDevice(oltdata);
-
-                }
-
-              }} className='form-select'>
-                <option val=''>Choose...</option>
-                <option val='Switch'>Switch</option>
-                <option val='FMS'>FMS</option>
-                <option val='OLT'>OLT</option>
+        <Modal.Body>
+          <form className='modal-form'>
+            <div className='form-group'>
+              <label className='form-label'>Device Type</label>
+              <select 
+                onChange={(e) => {
+                  const selectedValue = e.target.value;
+                  setDeviceSelect(selectedValue);
+                  if (selectedValue === 'Switch'){
+                    setSelectDevice(arrayswitch);
+                  }else if(selectedValue === 'FMS'){
+                    setSelectDevice(arrayfms);
+                  }else if (selectedValue === 'OLT'){
+                    setSelectDevice(oltdata);
+                  }
+                }} 
+                className='form-select'
+              >
+                <option value=''>Choose Device Type...</option>
+                <option value='Switch'>Switch</option>
+                <option value='FMS'>FMS</option>
+                <option value='OLT'>OLT</option>
               </select>
             </div>
-            <div className="mb-3">
+            
+            <div className="form-group">
               <label className="form-label">Connected To</label>
               <select 
                 onChange={(e) => {
-                  const selectedDeviceKey = e.target.value; // Correctly using the devicekey
+                  const selectedDeviceKey = e.target.value;
                   setSFPDetails({ ...sfpDetails, connectedTo: selectedDeviceKey });
-                  
 
                   const selectedDevice = selectDevice.find(device => device.devicekey === selectedDeviceKey);
                   
@@ -587,7 +552,7 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename}) => {
                 }} 
                 className="form-select"
               >
-                <option value=''>Choose...</option>
+                <option value=''>Choose Device...</option>
                 {
                   selectDevice.length > 0 ? (
                     selectDevice.map(({ fmsname, swisp, serialNo, oltType, devicekey }, index) => {
@@ -614,64 +579,66 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename}) => {
               </select>
             </div>
 
-            <div className="mb-3">
+            <div className="form-group">
               <label className="form-label">Connected Port</label>
               <input
                 type="number"
                 className="form-control"
+                placeholder="Enter port number"
                 value={sfpDetails.connectedPort}
                 onChange={(e) => setSFPDetails({ ...sfpDetails, connectedPort: e.target.value })}
               />
             </div>
 
-            <div className="mb-3">
+            <div className="form-group">
               <label className="form-label">Assigned Area/Name</label>
               <input
                 type="text"
                 className="form-control"
+                placeholder="Enter area or description"
                 value={sfpDetails.assignedArea}
                 onChange={(e) => setSFPDetails({ ...sfpDetails, assignedArea: e.target.value })}
               />
             </div>
-            <Button variant="primary" onClick={saveSFPDetails}>
-              Save Details
+            
+            <Button variant="primary" onClick={saveSFPDetails} className="save-btn">
+              Save Configuration
             </Button>
           </form>
-       
+        </Modal.Body>
       </Modal>
 
-
       {/* Modal for Editing Ethernet Details */}
-      <Modal show={showModal3} onHide={() => setShowModal3(false)}>
+      <Modal show={showModal3} onHide={() => setShowModal3(false)} className="custom-modal">
         <Modal.Header closeButton>
-          <Modal.Title>Edit Ethernet {selectedEth} Details</Modal.Title>
-              
+          <Modal.Title>Configure Ethernet Port {selectedEth}</Modal.Title>
         </Modal.Header>
-        
-        
-          <form className='p-2'>
-            <div className='mb-3'>
-              <label className='form-label'>Connected Device</label>
-              <select onChange={(e) => {
-                const selectedValue = e.target.value;
-                if (selectedValue === 'Switch'){
-                  setSelectDevice(arrayswitch);
-                }else if (selectedValue === 'OLT'){
-                  setSelectDevice(oltdata);
-
-                }
-
-              }} className='form-select'>
-                <option val=''>Choose...</option>
-                <option val='Switch'>Switch</option>
-                <option val='OLT'>OLT</option>
+        <Modal.Body>
+          <form className='modal-form'>
+            <div className='form-group'>
+              <label className='form-label'>Device Type</label>
+              <select 
+                onChange={(e) => {
+                  const selectedValue = e.target.value;
+                  if (selectedValue === 'Switch'){
+                    setSelectDevice(arrayswitch);
+                  }else if (selectedValue === 'OLT'){
+                    setSelectDevice(oltdata);
+                  }
+                }} 
+                className='form-select'
+              >
+                <option value=''>Choose Device Type...</option>
+                <option value='Switch'>Switch</option>
+                <option value='OLT'>OLT</option>
               </select>
             </div>
-            <div className="mb-3">
+            
+            <div className="form-group">
               <label className="form-label">Connected To</label>
               <select 
                 onChange={(e) => {
-                  const selectedDeviceKey = e.target.value; // Correctly using the devicekey
+                  const selectedDeviceKey = e.target.value;
                   setEthDetails({ ...ethDetails, connectedTo: selectedDeviceKey });
 
                   const selectedDevice = selectDevice.find(device => device.devicekey === selectedDeviceKey);
@@ -687,7 +654,7 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename}) => {
                 }} 
                 className="form-select"
               >
-                <option value=''>Choose...</option>
+                <option value=''>Choose Device...</option>
                 {
                   selectDevice.length > 0 ? (
                     selectDevice.map(({ swisp, serialNo, oltType, devicekey }, index) => {
@@ -712,20 +679,22 @@ const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename}) => {
               </select>
             </div>
 
-            <div className="mb-3">
+            <div className="form-group">
               <label className="form-label">Connected Port</label>
               <input
                 type="number"
                 className="form-control"
+                placeholder="Enter port number"
                 value={ethDetails.connectedPort}
                 onChange={(e) => setEthDetails({ ...ethDetails, connectedPort: e.target.value })}
               />
             </div>
-            <Button variant="primary" onClick={saveETHDetails}>
-              Save Details
+            
+            <Button variant="primary" onClick={saveETHDetails} className="save-btn">
+              Save Configuration
             </Button>
           </form>
-       
+        </Modal.Body>
       </Modal>
     </>
   )

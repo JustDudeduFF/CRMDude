@@ -1,0 +1,521 @@
+/* SYOLT.css - Enhanced styling for OLT device component */
+
+.olt-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 35px;
+  padding: 20px;
+}
+
+.olt-device-panel {
+  background: linear-gradient(145deg, #2c3e50, #34495e);
+  border: 2px solid #34495e;
+  border-radius: 20px;
+  padding: 25px;
+  min-width: 900px;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.olt-device-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3498db, #2ecc71, #f39c12, #e74c3c);
+  border-radius: 20px 20px 0 0;
+}
+
+/* Device Info Header */
+.device-info-header {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.device-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.device-brand {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ecf0f1;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.device-model {
+  font-size: 14px;
+  font-weight: 600;
+  color: #bdc3c7;
+}
+
+.device-serial {
+  font-size: 12px;
+  color: #95a5a6;
+  font-family: 'Courier New', monospace;
+}
+
+.device-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.power-led {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #95a5a6;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.power-led.active {
+  background: #2ecc71;
+  box-shadow: 
+    0 0 10px #2ecc71,
+    0 0 20px rgba(46, 204, 113, 0.5);
+  animation: pulse 2s infinite;
+}
+
+.led-label {
+  font-size: 10px;
+  color: #bdc3c7;
+  font-weight: 600;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Ports Container */
+.ports-container {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.port-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-height: 120px;
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #bdc3c7;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 5px 10px;
+  background: rgba(52, 73, 94, 0.8);
+  border-radius: 20px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ports-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.port-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid transparent;
+}
+
+.port-item:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(52, 152, 219, 0.5);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.port-item.connected {
+  background: rgba(46, 204, 113, 0.2);
+  border-color: #2ecc71;
+}
+
+.port-item.disconnected {
+  background: rgba(127, 140, 141, 0.1);
+  border-color: rgba(127, 140, 141, 0.3);
+}
+
+.port-image {
+  width: 24px;
+  height: 24px;
+  transition: all 0.3s ease;
+}
+
+.port-image.rotated {
+  transform: rotate(180deg);
+}
+
+.port-number {
+  font-size: 9px;
+  font-weight: 600;
+  color: #ecf0f1;
+  text-align: center;
+  min-width: 30px;
+  font-family: 'Courier New', monospace;
+}
+
+.port-number.top {
+  order: -1;
+}
+
+.port-number.bottom {
+  order: 1;
+}
+
+.connection-indicator {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  background: #2ecc71;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #2ecc71;
+  animation: pulse 2s infinite;
+}
+
+/* PON Section */
+.pon-section {
+  flex: 2;
+}
+
+.pon-port {
+  min-width: 35px;
+}
+
+/* SFP Section */
+.sfp-section {
+  flex: 1.5;
+}
+
+.sfp-slot {
+  width: 35px;
+  height: 35px;
+  background: #34495e;
+  border-radius: 4px;
+  border: 2px solid #2c3e50;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.sfp-port.connected .sfp-slot {
+  background: #27ae60;
+  border-color: #2ecc71;
+  box-shadow: 
+    0 0 10px rgba(46, 204, 113, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.sfp-port.disconnected .sfp-slot {
+  background: #7f8c8d;
+  border-color: #95a5a6;
+}
+
+/* Ethernet Section */
+.ethernet-section {
+  flex: 2;
+}
+
+.ethernet-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ethernet-container.single-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.ethernet-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.ethernet-port {
+  min-width: 30px;
+}
+
+/* Management Section */
+.management-section {
+  flex: 0.8;
+}
+
+.mgmt-ports {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.mgmt-port {
+  background: rgba(155, 89, 182, 0.2);
+  border-color: #9b59b6;
+}
+
+.mgmt-port:hover {
+  background: rgba(155, 89, 182, 0.3);
+  border-color: #8e44ad;
+}
+
+/* Custom Modal Styles */
+.custom-modal .modal-content {
+  background: linear-gradient(145deg, #2c3e50, #34495e);
+  border: none;
+  border-radius: 15px;
+  color: #ecf0f1;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.custom-modal .modal-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(52, 73, 94, 0.8);
+  border-radius: 15px 15px 0 0;
+}
+
+.custom-modal .modal-title {
+  color: #ecf0f1;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.custom-modal .btn-close {
+  filter: invert(1);
+  opacity: 0.8;
+}
+
+.custom-modal .btn-close:hover {
+  opacity: 1;
+}
+
+.modal-form {
+  padding: 10px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #bdc3c7;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.form-control,
+.form-select {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #ecf0f1;
+  padding: 12px 15px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.form-control:focus,
+.form-select:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #3498db;
+  box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+  color: #ecf0f1;
+  outline: none;
+}
+
+.form-control::placeholder {
+  color: #95a5a6;
+}
+
+.form-select option {
+  background: #2c3e50;
+  color: #ecf0f1;
+}
+
+.save-btn {
+  background: linear-gradient(145deg, #3498db, #2980b9);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 25px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.save-btn:hover {
+  background: linear-gradient(145deg, #2980b9, #21618c);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+}
+
+.save-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .olt-device-panel {
+    min-width: 800px;
+    padding: 20px;
+  }
+  
+  .ports-container {
+    gap: 20px;
+  }
+}
+
+@media (max-width: 992px) {
+  .olt-device-panel {
+    min-width: 700px;
+    padding: 15px;
+  }
+  
+  .ports-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+  }
+  
+  .port-section {
+    width: 100%;
+    max-width: 600px;
+  }
+  
+  .ports-grid {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .olt-container {
+    padding: 10px;
+    margin-top: 20px;
+  }
+  
+  .olt-device-panel {
+    min-width: 500px;
+    padding: 15px;
+  }
+  
+  .device-info-header {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  
+  .ports-container {
+    padding: 15px;
+    gap: 20px;
+  }
+  
+  .section-label {
+    font-size: 10px;
+  }
+  
+  .port-item {
+    padding: 6px;
+  }
+  
+  .port-image {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .port-number {
+    font-size: 8px;
+  }
+}
+
+/* Dark theme enhancements */
+.olt-device-panel {
+  backdrop-filter: blur(10px);
+}
+
+.port-item:hover {
+  backdrop-filter: blur(5px);
+}
+
+/* Animation for port status changes */
+.port-item.connected .connection-indicator {
+  animation: pulse 2s infinite, fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Accessibility improvements */
+.port-item:focus {
+  outline: 2px solid #3498db;
+  outline-offset: 2px;
+}
+
+.custom-modal .form-control:focus,
+.custom-modal .form-select:focus {
+  box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.5);
+}
+
+/* Print styles */
+@media print {
+  .olt-container {
+    margin: 0;
+    padding: 0;
+  }
+  
+  .olt-device-panel {
+    background: white;
+    color: black;
+    box-shadow: none;
+    border: 2px solid black;
+  }
+  
+  .connection-indicator {
+    background: black !important;
+    box-shadow: none !important;
+  }
+}

@@ -86,7 +86,7 @@
 /* Responsive Design */
 @media (max-width: 1200px) {
   .inventory-table-container {
-    padding: 15px;
+    padding: 0px;
   }
   
   .inventory-table-title {
@@ -101,7 +101,7 @@
 
 @media (max-width: 768px) {
   .inventory-table-container {
-    padding: 10px;
+    padding: 0px;
   }
   
   .inventory-table-header {
@@ -134,7 +134,7 @@
 
 @media (max-width: 480px) {
   .inventory-table-container {
-    padding: 5px;
+    padding: 0px;
   }
   
   .inventory-table-title {
@@ -150,3 +150,4 @@
     font-size: 0.75rem;
   }
 }
+

@@ -100,6 +100,8 @@ export default function AddInventory() {
       toast.error("Please fill all required fields", { autoClose: 3000 });
       return;
     }
+
+    console.log(deviceInfo)
     try {
       const payload = {
         ...deviceInfo,

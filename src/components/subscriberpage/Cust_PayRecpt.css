@@ -1,163 +1,171 @@
-/* Cust_PayRecpt Component Professional Styling */
+/* Cust_PayRecpt Component - Professional Gradient Color Scheme */
+
 .cust-pay-receipt-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
+display: flex;
+flex-direction: column;
+height: 100%;
+background: rgba(255, 255, 255, 0.95);
+border-radius: 15px;
+padding: 20px;
+box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+backdrop-filter: blur(10px);
 }
 
 .cust-pay-receipt-header {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 2px solid rgba(138, 191, 211, 0.2);
+display: flex;
+flex-direction: row;
+align-items: center;
+justify-content: space-between;
+margin-bottom: 20px;
+padding-bottom: 15px;
+border-bottom: 2px solid rgba(30, 64, 175, 0.2); /* Primary border */
 }
 
 .cust-pay-receipt-title {
-  flex: 2;
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #8abfd3;
-  margin: 0;
+flex: 2;
+font-size: 1.8rem;
+font-weight: 700;
+background: linear-gradient(90deg, #1e3a8a, #1e40af);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+margin: 0;
 }
 
 .cust-pay-receipt-actions {
-  flex: 4;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 15px;
+flex: 4;
+display: flex;
+justify-content: flex-end;
+align-items: center;
+gap: 15px;
 }
 
 .cust-pay-receipt-btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
+padding: 10px 20px;
+border: none;
+border-radius: 8px;
+font-weight: 500;
+cursor: pointer;
+transition: all 0.3s ease;
+font-size: 0.9rem;
+position: relative;
+overflow: hidden;
 }
 
+/* Success Outline Button */
 .cust-pay-receipt-btn-outline-success {
-  background: transparent;
-  color: #28a745;
-  border: 2px solid #28a745;
+background: transparent;
+color: #059669;
+border: 2px solid #059669;
 }
 
 .cust-pay-receipt-btn-outline-success:hover {
-  background: #28a745;
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+background: linear-gradient(135deg, #059669, #10b981);
+color: #ffffff;
+transform: translateY(-2px);
+box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
 }
 
+/* Link/Action Button (Navy to Royal Gradient) */
 .link-pay-receipt-btn-outline-success {
-  background: transparent;
-  color: #283ba7;
-  border: 2px solid #2a28a7;
+background: transparent;
+color: #1e3a8a;
+border: 2px solid #3b82f6;
 }
 
 .link-pay-receipt-btn-outline-success:hover {
-  background: #283fa7;
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(40, 59, 167, 0.3);
+background: linear-gradient(135deg, #1e3a8a, #1e40af);
+color: #ffffff;
+transform: translateY(-2px);
+box-shadow: 0 4px 15px rgba(30, 64, 175, 0.4);
 }
 
+/* Download Icon */
 .cust-pay-receipt-download-icon {
-  width: 32px;
-  height: 32px;
-  cursor: pointer;
-  transition: transform 0.3s ease, filter 0.3s ease;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+width: 32px;
+height: 32px;
+cursor: pointer;
+transition: transform 0.3s ease, filter 0.3s ease;
+filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .cust-pay-receipt-download-icon:hover {
-  transform: translateY(-2px);
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+transform: translateY(-2px);
+filter: drop-shadow(0 4px 8px rgba(30, 64, 175, 0.4));
 }
 
+/* Content Section */
 .cust-pay-receipt-content {
-  flex: 9;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+flex: 9;
+background: #ffffff;
+border-radius: 10px;
+box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+overflow: hidden;
 }
 
 /* Responsive Design */
 @media (max-width: 1200px) {
-  .cust-pay-receipt-container {
-    padding: 15px;
-  }
-  
-  .cust-pay-receipt-title {
-    font-size: 1.5rem;
-  }
-  
-  .cust-pay-receipt-btn {
-    padding: 8px 16px;
-    font-size: 0.8rem;
-  }
+.cust-pay-receipt-container {
+padding: 15px;
+}
+
+.cust-pay-receipt-title {
+font-size: 1.5rem;
+}
+
+.cust-pay-receipt-btn {
+padding: 8px 16px;
+font-size: 0.8rem;
+}
 }
 
 @media (max-width: 768px) {
-  .cust-pay-receipt-container {
-    padding: 10px;
-  }
-  
-  .cust-pay-receipt-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-  }
-  
-  .cust-pay-receipt-title {
-    flex: none;
-    width: 100%;
-  }
-  
-  .cust-pay-receipt-actions {
-    flex: none;
-    width: 100%;
-    justify-content: flex-start;
-  }
-  
-  .cust-pay-receipt-btn {
-    padding: 8px 12px;
-    font-size: 0.8rem;
-  }
-  
-  .cust-pay-receipt-download-icon {
-    width: 28px;
-    height: 28px;
-  }
+.cust-pay-receipt-container {
+padding: 10px;
+}
+
+.cust-pay-receipt-header {
+flex-direction: column;
+align-items: flex-start;
+gap: 15px;
+}
+
+.cust-pay-receipt-title {
+flex: none;
+width: 100%;
+}
+
+.cust-pay-receipt-actions {
+flex: none;
+width: 100%;
+justify-content: flex-start;
+}
+
+.cust-pay-receipt-btn {
+padding: 8px 12px;
+font-size: 0.8rem;
+}
+
+.cust-pay-receipt-download-icon {
+width: 28px;
+height: 28px;
+}
 }
 
 @media (max-width: 480px) {
-  .cust-pay-receipt-container {
-    padding: 5px;
-  }
-  
-  .cust-pay-receipt-title {
-    font-size: 1.3rem;
-  }
-  
-  .cust-pay-receipt-actions {
-    gap: 10px;
-  }
-  
-  .cust-pay-receipt-btn {
-    padding: 6px 10px;
-    font-size: 0.75rem;
-  }
+.cust-pay-receipt-container {
+padding: 5px;
 }
 
+.cust-pay-receipt-title {
+font-size: 1.3rem;
+}
+
+.cust-pay-receipt-actions {
+gap: 10px;
+}
+
+.cust-pay-receipt-btn {
+padding: 6px 10px;
+font-size: 0.75rem;
+}
+}

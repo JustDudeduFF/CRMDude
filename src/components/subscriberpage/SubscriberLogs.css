@@ -20,7 +20,7 @@
 .subscriber-logs-title {
   font-size: 1.8rem;
   font-weight: 700;
-  color: #8abfd3;
+  color: #1e3a8a ;
   margin: 0;
 }
 
@@ -39,7 +39,7 @@
 }
 
 .subscriber-logs-table thead {
-  background: linear-gradient(135deg, #8abfd3 0%, #78d6f5 100%);
+  background: linear-gradient(90deg, #1e3a8a 0%, #1e40af 100%);
   color: white;
 }
 

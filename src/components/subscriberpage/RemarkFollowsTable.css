@@ -24,7 +24,7 @@
 }
 
 .remark-follows-table thead {
-  background: linear-gradient(135deg, #8abfd3 0%, #78d6f5 100%);
+  background: linear-gradient(90deg, #1e3a8a 0%, #1e40af 100%);
   color: white;
 }
 
@@ -38,11 +38,12 @@
 
 .remark-follows-table tbody tr {
   border-bottom: 1px solid #e9ecef;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .remark-follows-table tbody tr:hover {
   background-color: rgba(138, 191, 211, 0.05);
+  transform: translateY(-1px);
 }
 
 .remark-follows-table tbody tr:last-child {
@@ -55,6 +56,7 @@
   color: #333;
 }
 
+/* Row Status Colors */
 .remark-follows-table tbody tr.table-danger {
   background-color: rgba(220, 53, 69, 0.1);
   border-left: 4px solid #dc3545;
@@ -69,19 +71,20 @@
   color: #8abfd3;
   cursor: pointer;
   font-weight: bold;
-  transition: color 0.3s ease;
+  transition: color 0.3s ease, transform 0.2s ease;
 }
 
 .remark-follows-action-id:hover {
   color: #6bb0c8;
+  transform: translateY(-1px);
 }
 
 .remark-follows-action-id.follow-up {
-  color: #8abfd3;
+  color: #17a2b8;
 }
 
 .remark-follows-action-id.non-modifiable {
-  color: #333;
+  color: #6c757d;
   cursor: default;
 }
 
@@ -124,5 +127,10 @@
   .remark-follows-container {
     padding: 5px;
   }
+  
+  .remark-follows-table th,
+  .remark-follows-table td {
+    font-size: 0.75rem;
+    padding: 6px 4px;
+  }
 }
-

@@ -1,4 +1,4 @@
-/* PaymetTable Component Professional Styling */
+/* PaymentTable Component Professional Styling */
 .payment-table-container {
   display: flex;
   flex-direction: column;
@@ -24,7 +24,7 @@
 }
 
 .payment-table thead {
-  background: linear-gradient(135deg, #8abfd3 0%, #78d6f5 100%);
+  background: linear-gradient(90deg, #1e3a8a 0%, #1e40af 100%);
   color: white;
 }
 
@@ -50,19 +50,20 @@
   border-bottom: none;
 }
 
-.payment-table tbody tr.table-success{
-    background-color: rgba(40, 167, 69, 0.1);
-    border-left: 4px solid #28a745;
+/* Row status colors */
+.payment-table tbody tr.table-success {
+  background-color: rgba(40, 167, 69, 0.1);
+  border-left: 4px solid #28a745;
 }
 
-.payment-table tbody tr.table-danger{
-    background-color: rgba(220, 53, 69, 0.1);
-    border-left: 4px solid #dc3545;
+.payment-table tbody tr.table-danger {
+  background-color: rgba(220, 53, 69, 0.1);
+  border-left: 4px solid #dc3545;
 }
 
-.payment-table tbody tr.table-secondary{
-    background-color: rgba(108, 117, 125, 0.1);
-    border-left: 4px solid #6c757d;
+.payment-table tbody tr.table-secondary {
+  background-color: rgba(108, 117, 125, 0.1);
+  border-left: 4px solid #6c757d;
 }
 
 .payment-table td {
@@ -93,30 +94,21 @@
   color: #dc3545;
 }
 
-.payment-loading {
+/* Loading and no data states */
+.payment-loading,
+.payment-no-data {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
   color: #8abfd3;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 .payment-loading-spinner {
   margin-bottom: 15px;
-}
-
-.payment-loading-text {
-  font-size: 1rem;
-  font-weight: 500;
-}
-
-.payment-no-data {
-  text-align: center;
-  padding: 60px 20px;
-  color: #6c757d;
-  font-size: 1rem;
-  font-weight: 500;
 }
 
 /* Modal Styling */
@@ -127,7 +119,7 @@
 }
 
 .payment-modal .modal-header {
-  background: linear-gradient(135deg, #8abfd3 0%, #78d6f5 100%);
+  background: linear-gradient(90deg, #1e3a8a 0%, #1e40af 100%);
   color: white;
   border-radius: 15px 15px 0 0;
   border-bottom: none;
@@ -146,6 +138,7 @@
   padding: 20px 25px;
 }
 
+/* Form Styling */
 .payment-form-label {
   font-weight: 600;
   color: #8abfd3;
@@ -167,6 +160,7 @@
   outline: none;
 }
 
+/* Buttons */
 .payment-btn {
   padding: 8px 16px;
   border: none;
@@ -177,7 +171,7 @@
 }
 
 .payment-btn-primary {
-  background: linear-gradient(135deg, #8abfd3 0%, #78d6f5 100%);
+  background: linear-gradient(90deg, #1e3a8a 0%, #1e40af 100%);
   color: white;
 }
 
@@ -251,4 +245,3 @@
     padding: 15px;
   }
 }
-

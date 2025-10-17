@@ -1,7 +1,7 @@
-/* Professional Navbar Styling - Sky Blue & White Theme */
+/* Professional Navbar Styling - Corporate Blue Theme */
 .navbar {
-  background: linear-gradient(135deg, #78d6f5 0%, #caeffd 100%) !important;
-  box-shadow: 0 4px 20px rgba(138, 191, 211, 0.2);
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%) !important;
+  box-shadow: 0 4px 20px rgba(30, 58, 138, 0.3);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   padding: 10px 20px;
@@ -12,8 +12,8 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-size: 2rem;
   font-weight: 700;
-  color: rgb(27, 7, 204) !important;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  color: #ffffff !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
 }
 
@@ -138,16 +138,16 @@
 }
 
 .user-name {
-  color: black;
+  color: #ffffff;
   font-weight: 600;
   font-size: 0.9rem;
   margin: 0;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .user-designation {
-  color: rgba(27, 203, 235, 0.8);
-  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
   margin: 0;
   font-weight: 500;
 }
@@ -181,7 +181,7 @@
   backdrop-filter: blur(10px);
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(138, 191, 211, 0.1);
+  border: 1px solid rgba(30, 64, 175, 0.1);
   padding: 20px;
   height: 350px;
   z-index: 1000;
@@ -199,11 +199,11 @@
 }
 
 .search-results .table th {
-  background: #f8fafc;
-  color: #1e293b;
+  background: #1e40af;
+  color: #ffffff;
   padding: 16px 12px;
   font-weight: 700;
-  border-bottom: 3px solid #8abfd3;
+  border-bottom: 3px solid #3b82f6;
   position: sticky;
   top: 0;
   z-index: 1;
@@ -237,12 +237,12 @@
 }
 
 .search-loading .spinner-border {
-  color: #8abfd3;
+  color: #1e40af;
 }
 
 /* Modal Styling */
 .modal-header {
-  background: linear-gradient(135deg, #6ed3f8 0%, #13bafc 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   color: white;
   border-radius: 8px 8px 0 0;
   padding: 20px;
@@ -262,7 +262,7 @@
   color: #1e293b;
   padding: 16px 12px;
   font-weight: 700;
-  border-bottom: 3px solid #8abfd3;
+  border-bottom: 3px solid #3b82f6;
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -283,13 +283,13 @@
 }
 
 .modal .form-select:focus {
-  border-color: #8abfd3;
+  border-color: #3b82f6;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(138, 191, 211, 0.1);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .modal .btn-primary {
-  background: linear-gradient(135deg, #8abfd3 0%, #6ba8c0 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   border: none;
   border-radius: 8px;
   padding: 8px 16px;
@@ -299,7 +299,7 @@
 
 .modal .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(138, 191, 211, 0.3);
+  box-shadow: 0 4px 15px rgba(30, 64, 175, 0.3);
 }
 
 /* Excel Download Icon */
@@ -388,7 +388,7 @@
   height: 100vh;
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(138, 191, 211, 0.2);
+  border-right: 1px solid rgba(30, 64, 175, 0.2);
   box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
   z-index: 1050;
   transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -404,8 +404,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  border-bottom: 2px solid rgba(138, 191, 211, 0.2);
-  background: linear-gradient(135deg, #8abfd3 0%, #6ba8c0 100%);
+  border-bottom: 2px solid rgba(30, 64, 175, 0.2);
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
   color: white;
 }
 

@@ -6,15 +6,16 @@
   background: rgba(255, 255, 255, 0.95);
   border-radius: 15px;
   padding: 0px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(30, 64, 175, 0.15);
   backdrop-filter: blur(10px);
 }
 
 .inventory-table-wrapper {
   overflow-x: auto;
-  background: white;
+  background: #ffffff;
   border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 15px rgba(30, 64, 175, 0.1);
+  border: 1px solid rgba(30, 58, 138, 0.1);
 }
 
 .inventory-table {
@@ -24,8 +25,8 @@
 }
 
 .inventory-table thead {
-  background: linear-gradient(135deg, #8abfd3 0%, #78d6f5 100%);
-  color: white;
+  background: linear-gradient(90deg, #1e3a8a 0%, #1e40af 100%);
+  color: #ffffff;
 }
 
 .inventory-table th {
@@ -35,15 +36,17 @@
   font-size: 0.9rem;
   border: none;
   white-space: nowrap;
+  letter-spacing: 0.3px;
 }
 
 .inventory-table tbody tr {
-  border-bottom: 1px solid #e9ecef;
-  transition: background-color 0.3s ease;
+  border-bottom: 1px solid #e2e8f0;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .inventory-table tbody tr:hover {
-  background-color: rgba(138, 191, 211, 0.05);
+  background-color: rgba(30, 64, 175, 0.05);
+  box-shadow: inset 4px 0 0 rgba(30, 64, 175, 0.3);
 }
 
 .inventory-table tbody tr:last-child {
@@ -53,19 +56,19 @@
 .inventory-table td {
   padding: 12px;
   font-size: 0.9rem;
-  color: #333;
+  color: #1e293b;
   white-space: nowrap;
 }
 
 .inventory-mac-address {
-  color: #8abfd3;
+  color: #1e40af;
   cursor: pointer;
   font-weight: 600;
   transition: color 0.3s ease;
 }
 
 .inventory-mac-address:hover {
-  color: #6bb0c8;
+  color: #1e50c0;
 }
 
 .inventory-amount {
@@ -93,11 +96,11 @@
 .inventory-modal .modal-content {
   border-radius: 15px;
   border: none;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 30px rgba(30, 64, 175, 0.2);
 }
 
 .inventory-modal .modal-header {
-  background: linear-gradient(135deg, #8abfd3 0%, #78d6f5 100%);
+  background: linear-gradient(90deg, #1e3a8a 0%, #1e40af 100%);
   color: white;
   border-radius: 15px 15px 0 0;
   border-bottom: none;
@@ -112,19 +115,19 @@
 }
 
 .inventory-modal .modal-footer {
-  border-top: 1px solid #e9ecef;
+  border-top: 1px solid #e2e8f0;
   padding: 20px 25px;
 }
 
 .inventory-form-label {
   font-weight: 600;
-  color: #8abfd3;
+  color: #1e40af;
   margin-bottom: 8px;
   font-size: 0.9rem;
 }
 
 .inventory-form-control {
-  border: 2px solid #e9ecef;
+  border: 2px solid #e2e8f0;
   border-radius: 8px;
   padding: 10px 15px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
@@ -132,8 +135,8 @@
 }
 
 .inventory-form-control:focus {
-  border-color: #8abfd3;
-  box-shadow: 0 0 0 0.2rem rgba(138, 191, 211, 0.25);
+  border-color: #1e40af;
+  box-shadow: 0 0 0 0.2rem rgba(30, 64, 175, 0.25);
   outline: none;
 }
 
@@ -147,14 +150,14 @@
 }
 
 .inventory-btn-primary {
-  background: linear-gradient(135deg, #8abfd3 0%, #78d6f5 100%);
+  background: linear-gradient(90deg, #1e3a8a 0%, #1e40af 100%);
   color: white;
 }
 
 .inventory-btn-primary:hover {
-  background: linear-gradient(135deg, #78d6f5 0%, #8abfd3 100%);
+  background: linear-gradient(90deg, #1e40af 0%, #1e3a8a 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(138, 191, 211, 0.3);
+  box-shadow: 0 4px 15px rgba(30, 64, 175, 0.3);
 }
 
 .inventory-btn-outline-secondary {
@@ -210,4 +213,3 @@
     padding: 15px;
   }
 }
-

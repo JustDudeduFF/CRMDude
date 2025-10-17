@@ -1,13 +1,14 @@
-/* AddNewDoc Component Professional Styling */
+/* AddNewDoc Component — Professional Blue Theme */
 .add-new-doc-container {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.95); /* Card/Panel Background */
   border-radius: 15px;
   padding: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(30, 64, 175, 0.15);
   backdrop-filter: blur(10px);
+  border: 1px solid rgba(30, 64, 175, 0.1);
 }
 
 .add-new-doc-form {
@@ -18,6 +19,7 @@
   margin: 0 auto;
 }
 
+/* Label Styling */
 .add-new-doc-form-group {
   display: flex;
   flex-direction: column;
@@ -26,47 +28,38 @@
 
 .add-new-doc-form-label {
   font-weight: 600;
-  color: #8abfd3;
+  color: #1e40af; /* Primary color tone */
   font-size: 0.9rem;
   margin-bottom: 4px;
 }
 
-.add-new-doc-form-select {
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  padding: 10px 15px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  font-size: 0.9rem;
-  background: white;
-}
-
-.add-new-doc-form-select:focus {
-  border-color: #8abfd3;
-  box-shadow: 0 0 0 0.2rem rgba(138, 191, 211, 0.25);
-  outline: none;
-}
-
+/* Inputs & Selects */
+.add-new-doc-form-select,
 .add-new-doc-form-control {
-  border: 2px solid #e9ecef;
+  border: 1px solid #e2e8f0; /* Secondary Border */
   border-radius: 8px;
   padding: 10px 15px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
   font-size: 0.9rem;
-  background: white;
+  background: #ffffff; /* Main background */
+  color: #1e293b; /* Secondary Text */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+.add-new-doc-form-select:focus,
 .add-new-doc-form-control:focus {
-  border-color: #8abfd3;
-  box-shadow: 0 0 0 0.2rem rgba(138, 191, 211, 0.25);
+  border-color: #3b82f6; /* Secondary (Royal Blue) */
+  box-shadow: 0 0 0 0.15rem rgba(59, 130, 246, 0.25);
   outline: none;
 }
 
+/* File Info (Error or Notice) */
 .add-new-doc-file-info {
-  color: #dc3545;
+  color: #dc2626; /* Error/Danger */
   font-size: 0.8rem;
   margin-top: 4px;
 }
 
+/* Buttons */
 .add-new-doc-btn {
   padding: 10px 20px;
   border: none;
@@ -78,19 +71,34 @@
   margin-top: 10px;
 }
 
+/* Primary Button */
+.add-new-doc-btn-primary {
+  background: linear-gradient(90deg, #1e3a8a, #1e40af);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(30, 64, 175, 0.2);
+}
+
+.add-new-doc-btn-primary:hover:not(:disabled) {
+  background: #3b82f6; /* Secondary Color */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.3);
+}
+
+/* Outline Button */
 .add-new-doc-btn-outline-secondary {
   background: transparent;
-  color: #6c757d;
-  border: 2px solid #6c757d;
+  color: #1e293b; /* Secondary Text */
+  border: 2px solid #e2e8f0; /* Secondary Border */
 }
 
 .add-new-doc-btn-outline-secondary:hover:not(:disabled) {
-  background: #6c757d;
-  color: white;
+  background: #3b82f6;
+  color: #ffffff;
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
+/* Disabled State */
 .add-new-doc-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -102,7 +110,6 @@
   .add-new-doc-container {
     padding: 15px;
   }
-  
   .add-new-doc-form {
     max-width: 450px;
   }
@@ -112,12 +119,10 @@
   .add-new-doc-container {
     padding: 10px;
   }
-  
   .add-new-doc-form {
     max-width: 100%;
     gap: 15px;
   }
-  
   .add-new-doc-btn {
     padding: 8px 16px;
     font-size: 0.8rem;
@@ -128,14 +133,11 @@
   .add-new-doc-container {
     padding: 5px;
   }
-  
   .add-new-doc-form {
     gap: 12px;
   }
-  
   .add-new-doc-btn {
     padding: 6px 12px;
     font-size: 0.75rem;
   }
 }
-

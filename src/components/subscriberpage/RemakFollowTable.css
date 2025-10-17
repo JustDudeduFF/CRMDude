@@ -1,4 +1,4 @@
-/* RemakFollowTable Component Professional Styling */
+/* RemarkFollowTable Component Professional Styling */
 .remark-follow-table-container {
   display: flex;
   flex-direction: column;
@@ -24,7 +24,7 @@
   flex: 2;
   font-size: 1.8rem;
   font-weight: 700;
-  color: #8abfd3;
+  color: #1e3a8a;
   margin: 0;
 }
 
@@ -36,6 +36,7 @@
   gap: 15px;
 }
 
+/* Buttons */
 .remark-follow-table-btn {
   padding: 10px 20px;
   border: none;
@@ -59,7 +60,6 @@
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);
-  text-decoration: none;
 }
 
 .remark-follow-table-btn-outline-primary {
@@ -73,9 +73,9 @@
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
-  text-decoration: none;
 }
 
+/* Download icon */
 .remark-follow-table-download-icon {
   width: 32px;
   height: 32px;
@@ -89,6 +89,7 @@
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
 }
 
+/* Table content container */
 .remark-follow-table-content {
   flex: 10;
   background: white;
@@ -164,4 +165,3 @@
     font-size: 0.75rem;
   }
 }
-

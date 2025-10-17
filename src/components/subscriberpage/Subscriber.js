@@ -698,7 +698,7 @@ export default function Subscriber() {
                   </div>
 
                   <div className="subscriber-coins-section">
-                    <span>Sigma Coins Balance :- </span>
+                    <span>Tokens Balance :- </span>
                   </div>
                 </div>
               </div>

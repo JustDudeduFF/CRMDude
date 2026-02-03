@@ -44,12 +44,17 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
+"eslintConfig": {
+  "extends": [
+    "react-app",
+    "react-app/jest"
+  ],
+  "rules": {
+    "react-hooks/exhaustive-deps": "warn",
+    "no-unused-vars": "warn",
+    "react/jsx-pascal-case": "warn"
+  }
+},
   "browserslist": {
     "production": [
       ">0.2%",

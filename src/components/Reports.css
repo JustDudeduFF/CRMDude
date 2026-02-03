@@ -29,7 +29,7 @@
 .reports-title {
   color: #1e293b;
   font-weight: 700;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   margin: 0;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -113,7 +113,7 @@
 .reports-item-title {
   color: #1e293b;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.2rem;
   margin: 0;
   text-decoration: underline;
   text-decoration-color: #8abfd3;
@@ -129,7 +129,7 @@
   margin-top: 8px;
   color: #64748b;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 1rem;
 
   background: rgba(138, 191, 211, 0.1);
   padding: 6px 12px;
@@ -179,14 +179,46 @@
   color: #64748b;
   font-weight: 500;
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
 }
 
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+  .reports-container {
+    padding: 4% 0 20px 0;
+  }
+  
+  .reports-content {
+    padding: 0 15px;
+  }
+  
+  .reports-layout {
+    height: 75vh;
+  }
+  
+  .reports-header {
+    padding: 20px;
+  }
+  
+  .reports-title {
+    font-size: 1.5rem;
+  }
+}
+
 @media (max-width: 768px) {
+  .reports-container {
+    padding: 8% 0 20px 0;
+  }
+  
   .reports-content {
     padding: 0 10px;
+    gap: 15px;
+  }
+  
+  .reports-header {
+    padding: 16px;
+    border-radius: 12px;
   }
   
   .reports-layout {
@@ -198,6 +230,7 @@
     flex: none;
     height: auto;
     max-height: 300px;
+    padding: 16px;
   }
   
   .reports-sidebar-hidden {
@@ -215,7 +248,7 @@
   }
   
   .reports-title {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
   }
   
   .reports-list-item {
@@ -223,12 +256,74 @@
   }
   
   .reports-item-title {
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
   
   .reports-item-value {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     padding: 4px 8px;
+  }
+  
+  .reports-loading-container {
+    padding: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .reports-container {
+    padding: 12% 0 15px 0;
+  }
+  
+  .reports-content {
+    padding: 0 8px;
+    gap: 12px;
+  }
+  
+  .reports-header {
+    padding: 12px;
+    border-radius: 10px;
+  }
+  
+  .reports-title {
+    font-size: 1.2rem;
+  }
+  
+  .reports-sidebar {
+    padding: 12px;
+    border-radius: 12px;
+    max-height: 250px;
+  }
+  
+  .reports-list-item {
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+  
+  .reports-item-title {
+    font-size: 0.95rem;
+  }
+  
+  .reports-item-value {
+    font-size: 0.85rem;
+    padding: 3px 6px;
+  }
+  
+  .reports-main-content {
+    min-height: 350px;
+    border-radius: 12px;
+  }
+  
+  .reports-loading-container {
+    padding: 20px;
+  }
+  
+  .reports-loading-spinner {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  
+  .reports-loading-text {
+    font-size: 1rem;
   }
 }
 

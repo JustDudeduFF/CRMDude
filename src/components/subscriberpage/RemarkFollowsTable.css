@@ -32,7 +32,7 @@
   padding: 15px 12px;
   text-align: left;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   border: none;
 }
 
@@ -52,7 +52,7 @@
 
 .remark-follows-table td {
   padding: 12px;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   color: #333;
 }
 
@@ -92,7 +92,7 @@
   text-align: center;
   padding: 60px 20px;
   color: #6c757d;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 500;
 }
 
@@ -105,7 +105,7 @@
   .remark-follows-table th,
   .remark-follows-table td {
     padding: 8px 6px;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
   }
 }
 
@@ -130,7 +130,10 @@
   
   .remark-follows-table th,
   .remark-follows-table td {
-    font-size: 0.75rem;
+    font-size: 0.9rem;
     padding: 6px 4px;
   }
 }
+
+
+

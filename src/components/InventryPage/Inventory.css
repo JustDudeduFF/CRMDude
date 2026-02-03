@@ -14,7 +14,7 @@
 }
 
 .inventory-header h1 {
-  font-size: 24px;
+  font-size: 1.5rem;
   background: linear-gradient(90deg, #1e3a8a, #1e40af);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -42,7 +42,7 @@
 }
 
 .stat-card p {
-  font-size: 12px;
+  font-size: 0.8rem;
   color: #1e293b; /* Secondary Text */
 }
 
@@ -92,7 +92,7 @@
 
 .product-header h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: 1.1rem;
   color: #1e293b; /* Secondary Text */
   font-weight: 600;
 }
@@ -100,7 +100,7 @@
 .status-badge {
   padding: 4px 10px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 0.8rem;
   text-transform: capitalize;
   font-weight: 500;
   color: #1e293b;
@@ -127,7 +127,7 @@
 
 .product-details p {
   margin: 5px 0;
-  font-size: 14px;
+  font-size: 0.9rem;
   color: #1e293b;
 }
 
@@ -147,7 +147,7 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 0.85rem;
   font-weight: 500;
 }
 
@@ -205,7 +205,7 @@
 
 .form-group label {
   margin-bottom: 5px;
-  font-size: 13px;
+  font-size: 0.85rem;
   color: #1e293b;
   font-weight: 500;
 }
@@ -265,5 +265,5 @@
   text-align: center;
   padding: 20px;
   color: #64748b;
-  font-size: 14px;
+  font-size: 0.9rem;
 }

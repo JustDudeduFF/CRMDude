@@ -1,18 +1,65 @@
-.custom-list{
-    list-style-type: none;
-    padding: 0;
+/* Full screen invisible overlay to catch clicks and blur bg */
+.crm-profile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1999;
+  background: rgba(0, 0, 0, 0.05); /* Very light tint */
+  backdrop-filter: blur(4px); /* Glassmorphism effect */
+  animation: fadeIn 0.2s ease;
 }
 
-.list-item{
-    display: flex;
-    align-items: center;
-    margin: 10px 0;
-    font-size: 15px;
-
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.icon{
-    margin-right: 10px;
-    width: 25px;
-    height: 25px;
+.crm-profile-fixed-card {
+  position: fixed; 
+  top: 70px; 
+  right: 1.5rem;
+  width: 230px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  z-index: 2000;
+  overflow: hidden;
+  animation: dropdownFade 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes dropdownFade {
+  from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Rest of the styles from previous step... */
+.crm-profile-list { padding: 8px; }
+
+.crm-profile-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #4a5568;
+}
+
+.crm-profile-item:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff !important;
+  transform: translateX(4px);
+}
+
+.logout-item:hover {
+  background: #ff4757 !important;
+}
+
+.crm-modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1.25rem;
 }

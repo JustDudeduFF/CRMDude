@@ -1,0 +1,26 @@
+/* App Wrapper for Responsive Layout */
+.app-wrapper {
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Ensure content doesn't overlap with fixed navbar */
+.app-wrapper > * {
+  position: relative;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .app-wrapper {
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-wrapper {
+    padding-top: 0;
+  }
+}
+

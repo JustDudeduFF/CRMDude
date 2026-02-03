@@ -1,76 +1,154 @@
-import React, { useState } from "react";
-import { Bar } from "react-chartjs-2"; // Import the Bar component
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from "chart.js";
-import DashExpandView from "./DashExpandView";
+import React, { useState, useEffect } from "react";
+import { Bar, Pie } from "react-chartjs-2";
+import { 
+  Chart as ChartJS, 
+  CategoryScale, 
+  LinearScale, 
+  BarElement, 
+  Title, 
+  Tooltip, 
+  Legend, 
+  ArcElement 
+} from "chart.js";
 
-// Register the necessary Chart.js components
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+// Register Pie chart component (ArcElement) along with others
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 const ExpiredUsersBarChart = ({ data, type, onBarClick }) => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  // Handle responsive resize for chart switching
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   // Sort labels (dates) in ascending order
   const sortedLabels = Object.keys(data).sort((dateA, dateB) => new Date(dateA) - new Date(dateB));
-
-  // Map sorted labels to their respective counts
   const sortedCounts = sortedLabels.map((label) => data[label]);
-  const [show, setshow] = useState(false);
-  const [datatype, setdatatype] = useState('');
+
+  // Color logic
+  const primaryColor = type === "expire" ? "#ef4444" : "#3b82f6";
+  const borderColor = type === "expire" ? "#b91c1c" : "#2563eb";
+  
+  // Generates different shades for Pie Chart slices
+  const generateColors = (count) => {
+    return sortedLabels.map((_, i) => `hsla(${type === "expire" ? 0 : 210}, 70%, ${50 + (i * 5)}%, 0.8)`);
+  };
 
   const chartData = {
-    labels: sortedLabels, // Use sorted dates as labels
+    labels: sortedLabels,
     datasets: [
       {
         label: type === "expire" ? "Expired Users" : "Upcoming Renewal",
-        data: sortedCounts, // Use counts corresponding to sorted labels
-        backgroundColor: type === "expire" ? "#ff073a" : "#9fb9e2", // Use red for bars
-        borderColor: type === "expire" ? "rgb(255, 0, 0)" : "rgb(62, 9, 209)", // Border color for the bars
+        data: sortedCounts,
+        backgroundColor: isMobile ? generateColors(sortedCounts.length) : primaryColor,
+        borderColor: isMobile ? "#fff" : borderColor,
         borderWidth: 1,
+        borderRadius: isMobile ? 0 : 6, // Rounded bars for desktop
       },
     ],
   };
 
-  const options = {
+  const commonOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         display: true,
-        position: "top",
+        position: isMobile ? "bottom" : "top",
+        labels: {
+          usePointStyle: true,
+          font: { size: 12, weight: '600' }
+        }
       },
       tooltip: {
-        enabled: true,
-      },
-    },
-    scales: {
-      x: {
-        title: {
-          display: true,
-          text: "Date",
-        },
-      },
-      y: {
-        title: {
-          display: true,
-          text: type === "expire" ? "Expired Users Count" : "Upcoming Renewal Count",
-        },
-        beginAtZero: true, // Start the y-axis from 0
+        backgroundColor: "#1e293b",
+        padding: 12,
+        titleFont: { size: 14 },
+        bodyFont: { size: 13 },
+        cornerRadius: 8,
       },
     },
     onClick: (event, elements) => {
       if (elements.length > 0 && onBarClick) {
-        const chartElement = elements[0]; // Get the clicked element
-        const index = chartElement.index;
-
-        const label = sortedLabels[index]; // Get the label of the clicked bar
-        onBarClick(label, index); 
-
-
-
+        const index = elements[0].index;
+        const label = sortedLabels[index];
+        onBarClick(label, index);
       }
     },
   };
 
-  return <div>
-    <Bar data={chartData} options={options} />
-  </div>; // Render the Bar chart
+  const barOptions = {
+    ...commonOptions,
+    scales: {
+      x: {
+        grid: { display: false },
+        title: { display: true, text: "Date", font: { weight: 'bold' } },
+      },
+      y: {
+        beginAtZero: true,
+        title: { 
+          display: true, 
+          text: type === "expire" ? "Expired Count" : "Renewal Count",
+          font: { weight: 'bold' } 
+        },
+      },
+    },
+  };
+
+  return (
+    <div className="chart-card">
+      <div className="chart-header">
+        <h4 className="chart-title">
+          {type === "expire" ? "Expiry Analytics" : "Renewal Forecast"}
+        </h4>
+        <span className="chart-subtitle">Based on daily volume</span>
+      </div>
+      
+      <div className="chart-body" style={{ height: isMobile ? "350px" : "400px" }}>
+        {isMobile ? (
+          <Pie data={chartData} options={commonOptions} />
+        ) : (
+          <Bar data={chartData} options={barOptions} />
+        )}
+      </div>
+
+      <style>{`
+        .chart-card {
+          background: #ffffff;
+          border-radius: 16px;
+          padding: 1.5rem;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+          border: 1px solid #f1f5f9;
+          margin: 10px 0;
+        }
+        .chart-header {
+          margin-bottom: 1.5rem;
+        }
+        .chart-title {
+          margin: 0;
+          font-size: 1.1rem;
+          font-weight: 800;
+          color: #1e293b;
+        }
+        .chart-subtitle {
+          font-size: 0.8rem;
+          color: #64748b;
+        }
+        .chart-body {
+          position: relative;
+          width: 100%;
+        }
+        @media (max-width: 768px) {
+          .chart-card {
+            padding: 1rem;
+          }
+        }
+      `}</style>
+    </div>
+  );
 };
 
 export default ExpiredUsersBarChart;

@@ -4,7 +4,14 @@
     flex-direction: column;
     gap: 32px;
     padding: 20px;
-  }
+}
+
+.dash-secdiv-responsive {
+    padding: 20px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
   
   /* Section Card */
   .dash-section {
@@ -25,11 +32,13 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
   }
   
   .dash-header h4 {
     font-weight: 700;
-    font-size: 1.25rem;
+    font-size: 1.4rem;
     color: #2c3e50;
     margin: 0;
   }
@@ -42,7 +51,7 @@
   .dash-header .form-select {
     max-width: 180px;
     border-radius: 12px;
-    font-size: 0.9rem;
+    font-size: 1rem;
     padding: 6px 10px;
   }
   
@@ -51,7 +60,7 @@
     width: 100%;
     border-collapse: collapse;
     text-align: center;
-    font-size: 0.95rem;
+    font-size: 1.05rem;
   }
   
   .dash-table th, .dash-table td {
@@ -82,7 +91,7 @@
     align-items: center;
     gap: 6px;
     padding: 4px 10px;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     border-radius: 8px;
     background-color: #22c55e;
     color: white;
@@ -93,4 +102,109 @@
   .btn-excel:hover {
     background-color: #16a34a;
   }
+
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+    .dash-secdiv {
+      padding: 16px;
+      gap: 24px;
+    }
+    
+    .dash-section {
+      padding: 16px;
+    }
+    
+    .dash-table {
+      font-size: 0.95rem;
+    }
+    
+    .dash-table th, .dash-table td {
+      padding: 10px 6px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .dash-secdiv {
+      padding: 12px;
+      gap: 20px;
+    }
+    
+    .dash-section {
+      padding: 12px;
+      border-radius: 12px;
+    }
+    
+    .dash-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .dash-header h4 {
+      font-size: 1.2rem;
+    }
+    
+    .dash-header .form-select {
+      max-width: 100%;
+      width: 100%;
+    }
+    
+    .dash-table {
+      font-size: 0.85rem;
+      display: block;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .dash-table th, .dash-table td {
+      padding: 8px 4px;
+      white-space: nowrap;
+    }
+    
+    .table-container {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .dash-secdiv,
+    .dash-secdiv-responsive {
+      padding: 8px;
+      gap: 16px;
+    }
+    
+    .dash-section {
+      padding: 10px;
+      border-radius: 10px;
+    }
+    
+    .dash-header h4 {
+      font-size: 1.1rem;
+    }
+    
+    .dash-table {
+      font-size: 0.75rem;
+    }
+    
+    .dash-table th, .dash-table td {
+      padding: 6px 3px;
+    }
+    
+    .btn-excel {
+      font-size: 0.85rem;
+      padding: 3px 8px;
+    }
+  }
+
+@media (max-width: 1024px) {
+  .dash-secdiv-responsive {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dash-secdiv-responsive {
+    padding: 12px;
+  }
+}
   

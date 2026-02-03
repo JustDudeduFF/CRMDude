@@ -23,7 +23,7 @@ border-bottom: 2px solid rgba(30, 64, 175, 0.2); /* Primary border */
 
 .cust-pay-receipt-title {
 flex: 2;
-font-size: 1.8rem;
+font-size: 2rem;
 font-weight: 700;
 background: linear-gradient(90deg, #1e3a8a, #1e40af);
 -webkit-background-clip: text;
@@ -46,7 +46,7 @@ border-radius: 8px;
 font-weight: 500;
 cursor: pointer;
 transition: all 0.3s ease;
-font-size: 0.9rem;
+font-size: 1rem;
 position: relative;
 overflow: hidden;
 }
@@ -109,12 +109,12 @@ padding: 15px;
 }
 
 .cust-pay-receipt-title {
-font-size: 1.5rem;
+font-size: 1.6rem;
 }
 
 .cust-pay-receipt-btn {
 padding: 8px 16px;
-font-size: 0.8rem;
+font-size: 0.9rem;
 }
 }
 
@@ -142,7 +142,7 @@ justify-content: flex-start;
 
 .cust-pay-receipt-btn {
 padding: 8px 12px;
-font-size: 0.8rem;
+font-size: 0.9rem;
 }
 
 .cust-pay-receipt-download-icon {
@@ -157,7 +157,7 @@ padding: 5px;
 }
 
 .cust-pay-receipt-title {
-font-size: 1.3rem;
+font-size: 1.4rem;
 }
 
 .cust-pay-receipt-actions {
@@ -166,6 +166,9 @@ gap: 10px;
 
 .cust-pay-receipt-btn {
 padding: 6px 10px;
-font-size: 0.75rem;
+font-size: 0.9rem;
 }
 }
+
+
+

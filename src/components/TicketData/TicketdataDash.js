@@ -1,13 +1,24 @@
 // src/components/TicketData/TicketdataDash.js
 import React, { useState, useEffect } from "react";
-import { api2 } from "../../FirebaseConfig";
+import { useNavigate } from "react-router-dom"; // Added for back button
+import { API } from "../../FirebaseConfig";
 import ExcelIcon from "../subscriberpage/drawables/xls.png";
 import * as XLSX from "xlsx";
-import axios from "axios";
-import "../Reports_Others.css";
+import { 
+  FaTicketAlt, 
+  FaFilter, 
+  FaMapMarkerAlt, 
+  FaPhoneAlt,
+  FaClock,
+  FaCheckCircle,
+  FaExclamationCircle,
+  FaArrowLeft // Added for back button
+} from "react-icons/fa";
 
 export default function TicketdataDash() {
   const partnerId = localStorage.getItem("partnerId");
+  const navigate = useNavigate(); // Navigation hook
+  
   const [filter, setFilter] = useState({
     startDate: new Date().toISOString().split("T")[0],
     endDate: new Date().toISOString().split("T")[0],
@@ -21,19 +32,17 @@ export default function TicketdataDash() {
 
   const [uniqueColony, setUniqueColony] = useState([]);
   const [uniqueIsp, setUniqueIsp] = useState([]);
-
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchExpandData = async () => {
       setIsLoading(true);
       try {
-        const subsResponse = await axios.get(
-          api2 +
-            `/reports/tickets?partnerId=${partnerId}&startDate=${
-              new Date(filter.startDate).toISOString().split("T")[0]
-            }&endDate=${
-              new Date(filter.endDate).toISOString().split("T")[0]
+        const subsResponse = await API.get(
+          `/reports/tickets?partnerId=${partnerId}&startDate=${
+            new Date(filter.startDate).toISOString().split("T")[0]
+          }&endDate=${
+            new Date(filter.endDate).toISOString().split("T")[0]
             }&status=${filter.Status}`
         );
 
@@ -60,36 +69,28 @@ export default function TicketdataDash() {
     let filteredArray = arrayData;
 
     if (filter.Source !== "All") {
-      filteredArray = filteredArray.filter(
-        (data) => data.source === filter.Source
-      );
+      filteredArray = filteredArray.filter((data) => data.source === filter.Source);
     }
-
     if (filter.isp !== "All") {
       filteredArray = filteredArray.filter((data) => data.isp === filter.isp);
     }
-
     if (filter.Colony !== "All") {
-      filteredArray = filteredArray.filter(
-        (data) => data.Colony === filter.Colony
-      );
+      filteredArray = filteredArray.filter((data) => data.Colony === filter.Colony);
     }
 
     setFilteredData(filteredArray);
   }, [arrayData, filter]);
 
-  // Function to download the selected rows in Excel format
   const downloadExcel = () => {
     const dataToDownload = filterData;
     if (dataToDownload.length === 0) {
       alert("No data to download");
       return;
     }
-
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(dataToDownload);
     XLSX.utils.book_append_sheet(workbook, worksheet, "Tickets data");
-    XLSX.writeFile(workbook, `Tickets Data.xlsx`);
+    XLSX.writeFile(workbook, `Tickets_Report_${filter.Status}.xlsx`);
   };
 
   const handleFilterChange = (e) => {
@@ -97,174 +98,271 @@ export default function TicketdataDash() {
     setFilter({ ...filter, [name]: value });
   };
 
+  const getStatusBadge = (status) => {
+    const s = status?.toLowerCase();
+    if (s === 'completed') return <span className="ticket-badge b-success"><FaCheckCircle /> Closed</span>;
+    if (s === 'pending') return <span className="ticket-badge b-warning"><FaClock /> Pending</span>;
+    return <span className="ticket-badge b-danger"><FaExclamationCircle /> {status}</span>;
+  };
+
   return (
-    <div className="report-component-container">
-      <div className="report-header">
-        <h5 className="report-title">Your All Tickets Data</h5>
-        <img
-          alt="Excel"
-          onClick={downloadExcel}
-          src={ExcelIcon}
-          className="report-excel-icon"
-        />
+    <div className="ticket-dash-container">
+      {/* Header Section */}
+      <div className="ticket-header-card shadow-sm">
+        <div className="header-left">
+          {/* BACK BUTTON */}
+          <button className="back-btn-round" onClick={() => navigate(-1)} title="Go Back">
+             <FaArrowLeft />
+          </button>
+          
+          <div className="icon-box d-none-mobile"><FaTicketAlt /></div>
+          <div>
+            <h3>Ticket Registry</h3>
+            <p className="d-none-mobile">Managing {filterData.length} queries</p>
+          </div>
+        </div>
+        <button className="export-excel-btn" onClick={downloadExcel}>
+          <img src={ExcelIcon} alt="XLS" />
+          <span className="d-none-mobile">Export</span>
+        </button>
       </div>
 
-      <div className="report-filters">
-        <div className="report-filter-group">
-          <label className="report-filter-label">Select Start Date</label>
-          <input
-            type="date"
-            className="report-filter-input"
-            name="startDate"
-            placeholder="Start Date"
-            value={filter.startDate}
-            onChange={handleFilterChange}
-          />
+      {/* Modern Filter Strip */}
+      <div className="ticket-filter-grid shadow-sm">
+        <div className="filter-item">
+          <label><FaClock /> Start</label>
+          <input type="date" name="startDate" value={filter.startDate} onChange={handleFilterChange} />
         </div>
-        <div className="report-filter-group">
-          <label className="report-filter-label">Select End Date</label>
-          <input
-            type="date"
-            className="report-filter-input"
-            name="endDate"
-            placeholder="End Date"
-            value={filter.endDate}
-            onChange={handleFilterChange}
-          />
+        <div className="filter-item">
+          <label><FaClock /> End</label>
+          <input type="date" name="endDate" value={filter.endDate} onChange={handleFilterChange} />
         </div>
-        <div className="report-filter-group">
-          <label className="report-filter-label">Select ISP</label>
-          <select
-            className="report-filter-select"
-            name="isp"
-            value={filter.isp}
-            onChange={handleFilterChange}
-          >
-            <option value="All">All</option>
-            {uniqueIsp.map((ispname, index) => (
-              <option key={index} value={ispname}>
-                {ispname}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="report-filter-group">
-          <label className="report-filter-label">Select Colony</label>
-          <select
-            className="report-filter-select"
-            name="Colony"
-            value={filter.Colony}
-            onChange={handleFilterChange}
-          >
-            <option value="All">All</option>
-            {uniqueColony.map((Colony, index) => (
-              <option key={index} value={Colony}>
-                {Colony}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="report-filter-group">
-          <label className="report-filter-label">Select Status</label>
-          <select
-            className="report-filter-select"
-            name="Status"
-            placeholder="Colony"
-            value={filter.Status}
-            onChange={handleFilterChange}
-          >
+        <div className="filter-item">
+          <label><FaFilter /> Status</label>
+          <select name="Status" value={filter.Status} onChange={handleFilterChange}>
             <option value="All">All Tickets</option>
-            <option value="Completed">Closed Tickets</option>
-            <option value="Pending">Pending Tickets</option>
-            <option value="Unassigned">Unassigned Tickets</option>
+            <option value="Completed">Closed</option>
+            <option value="Pending">Pending</option>
+            <option value="Unassigned">Unassigned</option>
           </select>
         </div>
-        <div className="report-filter-group">
-          <label className="report-filter-label">Select Source</label>
-          <select
-            className="report-filter-select"
-            name="Source"
-            placeholder="Colony"
-            value={filter.Source}
-            onChange={handleFilterChange}
-          >
-            <option value="All">All Source</option>
+        <div className="filter-item">
+          <label><FaFilter /> Source</label>
+          <select name="Source" value={filter.Source} onChange={handleFilterChange}>
+            <option value="All">All Sources</option>
             <option value="Manual">Manual</option>
-            <option value="WhatsApp">Whatsapp Bot</option>
-            <option value="Mobile App">Customer App</option>
+            <option value="WhatsApp">WhatsApp</option>
+            <option value="Mobile App">App</option>
+          </select>
+        </div>
+        <div className="filter-item">
+          <label>ISP</label>
+          <select name="isp" value={filter.isp} onChange={handleFilterChange}>
+            <option value="All">All ISPs</option>
+            {uniqueIsp.map((isp, i) => <option key={i} value={isp}>{isp}</option>)}
+          </select>
+        </div>
+        <div className="filter-item">
+          <label>Colony</label>
+          <select name="Colony" value={filter.Colony} onChange={handleFilterChange}>
+            <option value="All">All Colonies</option>
+            {uniqueColony.map((col, i) => <option key={i} value={col}>{col}</option>)}
           </select>
         </div>
       </div>
 
-      <div className="report-table-container">
-        <table className="report-table">
-          <thead>
-            <tr>
-              <th scope="col">Ticket ID</th>
-              <th scope="col">Date</th>
-              <th scope="col">Customer Name</th>
-              <th scope="col">UserId</th>
-              <th scope="col">Ticket Concern</th>
-              <th scope="col">Mobile</th>
-              <th scope="col">Installation Address</th>
-              <th scope="col">ISP</th>
-              <th scope="col">Colony</th>
-              <th scope="col">Completed by</th>
-              <th scope="col">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
+      {/* Table Section */}
+      <div className="ticket-table-wrapper shadow-sm">
+        <div className="table-responsive">
+          <table className="ticket-modern-table">
+            <thead className="d-none-mobile">
               <tr>
-                <td colSpan="11">
-                  <div className="report-loading-overlay">
-                    <div className="report-loading-container">
-                      <div
-                        className="spinner-border report-loading-spinner"
-                        role="status"
-                      >
-                        <span className="visually-hidden">Loading...</span>
-                      </div>
-                      <p className="report-loading-text">Loading Tickets...</p>
-                    </div>
-                  </div>
-                </td>
+                <th>Ticket ID</th>
+                <th>Subscriber Info</th>
+                <th>Concern & Source</th>
+                <th>Location Details</th>
+                <th>Technical Info</th>
+                <th>Resolution</th>
+                <th>Status</th>
               </tr>
-            ) : filterData.length > 0 ? (
-              filterData.map((filterData, index) => (
-                <tr key={index}>
-                  <td>{filterData.Ticketno}</td>
-                  <td>{filterData.creationdate}</td>
-                  <td>{filterData.fullName}</td>
-                  <td>{filterData.subsID}</td>
-                  <td>{filterData.Concern}</td>
-                  <td>{filterData.mobileNo}</td>
-                  <td
-                    style={{
-                      maxWidth: "250px",
-                      overflow: "hidden",
-                      whiteSpace: "nowrap",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {filterData.address}
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr>
+                  <td colSpan="7" className="table-loader">
+                    <div className="spinner-border text-primary" role="status"></div>
+                    <p>Fetching Records...</p>
                   </td>
-                  <td>{filterData.isp}</td>
-                  <td>{filterData.Colony}</td>
-                  <td>{filterData.completedby}</td>
-                  <td>{filterData.Status}</td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="11" className="report-no-data">
-                  No Data Available
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              ) : filterData.length > 0 ? (
+                filterData.map((data, index) => (
+                  <tr key={index} className="mobile-card-row">
+                    <td className="ticket-id-cell" data-label="ID">#{data.Ticketno}</td>
+                    <td data-label="Subscriber">
+                      <div className="user-info">
+                        <span className="u-name">{data.fullName}</span>
+                        <span className="u-id">{data.subsID}</span>
+                        <span className="u-phone"><FaPhoneAlt size={10}/> {data.mobileNo}</span>
+                      </div>
+                    </td>
+                    <td data-label="Concern">
+                      <div className="concern-text">{data.Concern}</div>
+                      <span className="source-tag">{data.source || 'Manual'}</span>
+                    </td>
+                    <td data-label="Location">
+                      <div className="addr-box">
+                        <p className="addr-text" title={data.address}>{data.address}</p>
+                        <span className="colony-tag"><FaMapMarkerAlt size={10}/> {data.Colony}</span>
+                      </div>
+                    </td>
+                    <td data-label="Technical">
+                      <div className="isp-text">{data.isp}</div>
+                      <div className="date-text">{data.creationdate}</div>
+                    </td>
+                    <td data-label="Resolution">
+                      <div className="completed-by">
+                        <label className="d-none-mobile">Resolved By:</label>
+                        <span>{data.completedby || 'Unassigned'}</span>
+                      </div>
+                    </td>
+                    <td data-label="Status">{getStatusBadge(data.Status)}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="7" className="empty-table-state">
+                    No tickets found for selected filters.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
+
+      <style>{`
+        .ticket-dash-container {
+          padding: 15px;
+          background: #f8f9fc;
+          min-height: 100vh;
+          font-family: 'Inter', sans-serif;
+        }
+
+        /* Header Card */
+        .ticket-header-card {
+          background: white;
+          padding: 15px 20px;
+          border-radius: 12px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 15px;
+          border: 1px solid #e3e6f0;
+        }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        
+        .back-btn-round {
+          width: 35px; height: 35px; border-radius: 50%; border: 1px solid #d1d3e2;
+          background: #fff; color: #4e73df; display: flex; align-items: center;
+          justify-content: center; cursor: pointer; transition: 0.2s;
+        }
+        .back-btn-round:hover { background: #4e73df; color: white; border-color: #4e73df; }
+
+        .icon-box { 
+          width: 40px; height: 40px; background: #4e73df; 
+          border-radius: 10px; display: flex; align-items: center; 
+          justify-content: center; color: white; font-size: 18px;
+        }
+        .header-left h3 { margin: 0; font-size: 18px; font-weight: 800; color: #2e384d; }
+        .header-left p { margin: 0; font-size: 12px; color: #858796; }
+        
+        .export-excel-btn {
+          display: flex; align-items: center; gap: 8px;
+          background: #fff; border: 1px solid #d1d3e2;
+          padding: 8px 12px; border-radius: 8px; font-weight: 700;
+          color: #2e384d; font-size: 13px;
+        }
+        .export-excel-btn img { width: 18px; }
+
+        /* Filter Grid */
+        .ticket-filter-grid {
+          background: white; padding: 15px; border-radius: 12px;
+          display: grid; grid-template-columns: repeat(3, 1fr);
+          gap: 12px; margin-bottom: 20px; border: 1px solid #e3e6f0;
+        }
+        .filter-item { display: flex; flex-direction: column; gap: 5px; }
+        .filter-item label { font-size: 11px; font-weight: 700; color: #4e73df; display: flex; align-items: center; gap: 4px; }
+        .filter-item input, .filter-item select {
+          padding: 8px; border: 1px solid #d1d3e2; border-radius: 6px; font-size: 12px; outline: none; width: 100%;
+        }
+
+        /* Table Styling */
+        .ticket-table-wrapper { background: white; border-radius: 12px; overflow: hidden; border: 1px solid #e3e6f0; }
+        .ticket-modern-table { width: 100%; border-collapse: collapse; }
+        .ticket-modern-table thead th {
+          background: #f8f9fc; padding: 12px 15px; text-align: left;
+          font-size: 11px; font-weight: 700; color: #4e73df; text-transform: uppercase;
+        }
+        .ticket-modern-table tbody td { padding: 12px 15px; border-bottom: 1px solid #f1f1f1; vertical-align: middle; }
+        
+        .ticket-id-cell { font-weight: 800; color: #4e73df; font-size: 13px; }
+        .u-name { font-weight: 700; color: #2e384d; font-size: 13px; display: block; }
+        .u-id { font-size: 10px; color: #858796; display: block; }
+        .u-phone { font-size: 11px; color: #4e73df; font-weight: 600; }
+        .concern-text { font-size: 12px; color: #2e384d; font-weight: 600; }
+        .source-tag { font-size: 9px; background: #eaecf4; padding: 1px 6px; border-radius: 4px; color: #4e73df; font-weight: 800; }
+        .addr-text { font-size: 11px; color: #858796; margin: 0; }
+        .ticket-badge { padding: 4px 10px; border-radius: 15px; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; }
+        .b-success { background: #d1e7dd; color: #0f5132; }
+        .b-warning { background: #fff3cd; color: #664d03; }
+        .b-danger { background: #f8d7da; color: #842029; }
+
+        /* MOBILE RESPONSIVENESS */
+        @media (max-width: 768px) {
+          .d-none-mobile { display: none !important; }
+          .ticket-filter-grid { grid-template-columns: repeat(2, 1fr); }
+          
+          /* Force table to not be a table */
+          .ticket-modern-table, .ticket-modern-table tbody, .ticket-modern-table tr, .ticket-modern-table td { 
+            display: block; 
+            width: 100%; 
+          }
+          
+          .mobile-card-row {
+            border-bottom: 8px solid #f8f9fc;
+            padding: 15px;
+            position: relative;
+          }
+
+          .ticket-modern-table td {
+            text-align: right;
+            padding: 8px 0;
+            border: none;
+            position: relative;
+            padding-left: 45%;
+            min-height: 35px;
+          }
+
+          .ticket-modern-table td::before {
+            content: attr(data-label);
+            position: absolute;
+            left: 0;
+            width: 40%;
+            text-align: left;
+            font-weight: 700;
+            font-size: 11px;
+            color: #4e73df;
+            text-transform: uppercase;
+          }
+
+          .user-info, .addr-box, .completed-by { align-items: flex-end; text-align: right; }
+          .addr-text { white-space: normal; max-width: 100%; }
+        }
+
+        @media (max-width: 480px) {
+          .ticket-filter-grid { grid-template-columns: 1fr; }
+        }
+      `}</style>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./SmallModal.css";
 import { ref } from "firebase/database";
-import { api2, db, mobile_api } from "../FirebaseConfig";
+import { API, mobile_api } from "../FirebaseConfig";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 
@@ -10,13 +10,9 @@ const SmallModal = ({ show, ticketno, closeModal }) => {
   const [arrayemp, setEmpArray] = useState([]);
   const [assignemp, setAssignEmp] = useState("");
   const [description, setDescription] = useState("");
-  const empRef = ref(db, `users`);
-
   const fetchEmp = async () => {
     try {
-      const response = await axios.get(
-        `${api2}/subscriber/users?partnerId=${partnerId}`
-      );
+      const response = await API.get(`/subscriber/users?partnerId=${partnerId}`);
       const data = response.data;
       setEmpArray(Array.isArray(data) && data.length > 0 ? data : []);
     } catch (e) {

@@ -22,7 +22,7 @@
 
 .remark-follow-table-title {
   flex: 2;
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 700;
   color: #1e3a8a;
   margin: 0;
@@ -44,7 +44,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 0.9rem;
+  font-size: 1rem;
   text-decoration: none;
   display: inline-block;
 }
@@ -105,12 +105,12 @@
   }
   
   .remark-follow-table-title {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
   }
   
   .remark-follow-table-btn {
     padding: 8px 16px;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
   }
 }
 
@@ -138,7 +138,7 @@
   
   .remark-follow-table-btn {
     padding: 8px 12px;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
   }
   
   .remark-follow-table-download-icon {
@@ -153,7 +153,7 @@
   }
   
   .remark-follow-table-title {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
   }
   
   .remark-follow-table-actions {
@@ -162,6 +162,9 @@
   
   .remark-follow-table-btn {
     padding: 6px 10px;
-    font-size: 0.75rem;
+    font-size: 0.9rem;
   }
 }
+
+
+

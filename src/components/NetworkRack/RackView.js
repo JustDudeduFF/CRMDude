@@ -3,7 +3,6 @@ import { ref, get, onValue } from 'firebase/database';
 import { db } from '../../FirebaseConfig';
 import RackDataModal from './RackDataModal';
 import { useLocation } from 'react-router-dom';
-import './Rack.css';
 import SYOLT from './SYOLT';
 import Switch from './Switch';
 import FMS from './FMS'

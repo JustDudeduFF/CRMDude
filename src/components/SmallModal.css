@@ -3,8 +3,6 @@
     position: fixed;
     top: 30%;
     left: 30%;
-    
-    
 }
 
 .modal-data {
@@ -15,4 +13,42 @@
     padding: 1.5rem;
     width: 100%;
     box-sizing: border-box;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .modal-background {
+        left: 25%;
+        top: 25%;
+    }
+    
+    .modal-data {
+        max-width: 450px;
+    }
+}
+
+@media (max-width: 768px) {
+    .modal-background {
+        left: 10%;
+        right: 10%;
+        top: 20%;
+    }
+    
+    .modal-data {
+        max-width: 100%;
+        padding: 1.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-background {
+        left: 5%;
+        right: 5%;
+        top: 15%;
+    }
+    
+    .modal-data {
+        padding: 1rem;
+        border-radius: 6px;
+    }
 }

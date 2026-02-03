@@ -1,9 +1,13 @@
-import { api2 } from "../../FirebaseConfig";
-import React, { useEffect, useState } from "react";
+import {  API } from "../../FirebaseConfig";
+import React, { useEffect, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
-import { Spinner } from "react-bootstrap";
+import { 
+  User, ShieldCheck, CreditCard, FileText, 
+  Save, X, Edit3, ChevronRight, Briefcase, Clock, 
+  MapPin, Mail, Landmark, CheckCircle2, AlertCircle
+} from "lucide-react";
 
 export default function EmpDetails() {
   const location = useLocation();
@@ -11,1783 +15,392 @@ export default function EmpDetails() {
   const partnerId = localStorage.getItem("partnerId");
 
   const [isLoading, setIsLoading] = useState(false);
-  const [documentLoading, setDocumentLoading] = useState({
-    aadhar: false,
-    dl: false,
-    pan: false,
-  });
+  const [activeTab, setActiveTab] = useState("profile"); 
+  const [isEditing, setIsEditing] = useState(false);
 
   const [empData, setEmpData] = useState({
-    _id: "",
-    FULLNAME: "",
-    MOBILE: "",
-    GMAIL: "",
-    ADDRESS: "",
-    AADHAR: "",
-    DRIVING: "",
-    PAN: "",
-    BANKNAME: "",
-    ACCOUNTNO: "",
-    IFSC: "",
-    ACCOUNTNAME: "",
-    UPI: "",
-    INTIME_H: "",
-    INTIME_M: "",
-    OUTTIME_H: "",
-    OUTTIME_M: "",
-    MARKING_OFFICE: "",
-    DESIGNATION: "",
-    USERTYPE: "",
-    DOJ: "",
-    status: "active",
+    _id: "", FULLNAME: "", MOBILE: "", GMAIL: "", ADDRESS: "",
+    AADHAR: "", DRIVING: "", PAN: "", BANKNAME: "", ACCOUNTNO: "",
+    IFSC: "", ACCOUNTNAME: "", UPI: "", INTIME_H: "", INTIME_M: "",
+    OUTTIME_H: "", OUTTIME_M: "", MARKING_OFFICE: "", DESIGNATION: "",
+    USERTYPE: "", DOJ: "", status: "active",
   });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setEmpData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
 
   const [arrayoffice, setArrayOffice] = useState([]);
   const [arraydesignation, setArraydesignation] = useState([]);
 
-  const [isEditing, setIsEditing] = useState(false);
+  // Permissions (Kept exactly as original)
+  const [customerpermission, setCustomerPermission] = useState({ VIEW_CUSTOMER: false, ADD_CUSTOMER: false, RENEW_PLAN: false, CHANGE_PLAN: false, EDIT_C_PLAN: false, EDIT_C_INFO: false, CREATE_TICKET: false, CLOSE_TICKET: false, REASSING_TICKET: false, ROLLBACK_PLAN: false, RESEND_CODE: false });
+  const [masterpermission, setMasterPermission] = useState({ ADD_PLAN: false, ADD_TICKET_CONCERNS: false, ADD_DEVICE_MAKER: false, ADD_ISP: false, ADD_DESIGNATION: false, ADD_COMPANY: false, ADD_COLONY: false, ADD_DEBIT_CREDIT_CONCERN: false });
+  const [leadpermission, setLeadPermission] = useState({ ADD_LEAD: false, CANCEL_LEAD: false, EDIT_LEAD: false, CONVERT_TO_LEAD: false });
+  const [paymentpermission, setPaymentPermission] = useState({ COLLECT_PAYMENT: false, PAYMENT_AUTHORIZATION: false, EDIT_PAYMENT: false, CREATE_DEBIT: false, CREATE_CREDIT: false, DOWNLOAD_INVOICE: false, CANCEL_RECEIPT: false });
+  const [networkpermission, setNetworkPermission] = useState({ VIEW_RACK: false, UPDATE_RACK: false, ADD_JC: false, ADD_RACK_DEVICE: false });
+  const [attendencepermission, setAttendencePermission] = useState({ MARK_ATTENDENCE: false, MARK_ANYWHERE: false, VIEW_ATTENDENCE: false });
+  const [payoutpermission, setPayoutPermission] = useState({ VIEW_PAYOUT: false });
+  const [messagepermission, setMessagePermission] = useState({ MSG_DUE: false, MSG_EXPIRING: false, MSG_EXPIRED: false, MSG_BULK: false, MSG_PROMOTIONAL: false });
+  const [inventorypermission, setInventoryPermission] = useState({ VIEW_INVENTORY: false, CHANGE_DEVICE_STATUS: false, ASSIGN_DEVICE: false, ADD_DEVICE: false });
+  const [employeepermission, setEmployeePermission] = useState({ VIEW_EMP: false, EDIT_EMP: false, EDIT_EMP_PERMISSION: false, ADD_EMP: false });
 
-  //User Permission Data
-  const [customerpermission, setCustomerPermission] = useState({
-    VIEW_CUSTOMER: false,
-    ADD_CUSTOMER: false,
-    RENEW_PLAN: false,
-    CHANGE_PLAN: false,
-    EDIT_C_PLAN: false,
-    EDIT_C_INFO: false,
-    CREATE_TICKET: false,
-    CLOSE_TICKET: false,
-    REASSING_TICKET: false,
-    ROLLBACK_PLAN: false,
-    RESEND_CODE: false,
-  });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setEmpData((prev) => ({ ...prev, [name]: value }));
+  };
 
-  const [masterpermission, setMasterPermission] = useState({
-    ADD_PLAN: false,
-    ADD_TICKET_CONCERNS: false,
-    ADD_DEVICE_MAKER: false,
-    ADD_ISP: false,
-    ADD_DESIGNATION: false,
-    ADD_COMPANY: false,
-    ADD_COLONY: false,
-    ADD_DEBIT_CREDIT_CONCERN: false,
-  });
-
-  const [leadpermission, setLeadPermission] = useState({
-    ADD_LEAD: false,
-    CANCEL_LEAD: false,
-    EDIT_LEAD: false,
-    CONVERT_TO_LEAD: false,
-  });
-
-  const [paymentpermission, setPaymentPermission] = useState({
-    COLLECT_PAYMENT: false,
-    PAYMENT_AUTHORIZATION: false,
-    EDIT_PAYMENT: false,
-    CREATE_DEBIT: false,
-    CREATE_CREDIT: false,
-    DOWNLOAD_INVOICE: false,
-    CANCEL_RECEIPT: false,
-  });
-
-  const [networkpermission, setNetworkPermission] = useState({
-    VIEW_RACK: false,
-    UPDATE_RACK: false,
-    ADD_JC: false,
-    ADD_RACK_DEVICE: false,
-  });
-
-  const [attendencepermission, setAttendencePermission] = useState({
-    MARK_ATTENDENCE: false,
-    MARK_ANYWHERE: false,
-    VIEW_ATTENDENCE: false,
-  });
-
-  const [payoutpermission, setPayoutPermission] = useState({
-    VIEW_PAYOUT: false,
-  });
-
-  const [messagepermission, setMessagePermission] = useState({
-    MSG_DUE: false,
-    MSG_EXPIRING: false,
-    MSG_EXPIRED: false,
-    MSG_BULK: false,
-    MSG_PROMOTIONAL: false,
-  });
-
-  const [inventorypermission, setInventoryPermission] = useState({
-    VIEW_INVENTORY: false,
-    CHANGE_DEVICE_STATUS: false,
-    ASSIGN_DEVICE: false,
-    ADD_DEVICE: false,
-  });
-
-  const [employeepermission, setEmployeePermission] = useState({
-    VIEW_EMP: false,
-    EDIT_EMP: false,
-    EDIT_EMP_PERMISSION: false,
-    ADD_EMP: false,
-  });
-
-  const handleCustomerPermission = (e) => {
+  const createToggleAll = (setter) => (e) => {
     const isChecked = e.target.checked;
-    const updatedPermissions = Object.keys(customerpermission).reduce(
-      (acc, key) => {
-        acc[key] = isChecked; // Set all permissions to the checkbox's checked state
-        return acc;
-      },
-      {}
-    );
-    setCustomerPermission(updatedPermissions);
+    setter(prev => {
+      const updated = {};
+      Object.keys(prev).forEach(key => updated[key] = isChecked);
+      return updated;
+    });
   };
 
-  const handleMasterPermission = (e) => {
-    const isChecked = e.target.checked;
-    const updatedPermissions = Object.keys(masterpermission).reduce(
-      (acc, key) => {
-        acc[key] = isChecked; // Set all permissions to the checkbox's checked state
-        return acc;
-      },
-      {}
-    );
-    setMasterPermission(updatedPermissions);
-  };
-
-  const handleLeadPermission = (e) => {
-    const isChecked = e.target.checked;
-    const updatedPermissions = Object.keys(leadpermission).reduce(
-      (acc, key) => {
-        acc[key] = isChecked; // Set all permissions to the checkbox's checked state
-        return acc;
-      },
-      {}
-    );
-    setLeadPermission(updatedPermissions);
-  };
-
-  const handlePaymentPermission = (e) => {
-    const isChecked = e.target.checked;
-    const updatedPermissions = Object.keys(paymentpermission).reduce(
-      (acc, key) => {
-        acc[key] = isChecked; // Set all permissions to the checkbox's checked state
-        return acc;
-      },
-      {}
-    );
-    setPaymentPermission(updatedPermissions);
-  };
-
-  const handleNetworkPermission = (e) => {
-    const isChecked = e.target.checked;
-    const updatedPermissions = Object.keys(networkpermission).reduce(
-      (acc, key) => {
-        acc[key] = isChecked; // Set all permissions to the checkbox's checked state
-        return acc;
-      },
-      {}
-    );
-    setNetworkPermission(updatedPermissions);
-  };
-
-  const handleAttendencePermission = (e) => {
-    const isChecked = e.target.checked;
-    const updatedPermissions = Object.keys(attendencepermission).reduce(
-      (acc, key) => {
-        acc[key] = isChecked; // Set all permissions to the checkbox's checked state
-        return acc;
-      },
-      {}
-    );
-    setAttendencePermission(updatedPermissions);
-  };
-
-  const handlePayoutPermission = (e) => {
-    const isChecked = e.target.checked;
-    const updatedPermissions = Object.keys(payoutpermission).reduce(
-      (acc, key) => {
-        acc[key] = isChecked; // Set all permissions to the checkbox's checked state
-        return acc;
-      },
-      {}
-    );
-    setPayoutPermission(updatedPermissions);
-  };
-
-  const handleMessagingPermission = (e) => {
-    const isChecked = e.target.checked;
-    const updatedPermissions = Object.keys(messagepermission).reduce(
-      (acc, key) => {
-        acc[key] = isChecked; // Set all permissions to the checkbox's checked state
-        return acc;
-      },
-      {}
-    );
-    setMessagePermission(updatedPermissions);
-  };
-
-  const handleInventotyPermission = (e) => {
-    const isChecked = e.target.checked;
-    const updatedPermissions = Object.keys(inventorypermission).reduce(
-      (acc, key) => {
-        acc[key] = isChecked; // Set all permissions to the checkbox's checked state
-        return acc;
-      },
-      {}
-    );
-    setInventoryPermission(updatedPermissions);
-  };
-
-  const handleEmpPermission = (e) => {
-    const isChecked = e.target.checked;
-    const updatedPermissions = Object.keys(employeepermission).reduce(
-      (acc, key) => {
-        acc[key] = isChecked; // Set all permissions to the checkbox's checked state
-        return acc;
-      },
-      {}
-    );
-    setEmployeePermission(updatedPermissions);
-  };
-
-  const handleCustomerIndividualChange = (e) => {
+  const createIndividualChange = (setter) => (e) => {
     const { name, checked } = e.target;
-    setCustomerPermission((prev) => ({
-      ...prev,
-      [name]: checked, // Update only the specific checkbox state
-    }));
+    setter(prev => ({ ...prev, [name]: checked }));
   };
 
-  const handleMasterIndividualChange = (e) => {
-    const { name, checked } = e.target;
-    setMasterPermission((prev) => ({
-      ...prev,
-      [name]: checked, // Update only the specific checkbox state
-    }));
-  };
-
-  const handleLeadIndividualChange = (e) => {
-    const { name, checked } = e.target;
-    setLeadPermission((prev) => ({
-      ...prev,
-      [name]: checked, // Update only the specific checkbox state
-    }));
-  };
-
-  const handlePaymentIndividualChange = (e) => {
-    const { name, checked } = e.target;
-    setPaymentPermission((prev) => ({
-      ...prev,
-      [name]: checked, // Update only the specific checkbox state
-    }));
-  };
-
-  const handleNetworkIndividualChange = (e) => {
-    const { name, checked } = e.target;
-    setNetworkPermission((prev) => ({
-      ...prev,
-      [name]: checked, // Update only the specific checkbox state
-    }));
-  };
-
-  const handleAttendenceIndividualChange = (e) => {
-    const { name, checked } = e.target;
-    setAttendencePermission((prev) => ({
-      ...prev,
-      [name]: checked, // Update only the specific checkbox state
-    }));
-  };
-
-  const handlePayoutIndividualChange = (e) => {
-    const { name, checked } = e.target;
-    setPayoutPermission((prev) => ({
-      ...prev,
-      [name]: checked, // Update only the specific checkbox state
-    }));
-  };
-
-  const handleMessageIndividualChange = (e) => {
-    const { name, checked } = e.target;
-    setMessagePermission((prev) => ({
-      ...prev,
-      [name]: checked, // Update only the specific checkbox state
-    }));
-  };
-
-  const handleInventoryIndividualChange = (e) => {
-    const { name, checked } = e.target;
-    setInventoryPermission((prev) => ({
-      ...prev,
-      [name]: checked, // Update only the specific checkbox state
-    }));
-  };
-
-  const handleeEmployeeIndividualChange = (e) => {
-    const { name, checked } = e.target;
-    setEmployeePermission((prev) => ({
-      ...prev,
-      [name]: checked, // Update only the specific checkbox state
-    }));
-  };
-
-  const getDetails = async () => {
+  const getDetails = useCallback(async () => {
+    if (!mobile) return;
     setIsLoading(true);
     try {
-      const response = await axios.get(api2 + "/employees/" + mobile);
-
-      if (response.status !== 200)
-        return toast.error("Failed to Fetch Employee Data", {
-          autoClose: 2000,
-        });
-
-      const userData = response.data;
-      if (userData) {
-        // Separate `empData` and `customerpermission` from the retrieved data
-        setEmpData({
-          _id: userData._id,
-          FULLNAME: userData.FULLNAME || "",
-          MOBILE: userData.MOBILE || "",
-          GMAIL: userData.GMAIL || "",
-          ADDRESS: userData.ADDRESS || "",
-          AADHAR: userData.AADHAR || "",
-          DRIVING: userData.DRIVING || "",
-          PAN: userData.PAN || "",
-          BANKNAME: userData.BANKNAME || "",
-          ACCOUNTNO: userData.ACCOUNTNO || "",
-          IFSC: userData.IFSC || "",
-          ACCOUNTNAME: userData.ACCOUNTNAME || "",
-          UPI: userData.UPI || "",
-          INTIME_H: userData.INTIME_H || "",
-          INTIME_M: userData.INTIME_M || "",
-          OUTTIME_H: userData.OUTTIME_H || "",
-          OUTTIME_M: userData.OUTTIME_M || "",
-          MARKING_OFFICE: userData.MARKING_OFFICE || "",
-          DESIGNATION: userData.DESIGNATION || "",
-          USERTYPE: userData.USERTYPE || "",
-          DOJ: userData.DOJ || "",
-          status: userData.status || "active",
-        });
-
-        setCustomerPermission({
-          VIEW_CUSTOMER: userData.customerpermission?.VIEW_CUSTOMER || false,
-          ADD_CUSTOMER: userData.customerpermission?.ADD_CUSTOMER || false,
-          RENEW_PLAN: userData.customerpermission?.RENEW_PLAN || false,
-          CHANGE_PLAN: userData.customerpermission?.CHANGE_PLAN || false,
-          EDIT_C_PLAN: userData.customerpermission?.EDIT_C_PLAN || false,
-          EDIT_C_INFO: userData.customerpermission?.EDIT_C_INFO || false,
-          CREATE_TICKET: userData.customerpermission?.CREATE_TICKET || false,
-          CLOSE_TICKET: userData.customerpermission?.CLOSE_TICKET || false,
-          REASSING_TICKET:
-            userData.customerpermission?.REASSING_TICKET || false,
-          ROLLBACK_PLAN: userData.customerpermission?.ROLLBACK_PLAN || false,
-          RESEND_CODE: userData.customerpermission?.RESEND_CODE || false,
-        });
-
-        setMasterPermission({
-          ADD_PLAN: userData.masterpermission?.ADD_PLAN || false,
-          ADD_TICKET_CONCERNS:
-            userData.masterpermission?.ADD_TICKET_CONCERNS || false,
-          ADD_DEVICE_MAKER:
-            userData.masterpermission?.ADD_DEVICE_MAKER || false,
-          ADD_ISP: userData.masterpermission?.ADD_ISP || false,
-          ADD_DESIGNATION: userData.masterpermission?.ADD_DESIGNATION || false,
-          ADD_COMPANY: userData.masterpermission?.ADD_COMPANY || false,
-          ADD_COLONY: userData.masterpermission?.ADD_COLONY || false,
-          ADD_DEBIT_CREDIT_CONCERN:
-            userData.masterpermission?.ADD_DEBIT_CREDIT_CONCERN || false,
-        });
-
-        setLeadPermission({
-          ADD_LEAD: userData.leadpermission?.ADD_LEAD || false,
-          CANCEL_LEAD: userData.leadpermission?.CANCEL_LEAD || false,
-          EDIT_LEAD: userData.leadpermission?.EDIT_LEAD || false,
-          CONVERT_TO_LEAD: userData.leadpermission?.CONVERT_TO_LEAD || false,
-        });
-
-        setPaymentPermission({
-          COLLECT_PAYMENT: userData.paymentpermission?.COLLECT_PAYMENT || false,
-          PAYMENT_AUTHORIZATION:
-            userData.paymentpermission?.PAYMENT_AUTHORIZATION || false,
-          EDIT_PAYMENT: userData.paymentpermission?.EDIT_PAYMENT || false,
-          CREATE_DEBIT: userData.paymentpermission?.CREATE_DEBIT || false,
-          CREATE_CREDIT: userData.paymentpermission?.CREATE_CREDIT || false,
-          DOWNLOAD_INVOICE:
-            userData.paymentpermission?.DOWNLOAD_INVOICE || false,
-          CANCEL_RECEIPT: userData.paymentpermission?.CANCEL_RECEIPT || false,
-        });
-
-        setNetworkPermission({
-          VIEW_RACK: userData.networkpermission?.VIEW_RACK || false,
-          UPDATE_RACK: userData.networkpermission?.UPDATE_RACK || false,
-          ADD_JC: userData.networkpermission?.ADD_JC || false,
-          ADD_RACK_DEVICE: userData.networkpermission?.ADD_RACK_DEVICE || false,
-        });
-
-        setAttendencePermission({
-          MARK_ATTENDENCE:
-            userData.attendencepermission?.MARK_ATTENDENCE || false,
-          MARK_ANYWHERE: userData.attendencepermission?.MARK_ANYWHERE || false,
-          VIEW_ATTENDENCE:
-            userData.attendencepermission?.VIEW_ATTENDENCE || false,
-        });
-
-        setPayoutPermission({
-          VIEW_PAYOUT: userData.payoutpermission?.VIEW_PAYOUT || false,
-        });
-
-        setMessagePermission({
-          MSG_DUE: userData.messagepermission?.MSG_DUE || false,
-          MSG_EXPIRING: userData.messagepermission?.MSG_EXPIRING || false,
-          MSG_EXPIRED: userData.messagepermission?.MSG_EXPIRED || false,
-          MSG_BULK: userData.messagepermission?.MSG_BULK || false,
-          MSG_PROMOTIONAL: userData.messagepermission?.MSG_PROMOTIONAL || false,
-        });
-
-        setInventoryPermission({
-          VIEW_INVENTORY: userData.inventorypermission?.VIEW_INVENTORY || false,
-          CHANGE_DEVICE_STATUS:
-            userData.inventorypermission?.CHANGE_DEVICE_STATUS || false,
-          ASSIGN_DEVICE: userData.inventorypermission?.ASSIGN_DEVICE || false,
-          ADD_DEVICE: userData.inventorypermission?.ADD_DEVICE || false,
-        });
-
-        setEmployeePermission({
-          VIEW_EMP: userData.employeepermission?.VIEW_EMP || false,
-          EDIT_EMP: userData.employeepermission?.EDIT_EMP || false,
-          EDIT_EMP_PERMISSION:
-            userData.employeepermission?.EDIT_EMP_PERMISSION || false,
-          ADD_EMP: userData.employeepermission?.ADD_EMP || false,
-        });
-      } else {
-        console.log("No data found for the specified user.");
+      const response = await API.get(`/employees/${mobile}`);
+      const u = response.data;
+      if (u) {
+        setEmpData({ ...u, FULLNAME: u.FULLNAME || "" });
+        if (u.customerpermission) setCustomerPermission(u.customerpermission);
+        if (u.masterpermission) setMasterPermission(u.masterpermission);
+        if (u.leadpermission) setLeadPermission(u.leadpermission);
+        if (u.paymentpermission) setPaymentPermission(u.paymentpermission);
+        if (u.networkpermission) setNetworkPermission(u.networkpermission);
+        if (u.attendencepermission) setAttendencePermission(u.attendencepermission);
+        if (u.payoutpermission) setPayoutPermission(u.payoutpermission);
+        if (u.messagepermission) setMessagePermission(u.messagepermission);
+        if (u.inventorypermission) setInventoryPermission(u.inventorypermission);
+        if (u.employeepermission) setEmployeePermission(u.employeepermission);
       }
     } catch (error) {
-      console.error("Error fetching data:", error);
-      toast.error("Failed to fetch data", {
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-        progress: undefined,
-      });
+      toast.error("Failed to fetch data");
     } finally {
       setIsLoading(false);
     }
-  };
-
-  useEffect(() => {
-    getDetails();
   }, [mobile]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    getDetails();
+    const fetchMasters = async () => {
       try {
-        // Fetch Offices
-        const officeRes = await axios.get(
-          api2 + "/master/offices?partnerId=" + partnerId
-        ); // your REST API endpoint
-        if (officeRes.data && officeRes.data.length > 0) {
-          setArrayOffice(officeRes.data);
-        } else {
-          toast.error("Please Add an Office Location", { autoClose: 3000 });
-        }
-
-        // Fetch Designations
-        const designationRes = await axios.get(
-          api2 + "/master/designations?partnerId=" + partnerId
-        ); // your REST API endpoint
-        if (designationRes.data && designationRes.data.length > 0) {
-          setArraydesignation(designationRes.data);
-        } else {
-          toast.error("Please Add a Designation", { autoClose: 3000 });
-        }
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        toast.error("Failed to load data", { autoClose: 3000 });
-      }
+        const offRes = await API.get(`/master/offices?partnerId=${partnerId}`);
+        const desRes = await API.get(`/master/designations?partnerId=${partnerId}`);
+        setArrayOffice(offRes.data || []);
+        setArraydesignation(desRes.data || []);
+      } catch (err) { console.error(err); }
     };
-
-    fetchData();
-  }, []);
-
-  const allData = {
-    ...empData,
-    customerpermission: { ...customerpermission },
-    masterpermission: { ...masterpermission },
-    leadpermission: { ...leadpermission },
-    paymentpermission: { ...paymentpermission },
-    networkpermission: { ...networkpermission },
-    attendencepermission: { ...attendencepermission },
-    payoutpermission: { ...payoutpermission },
-    messagepermission: { ...messagepermission },
-    inventorypermission: { ...inventorypermission },
-    employeepermission: { ...employeepermission },
-  };
+    fetchMasters();
+  }, [getDetails, partnerId]);
 
   const handleSave = async () => {
     try {
-      const response = await axios.put(api2 + `/employees/${mobile}`, allData);
-
-      if (response.status !== 200)
-        return toast.error("Failed to Edit Employee Data", { autoClose: 2000 });
-
-      toast.success(`${mobile} details are succesfully updated`, {
-        autoClose: 2000,
-        closeOnClick: true,
-        draggable: false,
-      });
-    } catch (e) {
-      toast.error("Something went wrong", { autoClose: 2000 });
-      console.log(e);
-    } finally {
+      const allData = { 
+        ...empData, customerpermission, masterpermission, leadpermission, 
+        paymentpermission, networkpermission, attendencepermission, 
+        payoutpermission, messagepermission, inventorypermission, employeepermission 
+      };
+      await API.put(`/employees/${mobile}`, allData);
+      toast.success("Details updated successfully");
       setIsEditing(false);
+    } catch (e) {
+      toast.error("Update failed");
     }
   };
 
-  return (
-    <>
-      {isLoading ? (
-        <div className="employee-loading-container">
-          <div
-            className="employee-loading-spinner spinner-border"
-            role="status"
-          >
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="employee-loading-text">Loading Employee data...</p>
+  const PermissionSection = ({ title, state, setter, icon: Icon }) => (
+    <div className="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
+      <div className="card-header bg-white d-flex justify-content-between align-items-center py-3 border-bottom px-4">
+        <div className="d-flex align-items-center gap-2">
+          {Icon && <Icon size={18} className="text-primary" />}
+          <h6 className="mb-0 fw-bold text-dark">{title}</h6>
         </div>
-      ) : (
-        <div className="employee-details-container">
-          <div className="employee-details-header">
-            <h5 className="employee-details-title">{`Personal Information for --->${empData.FULLNAME}`}</h5>
-            <div className="employee-edit-buttons">
+        <div className="form-check form-switch">
+          <input 
+            className="form-check-input custom-switch" 
+            type="checkbox" 
+            disabled={!isEditing}
+            onChange={createToggleAll(setter)}
+            checked={Object.values(state).every(v => v === true) && Object.values(state).length > 0}
+          />
+        </div>
+      </div>
+      <div className="card-body bg-light bg-opacity-25 px-4 py-3">
+        <div className="row g-3">
+          {Object.keys(state).map(key => (
+            <div key={key} className="col-12 col-md-6 col-lg-4 col-xl-3">
+              <label className={`permission-tile d-flex align-items-center justify-content-between gap-2 p-3 rounded-3 border transition-all ${state[key] ? 'bg-white border-primary-subtle shadow-sm' : 'bg-white border-light opacity-75'}`}>
+                <div className="d-flex align-items-center gap-2 overflow-hidden">
+                  <input 
+                     type="checkbox" 
+                     name={key}
+                     checked={state[key]} 
+                     disabled={!isEditing}
+                     onChange={createIndividualChange(setter)}
+                     className="form-check-input flex-shrink-0"
+                  />
+                  <span className={`small fw-medium text-capitalize text-truncate ${state[key] ? 'text-dark' : 'text-muted'}`}>
+                    {key.toLowerCase().replace(/_/g, ' ')}
+                  </span>
+                </div>
+                {state[key] && <CheckCircle2 size={14} className="text-success flex-shrink-0" />}
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="employee-details-page bg-light min-vh-100 pb-5">
+      <ToastContainer position="bottom-center" />
+      
+      {/* --- Responsive Header --- */}
+      <header className="bg-white shadow-sm border-bottom sticky-top" style={{ zIndex: 1020 }}>
+        <div className="container-fluid px-3 px-md-4 py-3">
+          <div className="d-flex flex-row justify-content-between align-items-center">
+            <div className="d-flex align-items-center gap-3">
+              <div className="avatar-square bg-primary-subtle text-primary d-flex align-items-center justify-content-center rounded-3 shadow-sm">
+                <User size={24} />
+              </div>
+              <div className="overflow-hidden">
+                <h5 className="mb-0 fw-bold text-dark text-truncate">{empData.FULLNAME || "Employee Detail"}</h5>
+                <div className="d-flex align-items-center gap-2 text-muted small">
+                  <span className={`badge ${empData.status === 'active' ? 'bg-success' : 'bg-danger'} rounded-pill`} style={{ fontSize: '10px' }}>
+                    {empData.status}
+                  </span>
+                  <span className="d-none d-sm-inline">•</span>
+                  <span className="d-flex align-items-center gap-1"><Briefcase size={12} /> {empData.DESIGNATION || 'General'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="d-flex gap-2">
               {!isEditing ? (
-                <button
-                  className="employee-edit-btn employee-edit-btn-primary"
-                  onClick={() => setIsEditing(true)}
-                >
-                  Edit
+                <button className="btn btn-primary rounded-3 px-3 px-md-4 d-flex align-items-center gap-2 shadow-sm" onClick={() => setIsEditing(true)}>
+                  <Edit3 size={18} /> <span className="d-none d-md-inline">Edit Profile</span>
                 </button>
               ) : (
-                <>
-                  <button
-                    className="employee-edit-btn employee-edit-btn-success"
-                    onClick={handleSave}
-                  >
-                    Save
+                <div className="d-flex gap-2">
+                  <button className="btn btn-success rounded-3 px-3 px-md-4 d-flex align-items-center gap-2 shadow-sm" onClick={handleSave}>
+                    <Save size={18} /> <span className="d-none d-md-inline">Save Changes</span>
                   </button>
-                  <button
-                    className="employee-edit-btn employee-edit-btn-secondary"
-                    onClick={() => setIsEditing(false)}
-                  >
-                    Cancel
+                  <button className="btn btn-outline-secondary rounded-3 px-3 shadow-sm" onClick={() => setIsEditing(false)}>
+                    <X size={18} />
                   </button>
-                </>
+                </div>
               )}
             </div>
           </div>
 
-          <div className="employee-form">
-            <form className="row g-3">
-              <div className="col-md-1">
-                <label className="employee-form-label">Emp Code</label>
-                <input
-                  className="employee-form-control"
-                  value={empData._id}
-                  readOnly={!isEditing}
-                ></input>
-              </div>
-
-              <div className="col-md-2">
-                <label className="employee-form-label">Employee FullName</label>
-                <input
-                  name="FULLNAME"
-                  className="employee-form-control"
-                  value={empData.FULLNAME}
-                  onChange={handleChange}
-                  readOnly={!isEditing}
-                ></input>
-              </div>
-
-              <div className="col-md-2">
-                <label className="employee-form-label">
-                  Employee Mobile No.
-                </label>
-                <div className="employee-input-group">
-                  <span className="employee-input-group-text">+91</span>
-                  <input
-                    value={empData.MOBILE}
-                    name="MOBILE"
-                    maxLength={10}
-                    type="numbers"
-                    className="employee-form-control"
-                    aria-describedby="inputGroupPrepend"
-                    readOnly={!isEditing}
-                  ></input>
-                </div>
-              </div>
-
-              <div className="col-md-4">
-                <label className="employee-form-label">Employee Address</label>
-                <input
-                  className="employee-form-control"
-                  value={empData.ADDRESS}
-                  name="ADDRESS"
-                  onChange={handleChange}
-                  readOnly={!isEditing}
-                ></input>
-              </div>
-
-              <div className="col-md-2">
-                <label className="employee-form-label">Gmail Address</label>
-                <div className="employee-input-group">
-                  <span className="employee-input-group-text">@</span>
-                  <input
-                    value={empData.GMAIL}
-                    name="GMAIL"
-                    type="mail"
-                    onChange={handleChange}
-                    className="employee-form-control"
-                    aria-describedby="inputGroupPrepend"
-                    readOnly={!isEditing}
-                  ></input>
-                </div>
-              </div>
-
-              <div className="col-md-1">
-                <label className="employee-form-label">Status *</label>
-                <select
-                  onChange={(e) =>
-                    setEmpData({ ...empData, status: e.target.value })
-                  }
-                  value={empData.status}
-                  className="employee-form-control"
-                  disabled={!isEditing}
-                >
-                  <option>Choose...</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">InActive</option>
-                </select>
-              </div>
-
-              <div className="col-md-2">
-                <label className="employee-form-label">
-                  Employee Designation
-                </label>
-                <select
-                  className="employee-form-control"
-                  value={empData.DESIGNATION}
-                  name="DESIGNATION"
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                >
-                  {arraydesignation.length > 0 ? (
-                    arraydesignation.map((designation, index) => (
-                      <option key={index} value={designation.name}>
-                        {designation.name}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="">No Designation Available</option>
-                  )}
-                </select>
-              </div>
-
-              <div className="col-md-2">
-                <label className="employee-form-label">Joining Date</label>
-                <input
-                  className="employee-form-control"
-                  type="date"
-                  value={empData.DOJ}
-                  name="DOJ"
-                  onChange={handleChange}
-                  readOnly={!isEditing}
-                ></input>
-              </div>
-
-              <div className="col-md-2">
-                <label className="employee-form-label">UserType</label>
-                <select
-                  className="employee-form-control"
-                  value={empData.USERTYPE}
-                  name="USERTYPE"
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                >
-                  <option value="">{empData.USERTYPE}</option>
-                  <option value="mobile">Admin</option>
-                  <option value="web">Web</option>
-                </select>
-              </div>
-
-              <div className="col-md-2">
-                <label className="employee-form-label">Employee Intime</label>
-                <div className="employee-input-group">
-                  <input
-                    className="employee-form-control"
-                    onChange={handleChange}
-                    name="INTIME_H"
-                    value={empData.INTIME_H}
-                    readOnly={!isEditing}
-                  ></input>
-                  <span className="employee-input-group-text">:</span>
-                  <input
-                    className="employee-form-control"
-                    onChange={handleChange}
-                    name="INTIME_M"
-                    value={empData.INTIME_M}
-                    readOnly={!isEditing}
-                  ></input>
-                </div>
-              </div>
-
-              <div className="col-md-2">
-                <label className="employee-form-label">Employee OutTime</label>
-                <div className="employee-input-group">
-                  <input
-                    className="employee-form-control"
-                    onChange={handleChange}
-                    name="OUTTIME_H"
-                    value={empData.OUTTIME_H}
-                    readOnly={!isEditing}
-                  ></input>
-                  <span className="employee-input-group-text">:</span>
-                  <input
-                    className="employee-form-control"
-                    onChange={handleChange}
-                    name="OUTTIME_M"
-                    value={empData.OUTTIME_M}
-                    readOnly={!isEditing}
-                  ></input>
-                </div>
-              </div>
-
-              <div className="col-md-2">
-                <label className="employee-form-label">
-                  Attendence Marking Location
-                </label>
-                <select
-                  onChange={handleChange}
-                  value={empData.MARKING_OFFICE}
-                  name="MARKING_OFFICE"
-                  className="employee-form-control"
-                  disabled={!isEditing}
-                >
-                  {arrayoffice.length > 0 ? (
-                    arrayoffice.map((office, index) => (
-                      <option key={index} value={office.name}>
-                        {office.name}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="">No Offices Available</option>
-                  )}
-                </select>
-              </div>
-            </form>
-
-            <h5 className="employee-section-header">Documents Details</h5>
-            <div className="row g-3">
-              <div className="col-md-2">
-                <label className="employee-form-label">Aadhar Number</label>
-                <input
-                  className="employee-form-control"
-                  value={empData.AADHAR}
-                  name="AADHAR"
-                  onChange={handleChange}
-                  readOnly={!isEditing}
-                ></input>
-              </div>
-
-              <div className="col-md-2">
-                <label className="employee-form-label">Driving License</label>
-                <input
-                  className="employee-form-control"
-                  value={empData.DRIVING}
-                  name="DRIVING"
-                  onChange={handleChange}
-                  readOnly={!isEditing}
-                ></input>
-              </div>
-
-              <div className="col-md-2">
-                <label className="employee-form-label">Pan Card</label>
-                <input
-                  className="employee-form-control"
-                  value={empData.PAN}
-                  name="PAN"
-                  onChange={handleChange}
-                  readOnly={!isEditing}
-                ></input>
-              </div>
-            </div>
-
-            <h5 className="employee-section-header">Bank Account Details</h5>
-            <div className="row g-3">
-              <div className="col-md-2">
-                <label className="employee-form-label">Bank Name</label>
-                <input
-                  className="employee-form-control"
-                  value={empData.BANKNAME}
-                  name="BANKNAME"
-                  onChange={handleChange}
-                  readOnly={!isEditing}
-                ></input>
-              </div>
-
-              <div className="col-md-2">
-                <label className="employee-form-label">Account No.</label>
-                <input
-                  className="employee-form-control"
-                  value={empData.ACCOUNTNO}
-                  name="ACCOUNTNO"
-                  onChange={handleChange}
-                  readOnly={!isEditing}
-                ></input>
-              </div>
-
-              <div className="col-md-2">
-                <label className="employee-form-label">IFSC Code</label>
-                <input
-                  className="employee-form-control"
-                  value={empData.IFSC}
-                  name="IFSC"
-                  onChange={handleChange}
-                  readOnly={!isEditing}
-                ></input>
-              </div>
-
-              <div className="col-md-2">
-                <label className="employee-form-label">Account Holder</label>
-                <input
-                  className="employee-form-control"
-                  value={empData.ACCOUNTNAME}
-                  name="ACCOUNTNAME"
-                  onChange={handleChange}
-                  readOnly={!isEditing}
-                ></input>
-              </div>
-
-              <div className="col-md-2">
-                <label className="employee-form-label">UPI ID</label>
-                <input
-                  className="employee-form-control"
-                  value={empData.UPI}
-                  name="UPI"
-                  onChange={handleChange}
-                  readOnly={!isEditing}
-                ></input>
-              </div>
-            </div>
-
-            <h5 className="mt-4">Documents Preview</h5>
-            {/* <div className='row g-3'>
-                       <div className="col-md-3">
-                          <label className="form-label ms-2">Aadhaar Preview</label>
-
-                          {documentLoading.aadhar && (
-                            <div
-                              style={{
-                                width: '350px',
-                                height: '200px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                background: '#f8f9fa', // light bg
-                                borderRadius: '0.375rem', // matches .rounded
-                                border: '2px solid black'
-                              }}
-                            >
-                              <Spinner animation="border" />
-                            </div>
-                          )}
-
-                          <img
-                            style={{
-                              width: '350px',
-                              height: '200px',
-                              display: documentLoading.aadhar ? 'none' : 'block'
-                            }}
-                            className="rounded shadow border border-dark"
-                            src="https://api.justdude.in:5000/documentsCRM/1754643335129_cbe54da8-e2b1-436d-8849-d31e42418471.png"
-                            onLoad={() => setDocumentLoading({...documentLoading, aadhar:false})}
-                            onError={() => setDocumentLoading({...documentLoading, aadhar:false})} // hide loader if fails
-                            alt="Aadhaar"
-                          />
-                        </div>
-
-                      <div className='col-md-3'>
-                        <label className='form-label ms-2'>Driving License Preview</label>
-                        <img style={{width: '350px', height: '200px'}} className='rounded shadow border border-dark' src='https://api.justdude.in:5000/documentsCRM/1754643335129_cbe54da8-e2b1-436d-8849-d31e42418471.png'></img>
-                      </div>
-
-                      <div className='col-md-3'>
-                        <label className='form-label ms-2'>Pan Preview</label>
-                        <img style={{width: '350px', height: '200px'}} className='rounded shadow border border-dark' src='https://api.justdude.in:5000/documentsCRM/1754643335129_cbe54da8-e2b1-436d-8849-d31e42418471.png'></img>
-                      </div>
-                    </div> */}
-          </div>
-
-          <h5 className="employee-section-header">User Permissions</h5>
-          <div className="employee-permissions-container">
-            <div className="employee-permission-header">
-              <h6 className="employee-permission-title">
-                Customer Permissions
-              </h6>
-              <input
-                checked={Object.values(customerpermission).every((val) => val)}
-                onChange={handleCustomerPermission}
-                className="employee-permission-checkbox"
-                type="checkbox"
-                id="customerpermission"
-                disabled={!isEditing}
-              ></input>
-            </div>
-            <div className="employee-permission-item">
-              <input
-                name="VIEW_CUSTOMER"
-                onChange={handleCustomerIndividualChange}
-                checked={customerpermission.VIEW_CUSTOMER}
-                className="employee-permission-checkbox-item"
-                type="checkbox"
-                id="customerview"
-                disabled={!isEditing}
-              ></input>
-              <label className="employee-permission-label" for="customerview">
-                View Customer
-              </label>
-            </div>
-
-            <div className="employee-permission-item">
-              <input
-                name="ADD_CUSTOMER"
-                onChange={handleCustomerIndividualChange}
-                checked={customerpermission.ADD_CUSTOMER}
-                className="employee-permission-checkbox-item"
-                type="checkbox"
-                id="addcustomer"
-                disabled={!isEditing}
-              ></input>
-              <label className="employee-permission-label" for="addcustomer">
-                Add Customer
-              </label>
-            </div>
-
-            <div className="employee-permission-item">
-              <input
-                name="RENEW_PLAN"
-                onChange={handleCustomerIndividualChange}
-                checked={customerpermission.RENEW_PLAN}
-                className="employee-permission-checkbox-item"
-                type="checkbox"
-                id="renewplan"
-                disabled={!isEditing}
-              ></input>
-              <label className="employee-permission-label" for="renewplan">
-                Renew Plan
-              </label>
-            </div>
-
-            <div className="employee-permission-item">
-              <input
-                name="CHANGE_PLAN"
-                onChange={handleCustomerIndividualChange}
-                checked={customerpermission.CHANGE_PLAN}
-                className="employee-permission-checkbox-item"
-                type="checkbox"
-                id="changeplan"
-                disabled={!isEditing}
-              ></input>
-              <label className="employee-permission-label" for="changeplan">
-                Change Plan
-              </label>
-            </div>
-
-            <div className="employee-permission-item">
-              <input
-                name="EDIT_C_PLAN"
-                onChange={handleCustomerIndividualChange}
-                checked={customerpermission.EDIT_C_PLAN}
-                className="employee-permission-checkbox-item"
-                type="checkbox"
-                id="editcustomerplan"
-                disabled={!isEditing}
-              ></input>
-              <label
-                className="employee-permission-label"
-                for="editcustomerplan"
-              >
-                Edit Customer Plan
-              </label>
-            </div>
-
-            <div className="employee-permission-item">
-              <input
-                name="EDIT_C_INFO"
-                onChange={handleCustomerIndividualChange}
-                checked={customerpermission.EDIT_C_INFO}
-                className="employee-permission-checkbox-item"
-                type="checkbox"
-                id="editbasicinfo"
-                disabled={!isEditing}
-              ></input>
-              <label className="employee-permission-label" for="editbasicinfo">
-                Edit Customer Basic Info
-              </label>
-            </div>
-
-            <div className="employee-permission-item">
-              <input
-                name="CREATE_TICKET"
-                onChange={handleCustomerIndividualChange}
-                checked={customerpermission.CREATE_TICKET}
-                className="employee-permission-checkbox-item"
-                type="checkbox"
-                id="addticket"
-                disabled={!isEditing}
-              ></input>
-              <label className="employee-permission-label" for="addticket">
-                Create New Ticket
-              </label>
-            </div>
-
-            <div className="employee-permission-item">
-              <input
-                name="CLOSE_TICKET"
-                onChange={handleCustomerIndividualChange}
-                checked={customerpermission.CLOSE_TICKET}
-                className="employee-permission-checkbox-item"
-                type="checkbox"
-                id="closeticket"
-                disabled={!isEditing}
-              ></input>
-              <label className="employee-permission-label" for="closeticket">
-                Close Ticket
-              </label>
-            </div>
-
-            <div className="employee-permission-item">
-              <input
-                name="REASSING_TICKET"
-                onChange={handleCustomerIndividualChange}
-                checked={customerpermission.REASSING_TICKET}
-                className="employee-permission-checkbox-item"
-                type="checkbox"
-                id="reassignticket"
-                disabled={!isEditing}
-              ></input>
-              <label className="employee-permission-label" for="reassignticket">
-                Re-Assign Ticket
-              </label>
-            </div>
-
-            <div className="employee-permission-item">
-              <input
-                name="ROLLBACK_PLAN"
-                onChange={handleCustomerIndividualChange}
-                checked={customerpermission.ROLLBACK_PLAN}
-                className="employee-permission-checkbox-item"
-                type="checkbox"
-                id="rollbackplan"
-                disabled={!isEditing}
-              ></input>
-              <label className="employee-permission-label" for="rollbackplan">
-                Plan Rollback
-              </label>
-            </div>
-
-            <div className="employee-permission-item">
-              <input
-                name="RESEND_CODE"
-                onChange={handleCustomerIndividualChange}
-                checked={customerpermission.RESEND_CODE}
-                className="employee-permission-checkbox-item"
-                type="checkbox"
-                id="resendcode"
-                disabled={!isEditing}
-              ></input>
-              <label className="employee-permission-label" for="resendcode">
-                Resend Code
-              </label>
-            </div>
-
-            <div className="employee-permission-header">
-              <h6 className="employee-permission-title">Master Permissions</h6>
-              <input
-                checked={Object.values(masterpermission).every((val) => val)}
-                onChange={handleMasterPermission}
-                className="employee-permission-checkbox"
-                type="checkbox"
-                disabled={!isEditing}
-              ></input>
-            </div>
-            <div className="employee-permission-item">
-              <input
-                name="ADD_PLAN"
-                onChange={handleMasterIndividualChange}
-                checked={masterpermission.ADD_PLAN}
-                className="employee-permission-checkbox-item"
-                type="checkbox"
-                id="addnewplan"
-                disabled={!isEditing}
-              ></input>
-              <label className="employee-permission-label" for="addnewplan">
-                Add New Plan
-              </label>
-            </div>
-
-            <div className="employee-permission-item">
-              <input
-                name="ADD_TICKET_CONCERNS"
-                onChange={handleMasterIndividualChange}
-                checked={masterpermission.ADD_TICKET_CONCERNS}
-                className="employee-permission-checkbox-item"
-                type="checkbox"
-                id="addconcerns"
-                disabled={!isEditing}
-              ></input>
-              <label className="employee-permission-label" for="addconcerns">
-                Add Ticket Concerns
-              </label>
-            </div>
-
-            <div className="employee-permission-item">
-              <input
-                name="ADD_DEVICE_MAKER"
-                onChange={handleMasterIndividualChange}
-                checked={masterpermission.ADD_DEVICE_MAKER}
-                className="employee-permission-checkbox-item"
-                type="checkbox"
-                id="adddevicemaker"
-                disabled={!isEditing}
-              ></input>
-              <label className="employee-permission-label" for="adddevicemaker">
-                Add Device Maker
-              </label>
-            </div>
-
-            <div className="employee-permission-item">
-              <input
-                name="ADD_ISP"
-                onChange={handleMasterIndividualChange}
-                checked={masterpermission.ADD_ISP}
-                className="employee-permission-checkbox-item"
-                type="checkbox"
-                id="addisp"
-                disabled={!isEditing}
-              ></input>
-              <label className="employee-permission-label" for="addisp">
-                Add ISP
-              </label>
-            </div>
-
-            <div className="employee-permission-item">
-              <input
-                name="ADD_DESIGNATION"
-                onChange={handleMasterIndividualChange}
-                checked={masterpermission.ADD_DESIGNATION}
-                className="employee-permission-checkbox-item"
-                type="checkbox"
-                id="adddesignation"
-                disabled={!isEditing}
-              ></input>
-              <label className="employee-permission-label" for="adddesignation">
-                Add Designation
-              </label>
-            </div>
-
-            <div className="employee-permission-item">
-              <input
-                name="ADD_COMPANY"
-                onChange={handleMasterIndividualChange}
-                checked={masterpermission.ADD_COMPANY}
-                className="employee-permission-checkbox-item"
-                type="checkbox"
-                id="addcompany"
-                disabled={!isEditing}
-              ></input>
-              <label className="employee-permission-label" for="addcompany">
-                Add Company
-              </label>
-            </div>
-
-            <div className="employee-permission-item">
-              <input
-                name="ADD_COLONY"
-                onChange={handleMasterIndividualChange}
-                checked={masterpermission.ADD_COLONY}
-                className="employee-permission-checkbox-item"
-                type="checkbox"
-                id="addcolony"
-                disabled={!isEditing}
-              ></input>
-              <label className="employee-permission-label" for="addcolony">
-                Add Colony
-              </label>
-            </div>
-
-            <div className="employee-permission-item">
-              <input
-                name="ADD_DEBIT_CREDIT_CONCERN"
-                onChange={handleMasterIndividualChange}
-                checked={masterpermission.ADD_DEBIT_CREDIT_CONCERN}
-                className="employee-permission-checkbox-item"
-                type="checkbox"
-                id="adddebitandcredit"
-                disabled={!isEditing}
-              ></input>
-              <label
-                className="employee-permission-label"
-                for="adddebitandcredit"
-              >
-                Add Debit/Credit Concern
-              </label>
-            </div>
-
-            <div className="d-flex mt-3">
-              <h6>Leads Permissions</h6>
-              <input
-                checked={Object.values(leadpermission).every((val) => val)}
-                onChange={handleLeadPermission}
-                className="form-check-input ms-2"
-                type="checkbox"
-                disabled={!isEditing}
-              ></input>
-            </div>
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="ADD_LEAD"
-                onChange={handleLeadIndividualChange}
-                checked={leadpermission.ADD_LEAD}
-                className="form-check-input"
-                type="checkbox"
-                id="addlead"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="addlead">
-                Add New Leads
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="CANCEL_LEAD"
-                onChange={handleLeadIndividualChange}
-                checked={leadpermission.CANCEL_LEAD}
-                className="form-check-input"
-                type="checkbox"
-                id="cancellead"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="cancellead">
-                Cancel Leads
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="EDIT_LEAD"
-                onChange={handleLeadIndividualChange}
-                checked={leadpermission.EDIT_LEAD}
-                className="form-check-input"
-                type="checkbox"
-                id="editlead"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="editlead">
-                Edit Leads
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="CONVERT_TO_LEAD"
-                onChange={handleLeadIndividualChange}
-                checked={leadpermission.CONVERT_TO_LEAD}
-                className="form-check-input"
-                type="checkbox"
-                id="convertlead"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="convertlead">
-                Convert Enquiry to Lead
-              </label>
-            </div>
-
-            <div className="d-flex mt-3">
-              <h6>Payment and Authorization Permissions</h6>
-              <input
-                checked={Object.values(paymentpermission).every((val) => val)}
-                onChange={handlePaymentPermission}
-                className="form-check-input ms-2"
-                type="checkbox"
-                disabled={!isEditing}
-              ></input>
-            </div>
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="COLLECT_PAYMENT"
-                onChange={handlePaymentIndividualChange}
-                checked={paymentpermission.COLLECT_PAYMENT}
-                className="form-check-input"
-                type="checkbox"
-                id="collectpayment"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="collectpayment">
-                Collect Payment
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="PAYMENT_AUTHORIZATION"
-                onChange={handlePaymentIndividualChange}
-                checked={paymentpermission.PAYMENT_AUTHORIZATION}
-                className="form-check-input"
-                type="checkbox"
-                id="authorize"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="authorize">
-                Payment Authorization
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="EDIT_PAYMENT"
-                onChange={handlePaymentIndividualChange}
-                checked={paymentpermission.EDIT_PAYMENT}
-                className="form-check-input"
-                type="checkbox"
-                id="editpayment"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="editpayment">
-                Edit Payment
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="CREATE_DEBIT"
-                onChange={handlePaymentIndividualChange}
-                checked={paymentpermission.CREATE_DEBIT}
-                className="form-check-input"
-                type="checkbox"
-                id="createdebit"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="createdebit">
-                Create Debit Note
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="CREATE_CREDIR"
-                onChange={handlePaymentIndividualChange}
-                checked={paymentpermission.CREATE_CREDIT}
-                className="form-check-input"
-                type="checkbox"
-                id="createcredit"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="createcredit">
-                Create Credit Note
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="DOWNLOAD_INVOICE"
-                onChange={handlePaymentIndividualChange}
-                checked={paymentpermission.DOWNLOAD_INVOICE}
-                className="form-check-input"
-                type="checkbox"
-                id="downloadinvoice"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="downloadinvoice">
-                Download Invoice
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="CANCEL_RECEIPT"
-                onChange={handlePaymentIndividualChange}
-                checked={paymentpermission.CANCEL_RECEIPT}
-                className="form-check-input"
-                type="checkbox"
-                id="cancelreceipt"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="cancelreceipt">
-                Cancel Receipt
-              </label>
-            </div>
-
-            <div className="d-flex mt-3">
-              <h6>Network and Rack Permissions</h6>
-              <input
-                checked={Object.values(networkpermission).every((val) => val)}
-                onChange={handleNetworkPermission}
-                className="form-check-input ms-2"
-                type="checkbox"
-                disabled={!isEditing}
-              ></input>
-            </div>
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="VIEW_RACK"
-                onChange={handleNetworkIndividualChange}
-                checked={networkpermission.VIEW_RACK}
-                className="form-check-input"
-                type="checkbox"
-                id="viewrack"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="viewrack">
-                View Network Rack
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="UPDATE_RACK"
-                onChange={handleNetworkIndividualChange}
-                checked={networkpermission.UPDATE_RACK}
-                className="form-check-input"
-                type="checkbox"
-                id="updaterack"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="updaterack">
-                Update Rack Data
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="AADD_JC"
-                onChange={handleNetworkIndividualChange}
-                checked={networkpermission.ADD_JC}
-                className="form-check-input"
-                type="checkbox"
-                id="addjcbox"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="addjcbox">
-                Add Field JC
-              </label>
-            </div>
-
-            <div className="d-flex mt-3">
-              <h6>Attendence Permissions</h6>
-              <input
-                checked={Object.values(attendencepermission).every(
-                  (val) => val
-                )}
-                onChange={handleAttendencePermission}
-                className="form-check-input ms-2"
-                type="checkbox"
-                disabled={!isEditing}
-              ></input>
-            </div>
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="MARK_ATTENDENCE"
-                onChange={handleAttendenceIndividualChange}
-                checked={attendencepermission.MARK_ATTENDENCE}
-                className="form-check-input"
-                type="checkbox"
-                id="markattendence"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="markattendence">
-                Mark Attendence
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="MARK_ATTENDENCE"
-                onChange={handleAttendenceIndividualChange}
-                checked={attendencepermission.MARK_ANYWHERE}
-                className="form-check-input"
-                type="checkbox"
-                id="markanywhere"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="markanywhere">
-                Mark From Anywhere
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="VIEW_ATTENDENCE"
-                onChange={handleAttendenceIndividualChange}
-                checked={attendencepermission.VIEW_ATTENDENCE}
-                className="form-check-input"
-                type="checkbox"
-                id="viewattendence"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="viewattendence">
-                View Attendence
-              </label>
-            </div>
-
-            <div className="d-flex mt-3">
-              <h6>Payout Permissions</h6>
-              <input
-                checked={Object.values(payoutpermission).every((val) => val)}
-                onChange={handlePayoutPermission}
-                className="form-check-input ms-2"
-                type="checkbox"
-                disabled={!isEditing}
-              ></input>
-            </div>
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="VIEW_PAYOUT"
-                onChange={handlePayoutIndividualChange}
-                checked={payoutpermission.VIEW_PAYOUT}
-                className="form-check-input"
-                type="checkbox"
-                id="viewpayout"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="viewpayout">
-                View Payout Info
-              </label>
-            </div>
-
-            <div className="d-flex mt-3">
-              <h6>Messaging Permissions</h6>
-              <input
-                checked={Object.values(messagepermission).every((val) => val)}
-                onChange={handleMessagingPermission}
-                className="form-check-input ms-2"
-                type="checkbox"
-                disabled={!isEditing}
-              ></input>
-            </div>
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="MSG_DUE"
-                onChange={handleMessageIndividualChange}
-                checked={messagepermission.MSG_DUE}
-                className="form-check-input"
-                type="checkbox"
-                id="duemessage"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="duemessage">
-                Message for Due Payment
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="MSG_EXPIRING"
-                onChange={handleMessageIndividualChange}
-                checked={messagepermission.MSG_EXPIRING}
-                className="form-check-input"
-                type="checkbox"
-                id="expiringmessage"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="expiringmessage">
-                Expiring Message
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="MSG_PROMOTIONAL"
-                onChange={handleMessageIndividualChange}
-                checked={messagepermission.MSG_PROMOTIONAL}
-                className="form-check-input"
-                type="checkbox"
-                id="promotionalmessage"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="promotionalmessage">
-                Send Promotional Message
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="MSG_BULK"
-                onChange={handleMessageIndividualChange}
-                checked={messagepermission.MSG_BULK}
-                className="form-check-input"
-                type="checkbox"
-                id="bulkmessage"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="bulkmessage">
-                Send Bulk Message
-              </label>
-            </div>
-
-            <div className="d-flex mt-3">
-              <h6>Inventory Permissions</h6>
-              <input
-                checked={Object.values(inventorypermission).every((val) => val)}
-                onChange={handleInventotyPermission}
-                className="form-check-input ms-2"
-                type="checkbox"
-                disabled={!isEditing}
-              ></input>
-            </div>
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="VIEW_INVENTORY"
-                onChange={handleInventoryIndividualChange}
-                checked={inventorypermission.VIEW_INVENTORY}
-                className="form-check-input"
-                type="checkbox"
-                id="viewinventory"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="viewinventory">
-                View Inventory
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="CHANGE_DEVICE_STATUS"
-                onChange={handleInventoryIndividualChange}
-                checked={inventorypermission.CHANGE_DEVICE_STATUS}
-                className="form-check-input"
-                type="checkbox"
-                id="changestatus"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="changestatus">
-                Change Device Status
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="ASSIGN_DEVICE"
-                onChange={handleInventoryIndividualChange}
-                checked={inventorypermission.ASSIGN_DEVICE}
-                className="form-check-input"
-                type="checkbox"
-                id="assigndevice"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="assigndevice">
-                Assign Device
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="ADD_DEVICE"
-                onChange={handleInventoryIndividualChange}
-                checked={inventorypermission.ADD_DEVICE}
-                className="form-check-input"
-                type="checkbox"
-                id="adddevice"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="adddevice">
-                Add New Device
-              </label>
-            </div>
-
-            <div className="d-flex mt-3">
-              <h6>Employee Managment Permissions</h6>
-              <input
-                checked={Object.values(employeepermission).every((val) => val)}
-                onChange={handleEmpPermission}
-                className="form-check-input ms-2"
-                type="checkbox"
-                disabled={!isEditing}
-              ></input>
-            </div>
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="VIEW_EMP"
-                onChange={handleeEmployeeIndividualChange}
-                checked={employeepermission.VIEW_EMP}
-                className="form-check-input"
-                type="checkbox"
-                id="viewemployee"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="viewemployee">
-                View Employee
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="EDIT_EMP"
-                onChange={handleeEmployeeIndividualChange}
-                checked={employeepermission.EDIT_EMP}
-                className="form-check-input"
-                type="checkbox"
-                id="editemployee"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="editemployee">
-                Edit Employee
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="EDIT_EMP_PERMISSION"
-                onChange={handleeEmployeeIndividualChange}
-                checked={employeepermission.EDIT_EMP_PERMISSION}
-                className="form-check-input"
-                type="checkbox"
-                id="editpermission"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="editpermission">
-                Edit Employee Permissions
-              </label>
-            </div>
-
-            <div className="form-check form-check-inline col-md-2">
-              <input
-                name="ADD_EMP"
-                onChange={handleeEmployeeIndividualChange}
-                checked={employeepermission.ADD_EMP}
-                className="form-check-input"
-                type="checkbox"
-                id="addemployee"
-                disabled={!isEditing}
-              ></input>
-              <label className="form-check-label" for="addemployee">
-                Add New Employee
-              </label>
-            </div>
+          <div className="d-flex gap-4 mt-3 mb-n3 nav-tabs-modern">
+            <button className={`nav-tab-item ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}>Basic Info</button>
+            <button className={`nav-tab-item ${activeTab === 'permissions' ? 'active' : ''}`} onClick={() => setActiveTab('permissions')}>Access Rights</button>
           </div>
         </div>
-      )}
+      </header>
 
-      <ToastContainer />
-    </>
+      <main className="container-fluid p-3 p-md-4">
+        {isLoading ? (
+          <div className="d-flex flex-column align-items-center justify-content-center p-5">
+            <div className="spinner-border text-primary mb-3"></div>
+            <p className="text-muted animate-pulse">Loading employee data...</p>
+          </div>
+        ) : (
+          <div className="row g-4 animate-fade-in">
+            {activeTab === 'profile' ? (
+              <>
+                {/* Left Column: Core Data */}
+                <div className="col-12 col-lg-8">
+                  <section className="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                    <div className="d-flex align-items-center gap-2 mb-4">
+                      <div className="p-2 bg-primary bg-opacity-10 rounded-2 text-primary">
+                        <FileText size={20} />
+                      </div>
+                      <h6 className="fw-bold mb-0">Personal & Employment</h6>
+                    </div>
+                    
+                    <div className="row g-4">
+                      <div className="col-md-6">
+                        <label className="form-label small fw-bold text-uppercase text-muted" style={{ letterSpacing: '0.5px' }}>Full Name</label>
+                        <div className="input-group input-group-merge">
+                          <span className="input-group-text bg-light border-0"><User size={16}/></span>
+                          <input name="FULLNAME" value={empData.FULLNAME} onChange={handleChange} readOnly={!isEditing} className={`form-control border-0 bg-light ${isEditing ? 'border-primary-subtle' : ''}`} />
+                        </div>
+                      </div>
+                      
+                      <div className="col-md-6">
+                        <label className="form-label small fw-bold text-uppercase text-muted">Mobile Number</label>
+                        <div className="input-group input-group-merge">
+                          <span className="input-group-text bg-light border-0 text-muted">+91</span>
+                          <input name="MOBILE" value={empData.MOBILE} onChange={handleChange} readOnly={!isEditing} className="form-control border-0 bg-light" />
+                        </div>
+                      </div>
+
+                      <div className="col-12">
+                        <label className="form-label small fw-bold text-uppercase text-muted">Home Address</label>
+                        <div className="input-group input-group-merge">
+                          <span className="input-group-text bg-light border-0"><MapPin size={16}/></span>
+                          <textarea name="ADDRESS" value={empData.ADDRESS} onChange={handleChange} readOnly={!isEditing} className="form-control border-0 bg-light" rows="2" />
+                        </div>
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label small fw-bold text-uppercase text-muted">Official Gmail</label>
+                        <div className="input-group input-group-merge">
+                          <span className="input-group-text bg-light border-0"><Mail size={16}/></span>
+                          <input name="GMAIL" value={empData.GMAIL} onChange={handleChange} readOnly={!isEditing} className="form-control border-0 bg-light" placeholder="email@gmail.com" />
+                        </div>
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label small fw-bold text-uppercase text-muted">Designation</label>
+                        <select className="form-select border-0 bg-light" disabled={!isEditing} name="DESIGNATION" value={empData.DESIGNATION} onChange={handleChange}>
+                          <option value="">Select Role</option>
+                          {arraydesignation.map((d, i) => <option key={i} value={d.name}>{d.name}</option>)}
+                        </select>
+                      </div>
+
+                      <div className="col-md-4">
+                        <label className="form-label small fw-bold text-uppercase text-muted">Status</label>
+                        <select className="form-select border-0 bg-light" disabled={!isEditing} value={empData.status} onChange={(e) => setEmpData({...empData, status: e.target.value})}>
+                          <option value="active">Active</option>
+                          <option value="inactive">Inactive</option>
+                        </select>
+                      </div>
+
+                      <div className="col-md-8">
+                        <label className="form-label small fw-bold text-uppercase text-muted">Attendance Shift (In-Time)</label>
+                        <div className="d-flex align-items-center gap-3">
+                           <div className="d-flex align-items-center flex-grow-1 bg-light rounded-3 px-3">
+                              <Clock size={16} className="text-muted me-2" />
+                              <input name="INTIME_H" value={empData.INTIME_H} onChange={handleChange} readOnly={!isEditing} className="form-control border-0 bg-transparent text-center" placeholder="HH" maxLength="2" />
+                              <span className="fw-bold">:</span>
+                              <input name="INTIME_M" value={empData.INTIME_M} onChange={handleChange} readOnly={!isEditing} className="form-control border-0 bg-transparent text-center" placeholder="MM" maxLength="2" />
+                           </div>
+                           <div className="small text-muted fst-italic">24hr format</div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+
+                {/* Right Column: Financial Data */}
+                <div className="col-12 col-lg-4">
+                  <div className="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-primary text-white" style={{ background: 'linear-gradient(135deg, #4e73df 0%, #224abe 100%)' }}>
+                    <div className="d-flex align-items-center gap-2 mb-4">
+                      <Landmark size={20} />
+                      <h6 className="fw-bold mb-0">Payout Details</h6>
+                    </div>
+                    
+                    <div className="mb-3 border-bottom border-white border-opacity-25 pb-3">
+                      <label className="small opacity-75 d-block mb-1">Bank Name</label>
+                      <input name="BANKNAME" value={empData.BANKNAME} onChange={handleChange} readOnly={!isEditing} className="form-control form-control-sm bg-white bg-opacity-10 border-0 text-white placeholder-white-50" />
+                    </div>
+                    
+                    <div className="mb-3 border-bottom border-white border-opacity-25 pb-3">
+                      <label className="small opacity-75 d-block mb-1">Account Number</label>
+                      <input name="ACCOUNTNO" value={empData.ACCOUNTNO} onChange={handleChange} readOnly={!isEditing} className="form-control form-control-sm bg-white bg-opacity-10 border-0 text-white" />
+                    </div>
+
+                    <div className="mb-0">
+                      <label className="small opacity-75 d-block mb-1">IFSC Code</label>
+                      <input name="IFSC" value={empData.IFSC} onChange={handleChange} readOnly={!isEditing} className="form-control form-control-sm bg-white bg-opacity-10 border-0 text-white" />
+                    </div>
+                  </div>
+
+                  <div className="card border-0 shadow-sm rounded-4 p-4">
+                     <h6 className="fw-bold mb-3 d-flex align-items-center gap-2"><ShieldCheck size={18} className="text-primary"/> Verification</h6>
+                     <div className="small p-3 bg-light rounded-3 mb-2 d-flex justify-content-between">
+                        <span className="text-muted">Aadhar:</span>
+                        <span className="fw-bold">{empData.AADHAR || 'Pending'}</span>
+                     </div>
+                     <div className="small p-3 bg-light rounded-3 d-flex justify-content-between">
+                        <span className="text-muted">PAN Card:</span>
+                        <span className="fw-bold text-uppercase">{empData.PAN || 'Pending'}</span>
+                     </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="col-12">
+                <div className="mb-4 p-3 bg-primary bg-opacity-10 border border-primary-subtle rounded-3 d-flex align-items-start gap-3">
+                   <AlertCircle className="text-primary mt-1" size={20} />
+                   <div>
+                      <p className="small mb-0 fw-medium text-primary">Granular Access Control</p>
+                      <p className="small mb-0 text-muted">Use the master switches to grant all permissions in a module or select individual actions below.</p>
+                   </div>
+                </div>
+                <PermissionSection title="Customer Access" icon={User} state={customerpermission} setter={setCustomerPermission} />
+                <PermissionSection title="Master Controls" icon={ShieldCheck} state={masterpermission} setter={setMasterPermission} />
+                <PermissionSection title="Lead Management" icon={ChevronRight} state={leadpermission} setter={setLeadPermission} />
+                <PermissionSection title="Payment & Collections" icon={CreditCard} state={paymentpermission} setter={setPaymentPermission} />
+                <PermissionSection title="Network Management" icon={MapPin} state={networkpermission} setter={setNetworkPermission} />
+                <PermissionSection title="Inventory Control" icon={Briefcase} state={inventorypermission} setter={setInventoryPermission} />
+                <PermissionSection title="Attendance Rules" icon={Clock} state={attendencepermission} setter={setAttendencePermission} />
+                <PermissionSection title="HR & Employee" icon={User} state={employeepermission} setter={setEmployeePermission} />
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+
+      <style>{`
+        /* Custom Modern Tabs */
+        .nav-tabs-modern { border-bottom: none; }
+        .nav-tab-item { 
+          border: none; 
+          background: none; 
+          padding: 8px 0px 12px 0px; 
+          font-weight: 600; 
+          color: #94a3b8; 
+          position: relative;
+          font-size: 0.95rem;
+          transition: all 0.3s;
+        }
+        .nav-tab-item.active { color: #2563eb; }
+        .nav-tab-item.active::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 3px;
+          background: #2563eb;
+          border-radius: 3px 3px 0 0;
+        }
+
+        /* Avatar & Icons */
+        .avatar-square { width: 48px; height: 48px; }
+        .input-group-merge .input-group-text { border-right: none; }
+        .input-group-merge .form-control { border-left: none; }
+        
+        /* Permission Tiles */
+        .permission-tile { cursor: pointer; user-select: none; }
+        .permission-tile:hover { transform: translateY(-1px); border-color: #cbd5e1; }
+        .custom-switch { width: 2.5em; height: 1.25em; cursor: pointer; }
+
+        /* Animation */
+        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
+        .animate-pulse { animation: pulse 2s infinite; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        /* Form Overrides */
+        .form-control:focus, .form-select:focus {
+          box-shadow: none;
+          background-color: #fff !important;
+          border: 1px solid #2563eb !important;
+        }
+        .placeholder-white-50::placeholder { color: rgba(255,255,255,0.5); }
+      `}</style>
+    </div>
   );
 }

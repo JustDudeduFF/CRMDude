@@ -1,8 +1,5 @@
-import { onValue, ref } from "firebase/database";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { api2, db } from "../FirebaseConfig";
-import axios from "axios";
-import { set } from "date-fns";
+import { API } from "../FirebaseConfig";
 
 const PermissionContext = createContext();
 
@@ -12,7 +9,7 @@ export const PermissionProvider = ({ children }) => {
 
 const fetchPermissions = async () => {
   try {
-    const response = await axios.get(`${api2}/employees/${username}`);
+    const response = await API.get(`/employees/${username}`);
     const data = response.data;
 
     // find all permission groups

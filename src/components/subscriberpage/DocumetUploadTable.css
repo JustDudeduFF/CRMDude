@@ -32,7 +32,7 @@ color: #ffffff;
 padding: 15px 12px;
 text-align: left;
 font-weight: 600;
-font-size: 0.9rem;
+font-size: 1.1rem;
 border: none;
 letter-spacing: 0.3px;
 }
@@ -52,7 +52,7 @@ border-bottom: none;
 
 .document-upload-table td {
 padding: 12px;
-font-size: 0.9rem;
+font-size: 1.1rem;
 color: #1e293b;
 }
 
@@ -87,7 +87,7 @@ filter: drop-shadow(0 4px 8px rgba(220, 53, 69, 0.3));
 text-align: center;
 padding: 60px 20px;
 color: #475569;
-font-size: 1rem;
+font-size: 1.1rem;
 font-weight: 500;
 }
 
@@ -100,7 +100,7 @@ padding: 15px;
 .document-upload-table th,
 .document-upload-table td {
 padding: 8px 6px;
-font-size: 0.8rem;
+font-size: 0.9rem;
 }
 
 .document-upload-action-icon {
@@ -138,3 +138,6 @@ width: 22px;
 height: 22px;
 }
 }
+
+
+

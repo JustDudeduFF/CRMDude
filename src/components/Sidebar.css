@@ -7,6 +7,7 @@
     background-color: #111;
     padding-top: 20px;
     transition: width 0.3s;
+    z-index: 1000;
 }
 
 .sidebar:hover{
@@ -14,22 +15,16 @@
 }
 
 .sidebar.closed{
-    
     width: 20px;
-
 }
-
-
 
 .sidebar.sidebar.tooggle-btn:focus{
     outline: none;
-
 }
 
 .sidebar h2{
     color: white;
     text-align: center;
-
 }
 
 .sidebar ul{
@@ -41,7 +36,6 @@
     padding: 8px;
     text-align: center;
 }
-
 
 .sidebar ul li link{
     text-decoration: none;
@@ -60,9 +54,52 @@
     background-color: #f1f1f1;
     height: 100vh;
     transition: margin-left 0.3s;
-
 }
 
 .sidebar.closed + .main-content{
     margin-left: 50px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .main-content {
+        margin-left: 20px;
+        padding: 16px;
+    }
+    
+    .sidebar:hover {
+        width: 200px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 0;
+        overflow: hidden;
+    }
+    
+    .sidebar:hover,
+    .sidebar.open {
+        width: 250px;
+    }
+    
+    .main-content {
+        margin-left: 0;
+        padding: 12px;
+    }
+    
+    .sidebar.closed + .main-content {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: 8px;
+    }
+    
+    .sidebar:hover,
+    .sidebar.open {
+        width: 200px;
+    }
 }

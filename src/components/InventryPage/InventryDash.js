@@ -1,8 +1,8 @@
-import axios from "axios";
 import React, { useState, useMemo, useEffect } from "react";
 import * as XLSX from "xlsx";
-import { api2 } from "../../FirebaseConfig";
 import { Pencil, Plus } from "lucide-react";
+import ErrorBoundary from "../ErrorBoundary";
+import { API } from "../../FirebaseConfig";
 
 // Sample data for WiFi installation items
 const initialProducts = [
@@ -298,6 +298,8 @@ const DeviceList = ({
   category,
   productId,
   isReadOnly = true,
+  cables,
+  onCabelesChange,
 }) => {
   const performedBy = localStorage.getItem("contact");
   const [readOnly, setReadOnly] = useState(isReadOnly);
@@ -307,49 +309,139 @@ const DeviceList = ({
     macAddress: "",
     status: "",
   });
+  const [tempCabel, setTempCable] = useState({
+    drumNumber: "",
+    totalLength: 0,
+    availableLength: 0,
+    _id: "",
+  });
   const [searchQuery, setSearchQuery] = useState("");
 
-  // 🔹 Count devices by status
-  const statusCounts = devices?.reduce((acc, device) => {
-    const status = device.status || "Free";
-    acc[status] = (acc[status] || 0) + 1;
-    return acc;
-  }, {});
+  // ✅ Safely count devices by their status
+  const statusCounts = Array.isArray(devices)
+    ? devices.reduce((acc, device) => {
+        const status = device?.status?.trim() || "Free"; // handle missing or empty status
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      }, {})
+    : {}; // default to empty object if devices is not an array
+
+  const getUnusedBundles = () => {
+    let unusedCount = 0;
+    cables.forEach((cable) => {
+      if (cable.totalLength === cable.availableLength) {
+        unusedCount++;
+      }
+    });
+    return unusedCount;
+  };
+
+  const getInuseBundles = () => {
+    let inuseCount = 0;
+    cables.forEach((cable) => {
+      if (
+        cable.totalLength !== cable.availableLength &&
+        cable.availableLength > 15
+      ) {
+        inuseCount++;
+      }
+    });
+    return inuseCount;
+  };
+
+  const getEMptyBundles = () => {
+    let emptyCount = 0;
+    cables.forEach((cable) => {
+      if (cable.availableLength < 15) {
+        emptyCount++;
+      }
+    });
+    return emptyCount;
+  };
+
+  const getAvailabelBundles = () => {
+    let availabelCount = 0;
+    cables.forEach((cable) => {
+      if (cable.availableLength >= 15) {
+        availabelCount++;
+      }
+    });
+    return availabelCount;
+  };
 
   const handleSaveDevice = async () => {
-    if (tempDevice.serialNumber.trim() && tempDevice.macAddress.trim()) {
-      const newDevices = [...devices];
-      let actionType = "";
-
-      if (editingIndex === devices.length) {
-        newDevices.push({ ...tempDevice });
-        actionType = "Added";
+    if (category === "Cables" || category === "Optical Fiber") {
+      if (tempCabel.drumNumber.trim() && tempCabel.totalLength > 0) {
+        const newCables = [...cables];
+        let actionType = "";
+        if (editingIndex === cables.length) {
+          newCables.push({ ...tempCabel });
+          actionType = "Added";
+        } else {
+          newCables[editingIndex] = { ...tempCabel };
+          actionType = "Updated";
+        }
+        try {
+          await API.put(
+            `/inventory/${productId}/cable/${editingIndex}`,
+            {
+              ...tempCabel,
+              performedBy,
+              location: "Main Stock",
+            }
+          );
+          onCabelesChange(newCables);
+          setEditingIndex(-1);
+          setTempCable({
+            drumNumber: "",
+            totalLength: 0,
+            availableLength: 0,
+            _id: "",
+          });
+        } catch (err) {
+          console.error("❌ Error saving cable to DB:", err);
+        }
       } else {
-        newDevices[editingIndex] = { ...tempDevice };
-        actionType = "Updated";
-      }
-
-      try {
-        await axios.put(
-          `${api2}/inventory/${productId}/device/${editingIndex}`,
-          {
-            ...tempDevice,
-            performedBy,
-            location: "Main Stock",
-          }
+        console.warn(
+          "❌ Validation Failed: Missing drum number or total length"
         );
-
-        onDevicesChange({
-          devices: newDevices,
-        });
-
-        setEditingIndex(-1);
-        setTempDevice({ serialNumber: "", macAddress: "", status: "" });
-      } catch (err) {
-        console.error("❌ Error saving device to DB:", err);
       }
     } else {
-      console.warn("❌ Validation Failed: Missing serial or MAC address");
+      if (tempDevice.serialNumber.trim() && tempDevice.macAddress.trim()) {
+        const newDevices = [...devices];
+        let actionType = "";
+
+        if (editingIndex === devices.length) {
+          newDevices.push({ ...tempDevice });
+          actionType = "Added";
+        } else {
+          newDevices[editingIndex] = {
+            ...newDevices[editingIndex],
+            ...tempDevice,
+          };
+          actionType = "Updated";
+        }
+
+        try {
+          await API.put(
+            `/inventory/${productId}/device/${editingIndex}`,
+            {
+              ...tempDevice,
+              performedBy,
+              location: "Main Stock",
+            }
+          );
+
+          onDevicesChange(newDevices);
+
+          setEditingIndex(-1);
+          setTempDevice({ serialNumber: "", macAddress: "", status: "" });
+        } catch (err) {
+          console.error("❌ Error saving device to DB:", err);
+        }
+      } else {
+        console.warn("❌ Validation Failed: Missing serial or MAC address");
+      }
     }
   };
 
@@ -359,8 +451,24 @@ const DeviceList = ({
   };
 
   const handleEditDevice = (index) => {
-    setEditingIndex(index);
-    setTempDevice({ ...devices[index] });
+    if (category === "Cables" || category === "Optical Fiber") {
+      const cableToEdit = cables[index];
+      setTempCable({
+        drumNumber: cableToEdit.drumNumber,
+        totalLength: cableToEdit.totalLength,
+        availableLength: cableToEdit.availableLength,
+        _id: cableToEdit._id,
+      });
+      setEditingIndex(index);
+    } else {
+      const deviceToEdit = devices[index];
+      setTempDevice({
+        serialNumber: deviceToEdit.serialNumber,
+        macAddress: deviceToEdit.macAddress,
+        status: deviceToEdit.status || "Free",
+      });
+      setEditingIndex(index);
+    }
   };
 
   const handleCancelEdit = () => {
@@ -377,26 +485,56 @@ const DeviceList = ({
     tempDevice.macAddress.trim() &&
     validateMacAddress(tempDevice.macAddress);
 
-  const filteredDevices = devices?.filter(
-    (device) =>
-      device.serialNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      device.macAddress.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (device.status &&
-        device.status.toLowerCase().includes(searchQuery.toLowerCase()))
+  const isValidCable = tempCabel.drumNumber.trim() && tempCabel.totalLength > 0;
+
+  const filteredDevices = Array.isArray(devices)
+    ? devices?.filter(
+        (device) =>
+          device.serialNumber
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          device.macAddress.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (device.status &&
+            device.status.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+    : [];
+
+  const filteredCables = cables?.filter(
+    (cable) =>
+      cable.drumNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      cable.totalLength
+        .toString()
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
   );
 
   return (
     <div className="device-list">
       <div className="device-list-header">
         <h4>
-          Individual {category} Devices ({devices.length} devices)
+          Individual {category}{" "}
+          {category === "ONT"
+            ? "Devices"
+            : category === "ONU"
+            ? "Devices"
+            : "Bundles"}{" "}
+          (
+          {category === "Optical Fiber" || category === "Cables"
+            ? getAvailabelBundles()
+            : devices.length}{" "}
+          {category === "ONT"
+            ? "Devices"
+            : category === "ONU"
+            ? "Devices"
+            : "Bundles"}
+          )
         </h4>
 
         <div className="device-header-actions">
           {/* 🔍 Search Bar */}
           <input
             type="text"
-            placeholder="Search devices..."
+            placeholder="Search products..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="device-search"
@@ -421,115 +559,239 @@ const DeviceList = ({
       </div>
 
       {/* 🔹 Status Summary */}
-      <div className="ms-2 mb-2">
-        <span>Free: {statusCounts?.Free || 0}</span> |{" "}
-        <span>Installed: {statusCounts?.Installed || 0}</span> |{" "}
-        <span>Returned: {statusCounts?.Returned || 0}</span> |{" "}
-        <span>On Repair: {statusCounts?.["On Repair"] || 0}</span> |{" "}
-        <span>Non Repairable: {statusCounts?.["Non Repairable"] || 0}</span>
-      </div>
 
-      {/* 🔹 Device List */}
-      <div className="devices-container">
-        {filteredDevices.map((device, index) => (
-          <div key={index} className="device-item">
-            {editingIndex === index ? (
-              <div className="device-edit">
-                <input
-                  type="text"
-                  value={tempDevice.serialNumber}
-                  onChange={(e) =>
-                    setTempDevice((prev) => ({
-                      ...prev,
-                      serialNumber: e.target.value,
-                    }))
-                  }
-                  placeholder="Serial Number"
-                  className="device-input"
-                />
-                <input
-                  type="text"
-                  value={tempDevice.macAddress}
-                  onChange={(e) =>
-                    setTempDevice((prev) => ({
-                      ...prev,
-                      macAddress: e.target.value,
-                    }))
-                  }
-                  placeholder="MAC Address (00:1A:2B:3C:4D:5E)"
-                  className="device-input"
-                />
+      {category === "Optical Fiber" || category === "Cables" ? (
+        <div className="ms-2 mb-2">
+          <span>Unused Bundles: {getUnusedBundles()}</span>
+          <span> | </span>
+          <span>Inuse Bundles: {getInuseBundles()}</span>
+          <span> | </span>
+          <span>Empty Bundles: {getEMptyBundles()}</span>
+          <span> | </span>
+        </div>
+      ) : (
+        <div className="ms-2 mb-2">
+          <span>Free: {statusCounts?.Free || 0}</span> |{" "}
+          <span>Installed: {statusCounts?.Installed || 0}</span> |{" "}
+          <span>Returned: {statusCounts?.Returned || 0}</span> |{" "}
+          <span>On Repair: {statusCounts?.["On Repair"] || 0}</span> |{" "}
+          <span>Non Repairable: {statusCounts?.["Non Repairable"] || 0}</span>
+        </div>
+      )}
 
-                {/* 🔽 Status dropdown */}
-                <select
-                  value={tempDevice.status || "Free"}
-                  onChange={(e) =>
-                    setTempDevice((prev) => ({
-                      ...prev,
-                      status: e.target.value,
-                    }))
-                  }
-                  className="device-input"
-                >
-                  <option value="Free">Free</option>
-                  <option value="Installed">Installed</option>
-                  <option value="Returned">Returned</option>
-                  <option value="On Repair">On Repair</option>
-                  <option value="Non Repairable">Non Repairable</option>
-                </select>
+      {category === "Optical Fiber" || category === "Cables" ? (
+        <div className="devices-container">
+          {filteredCables.map((cable, index) => (
+            <div key={index} className="device-item">
+              {editingIndex === index ? (
+                <div className="device-edit">
+                  <input
+                    type="text"
+                    value={tempCabel.drumNumber}
+                    onChange={(e) =>
+                      setTempCable((prev) => ({
+                        ...prev,
+                        drumNumber: e.target.value,
+                      }))
+                    }
+                    placeholder="Drum Number"
+                    className="device-input"
+                  />
 
-                <div className="device-actions">
-                  <button
-                    type="button"
-                    className="btn btn-primary btn-small"
-                    onClick={handleSaveDevice}
-                    disabled={!isValidDevice}
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-cancel btn-small"
-                    onClick={handleCancelEdit}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="device-view">
-                <div className="device-info">
-                  <span className="device-serial">
-                    Serial: {device.serialNumber}
-                  </span>
-                  <span className="device-mac">MAC: {device.macAddress}</span>
-                  <span className="device-status">
-                    Status: {device.status || "N/A"}
-                  </span>
-                </div>
-                {!readOnly && (
+                  <div className="flex flex-row">
+                    <label className="me-2 device-mac">Total Length:</label>
+                    <input
+                      type="text"
+                      value={tempCabel.totalLength}
+                      onChange={(e) =>
+                        setTempCable((prev) => ({
+                          ...prev,
+                          totalLength: e.target.value,
+                        }))
+                      }
+                      placeholder="Total Length"
+                      className="device-input"
+                    />
+                  </div>
+
+                  <div className="flex flex-row">
+                    <label className="me-2 device-mac">Available Length:</label>
+                    <input
+                      type="text"
+                      value={tempCabel.availableLength}
+                      onChange={(e) =>
+                        setTempCable((prev) => ({
+                          ...prev,
+                          availableLength: e.target.value,
+                        }))
+                      }
+                      className="device-input"
+                      placeholder="Available Length"
+                    ></input>
+                  </div>
+
                   <div className="device-actions">
                     <button
                       type="button"
-                      className="btn btn-edit btn-small"
-                      onClick={() => handleEditDevice(index)}
+                      className="btn btn-primary btn-small"
+                      onClick={handleSaveDevice}
+                      disabled={!isValidCable}
                     >
-                      Edit
+                      Save
                     </button>
                     <button
                       type="button"
-                      className="btn btn-delete btn-small"
-                      onClick={() => handleDeleteDevice(index)}
+                      className="btn btn-cancel btn-small"
+                      onClick={handleCancelEdit}
                     >
-                      Delete
+                      Cancel
                     </button>
                   </div>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+                </div>
+              ) : (
+                <div className="device-view">
+                  <div className="device-info">
+                    <span className="device-serial">
+                      Drum Number: {cable.drumNumber}
+                    </span>
+                    <span className="device-mac">
+                      Total Length: {cable.totalLength}
+                    </span>
+                    <span className="device-status">
+                      Available length: {cable.availableLength || "N/A"}
+                    </span>
+                  </div>
+                  {!readOnly ? (
+                    <div className="device-actions">
+                      <button
+                        type="button"
+                        className="btn btn-edit btn-small"
+                        onClick={() => handleEditDevice(index)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-delete btn-small"
+                        onClick={() => handleDeleteDevice(index)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="device-actions">
+                      <button type="button" className="btn btn-track btn-small">
+                        Info
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="devices-container">
+          {filteredDevices.map((device, index) => (
+            <div key={index} className="device-item">
+              {editingIndex === index ? (
+                <div className="device-edit">
+                  <input
+                    type="text"
+                    value={tempDevice.serialNumber}
+                    onChange={(e) =>
+                      setTempDevice((prev) => ({
+                        ...prev,
+                        serialNumber: e.target.value,
+                      }))
+                    }
+                    placeholder="Serial Number"
+                    className="device-input"
+                  />
+                  <input
+                    type="text"
+                    value={tempDevice.macAddress}
+                    onChange={(e) =>
+                      setTempDevice((prev) => ({
+                        ...prev,
+                        macAddress: e.target.value,
+                      }))
+                    }
+                    placeholder="MAC Address (00:1A:2B:3C:4D:5E)"
+                    className="device-input"
+                  />
+
+                  {/* 🔽 Status dropdown */}
+                  <select
+                    value={tempDevice.status || "Free"}
+                    onChange={(e) =>
+                      setTempDevice((prev) => ({
+                        ...prev,
+                        status: e.target.value,
+                      }))
+                    }
+                    className="device-input"
+                  >
+                    <option value="Free">Free</option>
+                    <option value="Installed">Installed</option>
+                    <option value="Returned">Returned</option>
+                    <option value="On Repair">On Repair</option>
+                    <option value="Non Repairable">Non Repairable</option>
+                  </select>
+
+                  <div className="device-actions">
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-small"
+                      onClick={handleSaveDevice}
+                      disabled={!isValidDevice}
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-cancel btn-small"
+                      onClick={handleCancelEdit}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="device-view">
+                  <div className="device-info">
+                    <span className="device-serial">
+                      Serial: {device.serialNumber}
+                    </span>
+                    <span className="device-mac">MAC: {device.macAddress}</span>
+                    <span className="device-status">
+                      Status: {device.status || "N/A"}
+                    </span>
+                  </div>
+                  {!readOnly && (
+                    <div className="device-actions">
+                      <button
+                        type="button"
+                        className="btn btn-edit btn-small"
+                        onClick={() => handleEditDevice(index)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-delete btn-small"
+                        onClick={() => handleDeleteDevice(index)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {devices.length === 0 && !readOnly && (
         <div className="no-devices">
@@ -713,6 +975,8 @@ const ProductForm = ({
         _id: editProduct?._id || Date.now(),
       };
 
+      console.log("Form submitted with data:", formData);
+
       // Remove unused fields based on category
       if (!deviceCategories.includes(formData.category)) {
         delete productData.devices;
@@ -726,7 +990,8 @@ const ProductForm = ({
   };
 
   const showDeviceFields = deviceCategories.includes(formData.category);
-  const showFiberFields = formData.category === "Optical Fiber";
+  const showFiberFields =
+    formData.category === "Optical Fiber" || formData.category === "Cable";
   const showDeviceInputs =
     showDeviceFields && parseInt(formData.quantity) > 0 && !editProduct;
 
@@ -899,7 +1164,7 @@ const ProductForm = ({
           </div>
         )}
 
-        {showFiberFields && (
+        {(showFiberFields && !editProduct) && (
           <div className="form-group">
             <label htmlFor="drumNumber">Drum Number *</label>
             <input
@@ -1080,6 +1345,20 @@ const InventoryTable = ({
                       <span className="info-label">Drum:</span>
                       <span className="info-value">{product.drumNumber}</span>
                     </div>
+                  ) : product.cables && product.cables.length > 0 ? (
+                    <div className="device-summary">
+                      <span className="device-count">
+                        {product.cables.length} bundles
+                      </span>
+                      <br></br>
+                      <button
+                        className="btn btn-view-devices"
+                        onClick={() => onViewDevices(product)}
+                        title="View all cable bundles"
+                      >
+                        View Details
+                      </button>
+                    </div>
                   ) : (
                     <span className="no-info">—</span>
                   )}
@@ -1218,8 +1497,10 @@ const InventryDash = () => {
         product.model.toLowerCase().includes(searchLower) ||
         product.source.toLowerCase().includes(searchLower) ||
         product.category.toLowerCase().includes(searchLower) ||
-        (product.drumNumber &&
-          product.drumNumber.toLowerCase().includes(searchLower)) ||
+        (product.cables &&
+          product.cables.some((cable) =>
+            cable.drumNumber.toLowerCase().includes(searchLower)
+          )) ||
         (product.devices &&
           product.devices.some(
             (device) =>
@@ -1281,11 +1562,20 @@ const InventryDash = () => {
       const requestData = {
         ...productData,
         partnerId,
+        cables: [
+          {
+            drumNumber: productData.drumNumber || "",
+            totalLength: productData.quantity || 0,
+            availableLength: productData.quantity || 0,
+          },
+        ],
         performedBy: localStorage.getItem("contact"),
       };
 
+      console.log("Adding product with data:", requestData);
+
       // Make POST request to API
-      const response = await axios.post(`${api2}/inventory/add`, requestData);
+      const response = await API.post(`/inventory/add`, requestData);
 
       // Update local state with the saved product
       setProducts((prev) => [...prev, response.data]);
@@ -1311,8 +1601,8 @@ const InventryDash = () => {
   const handleEditProduct = async (productData) => {
     try {
       // Send updated data to backend
-      const res = await axios.put(
-        `${api2}/inventory/update/${productData._id}`, // ✅ use _id (MongoDB)
+      const res = await API.put(
+        `/inventory/update/${productData._id}`, // ✅ use _id (MongoDB)
         productData
       );
 
@@ -1344,8 +1634,8 @@ const InventryDash = () => {
     try {
       if (!deleteProductId) return;
 
-      const res = await axios.delete(
-        `${api2}/inventory/delete/${deleteProductId}`
+      const res = await API.delete(
+        `/inventory/delete/${deleteProductId}`
       );
 
       if (res.status === 200) {
@@ -1396,8 +1686,8 @@ const InventryDash = () => {
 
   const fetchMakers = async () => {
     try {
-      const response = await axios.get(
-        `${api2}/master/devicemaker?partnerId=${partnerId}`
+      const response = await API.get(
+        `/master/devicemaker?partnerId=${partnerId}`
       );
       setMakers(response.data);
     } catch (e) {
@@ -1407,8 +1697,8 @@ const InventryDash = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get(
-        `${api2}/inventory/?partnerId=${partnerId}`
+      const response = await API.get(
+        `/inventory/?partnerId=${partnerId}`
       );
       setProducts(response.data);
     } catch (e) {
@@ -1437,7 +1727,6 @@ const InventryDash = () => {
 
         .inventory-container {
           max-width: auto;
-          margin-top: 4%;
           padding: 20px;
           background-color: #f8f9fa;
           min-height: 100vh;
@@ -2307,10 +2596,10 @@ const InventryDash = () => {
         <p>Manage your network installation equipment and components</p>
       </div> */}
 
-      <div className="stats">
+      {/* <div className="stats">
         <div className="stats-number">{products.length}</div>
         <div className="stats-label">Total Products in Inventory</div>
-      </div>
+      </div> */}
 
       <div className="controls">
         <div className="search-container">
@@ -2476,25 +2765,34 @@ const InventryDash = () => {
         title={
           <div className="flex items-center justify-between">
             <span>
-              Device Details - {viewingProduct?.maker} {viewingProduct?.model}
+              Product Details - {viewingProduct?.maker} {viewingProduct?.model}
             </span>
           </div>
         }
       >
         {viewingProduct && viewingProduct.devices && (
           <div style={{ padding: "24px" }}>
-            <DeviceList
-              devices={viewingProduct?.devices || []}
-              onDevicesChange={(updatedDevices) =>
-                setViewingProduct((prev) => ({
-                  ...prev,
-                  devices: updatedDevices, // ✅ update devices properly
-                }))
-              }
-              category={viewingProduct?.category}
-              productId={viewingProduct?._id}
-              isReadOnly={true}
-            />
+            <ErrorBoundary>
+              <DeviceList
+                onDevicesChange={(updatedDevices) => {
+                  setViewingProduct((prev) => ({
+                    ...prev,
+                    devices: updatedDevices, // ✅ update devices properly
+                  }));
+                }}
+                onCabelesChange={(updatedCables) =>
+                  setViewingProduct((prev) => ({
+                    ...prev,
+                    cables: updatedCables, // ✅ update cables properly
+                  }))
+                }
+                devices={viewingProduct?.devices || []}
+                category={viewingProduct?.category}
+                productId={viewingProduct?._id}
+                cables={viewingProduct?.cables || []}
+                isReadOnly={true}
+              />
+            </ErrorBoundary>
           </div>
         )}
       </Modal>
@@ -2558,12 +2856,22 @@ const InventryDash = () => {
                   payload = { devices: stockInputs };
                 }
                 // Optical Fiber
-                else if (addingStockProductId.category === "Optical Fiber") {
+                else if (
+                  addingStockProductId.category === "Optical Fiber" ||
+                  addingStockProductId.category === "Cable"
+                ) {
                   payload = {
                     drumNumber,
                     quantity,
                     stockEnterDate,
                     performedBy: localStorage.getItem("contact"),
+                    cables: [
+                      {
+                        drumNumber: drumNumber,
+                        totalLength: quantity,
+                        availableLength: quantity,
+                      },
+                    ],
                   };
                 }
                 // Other categories (Accessories, Cable, etc.)
@@ -2575,8 +2883,8 @@ const InventryDash = () => {
                   };
                 }
 
-                const response = await axios.put(
-                  `${api2}/inventory/add-stock/${addingStockProductId._id}`,
+                const response = await API.put(
+                  `/inventory/add-stock/${addingStockProductId._id}`,
                   payload
                 );
 
@@ -2694,7 +3002,8 @@ const InventryDash = () => {
             ) : (
               <>
                 {/* Non-device categories */}
-                {addingStockProductId?.category === "Optical Fiber" && (
+                {(addingStockProductId?.category === "Optical Fiber" ||
+                  addingStockProductId?.category === "Cable") && (
                   <div className="form-group">
                     <label htmlFor="drumNumber">Drum Number *</label>
                     <input

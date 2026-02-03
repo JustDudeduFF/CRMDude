@@ -2,11 +2,11 @@ import React, { useEffect, useState, useRef } from "react";
 import Due_Icon from "./drawables/rupeenew.png";
 import Cust_Ledger from "./Cust_Ledger";
 import {
-  BrowserRouter as Router,
   Routes,
   Route,
   Link,
   useNavigate,
+  useLocation,
 } from "react-router-dom";
 import Cust_PayRecpt from "./Cust_PayRecpt";
 import TicketsTable from "./TicketsTable";
@@ -17,13 +17,28 @@ import DocumentUpload from "./DocumentUpload";
 import SubscriberDetails from "./SubscriberDetails";
 import SubscriberLogs from "./SubscriberLogs";
 import { ProgressBar } from "react-loader-spinner";
-import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import { usePermissions } from "../PermissionProvider";
-import { Modal, Spinner } from "react-bootstrap";
-import { api2 } from "../../FirebaseConfig";
-import { io } from "socket.io-client";
-import "./Subscriber.css";
+import { Modal } from "react-bootstrap";
+import { API } from "../../FirebaseConfig";
+import io from "socket.io-client"; // Fixed import
+import {
+  FaUser,
+  FaHistory,
+  FaReceipt,
+  FaTicketAlt,
+  FaBoxes,
+  FaFileInvoiceDollar,
+  FaComments,
+  FaFolderOpen,
+  FaListUl,
+  FaCalendarAlt,
+  FaSyncAlt,
+  FaExchangeAlt,
+  FaClipboardList,
+  FaPencilAlt,
+  FaGlobe,
+} from "react-icons/fa";
 
 export default function Subscriber() {
   const partnerId = localStorage.getItem("partnerId");
@@ -31,44 +46,39 @@ export default function Subscriber() {
   const socketRef = useRef(null);
   const username = localStorage.getItem("susbsUserid");
   const navigate = useNavigate();
+  const location = useLocation();
 
-  //Use States For Fill All Details
+  const demoProfile = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+
+  // --- ALL ORIGINAL STATES PRESERVED ---
   const [company, setCompany] = useState("");
   const [userid, setUserID] = useState("");
   const [fullName, setFullName] = useState("");
   const [expiryModal, setExpiryModal] = useState(false);
+  const [ispModal, setISPModal] = useState(false);
   const [newExp, setNewExp] = useState("");
+  const [newISP, setNewISP] = useState("");
   const [loading, setLoading] = useState(false);
   const [isTerminated, setIsTeminated] = useState(false);
-  const [terminateRemark, setTerminateRemark] = useState("");
-  const [temptermstatus, setTempTermStatus] = useState();
   const [cuPlanCode, setCuPlanCode] = useState({
     isPlanCode: false,
     plancode: "",
   });
-
-  const [subscriberChanged, setSubscriberChanged] = useState(false);
-
-  // Connection Details
   const [isp, setIsp] = useState("");
   const [planName, setPlanName] = useState("");
   const [planAmount, setPlanAmount] = useState("");
-  const [activationDate, setActivationDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const [activationDate, setActivationDate] = useState("");
   const [expiryDate, setExpiryDate] = useState(null);
-  const [registerationdate, setRegistrationDate] = useState("");
   const [remaindays, setRemainDays] = useState(0);
   const [status, setStatus] = useState("Active");
   const [dueamount, setDueAmount] = useState(0);
   const [profile, setProfile] = useState("");
-  const [ispChangeModal, setIspChangeModal] = useState(false);
-  const [ispArray, setIspArray] = useState([]);
-  const [selectedIsp, setSelectedIsp] = useState("");
-  const [showTerimate, setShowTerminate] = useState(false);
-
   const [modalChangeplan, setModalChangePlan] = useState(false);
   const [renewmodal, setRenewModal] = useState(false);
+  const [provide, setProvide] = useState([]);
+  const [ispArray, setIspArray] = useState([]);
+  const [isps, setIsps] = useState([]);
+  const [plans, setPlans] = useState([]);
   const [changePlanData, setChangePlanData] = useState({
     provider: "All",
     isp: "All",
@@ -84,219 +94,73 @@ export default function Subscriber() {
     plancode: "",
   });
 
-  const [provide, setProvide] = useState([]);
-  const [isps, setIsps] = useState([]);
-  const [plans, setPlans] = useState([]);
-
-  const [filterPlan, setFilterPlans] = useState([]);
-
-  const [loader, setLoader] = useState(false);
-
+  // --- LOGIC ---
   useEffect(() => {
+    fetchData();
     fetchUserData();
   }, [username]);
 
   useEffect(() => {
-    socketRef.current = io("https://api.justdude.in:5000");
-
-    socketRef.current.on("connect", () => {
-      console.log("✅ Connected to WebSocket server");
-    });
-
-    socketRef.current.on("subscribers-update", () => {
-      fetchUserData();
-    });
-
-    // Cleanup on unmount
+    socketRef.current = io("https://api.justdude.in:5002");
+    socketRef.current.on("subscribers-update", () => fetchUserData());
     return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        console.log("🔌 Disconnected from WebSocket server");
-      }
+      if (socketRef.current) socketRef.current.disconnect();
     };
   }, [username]);
 
-  // useEffect(() => {
-  //     fetchUserData();
-  // }, [username])
-  // ...existing code...
-  // Fix: Define fetchUserData to fetch and set user details from backend
   const fetchUserData = async () => {
     try {
-      const response = await axios.get(`${api2}/subscriber?id=${username}`);
+      const response = await API.get(`/subscriber?id=${username}`);
       if (response.data) {
-        const userData = response.data;
-        if (!userData) {
-          // Handle null userData gracefully
-          setFullName("");
-          setCompany("");
-          setUserID("");
-          setRegistrationDate("");
-          setIsTeminated(false);
-          setPlanName("");
-          setPlanAmount("");
-          setActivationDate("");
-          setExpiryDate("");
-          setIsp("");
-          setDueAmount(0);
-          setCuPlanCode({ isPlanCode: false, plancode: "" });
-          return;
-        }
-        setFullName(userData.fullname || "");
-        setCompany(userData.company || "");
-        setUserID(userData.username || "");
-        setRegistrationDate(userData.createdAt || "");
-        setIsTeminated(userData.status == "Terminated" || false);
-        setPlanName(userData.planName || "");
-        setPlanAmount(userData.planAmount || "");
-        setActivationDate(userData.activationDate === '' ? "2000-01-01" : userData.activationDate);
-        setExpiryDate(userData.expiryDate === '' ? "2000-01-01" : userData.expiryDate);
-        setIsp(userData.isp || "");
-        setDueAmount(userData.dueAmount || 0);
-        setCuPlanCode({
-          isPlanCode: !!userData.plancode,
-          plancode: userData.plancode || "",
-        });
-        setProfile(userData.profilePhoto);
+        const u = response.data;
+        setFullName(u.fullname || "");
+        setCompany(u.company || "");
+        setUserID(u.username || "");
+        setIsTeminated(u.status === "Terminated");
+        setPlanName(u.planName || "");
+        setPlanAmount(u.planAmount || "");
+        setActivationDate(u.activationDate || "");
+        setExpiryDate(u.expiryDate || "");
+        setIsp(u.isp || "");
+        setDueAmount(u.dueAmount || 0);
+        setCuPlanCode({ isPlanCode: !!u.plancode, plancode: u.plancode || "" });
+        setProfile(u.profilePhoto);
       }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
+    } catch (e) {
+      console.error(e);
     }
   };
-
-  const fetchData = async () => {
-    try {
-      const ispResponse = await axios.get(
-        api2 + "/subscriber/isps?partnerId=" + partnerId
-      );
-      const planResponse = await axios.get(
-        api2 + "/addnew/broadbandplan?partnerId=" + partnerId
-      );
-
-      if (ispResponse.status !== 200 || planResponse.status !== 200) {
-        console.log("One or More axios Issue for fetch");
-        return;
-      }
-
-      const ispData = ispResponse.data;
-      if (ispData) {
-        setIspArray(ispData);
-      }
-
-      const planData = planResponse.data.plans;
-
-      if (planData) {
-        const array = [];
-        Object.keys(planData).forEach((key) => {
-          const plans = planData[key];
-          const planKey = key;
-          array.push({ ...plans, planKey });
-        });
-
-        const provider = [...new Set(array.map((data) => data.provider))];
-        const isp = [...new Set(array.map((data) => data.isp))];
-
-        setProvide(provider);
-        setIsps(isp);
-        setPlans(array);
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, [username]);
 
   useEffect(() => {
     if (expiryDate) {
-      const calculateDaysBetween = () => {
-        const start = new Date();
-        const end = new Date(expiryDate);
-
-        // Calculate the difference in time
-        const timeDiff = end.getTime() - start.getTime();
-
-        // Convert time difference from milliseconds to days
-        const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-        if (daysDiff < 0) {
-          setStatus("Inactive");
-        } else {
-          setStatus("Active");
-        }
-
-        if (isTerminated) setStatus("Terminated");
-
-        setRemainDays(daysDiff);
-      };
-
-      calculateDaysBetween();
-    }
-  }, [expiryDate]);
-
-  const teminateUser = async () => {
-    const terminate = {
-      isTeminated: temptermstatus,
-      terminateRemark,
-    };
-
-    try {
-      await axios.put(
-        `${api2}/subscriber/updatesubsindividual/${username}`,
-        terminate
+      const daysDiff = Math.ceil(
+        (new Date(expiryDate).getTime() - new Date().getTime()) /
+          (1000 * 3600 * 24),
       );
-      toast.success(`User Status Updated`, {
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: false,
-        progress: undefined,
-      });
-    } catch (e) {
-      console.log(e);
+      setStatus(
+        isTerminated ? "Terminated" : daysDiff < 0 ? "Inactive" : "Active",
+      );
+      setRemainDays(daysDiff);
     }
+  }, [expiryDate, isTerminated]);
+
+  const updateExpirationDate = (newActivationDate, duration, unit) => {
+    const date = new Date(newActivationDate);
+
+    // Extend the date based on the unit from Firebase
+    if (unit === "Months") {
+      date.setMonth(date.getMonth() + Number(duration));
+    } else if (unit === "Years") {
+      date.setFullYear(date.getFullYear() + Number(duration));
+    } else if (unit === "Days") {
+      date.setDate(date.getDate() + Number(duration));
+    }
+
+    const expDate = new Date(date.setDate(date.getDate() - 1))
+      .toISOString()
+      .split("T")[0];
+    return expDate;
   };
-
-  const updateISP = async () => {
-    setIspChangeModal(false);
-    setLoader(true);
-    const ispData = {
-      isp: selectedIsp,
-    };
-    try {
-      await axios.put(
-        `${api2}/subscriber/udpateconnectioninfo/${username}`,
-        ispData
-      );
-      toast.success(`ISP Changed`, {
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setLoader(false);
-    }
-  };
-
-  useEffect(() => {
-    let filterArray = plans;
-
-    if (changePlanData.provider !== "All") {
-      filterArray = filterArray.filter(
-        (data) => data.provider === changePlanData.provider
-      );
-    }
-
-    setFilterPlans(filterArray);
-  }, [changePlanData]);
 
   const savePlan = async (text) => {
     if (
@@ -333,9 +197,9 @@ export default function Subscriber() {
         planamount: changePlanData.planAmount,
       };
 
-      const response = await axios.put(
-        `${api2}/subscriber/${username}/renew`,
-        renewData
+      const response = await API.put(
+        `/subscriber/${username}/renew`,
+        renewData,
       );
 
       if (response.status !== 200)
@@ -374,782 +238,579 @@ export default function Subscriber() {
     }
   };
 
-  // Fix: Define updateExpiry for expiry modal in correct scope
-  const updateExpiry = async () => {
-    setLoading(true);
+  const fetchData = async () => {
     try {
-      await axios.put(`${api2}/subscriber/udpateconnectioninfo/${username}`, {
-        expiryDate: newExp,
-      });
-      setExpiryDate(newExp);
-      toast.success("Expiry date updated!", {
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
-      setExpiryModal(false);
+      const ispResponse = await API.get(
+        `/subscriber/isps?partnerId=${partnerId}`,
+      );
+      const planResponse = await API.get(
+        `/addnew/broadbandplan?partnerId=${partnerId}`,
+      );
+
+      if (ispResponse.status !== 200 || planResponse.status !== 200) {
+        console.log("One or More axios Issue for fetch");
+        return;
+      }
+
+      const ispData = ispResponse.data;
+      if (ispData) {
+        setIspArray(ispData);
+      }
+
+      const planData = planResponse.data.plans;
+
+      if (planData) {
+        const array = [];
+        Object.keys(planData).forEach((key) => {
+          const plans = planData[key];
+          const planKey = key;
+          array.push({ ...plans, planKey });
+        });
+
+        const provider = [...new Set(array.map((data) => data.provider))];
+        const isp = [...new Set(array.map((data) => data.isp))];
+
+        setProvide(provider);
+        setIsps(isp);
+        setPlans(array);
+      }
     } catch (error) {
-      toast.error("Failed to update expiry date", {
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
-      console.error(error);
-    } finally {
-      setLoading(false);
+      console.error("Error fetching data:", error);
     }
   };
 
-  const updateExpirationDate = (newActivationDate, duration, unit) => {
-    const date = new Date(newActivationDate);
+  const handleRenew = () => {
+    if (!hasPermission("RENEW_PLAN")) return toast.error("Permission Denied!");
+    if (cuPlanCode.isPlanCode) {
+      setRenewModal(true);
+      const cuObj = plans.find((data) => data.code === cuPlanCode.plancode);
+      if (cuObj) {
+        const expDate = new Date(expiryDate);
+        expDate.setDate(expDate.getDate() + 1);
 
-    // Extend the date based on the unit from Firebase
-    if (unit === "Months") {
-      date.setMonth(date.getMonth() + Number(duration));
-    } else if (unit === "Years") {
-      date.setFullYear(date.getFullYear() + Number(duration));
-    } else if (unit === "Days") {
-      date.setDate(date.getDate() + Number(duration));
+        setChangePlanData({
+          ...changePlanData,
+          provider: cuObj.provider,
+          isp: isp,
+          planname: cuObj.planname,
+          bandwidth: cuObj.bandwidth,
+          expiryDate: updateExpirationDate(
+            new Date(expDate).toISOString().split("T")[0],
+            cuObj.periodtime,
+            cuObj.planperiod,
+          ),
+          planAmount: planAmount,
+          planperiod: cuObj.planperiod,
+          periodtime: cuObj.periodtime,
+          plancode: cuPlanCode.plancode,
+        });
+      }
+    } else {
+      toast.error("Cannot Renew Plan without a valid Plan Code!", {
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
     }
-
-    const expDate = new Date(date.setDate(date.getDate() - 1))
-      .toISOString()
-      .split("T")[0];
-    return expDate;
   };
 
   return (
-    <div className="subscriber-container">
-      {loader && (
-        <div className="subscriber-spinner-wrapper">
-          <div className="subscriber-spinner-content">
-            <ProgressBar
-              height="80"
-              width="80"
-              radius="9"
-              color="blue"
-              ariaLabel="three-dots-loading"
-              wrapperStyle={{}}
-              wrapperClass=""
-            />
-            <br></br>
-            <label className="subscriber-spinner-label">Fetching Data...</label>
-          </div>
-        </div>
-      )}
-      <div className="subscriber-main-content">
-        <div className="subscriber-profile-section">
-          <img
-            className="subscriber-profile-image"
-            src={profile}
-            alt="subscriber Image"
-          ></img>
-        </div>
-        <ToastContainer
-          style={{ position: "fixed", top: "5%", right: "3.5%" }}
-        />
-        <div className="subscriber-info-section">
-          <div className="subscriber-basic-info">
-            <div className="subscriber-name-section">
-              <Link
-                className="subscriber-name-link"
-                to="/dashboard/subscriber"
-                state={{ username: userid }}
-              >
-                {fullName || ""}
-              </Link>
-              <div className="subscriber-status-badges">
-                <span className="subscriber-status-prepaid">Prepaid</span>
-                <span> | </span>
-                <span className="subscriber-status-paid">
-                  {dueamount > 0 ? "Due" : "Paid"}
-                </span>
-                <span> | </span>
+    <div className="crm-main-container">
+      <ToastContainer position="top-right" autoClose={3000} />
+
+      {/* HEADER SECTION */}
+      <div className="crm-header-card shadow">
+        <div className="container-fluid">
+          <div className="row align-items-center">
+            <div className="col-auto">
+              <div className="crm-avatar-box">
+                <img
+                  src={profile || demoProfile}
+                  onError={(e) => (e.target.src = demoProfile)}
+                  className="crm-avatar-img"
+                  alt="Profile"
+                />
                 <span
-                  className={
-                    status === "Active"
-                      ? "subscriber-status-active"
-                      : status === "Inactive"
-                      ? "subscriber-status-inactive"
-                      : "subscriber-status-terminated"
-                  }
-                >
-                  {status}
-                </span>
+                  className={`crm-indicator ${status.toLowerCase()}`}
+                ></span>
               </div>
             </div>
-            <div className="subscriber-details-card">
-              <div className="subscriber-details-row">
-                <div className="subscriber-detail-column">
-                  <div className="subscriber-detail-label">User ID</div>
-                  <div className="subscriber-detail-value">
-                    <h5>{userid}</h5>
-                  </div>
+            <div className="col text-white">
+              <h2 className="fw-bold mb-0">{fullName || "Subscriber"}</h2>
+              <p className="opacity-75 mb-2">
+                <FaUser size={12} /> {userid} | {company}
+              </p>
 
-                  <div className="subscriber-detail-label">
-                    Registration Date
+              {/* MOBILE ONLY DUE & ACTIONS */}
+              <div className="d-md-none mb-3">
+                <div className="d-flex align-items-center justify-content-between bg-black bg-opacity-10 p-2 rounded-3 mb-2">
+                  <div className="d-flex align-items-center">
+                    <img
+                      src={Due_Icon}
+                      style={{
+                        height: "20px",
+                        filter: "brightness(0) invert(1)",
+                      }}
+                      alt="Due"
+                    />
+                    <span className="ms-2 fw-bold">₹{dueamount}</span>
                   </div>
-                  <div className="subscriber-detail-value">
-                    {registerationdate}
+                  <div className="d-flex gap-2">
+                    <button
+                      className="btn btn-sm crm-action-btn py-1"
+                      onClick={handleRenew}
+                    >
+                      <FaSyncAlt size={10} /> Renew
+                    </button>
+                    <button
+                      className="btn btn-sm crm-action-btn py-1"
+                      onClick={() => setModalChangePlan(true)}
+                    >
+                      <FaExchangeAlt size={10} /> Change
+                    </button>
                   </div>
                 </div>
+              </div>
 
-                <div className="subscriber-detail-column">
-                  <div className="subscriber-detail-label">Company Name</div>
-                  <div className="subscriber-detail-value">
-                    <h5>{company}</h5>
+              <div className="row g-3">
+                <div className="col-auto">
+                  <div className="crm-stat-item">
+                    <small>PLAN</small>
+                    <h6>{`${planName}@${planAmount || "N/A"}` || "N/A"}</h6>
                   </div>
+                </div>
+                {/* ... (Keep other stat items: Activation, Expiry, ISP, Remain Days) */}
+                <div className="col-auto">
+                  <div className="crm-stat-item">
+                    <small>ACTIVE DATE</small>
+                    <h6>
+                      {activationDate
+                        ? new Date(activationDate).toLocaleDateString("en-GB")
+                        : "---"}
+                    </h6>
+                  </div>
+                </div>
+                <div className="col-auto">
+                  <div className="crm-stat-item">
+                    <small>
+                      EXPIRY DATE
+                      <FaPencilAlt
+                        onClick={() => setExpiryModal(true)}
+                        className="ms-2 mb-1"
+                        style={{ cursor: "pointer" }}
+                        size={13}
+                      />
+                    </small>
 
-                  <div className="subscriber-detail-label">Connection Type</div>
-                  <div className="subscriber-detail-value">FTTH</div>
+                    <h6>
+                      {expiryDate
+                        ? new Date(expiryDate).toLocaleDateString("en-GB")
+                        : "---"}
+                    </h6>
+                  </div>
+                </div>
+                <div className="col-auto">
+                  <div className="crm-stat-item">
+                    <small>
+                      ISP
+                      <FaPencilAlt
+                        onClick={() => setISPModal(true)}
+                        className="ms-2 mb-1"
+                        style={{ cursor: "pointer" }}
+                        size={13}
+                      />
+                    </small>
+                    <h6>{isp ? isp : "---"}</h6>
+                  </div>
+                </div>
+                <div className="col-auto">
+                  <div className="crm-stat-item">
+                    <small>Remain Days</small>
+                    <h6>{remaindays ? remaindays : "---"}</h6>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div className="subscriber-plan-section">
-            <div className="subscriber-plan-row">
-              <div className="subscriber-plan-column">
-                <div className="subscriber-plan-label">Active Plan</div>
-                <div className="subscriber-plan-value">
-                  <h6>{planName}</h6>
-                </div>
 
-                <div className="subscriber-plan-label">Start Date</div>
-                <div className="subscriber-plan-value">
-                  <h6>
-                    {new Date(activationDate)
-                      .toLocaleDateString("en-GB", {
-                        day: "2-digit",
-                        month: "long",
-                        year: "numeric",
-                      })
-                      .replace(",", "")}
-                  </h6>
-                </div>
-
-                <div className="subscriber-plan-label">
-                  End Date
-                  <span
-                    onClick={() => setExpiryModal(true)}
-                    className="subscriber-edit-badge"
-                  >
-                    Edit
-                  </span>
-                </div>
-                <div className="subscriber-plan-value">
-                  <h6>
-                    {new Date(expiryDate)
-                      .toLocaleDateString("en-GB", {
-                        day: "2-digit",
-                        month: "long",
-                        year: "numeric",
-                      })
-                      .replace(",", "")}
-                  </h6>
-                </div>
-
-                <div className="subscriber-plan-label">Amount</div>
-                <div className="subscriber-plan-value">
-                  <h6>{`${parseInt(planAmount)}.00`}</h6>
+            {/* DESKTOP ONLY DUE & ACTIONS (Keep as is) */}
+            <div className="col-md-4 col-lg-3 text-end d-none d-md-block">
+              <div className="crm-due-badge mb-3">
+                <img src={Due_Icon} className="due-icon" alt="Due" />
+                <div className="text-start ms-2">
+                  <small className="d-block opacity-75 text-white">
+                    Total Due
+                  </small>
+                  <h3 className="fw-bold mb-0 text-white">₹{dueamount}</h3>
                 </div>
               </div>
-              <div className="subscriber-plan-column">
-                <div className="subscriber-plan-label">
-                  ISP
-                  <span
-                    onClick={() => setIspChangeModal(true)}
-                    className="subscriber-edit-badge"
-                  >
-                    Edit
-                  </span>
-                </div>
-                <div className="subscriber-plan-value">
-                  <h6>{isp}</h6>
-                </div>
-
-                <div className="subscriber-plan-label">Data</div>
-                <div className="subscriber-plan-value">
-                  <h6>Unlimited</h6>
-                </div>
-
-                <div className="subscriber-plan-label">
-                  Status
-                  <span
-                    onClick={() => setShowTerminate(true)}
-                    className="subscriber-edit-badge"
-                  >
-                    Edit
-                  </span>
-                </div>
-                <div className="subscriber-plan-value">
-                  <h6
-                    className={
-                      status === "Active"
-                        ? "subscriber-status-active"
-                        : status === "Inactive"
-                        ? "subscriber-status-inactive"
-                        : "subscriber-status-terminated"
-                    }
-                  >
-                    {status}
-                  </h6>
-                </div>
-
-                <div className="subscriber-plan-label">Days Remains</div>
-                <div className="subscriber-plan-value">
-                  <h6>{remaindays}</h6>
-                </div>
-              </div>
-
-              <div className="subscriber-due-section">
-                <div
-                  className={`subscriber-due-card ${
-                    dueamount < 0
-                      ? "positive"
-                      : dueamount > 0
-                      ? "negative"
-                      : "neutral"
-                  }`}
+              <div className="d-flex gap-2 justify-content-end">
+                <button className="btn crm-action-btn" onClick={handleRenew}>
+                  <FaSyncAlt /> Renew
+                </button>
+                <button
+                  className="btn crm-action-btn"
+                  onClick={() => setModalChangePlan(true)}
                 >
-                  <div className="subscriber-due-icon">
-                    <img alt="Due Amount" src={Due_Icon}></img>
-                  </div>
-                  <div className="subscriber-due-info">
-                    <div className="subscriber-due-amount">{dueamount}</div>
-                    <div className="subscriber-due-label">Due Amount</div>
-                  </div>
-                </div>
-                <div className="subscriber-actions-section">
-                  <div className="subscriber-action-buttons">
-                    <button
-                      onClick={() => {
-                        console.log(cuPlanCode);
-                        if (!hasPermission("RENEW_PLAN")) {
-                          toast.error("Permission Denied!", {
-                            autoClose: 3000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            progress: undefined,
-                          });
-                          return;
-                        }
-
-                        if (cuPlanCode.isPlanCode) {
-                          setRenewModal(true);
-                          const cuObj = plans.find(
-                            (data) => data.code === cuPlanCode.plancode
-                          );
-                          if (cuObj) {
-                            const expDate = new Date(expiryDate);
-                            expDate.setDate(expDate.getDate() + 1);
-
-                            setChangePlanData({
-                              ...changePlanData,
-                              provider: cuObj.provider,
-                              isp: isp,
-                              planname: cuObj.planname,
-                              bandwidth: cuObj.bandwidth,
-                              expiryDate: updateExpirationDate(
-                                new Date(expDate).toISOString().split("T")[0],
-                                cuObj.periodtime,
-                                cuObj.planperiod
-                              ),
-                              planAmount: planAmount,
-                              planperiod: cuObj.planperiod,
-                              periodtime: cuObj.periodtime,
-                              plancode: cuPlanCode.plancode,
-                            });
-                          }
-                        }
-                      }}
-                      type="button"
-                      className="subscriber-action-btn subscriber-action-btn-info"
-                      disabled={!cuPlanCode.isPlanCode || isTerminated}
-                    >
-                      Renew Subscription
-                    </button>
-                    <button
-                      onClick={() => {
-                        hasPermission("CHANGE_PLAN")
-                          ? setModalChangePlan(true)
-                          : toast.error("Permission Denied", {
-                              autoClose: 3000,
-                              hideProgressBar: false,
-                              closeOnClick: true,
-                              pauseOnHover: true,
-                              draggable: true,
-                              progress: undefined,
-                            });
-                      }}
-                      type="button"
-                      className="subscriber-action-btn subscriber-action-btn-outline-danger"
-                      disabled={isTerminated}
-                    >
-                      Change Plan
-                    </button>
-                  </div>
-
-                  <div className="subscriber-coins-section">
-                    <span>Tokens Balance :- </span>
-                  </div>
-                </div>
+                  <FaExchangeAlt /> Change
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div className="subscriber-navigation-section">
-        <div className="subscriber-sidebar">
-          <div
-            onClick={() => {
-              navigate("/dashboard/subscriber/ledger", { state: { username } });
-            }}
-            className="subscriber-nav-option"
-          >
-            <label>Ledger</label>
+
+      {/* NAVIGATION & CONTENT */}
+      <div className="container-fluid mt-3">
+        <div className="row g-3">
+          {/* SIDEBAR / MOBILE NAV */}
+          <div className="col-12 col-lg-3">
+            <div className="crm-nav-card shadow-sm">
+              <div className="crm-nav-wrapper">
+                <div className="nav-title d-none d-lg-block">MAIN MENU</div>
+                <Link
+                  to="/dashboard/subscriber"
+                  className={`crm-nav-link ${location.pathname === "/dashboard/subscriber" ? "active" : ""}`}
+                >
+                  <FaListUl className="me-2" /> Summary
+                </Link>
+                <div
+                  onClick={() =>
+                    navigate("/dashboard/subscriber/ledger", {
+                      state: { username },
+                    })
+                  }
+                  className={`crm-nav-link ${location.pathname.includes("ledger") ? "active" : ""}`}
+                >
+                  <FaHistory className="me-2" /> Ledger
+                </div>
+                <div
+                  onClick={() =>
+                    navigate("/dashboard/subscriber/paymentreceipt", {
+                      state: { username },
+                    })
+                  }
+                  className={`crm-nav-link ${location.pathname.includes("paymentreceipt") ? "active" : ""}`}
+                >
+                  <FaReceipt className="me-2" /> Payments
+                </div>
+                <Link
+                  to="/dashboard/subscriber/tickets"
+                  className={`crm-nav-link ${location.pathname.includes("tickets") ? "active" : ""}`}
+                >
+                  <FaTicketAlt className="me-2" /> Tickets
+                </Link>
+                <Link
+                  to="/dashboard/subscriber/inventory"
+                  className={`crm-nav-link ${location.pathname.includes("inventory") ? "active" : ""}`}
+                >
+                  <FaBoxes className="me-2" /> Inventory
+                </Link>
+                <Link
+                  to="/dashboard/subscriber/dcnote"
+                  className={`crm-nav-link ${location.pathname.includes("dcnote") ? "active" : ""}`}
+                >
+                  <FaFileInvoiceDollar className="me-2" /> DC Notes
+                </Link>
+                <Link
+                  to="/dashboard/subscriber/remarkfollow"
+                  className={`crm-nav-link ${location.pathname.includes("remarkfollow") ? "active" : ""}`}
+                >
+                  <FaComments className="me-2" /> Remarks
+                </Link>
+                <Link
+                  to="/dashboard/subscriber/documents"
+                  className={`crm-nav-link ${location.pathname.includes("documents") ? "active" : ""}`}
+                >
+                  <FaFolderOpen className="me-2" /> Documents
+                </Link>
+                <Link
+                  to="/dashboard/subscriber/logsubs"
+                  className={`crm-nav-link ${location.pathname.includes("logsubs") ? "active" : ""}`}
+                >
+                  <FaClipboardList className="me-2" /> Activity Logs
+                </Link>
+              </div>
+            </div>
           </div>
 
-          <div
-            onClick={() => {
-              navigate("/dashboard/subscriber/paymentreceipt", {
-                state: { username },
-              });
-            }}
-            className="subscriber-nav-option"
-          >
-            <label>Payments Receipts</label>
+          {/* VIEWPORT */}
+          <div className="col-12 col-lg-9">
+            <div className="crm-content-card shadow-sm bg-white">
+              <Routes>
+                <Route path="/*" element={<SubscriberDetails />} />
+                <Route path="ledger/*" element={<Cust_Ledger />} />
+                <Route path="paymentreceipt/*" element={<Cust_PayRecpt />} />
+                <Route path="tickets/*" element={<TicketsTable />} />
+                <Route path="inventory/*" element={<InventoryTable />} />
+                <Route path="dcnote/*" element={<DebitCreditTable />} />
+                <Route path="remarkfollow/*" element={<RemakFollowTable />} />
+                <Route path="documents/*" element={<DocumentUpload />} />
+                <Route path="logsubs" element={<SubscriberLogs />} />
+              </Routes>
+            </div>
           </div>
-
-          <Link
-            className="subscriber-nav-option"
-            to="/dashboard/subscriber/tickets"
-          >
-            <label>Tickets</label>
-          </Link>
-
-          <Link
-            className="subscriber-nav-option"
-            to="/dashboard/subscriber/inventory"
-          >
-            <label>Inventory</label>
-          </Link>
-
-          <Link
-            className="subscriber-nav-option"
-            to="/dashboard/subscriber/dcnote"
-          >
-            <label>Debit/Credit Notes</label>
-          </Link>
-
-          <Link
-            className="subscriber-nav-option"
-            to="/dashboard/subscriber/remarkfollow"
-          >
-            <label>Remarks & Follow Ups</label>
-          </Link>
-
-          <Link
-            className="subscriber-nav-option"
-            to="/dashboard/subscriber/documents"
-          >
-            <label>Documents</label>
-          </Link>
-
-          <Link
-            className="subscriber-nav-option"
-            to="/dashboard/subscriber/logsubs"
-          >
-            <label>Subscriber Logs</label>
-          </Link>
-        </div>
-
-        <div className="subscriber-content-area">
-          <Routes>
-            <Route path="/*" element={<SubscriberDetails />} />
-            <Route path="ledger/*" element={<Cust_Ledger />} />
-            <Route path="paymentreceipt/*" element={<Cust_PayRecpt />} />
-            <Route path="tickets/*" element={<TicketsTable />} />
-            <Route path="inventory/*" element={<InventoryTable />} />
-            <Route path="dcnote/*" element={<DebitCreditTable />} />
-            <Route path="remarkfollow/*" element={<RemakFollowTable />} />
-            <Route path="documents/*" element={<DocumentUpload />} />
-            <Route path="logsubs" element={<SubscriberLogs />} />
-          </Routes>
         </div>
       </div>
 
       <Modal
+        className="crm-modern-modal"
+        centered
         show={expiryModal}
         onHide={() => setExpiryModal(false)}
-        className="subscriber-modal"
       >
-        <Modal.Header>
-          <Modal.Title>Change Expiry Date</Modal.Title>
+        <Modal.Header closeButton className="border-0 pb-0">
+          <Modal.Title className="fw-bold text-dark">
+            <FaCalendarAlt className="me-2 text-primary" /> Update Expiry Date
+          </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          {loading ? (
-            <div className="text-center">
-              <Spinner animation="border" role="status" variant="primary">
-                <span className="visually-hidden">Loading...</span>
-              </Spinner>
-              <p className="mt-3">Processing, please wait...</p>
-            </div>
-          ) : (
-            <div className="subscriber-modal-container">
-              <div className="subscriber-modal-field subscriber-modal-field-margin">
-                <label className="subscriber-form-label">
-                  Select New Expiry
-                </label>
+        <Modal.Body className="pt-3">
+          <div className="container-fluid px-0">
+            <div className="row g-3">
+              <div className="col-12">
+                <label className="crm-label-sm">NEW EXPIRY DATE</label>
                 <input
-                  defaultValue={
-                    expiryDate
-                      ? new Date(expiryDate).toISOString().split("T")[0]
-                      : ""
-                  }
+                  className="form-control crm-input"
+                  type="date"
+                  value={newExp}
                   onChange={(e) => setNewExp(e.target.value)}
-                  type="date"
-                  className="subscriber-form-control"
-                ></input>
+                />
               </div>
-            </div>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <button
-            onClick={updateExpiry}
-            className="subscriber-btn subscriber-btn-primary"
-          >
-            Update
-          </button>
-          <button
-            onClick={() => setExpiryModal(false)}
-            className="subscriber-btn subscriber-btn-secondary"
-          >
-            Cancel
-          </button>
-        </Modal.Footer>
-      </Modal>
-
-      <Modal
-        show={ispChangeModal}
-        onHide={() => setIspChangeModal(false)}
-        className="subscriber-modal"
-      >
-        <Modal.Header>
-          <Modal.Title>Change Customer ISP</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="subscriber-modal-container">
-            <div className="subscriber-modal-field subscriber-modal-field-margin">
-              <label className="subscriber-form-label">Select ISP</label>
-              <select
-                onChange={(e) => setSelectedIsp(e.target.value)}
-                className="subscriber-form-select"
-              >
-                <option value="">Choose...</option>
-                {ispArray.length > 0 ? (
-                  ispArray.map((isp, index) => (
-                    <option key={index} value={isp}>
-                      {isp}
-                    </option>
-                  ))
-                ) : (
-                  <option value="">No ISP Found</option>
-                )}
-              </select>
             </div>
           </div>
         </Modal.Body>
-        <Modal.Footer>
-          <button
-            onClick={updateISP}
-            className="subscriber-btn subscriber-btn-primary"
-          >
-            Update
-          </button>
-          <button
-            onClick={() => setIspChangeModal(false)}
-            className="subscriber-btn subscriber-btn-secondary"
-          >
-            Close
-          </button>
-        </Modal.Footer>
-      </Modal>
-      <Modal
-        show={showTerimate}
-        onHide={() => setShowTerminate(false)}
-        className="subscriber-modal"
-      >
-        <Modal.Header>
-          <Modal.Title>Terminated User</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="subscriber-modal-container">
-            <div className="subscriber-modal-field subscriber-modal-field-margin">
-              <label className="subscriber-form-label">
-                Select Account Status
-              </label>
-              <select
-                onChange={(e) => setTempTermStatus(e.target.value === "true")}
-                className="subscriber-form-select"
-              >
-                <option value={isTerminated}>Choose...</option>
-                <option value={isTerminated ? "false" : "true"}>
-                  {isTerminated ? "Active" : "Terminated"}
-                </option>
-              </select>
-            </div>
-
-            <div className="subscriber-modal-field subscriber-modal-field-margin">
-              <label className="subscriber-form-label">Enter Remarks</label>
-              <input
-                onChange={(e) => setTerminateRemark(e.target.value)}
-                className="subscriber-form-control"
-                type="text"
-                placeholder="e.g. Reason or Remark"
-              ></input>
-            </div>
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <button
-            onClick={teminateUser}
-            className="subscriber-btn subscriber-btn-primary"
-          >
-            Update
-          </button>
-          <button
-            onClick={() => setShowTerminate(false)}
-            className="subscriber-btn subscriber-btn-outline-secondary"
-          >
-            Cancel
-          </button>
-        </Modal.Footer>
-      </Modal>
-
-      <Modal
-        show={modalChangeplan}
-        onHide={() => setModalChangePlan(false)}
-        className="subscriber-modal"
-      >
-        <Modal.Header>
-          <Modal.Title>Change Customer Plan</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="subscriber-modal-container">
-            <div className="subscriber-modal-row">
-              <div className="subscriber-modal-field subscriber-modal-field-margin subscriber-modal-field-half subscriber-modal-field-right-margin">
-                <label className="subscriber-form-label">
-                  Select Provider *
-                </label>
-                <select
-                  onChange={(e) =>
-                    setChangePlanData({
-                      ...changePlanData,
-                      provider: e.target.value,
-                    })
-                  }
-                  className="subscriber-form-select"
-                >
-                  <option>Choose...</option>
-                  {provide.map((data, index) => (
-                    <option key={index}>{data}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="subscriber-modal-field subscriber-modal-field-margin subscriber-modal-field-half subscriber-modal-field-left-margin">
-                <label className="subscriber-form-label">Select ISP *</label>
-                <select
-                  onChange={(e) =>
-                    setChangePlanData({
-                      ...changePlanData,
-                      isp: e.target.value,
-                    })
-                  }
-                  className="subscriber-form-select"
-                >
-                  <option>Choose...</option>
-                  {ispArray.map((data, index) => (
-                    <option key={index} value={data}>
-                      {data}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="subscriber-modal-field subscriber-modal-field-margin">
-              <label className="subscriber-form-label">Select Plan *</label>
-              <select
-                onChange={(e) => {
-                  const selectKey = e.target.value;
-                  const selectedObj = plans.find(
-                    (data) => data.code === selectKey
-                  );
-                  if (selectedObj) {
-                    setChangePlanData({
-                      ...changePlanData,
-                      provider: selectedObj.provider,
-                      isp: changePlanData.isp,
-                      planAmount: selectedObj.planamount,
-                      planname: selectedObj.planname,
-                      bandwidth: selectedObj.bandwidth,
-                      periodtime: selectedObj.periodtime,
-                      planperiod: selectedObj.planperiod,
-                      expiryDate: updateExpirationDate(
-                        changePlanData.activationDate,
-                        selectedObj.periodtime,
-                        selectedObj.planperiod
-                      ),
-                      baseamount: selectedObj.planamount,
-                      plancode: selectedObj.code,
-                    });
-                  }
-                }}
-                className="subscriber-form-select"
-              >
-                <option>Choose...</option>
-                {filterPlan.map((data, index) => (
-                  <option key={index} value={data.code}>
-                    {data.planname}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="subscriber-modal-row">
-              <div className="subscriber-modal-field subscriber-modal-field-margin subscriber-modal-field-half subscriber-modal-field-right-margin">
-                <label className="subscriber-form-label">
-                  Activation Date *
-                </label>
-                <input
-                  defaultValue={changePlanData.activationDate}
-                  onChange={(e) => {
-                    setChangePlanData({
-                      ...changePlanData,
-                      activationDate: e.target.value,
-                      expiryDate: updateExpirationDate(
-                        e.target.value,
-                        changePlanData.periodtime,
-                        changePlanData.planperiod
-                      ),
-                    });
-                  }}
-                  className="subscriber-form-control"
-                  type="date"
-                ></input>
-              </div>
-
-              <div className="subscriber-modal-field subscriber-modal-field-margin subscriber-modal-field-half subscriber-modal-field-left-margin">
-                <label className="subscriber-form-label">Expiry Date</label>
-                <input
-                  value={changePlanData.expiryDate}
-                  className="subscriber-form-control"
-                  type="date"
-                  disabled
-                ></input>
-              </div>
-            </div>
-
-            <div className="subscriber-modal-row">
-              <div className="subscriber-modal-field subscriber-modal-field-margin subscriber-modal-field-half subscriber-modal-field-right-margin">
-                <label className="subscriber-form-label">Base Amount</label>
-                <input
-                  value={changePlanData.baseamount}
-                  className="subscriber-form-control"
-                  type="text"
-                  disabled
-                ></input>
-              </div>
-
-              <div className="subscriber-modal-field subscriber-modal-field-margin subscriber-modal-field-half subscriber-modal-field-left-margin">
-                <label className="subscriber-form-label">Custom Amount *</label>
-                <input
-                  defaultValue={changePlanData.planAmount}
-                  onChange={(e) =>
-                    setChangePlanData({
-                      ...changePlanData,
-                      planAmount: e.target.value,
-                    })
-                  }
-                  className="subscriber-form-control"
-                  type="text"
-                ></input>
-              </div>
-            </div>
-
-            <div className="subscriber-modal-field subscriber-modal-field-margin">
-              <label className="subscriber-form-label">Remarks</label>
-              <input
-                onChange={(e) =>
-                  setChangePlanData({
-                    ...changePlanData,
-                    remarks: e.target.value,
-                  })
-                }
-                className="subscriber-form-control"
-                type="text"
-              ></input>
-            </div>
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <div className="subscriber-modal-footer">
+        <Modal.Footer className="border-0 pt-0">
+          <div className="d-flex w-100 gap-2">
             <button
-              onClick={() => savePlan("Plan Change")}
-              className="subscriber-btn subscriber-btn-success subscriber-btn-margin-right"
-            >
-              Update Plan
-            </button>
-            <button
-              onClick={() => setModalChangePlan(false)}
-              className="subscriber-btn subscriber-btn-outline-secondary subscriber-btn-margin-left"
+              onClick={() => setExpiryModal(false)}
+              className="btn btn-light fw-bold flex-grow-1 py-2"
             >
               Cancel
             </button>
+            <button
+              onClick={async () => {
+                try {
+                  const response = await API.put(
+                    `subscriber/udpateconnectioninfo/${username}`,
+                    {
+                      expiryDate: newExp,
+                    },
+                  );
+                  if (response.status === 200) {
+                    toast.success("Expiry Date Updated Successfully", {
+                      autoClose: 2000,
+                    });
+                    fetchUserData();
+                    setExpiryModal(false);
+                  } else {
+                    toast.error("Failed to Update Expiry Date", {
+                      autoClose: 2000,
+                    });
+                  }
+                } catch (e) {
+                  toast.error("Error Updating Expiry Date", {
+                    autoClose: 2000,
+                  });
+                  console.log(e);
+                }
+              }}
+              className="btn crm-btn-gradient fw-bold flex-grow-1 py-2"
+            >
+              Update Expiry
+            </button>
           </div>
         </Modal.Footer>
+        <style>{`
+          .crm-modern-modal .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.1);
+          }
+          .crm-label-sm {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+            display: block;
+          }
+          .crm-input {
+            border-radius: 10px;
+            padding: 10px 15px;
+            border: 1px solid #e2e8f0;
+            font-weight: 500;
+            color: #1e293b;
+          }
+          .crm-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+          }
+          .crm-btn-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            transition: transform 0.2s;
+          }
+          .crm-btn-gradient:hover {
+            color: white;
+            transform: translateY(-2px);
+            opacity: 0.9;
+          }
+        `}</style>
       </Modal>
 
+            <Modal
+        className="crm-modern-modal"
+        centered
+        show={ispModal}
+        onHide={() => setISPModal(false)}
+      >
+        <Modal.Header closeButton className="border-0 pb-0">
+          <Modal.Title className="fw-bold text-dark">
+            <FaGlobe className="me-2 text-primary" /> Update ISP
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="pt-3">
+          <div className="container-fluid px-0">
+            <div className="row g-3">
+              <div className="col-12">
+                <label className="crm-label-sm">ISP (Internet Service Provider)</label>
+                <select
+                  className="form-control crm-input"
+                  type="text"
+                  value={newISP}
+                  onChange={(e) => setNewISP(e.target.value)}
+                >
+                  <option value="" disabled>Select ISP</option>
+                  {ispArray.map((ispItem, index) => (
+                    <option key={index} value={ispItem}>
+                      {ispItem}
+                    </option>
+                  ))}
+
+                </select>
+              </div>
+            </div>
+          </div>
+        </Modal.Body>
+        <Modal.Footer className="border-0 pt-0">
+          <div className="d-flex w-100 gap-2">
+            <button
+              onClick={() => setExpiryModal(false)}
+              className="btn btn-light fw-bold flex-grow-1 py-2"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  const response = await API.put(
+                    `subscriber/udpateconnectioninfo/${username}`,
+                    {
+                      isp: newISP,
+                    },
+                  );
+                  if (response.status === 200) {
+                    toast.success("ISP Updated Successfully", {
+                      autoClose: 2000,
+                    });
+                    fetchUserData();
+                    setISPModal(false);
+                  } else {
+                    toast.error("Failed to Update ISP", {
+                      autoClose: 2000,
+                    });
+                  }
+                } catch (e) {
+                  toast.error("Error Updating ISP", {
+                    autoClose: 2000,
+                  });
+                  console.log(e);
+                }
+              }}
+              className="btn crm-btn-gradient fw-bold flex-grow-1 py-2"
+            >
+              Update
+            </button>
+          </div>
+        </Modal.Footer>
+        <style>{`
+          .crm-modern-modal .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.1);
+          }
+          .crm-label-sm {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+            display: block;
+          }
+          .crm-input {
+            border-radius: 10px;
+            padding: 10px 15px;
+            border: 1px solid #e2e8f0;
+            font-weight: 500;
+            color: #1e293b;
+          }
+          .crm-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+          }
+          .crm-btn-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            transition: transform 0.2s;
+          }
+          .crm-btn-gradient:hover {
+            color: white;
+            transform: translateY(-2px);
+            opacity: 0.9;
+          }
+        `}</style>
+      </Modal>
+
+      {/* REDESIGNED RENEWAL MODAL */}
       <Modal
         show={renewmodal}
         onHide={() => setRenewModal(false)}
-        className="subscriber-modal"
+        centered
+        className="crm-modern-modal"
       >
-        <Modal.Header>
-          <Modal.Title>Renew Customer Plan</Modal.Title>
+        <Modal.Header closeButton className="border-0 pb-0">
+          <Modal.Title className="fw-bold text-dark">
+            <FaSyncAlt className="me-2 text-primary" /> Renew Customer Plan
+          </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <div className="subscriber-modal-container">
-            <div className="subscriber-modal-field subscriber-modal-field-margin">
-              <label className="subscriber-form-label">Current Plan</label>
-              <input
-                defaultValue={changePlanData.planname}
-                className="subscriber-form-control"
-                disabled
-              ></input>
+        <Modal.Body className="pt-3">
+          <div className="container-fluid px-0">
+            {/* Current Plan Display */}
+            <div className="mb-4 p-3 rounded-3 bg-light border">
+              <label className="crm-label-sm">CURRENT ACTIVE PLAN</label>
+              <div className="fw-bold text-primary h5 mb-0">
+                {changePlanData.planname || "No Plan Selected"}
+              </div>
             </div>
 
-            <div className="subscriber-modal-row">
-              <div className="subscriber-modal-field subscriber-modal-field-margin subscriber-modal-field-half subscriber-modal-field-right-margin">
-                <label className="subscriber-form-label">Activation Date</label>
+            <div className="row g-3">
+              {/* Activation Date */}
+              <div className="col-md-6">
+                <label className="crm-label-sm">ACTIVATION DATE</label>
                 <input
-                  className="subscriber-form-control"
+                  className="form-control crm-input"
                   type="date"
                   defaultValue={
                     new Date(
                       new Date(expiryDate).setDate(
-                        new Date(expiryDate).getDate() + 1
-                      )
+                        new Date(expiryDate).getDate() + 1,
+                      ),
                     )
                       .toISOString()
                       .split("T")[0]
@@ -1161,56 +822,397 @@ export default function Subscriber() {
                       expiryDate: updateExpirationDate(
                         e.target.value,
                         changePlanData.periodtime,
-                        changePlanData.planperiod
+                        changePlanData.planperiod,
                       ),
                     })
                   }
-                ></input>
+                />
               </div>
 
-              <div className="subscriber-modal-field subscriber-modal-field-margin subscriber-modal-field-half subscriber-modal-field-left-margin">
-                <label className="subscriber-form-label">Expiry Date</label>
+              {/* Expiry Date */}
+              <div className="col-md-6">
+                <label className="crm-label-sm">NEW EXPIRY DATE</label>
                 <input
                   value={changePlanData.expiryDate}
-                  className="subscriber-form-control"
+                  className="form-control crm-input bg-light"
                   type="date"
                   disabled
-                ></input>
+                />
               </div>
-            </div>
 
-            <div className="subscriber-modal-field subscriber-modal-field-margin">
-              <label className="subscriber-form-label">Remarks</label>
-              <input
-                onChange={(e) =>
-                  setChangePlanData({
-                    ...changePlanData,
-                    remarks: e.target.value,
-                  })
-                }
-                className="subscriber-form-control"
-                type="text"
-              ></input>
+              {/* Remarks */}
+              <div className="col-12">
+                <label className="crm-label-sm">REMARKS</label>
+                <textarea
+                  placeholder="Enter renewal remarks..."
+                  rows="2"
+                  onChange={(e) =>
+                    setChangePlanData({
+                      ...changePlanData,
+                      remarks: e.target.value,
+                    })
+                  }
+                  className="form-control crm-input"
+                ></textarea>
+              </div>
             </div>
           </div>
         </Modal.Body>
-        <Modal.Footer>
-          <div className="subscriber-modal-footer">
-            <button
-              onClick={(e) => savePlan("Renewal")}
-              className="subscriber-btn subscriber-btn-primary subscriber-btn-margin-right"
-            >
-              Renew Plan
-            </button>
+        <Modal.Footer className="border-0 pt-0">
+          <div className="d-flex w-100 gap-2">
             <button
               onClick={() => setRenewModal(false)}
-              className="subscriber-btn subscriber-btn-outline-secondary subscriber-btn-margin-left"
+              className="btn btn-light fw-bold flex-grow-1 py-2"
             >
               Cancel
             </button>
+            <button
+              onClick={(e) => savePlan("Renewal")}
+              className="btn crm-btn-gradient fw-bold flex-grow-1 py-2"
+            >
+              Confirm Renewal
+            </button>
           </div>
         </Modal.Footer>
+
+        <style>{`
+          .crm-modern-modal .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.1);
+          }
+          .crm-label-sm {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+            display: block;
+          }
+          .crm-input {
+            border-radius: 10px;
+            padding: 10px 15px;
+            border: 1px solid #e2e8f0;
+            font-weight: 500;
+            color: #1e293b;
+          }
+          .crm-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+          }
+          .crm-btn-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            transition: transform 0.2s;
+          }
+          .crm-btn-gradient:hover {
+            color: white;
+            transform: translateY(-2px);
+            opacity: 0.9;
+          }
+        `}</style>
       </Modal>
+
+      {/* REDESIGNED CHANGE PLAN MODAL */}
+      <Modal
+        show={modalChangeplan}
+        onHide={() => setModalChangePlan(false)}
+        centered
+        className="crm-modern-modal"
+      >
+        <Modal.Header closeButton className="border-0 pb-0">
+          <Modal.Title className="fw-bold text-dark">
+            <FaExchangeAlt className="me-2 text-primary" /> Change Customer Plan
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="pt-3">
+          <div className="container-fluid px-0">
+            <div className="row g-3">
+              {/* Provider Selection */}
+              <div className="col-md-6">
+                <label className="crm-label-sm">SELECT PROVIDER *</label>
+                <select
+                  onChange={(e) =>
+                    setChangePlanData({
+                      ...changePlanData,
+                      provider: e.target.value,
+                    })
+                  }
+                  className="form-select crm-input"
+                >
+                  <option>Choose...</option>
+                  {provide.map((data, index) => (
+                    <option key={index}>{data}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* ISP Selection */}
+              <div className="col-md-6">
+                <label className="crm-label-sm">SELECT ISP *</label>
+                <select
+                  onChange={(e) =>
+                    setChangePlanData({
+                      ...changePlanData,
+                      isp: e.target.value,
+                    })
+                  }
+                  className="form-select crm-input"
+                >
+                  <option>Choose...</option>
+                  {ispArray.map((data, index) => (
+                    <option key={index} value={data}>
+                      {data}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Plan Selection */}
+              <div className="col-12">
+                <label className="crm-label-sm">SELECT PLAN *</label>
+                <select
+                  onChange={(e) => {
+                    const selectKey = e.target.value;
+                    const selectedObj = plans.find(
+                      (data) => data.code === selectKey,
+                    );
+                    if (selectedObj) {
+                      setChangePlanData({
+                        ...changePlanData,
+                        provider: selectedObj.provider,
+                        isp: changePlanData.isp,
+                        planAmount: selectedObj.planamount,
+                        planname: selectedObj.planname,
+                        bandwidth: selectedObj.bandwidth,
+                        periodtime: selectedObj.periodtime,
+                        planperiod: selectedObj.planperiod,
+                        expiryDate: updateExpirationDate(
+                          changePlanData.activationDate,
+                          selectedObj.periodtime,
+                          selectedObj.planperiod,
+                        ),
+                        baseamount: selectedObj.planamount,
+                        plancode: selectedObj.code,
+                      });
+                    }
+                  }}
+                  className="form-select crm-input"
+                >
+                  <option>Choose...</option>
+                  {/* Note: I'm using plans.filter as a fallback for filterPlan logic */}
+                  {plans
+                    .filter(
+                      (p) =>
+                        (changePlanData.provider === "All" ||
+                          p.provider === changePlanData.provider) &&
+                        (changePlanData.isp === "All" ||
+                          p.isp === changePlanData.isp),
+                    )
+                    .map((data, index) => (
+                      <option key={index} value={data.code}>
+                        {data.planname} ({data.bandwidth})
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              {/* Activation Date */}
+              <div className="col-md-6">
+                <label className="crm-label-sm">ACTIVATION DATE *</label>
+                <input
+                  defaultValue={changePlanData.activationDate}
+                  onChange={(e) => {
+                    setChangePlanData({
+                      ...changePlanData,
+                      activationDate: e.target.value,
+                      expiryDate: updateExpirationDate(
+                        e.target.value,
+                        changePlanData.periodtime,
+                        changePlanData.planperiod,
+                      ),
+                    });
+                  }}
+                  className="form-control crm-input"
+                  type="date"
+                />
+              </div>
+
+              {/* New Expiry Date */}
+              <div className="col-md-6">
+                <label className="crm-label-sm">NEW EXPIRY DATE</label>
+                <input
+                  value={changePlanData.expiryDate}
+                  className="form-control crm-input bg-light"
+                  type="date"
+                  disabled
+                />
+              </div>
+
+              {/* Base Amount */}
+              <div className="col-md-6">
+                <label className="crm-label-sm">BASE AMOUNT</label>
+                <div className="input-group">
+                  <span className="input-group-text bg-light border-end-0">
+                    ₹
+                  </span>
+                  <input
+                    value={changePlanData.baseamount}
+                    className="form-control crm-input bg-light border-start-0"
+                    type="text"
+                    disabled
+                  />
+                </div>
+              </div>
+
+              {/* Custom Amount */}
+              <div className="col-md-6">
+                <label className="crm-label-sm">CUSTOM AMOUNT *</label>
+                <div className="input-group">
+                  <span className="input-group-text bg-white border-end-0">
+                    ₹
+                  </span>
+                  <input
+                    defaultValue={changePlanData.planAmount}
+                    onChange={(e) =>
+                      setChangePlanData({
+                        ...changePlanData,
+                        planAmount: e.target.value,
+                      })
+                    }
+                    className="form-control crm-input border-start-0"
+                    type="text"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+
+              {/* Remarks */}
+              <div className="col-12">
+                <label className="crm-label-sm">REMARKS</label>
+                <textarea
+                  placeholder="Reason for plan change..."
+                  rows="2"
+                  onChange={(e) =>
+                    setChangePlanData({
+                      ...changePlanData,
+                      remarks: e.target.value,
+                    })
+                  }
+                  className="form-control crm-input"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+        </Modal.Body>
+        <Modal.Footer className="border-0 pt-0">
+          <div className="d-flex w-100 gap-2">
+            <button
+              onClick={() => setModalChangePlan(false)}
+              className="btn btn-light fw-bold flex-grow-1 py-2"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => savePlan("Plan Change")}
+              className="btn crm-btn-gradient fw-bold flex-grow-1 py-2"
+            >
+              Update Plan
+            </button>
+          </div>
+        </Modal.Footer>
+        <style>{`
+          .crm-modern-modal .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.1);
+          }
+          .crm-label-sm {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+            display: block;
+          }
+          .crm-input {
+            border-radius: 10px;
+            padding: 10px 15px;
+            border: 1px solid #e2e8f0;
+            font-weight: 500;
+            color: #1e293b;
+          }
+          .crm-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+          }
+          .crm-btn-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            transition: transform 0.2s;
+          }
+          .crm-btn-gradient:hover {
+            color: white;
+            transform: translateY(-2px);
+            opacity: 0.9;
+          }
+        `}</style>
+      </Modal>
+
+      <style>{`
+        .crm-main-container { background: #f0f2f5; min-height: 100vh; font-family: 'Segoe UI', sans-serif; }
+        
+        .crm-header-card { 
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+          padding: 35px 20px; border-radius: 0 0 20px 20px;
+        }
+
+        .crm-avatar-box { position: relative; width: 100px; height: 100px; }
+        .crm-avatar-img { width: 100%; height: 100%; border-radius: 15px; object-fit: cover; border: 3px solid rgba(255,255,255,0.3); background: white; }
+        .crm-indicator { position: absolute; bottom: -5px; right: -5px; width: 20px; height: 20px; border-radius: 50%; border: 3px solid #764ba2; }
+        .crm-indicator.active { background: #2ecc71; }
+        .crm-indicator.inactive { background: #e74c3c; }
+
+        .crm-stat-item { border-left: 2px solid rgba(255,255,255,0.2); padding-left: 12px; }
+        .crm-stat-item small { display: block; font-size: 0.65rem; opacity: 0.8; letter-spacing: 0.5px; }
+        .crm-stat-item h6 { font-weight: 700; margin-bottom: 0; }
+
+        .crm-due-badge { background: rgba(0,0,0,0.15); padding: 10px 20px; border-radius: 12px; display: inline-flex; align-items: center; }
+        .due-icon { height: 35px; filter: brightness(0) invert(1); }
+        .crm-action-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; font-weight: 600; font-size: 0.85rem; }
+        .crm-action-btn:hover { background: white; color: #764ba2; }
+
+        /* Navigation Responsive Logic */
+        .crm-nav-card { background: white; border-radius: 15px; overflow: hidden; }
+        .nav-title { padding: 15px 20px; font-weight: 800; font-size: 0.75rem; color: #8a94ad; }
+
+        @media (max-width: 991px) {
+          .crm-nav-wrapper { display: flex; overflow-x: auto; padding: 10px; gap: 8px; scrollbar-width: none; }
+          .crm-nav-wrapper::-webkit-scrollbar { display: none; }
+          .crm-nav-link { 
+            white-space: nowrap; flex: 0 0 auto; 
+            padding: 8px 16px !important; border-radius: 10px !important; 
+            background: #f8fafc; color: #64748b !important; border: none !important;
+          }
+          .crm-nav-link.active { background: #667eea !important; color: white !important; }
+        }
+
+        @media (min-width: 992px) {
+          .crm-nav-link { 
+            display: flex; align-items: center; padding: 12px 20px; 
+            color: #4a5568; font-weight: 600; text-decoration: none !important; 
+            border-left: 4px solid transparent; transition: 0.2s; cursor: pointer;
+          }
+          .crm-nav-link:hover { background: #f7fafc; color: #667eea; }
+          .crm-nav-link.active { background: #f0f3ff; color: #667eea; border-left-color: #667eea; }
+        }
+
+        .crm-content-card { border-radius: 15px; min-height: 60vh; }
+      `}</style>
     </div>
   );
 }

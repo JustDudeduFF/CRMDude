@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css';
-import { api2 } from '../FirebaseConfig';
+import { API } from '../FirebaseConfig';
 
 export default function Loginlayout() {
   const navigate = useNavigate();
@@ -31,10 +31,9 @@ export default function Loginlayout() {
     }
     setLoading(true);
     try {
-      const res = await fetch(`${api2}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: contact, password })
+      const res = await API.post(`/auth/login`, {
+        phone: contact,
+        password
       });
       const data = await res.json();
       setLoading(false);
@@ -56,6 +55,7 @@ export default function Loginlayout() {
         });
       }
     } catch (error) {
+      console.log('Error during login:', error);
       setLoading(false);
       toast.error('Error connecting to server', {
         autoClose: 3000,

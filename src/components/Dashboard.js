@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import "./Dashboard.css"; // Import the custom CSS file
-import { Modal } from "react-bootstrap";
-import axios from "axios";
-import { api2 } from "../FirebaseConfig";
+import { Modal, Button, Form, Row, Col, Badge, Table } from "react-bootstrap";
+import { API } from "../FirebaseConfig";
 import { toast, ToastContainer } from "react-toastify";
+import "./Dashboard.css"; 
 
 const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -11,6 +10,9 @@ const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [tableData, setTableData] = useState([]);
+  const [uploadFile, setUploadFile] = useState(false);
+  const [datatoUpload, setDataToUpload] = useState(null);
+  const [partnerId, setPartnerId] = useState("");
 
   const [partnerData, setPartnerData] = useState({
     name: "",
@@ -32,118 +34,92 @@ const Dashboard = () => {
     pincode: "",
   });
 
+  const resetForm = () => {
+    setSelectedPartner(null);
+    setPartnerData({
+      name: "",
+      companyname: "",
+      phone: "",
+      address: "",
+      email: "",
+      gstin: "",
+      isWhatsapp: false,
+      isEmail: false,
+      isPayment: false,
+      whatsappApi: "",
+      emailhost: "",
+      emailport: "",
+      keyid: "",
+      keysecret: "",
+      status: "Active",
+      state: "",
+      pincode: "",
+    });
+  };
+
   const handleSaveplan = async () => {
     if (selectedPartner) {
       try {
-        const response = await axios.put(api2 + "/partner/" + selectedPartner, {
-          partnerData,
-        });
-        if (response.status === 200)
-          toast.success(`${partnerData.companyname} added succesfully`, {
-            autoClose: 2000,
-          });
-        setSelectedPartner(null);
-        setPartnerData({
-          name: "",
-          companyname: "",
-          phone: "",
-          address: "",
-          email: "",
-          gstin: "",
-          isWhatsapp: false,
-          isEmail: false,
-          isPayment: false,
-          whatsappApi: "",
-          emailhost: "",
-          emailport: "",
-          keyid: "",
-          keysecret: "",
-          status: "Active",
-        });
-      } catch (e) {
-        console.log(e);
-      }
+        const response = await API.put(`/partner/${selectedPartner}`, { partnerData });
+        if (response.status === 200) {
+          toast.success(`${partnerData.companyname} updated successfully`);
+          setIsModalOpen(false);
+          fetchData();
+          resetForm();
+        }
+      } catch (e) { console.log(e); }
       return;
     }
     try {
-      const resposne = await axios.post(api2 + "/partner", { partnerData });
+      const response = await API.post(`/partner`, { partnerData });
+      if (response.status === 200) {
+        toast.success(`${partnerData.companyname} added successfully`);
+        setIsModalOpen(false);
+        fetchData();
+        resetForm();
+      }
+    } catch (e) { console.log(e); }
+  };
 
-      if (resposne.status === 200)
-        toast.success(`${partnerData.companyname} added succesfully`, {
-          autoClose: 2000,
-        });
-
-      setPartnerData({
-        name: "",
-        companyname: "",
-        phone: "",
-        address: "",
-        email: "",
-        gstin: "",
-        isWhatsapp: false,
-        isEmail: false,
-        isPayment: false,
-        whatsappApi: "",
-        emailhost: "",
-        emailport: "",
-        keyid: "",
-        keysecret: "",
-        status: "Active",
-        state: "",
-        pincode: "",
+  const uploadData = async () => {
+    if (!datatoUpload) {
+      alert("Please select an Excel file");
+      return;
+    }
+    try {
+      const formData = new FormData();
+      formData.append("file", datatoUpload);
+      formData.append("partnerId", partnerId);
+      const response = await API.post(`/subscriber/bulkuserupload`, formData, {
+        headers: { "Content-Type": "multipart/form-data" }
       });
-      setIsModalOpen(false);
-      fetchData();
-    } catch (e) {
-      console.log(e);
+      alert(`Upload completed: ${response.data.inserted} users added`);
+    } catch (error) {
+      console.error("Upload failed:", error.response?.data || error.message);
+      alert("Upload failed.");
+    } finally {
+      setUploadFile(false);
     }
   };
 
-  // Sample data for cards with enhanced information
-  const cardData = [
-    {
-      title: "Total Partners",
-      count: tableData.length,
-      icon: "👥",
-      change: "+12%",
-      changeType: "positive",
-      iconClass: "blue",
-    },
-    {
-      title: "Active Partners",
-      count: "142",
-      icon: "✅",
-      change: "+8%",
-      changeType: "positive",
-      iconClass: "green",
-    },
-    {
-      title: "Total Revenue",
-      count: "$25,236",
-      icon: "💰",
-      change: "+15%",
-      changeType: "positive",
-      iconClass: "purple",
-    },
-  ];
+  const fetchData = async () => {
+    try {
+      const response = await API.get(`/partner`);
+      setTableData(response.data);
+    } catch (e) { console.log(e); }
+  };
 
-  // Enhanced sample data for table
+  useEffect(() => { fetchData(); }, []);
 
-  // Filter data based on search term and status
   const filteredData = tableData.filter((item) => {
-    const matchesSearch =
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.companyname.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter =
-      filterStatus === "all" ||
-      item.status.toLowerCase() === filterStatus.toLowerCase();
+    const matchesFilter = filterStatus === "all" || item.status.toLowerCase() === filterStatus.toLowerCase();
     return matchesSearch && matchesFilter;
   });
 
-  const handleView = (id) => {
-    console.log("View item:", id);
-  };
+  const getInitials = (name) => name ? name.split(" ").map((n) => n[0]).join("").toUpperCase() : "??";
 
   const handleEdit = (id) => {
     setSelectedPartner(id);
@@ -153,519 +129,222 @@ const Dashboard = () => {
   };
 
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this partner?"
-    );
-    if (!confirmDelete) return; // Stop if user cancels
-
+    if (!window.confirm("Are you sure?")) return;
     try {
-      const response = await axios.delete(api2 + "/partner/" + id);
-
-      if (response.status !== 200) {
-        return toast.error("Failed to Delete Partner", { autoClose: 2000 });
+      const response = await API.delete(`/partner/${id}`);
+      if (response.status === 200) {
+        toast.success("Partner Deleted");
+        fetchData();
       }
-
-      toast.success("Partner Deleted Successfully", { autoClose: 2000 });
-      fetchData();
-    } catch (e) {
-      console.log(e);
-      toast.error("An error occurred while deleting", { autoClose: 2000 });
-    }
+    } catch (e) { console.log(e); }
   };
-
-  // Generate avatar initials
-  const getInitials = (name) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
-  };
-
-  const fetchData = async () => {
-    try {
-      const resposne = await axios.get(api2 + "/partner");
-      console.log(resposne.data);
-
-      setTableData(resposne.data);
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   return (
-    <div className="dashboard">
+    <div className="dashboard-wrapper bg-light min-vh-100 pb-5">
       <ToastContainer />
-      <div className="dashboard-container">
-        {/* Header */}
-        <div className="dashboard-header">
-          <div>
-            <h1 className="dashboard-title">Partner Dashboard</h1>
-            <p className="dashboard-subtitle">
-              Manage and monitor your business partnerships
-            </p>
-          </div>
-          <button
-            onClick={() => {
-              console.log("Clicked");
-              setIsModalOpen(true);
-            }}
-            className="add-partner-btn"
-          >
-            <span>+</span>
-            Add Partner
-          </button>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="cards-container">
-          {cardData.map((card, index) => (
-            <div key={index} className="card fade-in">
-              <div className="card-header">
-                <div className={`card-icon-container ${card.iconClass}`}>
-                  <span className="card-icon">{card.icon}</span>
-                </div>
-                <span className={`card-change ${card.changeType}`}>
-                  {card.change}
-                </span>
-              </div>
-              <h3 className="card-title">{card.title}</h3>
-              <p className="card-count">{card.count}</p>
+      
+      {/* Header Section */}
+      <div className="bg-white border-bottom py-4 mb-4">
+        <div className="container-fluid px-4">
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+              <h4 className="fw-bold mb-1">Partner Management</h4>
+              <p className="text-muted small mb-0">Monitor and update your business ecosystem</p>
             </div>
-          ))}
-        </div>
-
-        {/* Table Section */}
-        <div className="table-container slide-up">
-          <div className="table-header">
-            <h2 className="table-title">Partners List</h2>
-
-            {/* Search and Filter Controls */}
-            <div className="table-controls">
-              <div className="search-container">
-                <span className="search-icon">🔍</span>
-                <input
-                  type="text"
-                  placeholder="Search partners..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="search-input"
-                />
-              </div>
-
-              <div className="filter-container">
-                <span className="filter-icon">⚬</span>
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="filter-select"
-                >
-                  <option value="all">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="pending">Pending</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Table */}
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Partner Name</th>
-                <th>Company</th>
-                <th>Email</th>
-                <th>Revenue</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredData.map((row, index) => (
-                <tr key={index + 1}>
-                  <td>
-                    <span className="partner-id">#{index + 1}</span>
-                  </td>
-                  <td>
-                    <div className="partner-info">
-                      <div className="partner-avatar">
-                        {getInitials(row.name)}
-                      </div>
-                      <div className="partner-name">{row.name}</div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="partner-company">{row.companyname}</span>
-                  </td>
-                  <td>
-                    <span className="partner-email">{row.email}</span>
-                  </td>
-                  <td>
-                    <span className="partner-revenue">{row.revenue}</span>
-                  </td>
-                  <td>
-                    <span
-                      className={`status-badge ${row.status.toLowerCase()}`}
-                    >
-                      {row.status}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="action-buttons">
-                      <button
-                        className="action-btn view"
-                        onClick={() => handleView(row.id)}
-                        title="View Details"
-                      >
-                        👁️
-                      </button>
-                      <button
-                        className="action-btn edit"
-                        onClick={() => handleEdit(row._id)}
-                        title="Edit Partner"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        className="action-btn delete"
-                        onClick={() => handleDelete(row._id)}
-                        title="Delete Partner"
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Table Footer */}
-          <div className="table-footer">
-            <span>
-              Showing {filteredData.length} of {tableData.length} partners
-            </span>
-            <div className="pagination">
-              <button className="pagination-btn">Previous</button>
-              <button className="pagination-btn active">1</button>
-              <button className="pagination-btn">2</button>
-              <button className="pagination-btn">Next</button>
-            </div>
+            <Button variant="primary" className="d-flex align-items-center gap-2 shadow-sm" onClick={() => setIsModalOpen(true)}>
+              <span className="fs-5">+</span> Add New Partner
+            </Button>
           </div>
         </div>
       </div>
 
-      <Modal
-        show={isModalOpen}
-        onHide={() => {
-          setIsModalOpen(false);
-          setSelectedPartner(null);
-          setPartnerData({
-            name: "",
-            companyname: "",
-            phone: "",
-            address: "",
-            email: "",
-            gstin: "",
-            isWhatsapp: false,
-            isEmail: false,
-            isPayment: false,
-            whatsappApi: "",
-            emailhost: "",
-            emailport: "",
-            keyid: "",
-            keysecret: "",
-            status: "Active",
-            state: "",
-            pincode: "",
-          });
-        }}
-        className="payment-modal modal-lg"
-      >
-        <Modal.Header>
-          <Modal.Title>Add New Partner</Modal.Title>
+      <div className="container-fluid px-4">
+        {/* Stats Section */}
+        <Row className="g-3 mb-4">
+          {[
+            { title: "Total Partners", count: tableData.length, icon: "👥", color: "blue" },
+            { title: "Active Partners", count: "142", icon: "✅", color: "green" },
+            { title: "Total Revenue", count: "$25,236", icon: "💰", color: "purple" }
+          ].map((card, i) => (
+            <Col key={i} xs={12} md={4}>
+              <div className="stats-card p-3 shadow-sm border-0 h-100 bg-white rounded-3">
+                <div className="d-flex justify-content-between align-items-start">
+                  <div className={`icon-box ${card.color}`}>{card.icon}</div>
+                  <Badge bg="soft-success" className="text-success">+12%</Badge>
+                </div>
+                <div className="mt-3">
+                  <p className="text-muted small fw-medium mb-1">{card.title}</p>
+                  <h3 className="fw-bold mb-0">{card.count}</h3>
+                </div>
+              </div>
+            </Col>
+          ))}
+        </Row>
+
+        {/* Filters & Table */}
+        <div className="bg-white shadow-sm rounded-3 overflow-hidden border">
+          <div className="p-3 border-bottom bg-white">
+            <Row className="g-3 align-items-center">
+              <Col xs={12} md={6} lg={4}>
+                <div className="input-group">
+                  <span className="input-group-text bg-transparent border-end-0 text-muted">🔍</span>
+                  <input 
+                    type="text" 
+                    className="form-control border-start-0" 
+                    placeholder="Search name, company, email..." 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </Col>
+              <Col xs={12} md={4} lg={2} className="ms-auto text-end">
+                <Form.Select 
+                  value={filterStatus} 
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="form-select"
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </Form.Select>
+              </Col>
+            </Row>
+          </div>
+
+          <div className="table-responsive">
+            <Table hover className="align-middle mb-0 custom-table">
+              <thead className="bg-light">
+                <tr>
+                  <th className="ps-4">Partner</th>
+                  <th>Company</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th className="text-end pe-4">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredData.map((row, index) => (
+                  <tr key={index}>
+                    <td className="ps-4">
+                      <div className="d-flex align-items-center gap-3">
+                        <div className="avatar-circle">{getInitials(row.name)}</div>
+                        <div className="fw-semibold text-dark">{row.name}</div>
+                      </div>
+                    </td>
+                    <td>{row.companyname}</td>
+                    <td className="text-muted small">{row.email}</td>
+                    <td>
+                      <Badge className={`status-pill ${row.status.toLowerCase()}`}>
+                        {row.status}
+                      </Badge>
+                    </td>
+                    <td className="text-end pe-4">
+                      <div className="d-flex justify-content-end gap-2">
+                        <button className="btn-icon view" onClick={() => console.log(row._id)}>👁️</button>
+                        <button className="btn-icon edit" onClick={() => handleEdit(row._id)}>✏️</button>
+                        <button className="btn-icon delete" onClick={() => handleDelete(row._id)}>🗑️</button>
+                        <button className="btn-icon more" onClick={() => setUploadFile(true)}>📊</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </div>
+        </div>
+      </div>
+
+      {/* Add/Edit Modal */}
+      <Modal show={isModalOpen} onHide={() => { setIsModalOpen(false); resetForm(); }} size="lg" centered>
+        <Modal.Header closeButton className="border-0">
+          <Modal.Title className="fw-bold">{selectedPartner ? "Edit Partner" : "Add New Partner"}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="px-4">
+          <Form>
+            <Row className="g-3">
+              <Col md={6}>
+                <Form.Label className="small fw-bold">Partner Name</Form.Label>
+                <Form.Control type="text" value={partnerData.name} onChange={(e) => setPartnerData({...partnerData, name: e.target.value})} />
+              </Col>
+              <Col md={6}>
+                <Form.Label className="small fw-bold">Company Name</Form.Label>
+                <Form.Control type="text" value={partnerData.companyname} onChange={(e) => setPartnerData({...partnerData, companyname: e.target.value})} />
+              </Col>
+              <Col md={6}>
+                <Form.Label className="small fw-bold">Mobile</Form.Label>
+                <Form.Control type="text" value={partnerData.phone} onChange={(e) => setPartnerData({...partnerData, phone: e.target.value})} />
+              </Col>
+              <Col md={6}>
+                <Form.Label className="small fw-bold">Email</Form.Label>
+                <Form.Control type="email" value={partnerData.email} onChange={(e) => setPartnerData({...partnerData, email: e.target.value})} />
+              </Col>
+              <Col md={12}>
+                <Form.Label className="small fw-bold">Address</Form.Label>
+                <Form.Control type="text" value={partnerData.address} onChange={(e) => setPartnerData({...partnerData, address: e.target.value})} />
+              </Col>
+              <Col md={6}>
+                <Form.Label className="small fw-bold">State</Form.Label>
+                <Form.Control type="text" value={partnerData.state} onChange={(e) => setPartnerData({...partnerData, state: e.target.value})} />
+              </Col>
+              <Col md={6}>
+                <Form.Label className="small fw-bold">Pincode</Form.Label>
+                <Form.Control type="text" value={partnerData.pincode} onChange={(e) => setPartnerData({...partnerData, pincode: e.target.value})} />
+              </Col>
+            </Row>
+
+            <hr className="my-4" />
+            <h6 className="fw-bold mb-3">Service Settings</h6>
+            
+            <div className="service-grid">
+              <Form.Check type="switch" label="WhatsApp Service" checked={partnerData.isWhatsapp} onChange={(e) => setPartnerData({...partnerData, isWhatsapp: e.target.checked})} />
+              {partnerData.isWhatsapp && (
+                <Form.Control className="mt-2" placeholder="API Key" value={partnerData.whatsappApi} onChange={(e) => setPartnerData({...partnerData, whatsappApi: e.target.value})} />
+              )}
+              
+              <Form.Check type="switch" className="mt-3" label="Email Service" checked={partnerData.isEmail} onChange={(e) => setPartnerData({...partnerData, isEmail: e.target.checked})} />
+              {partnerData.isEmail && (
+                <Row className="g-2 mt-1">
+                  <Col><Form.Control placeholder="Host" value={partnerData.emailhost} onChange={(e) => setPartnerData({...partnerData, emailhost: e.target.value})} /></Col>
+                  <Col><Form.Control placeholder="Port" value={partnerData.emailport} onChange={(e) => setPartnerData({...partnerData, emailport: e.target.value})} /></Col>
+                </Row>
+              )}
+
+              <Form.Check type="switch" className="mt-3" label="Online Payments" checked={partnerData.isPayment} onChange={(e) => setPartnerData({...partnerData, isPayment: e.target.checked})} />
+              {partnerData.isPayment && (
+                <Row className="g-2 mt-1">
+                  <Col><Form.Control placeholder="Key ID" value={partnerData.keyid} onChange={(e) => setPartnerData({...partnerData, keyid: e.target.value})} /></Col>
+                  <Col><Form.Control placeholder="Key Secret" value={partnerData.keysecret} onChange={(e) => setPartnerData({...partnerData, keysecret: e.target.value})} /></Col>
+                </Row>
+              )}
+            </div>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer className="border-0">
+          <Button variant="light" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+          <Button variant="primary" onClick={handleSaveplan}>{selectedPartner ? "Update Partner" : "Save Partner"}</Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Upload Modal */}
+      <Modal show={uploadFile} onHide={() => setUploadFile(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title className="fw-bold">Bulk Upload</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <div className="d-flex flex-column">
-            <div className="row justify-content-center">
-              <div className="col-md-4 mb-2">
-                <label className="payment-form-label">Partner Name: </label>
-                <input
-                  value={partnerData.name}
-                  onChange={(e) =>
-                    setPartnerData({
-                      ...partnerData,
-                      name: e.target.value,
-                    })
-                  }
-                  className="form-control"
-                ></input>
-              </div>
-
-              <div className="col-md-4 mb-2">
-                <label className="payment-form-label">Company: </label>
-                <input
-                  value={partnerData.companyname}
-                  onChange={(e) =>
-                    setPartnerData({
-                      ...partnerData,
-                      companyname: e.target.value,
-                    })
-                  }
-                  className="form-control"
-                ></input>
-              </div>
-              <div className="col-md-4 mb-2">
-                <label className="payment-form-label">Mobile: </label>
-                <input
-                  value={partnerData.phone}
-                  onChange={(e) =>
-                    setPartnerData({ ...partnerData, phone: e.target.value })
-                  }
-                  className="form-control "
-                ></input>
-              </div>
-            </div>
-
-            <div className="row justify-content-center">
-              <div className="col-md-6 mb-2">
-                <label className="payment-form-label">Address:</label>
-                <input
-                  value={partnerData.address}
-                  onChange={(e) =>
-                    setPartnerData({ ...partnerData, address: e.target.value })
-                  }
-                  type="text"
-                  className="form-control"
-                />
-              </div>
-
-              <div className="col-md-6 mb-2">
-                <label className="payment-form-label">Email:</label>
-                <input
-                  value={partnerData.email}
-                  onChange={(e) =>
-                    setPartnerData({ ...partnerData, email: e.target.value })
-                  }
-                  type="email"
-                  className="form-control"
-                />
-              </div>
-            </div>
-
-            <div className="row justify-content-center">
-              <div className="col-md-6 mb-2">
-                <label className="payment-form-label">State:</label>
-                <input
-                  value={partnerData.state}
-                  onChange={(e) =>
-                    setPartnerData({ ...partnerData, state: e.target.value })
-                  }
-                  type="text"
-                  className="form-control"
-                />
-              </div>
-
-              <div className="col-md-6 mb-2">
-                <label className="payment-form-label">Pincode:</label>
-                <input
-                  value={partnerData.pincode}
-                  onChange={(e) =>
-                    setPartnerData({ ...partnerData, pincode: e.target.value })
-                  }
-                  type="email"
-                  className="form-control"
-                />
-              </div>
-            </div>
-
-            <div className="d-flex flex-column col-md">
-              <label className="payment-form-label">GSTIN: </label>
-              <input
-                value={partnerData.gstin}
-                onChange={(e) =>
-                  setPartnerData({ ...partnerData, gstin: e.target.value })
-                }
-                className="form-control"
-              ></input>
-            </div>
-
-            <label
-              style={{ textDecoration: "underline", fontSize: "20px" }}
-              className="payment-form-label"
-            >
-              Services Allowed
-            </label>
-
-            <div className="">
-              <input
-                checked={partnerData.isWhatsapp}
-                id="whatsapp"
-                className="form-check-input mt-2 me-3"
-                type="checkbox"
-                onChange={(e) =>
-                  setPartnerData({
-                    ...partnerData,
-                    isWhatsapp: e.target.checked,
-                  })
-                }
-              ></input>
-              <label htmlFor="whatsapp" className="payment-form-label">
-                Is Whatspp Enabled
-              </label>
-            </div>
-
-            {partnerData.isWhatsapp && (
-              <div className="d-flex flex-column col-md">
-                <label className="payment-form-label">Whatsapp API</label>
-                <input
-                  value={partnerData.whatsappApi}
-                  onChange={(e) =>
-                    setPartnerData({
-                      ...partnerData,
-                      whatsappApi: e.target.value,
-                    })
-                  }
-                  className="form-control"
-                ></input>
-              </div>
-            )}
-
-            <div className="mt-2">
-              <input
-                checked={partnerData.isEmail}
-                id="email"
-                className="form-check-input mt-2 me-3"
-                type="checkbox"
-                onChange={(e) =>
-                  setPartnerData({ ...partnerData, isEmail: e.target.checked })
-                }
-              ></input>
-              <label htmlFor="email" className="payment-form-label">
-                Is Email Enabled
-              </label>
-            </div>
-
-            {partnerData.isEmail && (
-              <div className="row justify-content-center">
-                <div className="col-md-6 mb-2">
-                  <label className="payment-form-label">Host Key</label>
-                  <input
-                    value={partnerData.emailhost}
-                    onChange={(e) =>
-                      setPartnerData({
-                        ...partnerData,
-                        emailhost: e.target.value,
-                      })
-                    }
-                    className="form-control"
-                  ></input>
-                </div>
-
-                <div className="col-md-6 mb-2">
-                  <label className="payment-form-label">Host Port</label>
-                  <input
-                    value={partnerData.emailport}
-                    onChange={(e) =>
-                      setPartnerData({
-                        ...partnerData,
-                        emailport: e.target.value,
-                      })
-                    }
-                    className="form-control"
-                  ></input>
-                </div>
-              </div>
-            )}
-
-            <div className="mt-2">
-              <input
-                checked={partnerData.isPayment}
-                id="online"
-                className="form-check-input mt-2 me-3"
-                type="checkbox"
-                onChange={(e) =>
-                  setPartnerData({
-                    ...partnerData,
-                    isPayment: e.target.checked,
-                  })
-                }
-              ></input>
-              <label htmlFor="online" className="payment-form-label">
-                Is Online Payment Enabled
-              </label>
-            </div>
-
-            {partnerData.isPayment && (
-              <div className="row justify-content-center">
-                <div className="col-md-6">
-                  <label className="payment-form-label">Key ID</label>
-                  <input
-                    value={partnerData.keyid}
-                    onChange={(e) =>
-                      setPartnerData({ ...partnerData, keyid: e.target.value })
-                    }
-                    className="form-control"
-                  ></input>
-                </div>
-
-                <div className="col-md-6">
-                  <label className="payment-form-label">Key Secret</label>
-                  <input
-                    value={partnerData.keysecret}
-                    onChange={(e) =>
-                      setPartnerData({
-                        ...partnerData,
-                        keysecret: e.target.value,
-                      })
-                    }
-                    className="form-control"
-                  ></input>
-                </div>
-              </div>
-            )}
-          </div>
+          <Form.Group className="mb-3">
+            <Form.Label className="small fw-bold">Target Partner</Form.Label>
+            <Form.Select onChange={(e) => setPartnerId(e.target.value)}>
+              <option value="">Select Partner</option>
+              {tableData.map((p) => <option key={p._id} value={p._id}>{p.companyname}</option>)}
+            </Form.Select>
+          </Form.Group>
+          <Form.Group>
+            <Form.Label className="small fw-bold">Excel File</Form.Label>
+            <Form.Control type="file" onChange={(e) => setDataToUpload(e.target.files[0])} />
+          </Form.Group>
         </Modal.Body>
         <Modal.Footer>
-          <div className="d-flex justify-content-end gap-2 w-100">
-            <button onClick={handleSaveplan} className="btn btn-success">
-              {selectedPartner ? "Update Partner" : "Add Partner"}
-            </button>
-            <button
-              onClick={() => {
-                setIsModalOpen(false);
-                setSelectedPartner(null);
-                setPartnerData({
-                  name: "",
-                  companyname: "",
-                  phone: "",
-                  address: "",
-                  email: "",
-                  gstin: "",
-                  isWhatsapp: false,
-                  isEmail: false,
-                  isPayment: false,
-                  whatsappApi: "",
-                  emailhost: "",
-                  emailport: "",
-                  keyid: "",
-                  keysecret: "",
-                  status: "Active",
-                  state: "",
-                  pincode: "",
-                });
-              }}
-              className="btn btn-secondary"
-            >
-              Cancel
-            </button>
-          </div>
+          <Button variant="primary" className="w-100" onClick={uploadData}>Start Upload</Button>
         </Modal.Footer>
       </Modal>
     </div>

@@ -1,259 +1,146 @@
-/* Wrapper for login page layout */
+/* ===== Global Reset ===== */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    overflow-x: hidden;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ===== Page Wrapper ===== */
 .login-page-wrapper {
-    min-height: 100vh;
-    width: 100vw;
-    position: relative;
-    overflow: hidden;
+    min-height: 100svh; /* better than 100vh on mobile */
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     background: linear-gradient(120deg, #e0e7ff 60%, #f8fafc 100%);
+    padding: 16px;
 }
 
-/* --- Professional Login Page Styles --- */
-.login-div {
-    margin-top: 80px;
-    margin-right: auto;
-    margin-left: auto;
-    max-width: 400px;
-    width: 100%;
-    box-sizing: border-box;
-    background: transparent;
-    border-radius: 18px;
-    box-shadow: 0 8px 32px rgba(60,60,120,0.18);
-    padding: 20px 32px 32px 32px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #4569e0;
-    position: absolute;
-}
-
-/* Center animation in background */
+/* ===== Background Animation ===== */
 .animation-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+    position: fixed;
+    inset: 0;
     z-index: 1;
     pointer-events: none;
-    opacity: 0.7;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    opacity: 0.6;
 }
 
-/* Glassmorphism effect for login-div */
-.glass-bg {
-    background: rgba(255,255,255,0.12);
-    box-shadow: 0 8px 32px rgba(60,60,120,0.18);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-radius: 18px;
-        border: 1px solid rgba(255,255,255,0.10);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Center login form */
+/* ===== Center Container ===== */
 .login-center {
     position: relative;
     z-index: 2;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    max-width: 420px;
     display: flex;
-    align-items: center;
     justify-content: center;
 }
 
-
-@media (max-width: 600px) {
-    .crm-logo span {
-        font-size: 1.3rem;
-        left: 12px;
-        top: 12px;
-    }
-    .login-div {
-        padding: 16px 4px;
-        border-radius: 20px;
-    }
-    .glass-bg {
-        border-radius: 12px;
-        padding: 16px 4px;
-    }
-}
-
-
-
-.input_login {
-    padding: 10px 14px;
-    border: 1px solid #bfc9d8;
-    border-radius: 8px;
-    font-size: 16px;
-    margin-bottom: 18px;
-    height: 44px;
+/* ===== Glass Card ===== */
+.login-div {
     width: 100%;
-    max-width: 280px;
-    margin-top: 5px;
-    background: white;
-    transition: box-shadow 0.2s, border 0.2s;
+    padding: 20px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: 0 8px 32px rgba(60,60,120,0.18);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-.input_login:focus {
-    box-shadow: 0 0 8px #6366f1;
-    outline: none;
-    border: 2px solid #6366f1;
-}
+/* ===== Logo ===== */
 
-.btn_login {
-    color: #fff;
-    border-radius: 8px;
-    font-size: 18px;
-    background: linear-gradient(90deg, #6366f1 0%, #60a5fa 100%);
-    border: none;
-    margin-top: 24px;
-    height: 44px;
-    width: 100%;
-    max-width: 280px;
-    transition: box-shadow 0.2s, background 0.2s;
-    position: static;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    box-shadow: 0 2px 8px rgba(60,60,120,0.10);
-    cursor: pointer;
-}
-
-.btn_login:hover {
-    background: linear-gradient(90deg, #60a5fa 0%, #6366f1 100%);
-    box-shadow: 0 4px 16px rgba(60,60,120,0.18);
-}
-
+/* ===== Headings ===== */
 h1 {
-    font-size: 2.2rem;
-    font-weight: 700;
+    font-size: 1.6rem;
     color: #3730a3;
-    margin-bottom: 8px;
-    letter-spacing: 1px;
+    margin-bottom: 6px;
     text-align: center;
 }
+
 h3 {
     font-size: 1.1rem;
-    font-weight: 500;
     color: #6366f1;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     text-align: center;
 }
+
+/* ===== Labels ===== */
 label {
     font-size: 1rem;
     color: #334155;
     font-weight: 500;
-    margin-bottom: 4px;
-    margin-top: 8px;
-    display: block;
+    width: 100%;
+    margin-bottom: 6px;
 }
 
-.crm-logo span{
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1e40af;
-    user-select: none;
-}
-
-/* Permission Denied Modal */
-.permission-body {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 24px;
-    text-align: center;
-    color: var(--text-dark);
-  }
-  
-  .permission-animation {
-    width: 50%;
-    max-width: 250px;
-    margin: 16px 0;
-  }
-  
-  .permission-text {
+/* ===== Inputs ===== */
+.input_login {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid #bfc9d8;
     font-size: 1rem;
-    font-weight: 500;
-    color: var(--text-muted);
-  }
-  
-  .expand-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #dc3545, #b71c1c); /* red gradient */
-    color: #fff;
-    padding: 16px;
-  }
-  
-  .expand-modal-header .modal-title {
-    font-size: 1.25rem;
-    font-weight: bold;
-  }
-  
-
-/* Toast container spacing */
-.Toastify__toast-container {
-    top: 80px !important;
+    margin-bottom: 16px;
+    background: #fff;
 }
 
-@media (max-width: 768px) {
-    .login-div {
-        margin-top: 32px;
-        margin-right: auto;
-        margin-left: auto;
-        padding: 24px 8px;
-        max-width: 98vw;
-        box-shadow: 0 1px 8px rgba(60,60,120,0.10);
-    }
-    .input_login, .btn_login {
-        max-width: 100%;
-        font-size: 16px;
-        height: 40px;
-    }
+.input_login:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 6px #6366f1;
+}
+
+/* ===== Button ===== */
+.btn_login {
+    width: 100%;
+    height: 44px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #6366f1, #60a5fa);
+    box-shadow: 0 2px 8px rgba(60,60,120,0.15);
+    cursor: pointer;
+    margin-top: 12px;
+}
+
+.btn_login:hover {
+    box-shadow: 0 4px 16px rgba(60,60,120,0.25);
+}
+
+/* ===== Permission Modal ===== */
+.permission-body {
+    padding: 20px;
+    text-align: center;
+}
+
+.permission-animation {
+    max-width: 200px;
+    margin: 16px auto;
+}
+
+/* ===== Toast ===== */
+.Toastify__toast-container {
+    top: 72px !important;
+}
+
+/* ===== Tablet & Up ===== */
+@media (min-width: 768px) {
     h1 {
-        font-size: 1.6rem;
+        font-size: 2.2rem;
     }
     h3 {
-        font-size: 1rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .login-div {
-        margin-left: auto;
-        margin-right: auto;
-        margin-top: 0;
-        padding: 10px 2px;
-        border-radius: 10px;
-        max-width: 99vw;
-    }
-    .input_login{
-        font-size: 15px;
-        height: 36px;
-        max-width: 80%;
-    }
-    .btn_login{ 
-        font-size: 15px;
-        height: 40px;
-        max-width: 100%;
-    }
-    h1 {
         font-size: 1.2rem;
     }
-    h3 {
-        font-size: 0.95rem;
+    .login-div {
+        padding: 28px 32px;
     }
 }
-

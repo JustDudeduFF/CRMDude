@@ -19,7 +19,7 @@
 }
 
 .inventory-table {
-  width: max-content;
+  width: 100%;
   border-collapse: collapse;
   margin: 0;
 }
@@ -33,7 +33,7 @@
   padding: 15px 12px;
   text-align: left;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1rem;
   border: none;
   white-space: nowrap;
   letter-spacing: 0.3px;
@@ -55,7 +55,7 @@
 
 .inventory-table td {
   padding: 12px;
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: #1e293b;
   white-space: nowrap;
 }
@@ -123,7 +123,7 @@
   font-weight: 600;
   color: #1e40af;
   margin-bottom: 8px;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .inventory-form-control {
@@ -131,7 +131,7 @@
   border-radius: 8px;
   padding: 10px 15px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .inventory-form-control:focus {
@@ -213,3 +213,6 @@
     padding: 15px;
   }
 }
+
+
+

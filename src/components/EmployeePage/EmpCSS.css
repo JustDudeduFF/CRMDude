@@ -4,7 +4,7 @@
 .employee-dashboard-container {
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   min-height: 100vh;
-  padding: 5% 0 20px 0;
+  padding: 0 0 20px 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   width: 100%;
 }
@@ -26,7 +26,7 @@
 .employee-title {
   color: #1e293b;
   font-weight: 700;
-  font-size: 1.8rem;
+  font-size: 2rem;
   margin: 0;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -44,7 +44,7 @@
   padding: 12px 24px;
   border-radius: 12px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1.2rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 16px rgba(138, 191, 211, 0.3);
 }
@@ -94,7 +94,7 @@
 .employee-search-label {
   color: #374151;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1.2rem;
   margin-bottom: 8px;
   display: block;
 }
@@ -106,7 +106,7 @@
   border-radius: 12px;
   background: white;
   color: #1e293b;
-  font-size: 0.9rem;
+  font-size: 1.2rem;
   transition: all 0.3s ease;
 }
 
@@ -170,7 +170,7 @@
 .employee-name {
   color: #1e293b;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 1.2rem;
   margin-bottom: 4px;
   position: relative;
   z-index: 2;
@@ -178,7 +178,7 @@
 
 .employee-mobile {
   color: #64748b;
-  font-size: 0.9rem;
+  font-size: 1.2rem;
   position: relative;
   z-index: 2;
 }
@@ -226,7 +226,7 @@
 .employee-details-title {
   color: #1e293b;
   font-weight: 700;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   margin: 0;
 }
 
@@ -239,7 +239,7 @@
   padding: 8px 16px;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1.2rem;
   transition: all 0.3s ease;
   border: none;
 }
@@ -292,7 +292,7 @@
 .employee-form-label {
   color: #374151;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1.2rem;
   margin-bottom: 8px;
   display: block;
 }
@@ -304,7 +304,7 @@
   border-radius: 8px;
   background: white;
   color: #1e293b;
-  font-size: 0.9rem;
+  font-size: 1.2rem;
   transition: all 0.3s ease;
 }
 
@@ -344,7 +344,7 @@
 .employee-section-header {
   color: #1e293b;
   font-weight: 700;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   margin: 24px 0 16px 0;
   padding-bottom: 8px;
   border-bottom: 2px solid rgba(138, 191, 211, 0.2);
@@ -372,7 +372,7 @@
 .employee-permission-title {
   color: #1e293b;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 1.2rem;
   margin: 0;
 }
 
@@ -395,7 +395,7 @@
 
 .employee-permission-label {
   color: #374151;
-  font-size: 0.9rem;
+  font-size: 1.2rem;
   cursor: pointer;
 }
 
@@ -424,7 +424,7 @@
   color: #64748b;
   font-weight: 500;
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
 }
 
 /* Animation Container */
@@ -453,7 +453,7 @@
   }
   
   .employee-title {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
   }
   
   .employee-layout {

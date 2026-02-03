@@ -22,7 +22,7 @@
 
 .subscriber-details-title {
   flex: 2;
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 700;
   color: #8abfd3;
   margin: 0;
@@ -31,7 +31,7 @@
 .subscriber-details-note {
   color: #28a745;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   gap: 5px;
@@ -153,7 +153,7 @@
   font-weight: 600;
   color: #8abfd3;
   margin-bottom: 8px;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .subscriber-details-form-control {
@@ -161,7 +161,7 @@
   border-radius: 8px;
   padding: 10px 15px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .subscriber-details-form-control:focus {
@@ -175,7 +175,7 @@
   border-radius: 8px;
   padding: 10px 15px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .subscriber-details-form-select:focus {
@@ -189,7 +189,7 @@
   border-radius: 8px;
   padding: 10px 15px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  font-size: 0.9rem;
+  font-size: 1rem;
   resize: vertical;
   min-height: 80px;
 }
@@ -236,7 +236,7 @@
   }
   
   .subscriber-details-title {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
   }
   
   .subscriber-details-actions {
@@ -255,11 +255,14 @@
   }
   
   .subscriber-details-title {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
   }
   
   .subscriber-details-modal .modal-body {
     padding: 15px;
   }
 }
+
+
+
 

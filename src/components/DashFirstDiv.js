@@ -12,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 import DashSecDiv from "./DashSecDiv";
 import { usePermissions } from "./PermissionProvider";
 import { Modal } from "react-bootstrap";
-import axios from "axios";
+import { API } from "../FirebaseConfig";
 import {
   isThisISOWeek,
   isThisMonth,
@@ -22,8 +22,8 @@ import {
 } from "date-fns";
 import * as XLSX from "xlsx";
 import ExpiredUsersBarChart from "./ExpiredUsersBarChart";
-import { api2 } from "../FirebaseConfig";
 import "./DashFirstDiv.css";
+
 
 const api = process.env.REACT_APP_API_URL;
 
@@ -175,10 +175,8 @@ export default function DashFirstDiv() {
     try {
       // Run all API calls concurrently using Promise.all
       const [dashBoardData, newInstallationData] = await Promise.all([
-        axios.get(`${api2}/dashboard-data?partnerId=${partnerId}`),
-        axios.get(
-          `${api2}/dashboard-data/installations?partnerId=${partnerId}`
-        ),
+        API.get(`/dashboard-data?partnerId=${partnerId}`),
+        API.get(`/dashboard-data/installations?partnerId=${partnerId}`),
       ]);
 
       // Check for response status once
@@ -309,6 +307,7 @@ export default function DashFirstDiv() {
     <>
       {isLoading ? (
         <div className="loading-container">
+         {/* <Lottie style={{width: "300px", height: "300px"}} animationData={logoanimation} /> */}
           <div className="loading-spinner"></div>
           <p className="loading-text">Loading dashboard data...</p>
         </div>
@@ -369,8 +368,7 @@ export default function DashFirstDiv() {
               ) : (
                 <div className="dashboard-card">
                   <div className="charts-container">
-                    <div className="chart-card">
-                      <h3 className="chart-title">Expired Users</h3>
+                    <div className="">
                       {Object.keys(last5days).length > 0 ? (
                         <ExpiredUsersBarChart
                           onBarClick={(clickedData, index) => {
@@ -441,8 +439,7 @@ export default function DashFirstDiv() {
               {/* Charts and Installation Section */}
               <div className="dashboard-card">
                 <div className="charts-container">
-                  <div className="chart-card">
-                    <h3 className="chart-title">Upcoming Renewal</h3>
+                  <div className="">
                     {Object.keys(upcoming5days).length > 0 ? (
                       <ExpiredUsersBarChart
                         onBarClick={(clickedData, index) => {
@@ -673,103 +670,112 @@ export default function DashFirstDiv() {
               show={showInsModal}
               onHide={() => setShowInsModal(false)}
               size="xl"
+              className="responsive-modal"
             >
-              <Modal.Header>
-                <Modal.Title>This Month New User</Modal.Title>
-                <div className="col-md-3 ms-auto">
-                  <label className="form-label">Select Company</label>
-                  <select
-                    onChange={(e) =>
-                      setFilterIns({ ...filteIns, company: e.target.value })
-                    }
-                    className="form-select"
-                  >
-                    <option value="All">All</option>
-                    {state.companyArray.map((company, index) => (
-                      <option key={index} value={company}>
-                        {company}
-                      </option>
-                    ))}
-                  </select>
+              <Modal.Header className="modal-header-responsive">
+                <Modal.Title className="modal-title-responsive">This Month New User</Modal.Title>
+                <div className="d-flex flex-wrap gap-2 align-items-end justify-content-end w-100 mt-2 modal-filters-responsive">
+                  <div className="col-12 col-md-3 col-lg-3">
+                    <label className="form-label">Select Company</label>
+                    <select
+                      onChange={(e) =>
+                        setFilterIns({ ...filteIns, company: e.target.value })
+                      }
+                      className="form-select"
+                    >
+                      <option value="All">All</option>
+                      {state.companyArray.map((company, index) => (
+                        <option key={index} value={company}>
+                          {company}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col-12 col-md-3 col-lg-3">
+                    <label className="form-label">Select Day</label>
+                    <select
+                      onChange={(e) =>
+                        setFilterIns({ ...filteIns, day: e.target.value })
+                      }
+                      className="form-select"
+                    >
+                      <option value="Month">This Month</option>
+                      <option value="Today">Today</option>
+                      <option value="Yesterday">Yesterday</option>
+                      <option value="This Week">This Week</option>
+                    </select>
+                  </div>
+                  <div className="col-12 col-md-auto col-lg-auto d-flex align-items-end">
+                    <img
+                      onClick={downloadExcel}
+                      className="excel-download-icon"
+                      alt="excel"
+                      src={ExcelIcon}
+                      style={{ cursor: 'pointer', width: '24px', height: '24px' }}
+                    />
+                  </div>
                 </div>
-                <div className="col-md-3 ms-auto">
-                  <label className="form-label">Select Day</label>
-                  <select
-                    onChange={(e) =>
-                      setFilterIns({ ...filteIns, day: e.target.value })
-                    }
-                    className="form-select"
-                  >
-                    <option value="Month">This Month</option>
-                    <option value="Today">Today</option>
-                    <option value="Yesterday">Yesterday</option>
-                    <option value="This Week">This Week</option>
-                  </select>
-                </div>
-                <img
-                  onClick={downloadExcel}
-                  className="excel-download-icon ms-auto"
-                  alt="excel"
-                  src={ExcelIcon}
-                />
               </Modal.Header>
 
-              <Modal.Body>
-                <table className="report-table">
-                  <thead>
-                    <tr>
-                      <th>S No</th>
-                      <th>Date</th>
-                      <th>UserID</th>
-                      <th>Name</th>
-                      <th>Mobile</th>
-                      <th>Address</th>
-                      <th>Company</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filterInsArray.length > 0 ? (
-                      filterInsArray.map((data, index) => (
-                        <tr key={index}>
-                          <td>{index + 1}</td>
-                          <td>
-                            {new Date(data.createdAt).toLocaleDateString(
-                              "en-GB",
-                              {
-                                day: "2-digit",
-                                month: "short",
-                                year: "2-digit",
-                              }
-                            )}
-                          </td>
-                          <td>{data.username}</td>
-                          <td>{data.fullName}</td>
-                          <td>{data.mobileNo}</td>
-                          <td
-                            style={{
-                              maxWidth: "200px",
-                              overflow: "hidden",
-                              whiteSpace: "nowrap",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            {data.installationAddress}
-                          </td>
-                          <td>{data.company}</td>
-                        </tr>
-                      ))
-                    ) : (
+              <Modal.Body className="modal-body-responsive">
+                <div className="table-responsive-wrapper">
+                  <table className="report-table">
+                    <thead>
                       <tr>
-                        <td
-                          colSpan="7"
-                          style={{ textAlign: "center", padding: "20px" }}
-                        >
-                          No data available
-                        </td>
+                        <th>S No</th>
+                        <th>Date</th>
+                        <th>UserID</th>
+                        <th>Name</th>
+                        <th>Mobile</th>
+                        <th>Address</th>
+                        <th>Company</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {filterInsArray.length > 0 ? (
+                        filterInsArray.map((data, index) => (
+                          <tr key={index}>
+                            <td>{index + 1}</td>
+                            <td>
+                              {new Date(data.createdAt).toLocaleDateString(
+                                "en-GB",
+                                {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "2-digit",
+                                }
+                              )}
+                            </td>
+                            <td>{data.username}</td>
+                            <td>{data.fullName}</td>
+                            <td>{data.mobileNo}</td>
+                            <td
+                              className="table-cell-truncate"
+                              style={{
+                                maxWidth: "200px",
+                                overflow: "hidden",
+                                whiteSpace: "nowrap",
+                                textOverflow: "ellipsis",
+                              }}
+                            >
+                              {data.installationAddress}
+                            </td>
+                            <td>{data.company}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan="7"
+                            style={{ textAlign: "center", padding: "20px" }}
+                          >
+                            No data available
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </Modal.Body>
             </Modal>
           </div>

@@ -1,9 +1,8 @@
-import { api2, db } from "../../FirebaseConfig";
-import { get, ref, update, limitToLast } from "firebase/database";
 import React, { useEffect, useState } from "react";
 import { usePermissions } from "../PermissionProvider";
-import axios from "axios";
+import { API } from "../../FirebaseConfig";
 import { toast, ToastContainer } from "react-toastify";
+import { FaUndo, FaCalendarAlt, FaHistory, FaNetworkWired, FaUserCheck, FaInfoCircle } from 'react-icons/fa';
 
 export default function RechargeTable() {
   const username = localStorage.getItem("susbsUserid");
@@ -13,8 +12,8 @@ export default function RechargeTable() {
 
   const fetchPlans = async () => {
     try {
-      const response = await axios.get(
-        `${api2}/subscriber/planinfo/${username}?partnerId=${partnerId}`
+      const response = await API.get(
+        `/subscriber/planinfo/${username}?partnerId=${partnerId}`
       );
       if (response.status === 200) {
         const plans = response.data;
@@ -23,12 +22,10 @@ export default function RechargeTable() {
           ...plans[key],
         }));
         setArrayPlan(planArray);
-      } else {
-        console.error("Failed to fetch plans");
       }
     } catch (error) {
       console.error("Error fetching plans:", error);
-      alert("Something went wrong while fetching plans");
+      toast.error("Failed to fetch plan history");
     }
   };
 
@@ -37,128 +34,288 @@ export default function RechargeTable() {
   }, [username]);
 
   const rollback = async (plankey) => {
-    console.log(hasPermission);
     if (hasPermission("ROLLBACK_PLAN")) {
       try {
-        const response = await axios.post(`${api2}/subscriber/rollback`, {
+        const response = await API.post(`/subscriber/rollback`, {
           plankey: plankey,
           username: username,
           contact: localStorage.getItem("contact"),
         });
         if (response.status === 200) {
-          toast.success("Plan rolled back successfully", {
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-          });
+          toast.success("Plan rolled back successfully");
           fetchPlans();
         }
       } catch (error) {
-        console.error("Error during rollback:", error);
-        toast.error(error.message, {
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true,
-          progress: undefined,
-        });
+        toast.error(error.message || "Rollback failed");
       }
     } else {
-      alert("Permission Denied!");
+      toast.warning("Permission Denied: ROLLBACK_PLAN required");
     }
   };
 
   return (
-    <div>
-      <ToastContainer />
-      <div style={{ overflowY: "auto" }}>
-        <table style={{ borderCollapse: "collapse" }} className="table">
-          <thead>
-            <tr>
-              <th scope="col">S. No.</th>
-              <th scope="col">Plan Name</th>
-              <th scope="col">Amount</th>
-              <th scope="col">ISP</th>
-              <th scope="col">Start Date</th>
-              <th scope="col">End Date</th>
-              <th scope="col">Action</th>
-              <th scope="col">Completed By</th>
-              <th scope="col">Completed On</th>
-              <th scope="col">Remarks</th>
-            </tr>
-          </thead>
-          <tbody className="table-group-divider">
-            {arrayplan.length > 0 ? (
-              arrayplan.map(
-                (
-                  {
-                    planInfoKey,
-                    planName,
-                    planAmount,
-                    isp,
-                    action,
-                    completedby,
-                    activationDate,
-                    expiryDate,
-                    updatedAt,
-                    remarks,
-                  },
-                  index
-                ) => (
+    <div className="recharge-master-container">
+      <ToastContainer position="top-right" autoClose={2000} theme="colored" />
+      
+      <div className="recharge-card shadow-sm">
+        <div className="recharge-header">
+          <div className="header-left">
+            <div className="icon-badge">
+              <FaHistory />
+            </div>
+            <div>
+              <h5 className="mb-0 fw-bold">Recharge History</h5>
+              <small className="text-muted">Tracking all plans and rollbacks for {username}</small>
+            </div>
+          </div>
+        </div>
+
+        <div className="table-responsive-wrapper">
+          <table className="recharge-modern-table">
+            <thead>
+              <tr>
+                <th>S.No.</th>
+                <th>Plan Details</th>
+                <th>Amount</th>
+                <th><FaNetworkWired className="me-1"/> ISP</th>
+                <th><FaCalendarAlt className="me-1"/> Validity</th>
+                <th>Action Type</th>
+                <th>Execution</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              {arrayplan.length > 0 ? (
+                arrayplan.map((plan, index) => (
                   <tr key={index}>
-                    <td>{index + 1}</td>
-                    <td
-                      style={{ color: "green ", cursor: "pointer" }}
-                      className="btn"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false"
-                    >
-                      {planName}
+                    <td data-label="S.No." className="text-center-desktop text-muted fw-bold">{index + 1}</td>
+                    
+                    <td data-label="Plan Details">
+                      <div className="dropdown">
+                        <span 
+                          className="plan-name-link"
+                          data-bs-toggle="dropdown" 
+                          aria-expanded="false"
+                        >
+                          {plan.planName}
+                        </span>
+                        <ul className="dropdown-menu shadow border-0 p-2">
+                          <li>
+                            <button 
+                              className="dropdown-item rounded rollback-btn" 
+                              onClick={() => rollback(plan.planInfoKey)}
+                            >
+                              <FaUndo className="me-2 small" /> Rollback Plan
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
                     </td>
-                    <ul className="dropdown-menu">
-                      <li onClick={() => rollback(planInfoKey)}>
-                        RollBack Plan
-                      </li>
-                    </ul>
-                    <td>{Number(planAmount).toFixed(2)}</td>
-                    <td>{isp}</td>
-                    <td>
-                      {new Date(activationDate).toLocaleDateString("en-GB", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "2-digit",
-                      })}
+
+                    <td data-label="Amount" className="fw-bold text-dark">₹{Number(plan.planAmount).toFixed(2)}</td>
+                    
+                    <td data-label="ISP"><span className="isp-tag">{plan.isp}</span></td>
+                    
+                    <td data-label="Validity">
+                      <div className="validity-stack">
+                        <span className="v-start">S: {new Date(plan.activationDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" })}</span>
+                        <span className="v-end">E: {new Date(plan.expiryDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" })}</span>
+                      </div>
                     </td>
-                    <td>
-                      {new Date(expiryDate).toLocaleDateString("en-GB", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "2-digit",
-                      })}
+
+                    <td data-label="Action Type">
+                      <span className={`action-badge ${plan.action?.toLowerCase()}`}>
+                        {plan.action}
+                      </span>
                     </td>
-                    <td>{action}</td>
-                    <td>{completedby}</td>
-                    <td>
-                      {new Date(updatedAt).toLocaleDateString("en-GB", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "2-digit",
-                      })}
+
+                    <td data-label="Execution">
+                      <div className="exec-info">
+                        <span className="exec-by"><FaUserCheck className="me-1" />{plan.completedby}</span>
+                        <span className="exec-at">{new Date(plan.updatedAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" })}</span>
+                      </div>
                     </td>
-                    <td>{remarks}</td>
+
+                    <td data-label="Remarks" className="remarks-cell">
+                      <div className="remarks-wrapper" title={plan.remarks}>
+                        <FaInfoCircle className="me-1 text-muted" /> {plan.remarks || "---"}
+                      </div>
+                    </td>
                   </tr>
-                )
-              )
-            ) : (
-              <td>No Information Found</td>
-            )}
-          </tbody>
-        </table>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="8" className="text-center py-5 text-muted">No Recharge History Found</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
+
+      <style>{`
+        .recharge-master-container {
+          padding: 15px;
+          background: #f8fafc;
+        }
+
+        .recharge-card {
+          background: #fff;
+          border-radius: 12px;
+          border: 1px solid #e2e8f0;
+          overflow: hidden;
+        }
+
+        .recharge-header {
+          padding: 18px 25px;
+          border-bottom: 1px solid #f1f5f9;
+        }
+
+        .header-left {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+        }
+
+        .icon-badge {
+          width: 40px;
+          height: 40px;
+          background: #eef2ff;
+          color: #4f46e5;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.1rem;
+        }
+
+        .recharge-modern-table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        .recharge-modern-table thead th {
+          background: #f8fafc;
+          padding: 14px 20px;
+          font-size: 11px;
+          font-weight: 800;
+          color: #64748b;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          border-bottom: 2px solid #e2e8f0;
+        }
+
+        .recharge-modern-table tbody td {
+          padding: 14px 20px;
+          font-size: 13px;
+          color: #334155;
+          border-bottom: 1px solid #f1f5f9;
+          vertical-align: middle;
+        }
+
+        .plan-name-link {
+          color: #4f46e5;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .isp-tag {
+          background: #f1f5f9;
+          padding: 3px 10px;
+          border-radius: 6px;
+          font-size: 11px;
+          font-weight: 700;
+          color: #475569;
+        }
+
+        .validity-stack {
+          display: flex;
+          flex-direction: column;
+          font-size: 11px;
+          font-weight: 600;
+        }
+
+        .v-start { color: #059669; }
+        .v-end { color: #dc2626; }
+
+        .action-badge {
+          padding: 4px 10px;
+          border-radius: 50px;
+          font-size: 10px;
+          font-weight: 800;
+        }
+        .action-badge.recharge { background: #ecfdf5; color: #059669; }
+        .action-badge.rollback { background: #fff1f2; color: #e11d48; }
+
+        .exec-info {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .exec-by { font-weight: 700; color: #1e293b; }
+        .exec-at { font-size: 11px; color: #94a3b8; }
+
+        .remarks-wrapper {
+          max-width: 150px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        /* RESPONSIVE CSS */
+        @media (max-width: 1100px) {
+          .recharge-modern-table thead {
+            display: none; /* Hide headers on mobile */
+          }
+
+          .recharge-modern-table tbody tr {
+            display: block;
+            border-bottom: 8px solid #f1f5f9;
+            padding: 10px 0;
+          }
+
+          .recharge-modern-table tbody td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-align: right;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 12px 20px;
+            width: 100%;
+            box-sizing: border-box;
+          }
+
+          .recharge-modern-table tbody td:last-child {
+            border-bottom: none;
+          }
+
+          .recharge-modern-table tbody td::before {
+            content: attr(data-label); /* Show header from data-label */
+            font-weight: 800;
+            color: #64748b;
+            font-size: 11px;
+            text-transform: uppercase;
+            text-align: left;
+            margin-right: 10px;
+          }
+
+          .remarks-wrapper {
+            max-width: 180px;
+          }
+
+          .validity-stack {
+            align-items: flex-end;
+          }
+
+          .exec-info {
+            align-items: flex-end;
+          }
+        }
+
+        @media (min-width: 1101px) {
+            .text-center-desktop { text-align: center; }
+        }
+      `}</style>
     </div>
   );
 }

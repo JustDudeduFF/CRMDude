@@ -4,7 +4,7 @@ import { usePermissions } from "../PermissionProvider";
 import { Modal, Spinner, Badge } from "react-bootstrap";
 import { API } from "../../FirebaseConfig";
 import { toast, ToastContainer } from "react-toastify";
-import { FaEllipsisV, FaRedo, FaEdit, FaTimesCircle, FaTicketAlt, FaClock, FaChevronRight } from 'react-icons/fa';
+import { FaEllipsisV, FaRedo, FaEdit, FaTimesCircle, FaClock, FaChevronRight } from 'react-icons/fa';
 
 export default function TicketTable() {
   const { hasPermission } = usePermissions();
@@ -23,7 +23,6 @@ export default function TicketTable() {
     happycode: "",
     name: "",
   });
-  const [showpermission, setshowpermission] = useState(false);
 
   const fetchTicket = async () => {
     setIsLoading(true);
@@ -206,8 +205,6 @@ export default function TicketTable() {
               if (hasPermission("RESEND_CODE") && activeTicket.status === "Pending") {
                 setSelectTicket({ ticketno: activeTicket.ticketno, mobile: activeTicket.mobile, happycode: activeTicket.happycode, name: activeTicket.name });
                 setCodeModal(true);
-              } else {
-                setshowpermission(true);
               }
             }}>
               <div className="icon-box bg-success-light text-success"><FaRedo /></div>

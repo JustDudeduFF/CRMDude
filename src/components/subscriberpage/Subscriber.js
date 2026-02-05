@@ -101,7 +101,7 @@ export default function Subscriber() {
   }, [username]);
 
   useEffect(() => {
-    socketRef.current = io("https://api.justdude.in:5002");
+    socketRef.current = io("https://api.justdude.in:5000");
     socketRef.current.on("subscribers-update", () => fetchUserData());
     return () => {
       if (socketRef.current) socketRef.current.disconnect();

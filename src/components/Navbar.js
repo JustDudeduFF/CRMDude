@@ -111,9 +111,7 @@ export default function Navbar() {
   // Fetch companies data
   const fetchCompanies = async () => {
     try {
-      const response = await API.get(
-        `/navbar/stats?partnerId=${partnerId}`,
-      );
+      const response = await API.get(`/navbar/stats?partnerId=${partnerId}`);
       if (response.status === 200) {
         setUniqueCompanies(response.data);
       }
@@ -437,7 +435,11 @@ export default function Navbar() {
                     (user) =>
                       filterCompany === "All" || user.company === filterCompany,
                   )
-                  .filter((user) => Number(user.dueAmount || -100000) >= minDue)
+                  .filter((user) =>
+                    minDue
+                      ? Number(user.dueAmount || 0) >= Number(minDue)
+                      : true,
+                  )
                   .map((user, index) => {
                     const {
                       username,

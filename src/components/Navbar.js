@@ -437,7 +437,7 @@ export default function Navbar() {
                     (user) =>
                       filterCompany === "All" || user.company === filterCompany,
                   )
-                  .filter((user) => Number(user.dueAmount || 0) >= minDue)
+                  .filter((user) => Number(user.dueAmount || -100000) >= minDue)
                   .map((user, index) => {
                     const {
                       username,

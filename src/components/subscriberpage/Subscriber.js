@@ -1007,9 +1007,7 @@ export default function Subscriber() {
                     .filter(
                       (p) =>
                         (changePlanData.provider === "All" ||
-                          p.provider === changePlanData.provider) &&
-                        (changePlanData.isp === "All" ||
-                          p.isp === changePlanData.isp),
+                          p.provider === changePlanData.provider)
                     )
                     .map((data, index) => (
                       <option key={index} value={data.code}>

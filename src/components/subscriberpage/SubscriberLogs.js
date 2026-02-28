@@ -72,14 +72,14 @@ export default function SubscriberLogs() {
                     <td className="logs-date-cell">
                       <div className="date-wrapper">
                         <span className="date-main">
-                          {new Date(data.date).toLocaleDateString("en-GB", {
+                          {new Date(data.updatedAt).toLocaleDateString("en-GB", {
                             day: "2-digit",
                             month: "short",
                             year: "numeric",
                           })}
                         </span>
                         <span className="date-time text-muted">
-                          {new Date(data.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(data.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
                     </td>

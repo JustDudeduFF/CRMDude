@@ -101,10 +101,21 @@ export default function Subscriber() {
   }, [username]);
 
   useEffect(() => {
-    socketRef.current = io("https://api.justdude.in:5000");
-    socketRef.current.on("subscribers-update", () => fetchUserData());
+    socketRef.current = io("https://api.justdude.in:5000", {
+      auth: {
+        partnerId, // or actual partnerId
+      },
+      transports: ["websocket"], // optional but recommended
+    });
+
+    socketRef.current.on("subscribers-update", () => {
+      fetchUserData();
+    });
+
     return () => {
-      if (socketRef.current) socketRef.current.disconnect();
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
     };
   }, [username]);
 
@@ -662,7 +673,7 @@ export default function Subscriber() {
         `}</style>
       </Modal>
 
-            <Modal
+      <Modal
         className="crm-modern-modal"
         centered
         show={ispModal}
@@ -677,20 +688,23 @@ export default function Subscriber() {
           <div className="container-fluid px-0">
             <div className="row g-3">
               <div className="col-12">
-                <label className="crm-label-sm">ISP (Internet Service Provider)</label>
+                <label className="crm-label-sm">
+                  ISP (Internet Service Provider)
+                </label>
                 <select
                   className="form-control crm-input"
                   type="text"
                   value={newISP}
                   onChange={(e) => setNewISP(e.target.value)}
                 >
-                  <option value="" disabled>Select ISP</option>
+                  <option value="" disabled>
+                    Select ISP
+                  </option>
                   {ispArray.map((ispItem, index) => (
                     <option key={index} value={ispItem}>
                       {ispItem}
                     </option>
                   ))}
-
                 </select>
               </div>
             </div>
@@ -1006,8 +1020,8 @@ export default function Subscriber() {
                   {plans
                     .filter(
                       (p) =>
-                        (changePlanData.provider === "All" ||
-                          p.provider === changePlanData.provider)
+                        changePlanData.provider === "All" ||
+                        p.provider === changePlanData.provider,
                     )
                     .map((data, index) => (
                       <option key={index} value={data.code}>

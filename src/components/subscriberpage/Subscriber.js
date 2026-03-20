@@ -122,8 +122,8 @@ export default function Subscriber() {
   const fetchUserData = async () => {
     try {
       const response = await API.get(`/subscriber?id=${username}`);
-      if (response.data) {
-        const u = response.data;
+      if (response.data.result) {
+        const u = response.data.result;
         setFullName(u.fullname || "");
         setCompany(u.company || "");
         setUserID(u.username || "");

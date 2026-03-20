@@ -34,6 +34,14 @@ export default function SubscriberPersonal() {
   const [uniqueJCNo, setUniqueJCNo] = useState("");
   const [connectedOlt, setConnectedOlt] = useState("");
   const [modalAddMAC, setModalAddMAC] = useState(false);
+  const [macAddress, setmacAddress] = useState("");
+
+  const [hardwareinfo, setHardwareInfo] = useState({
+    manufature: "",
+    mac: "",
+    serial: "",
+    status: ""
+  })
 
   useEffect(() => {
     const fetchsubsdata = async () => {
@@ -41,13 +49,24 @@ export default function SubscriberPersonal() {
         const response = await API.get(`/subscriber/?id=${username}`);
         if (response.status !== 200)
           return console.log("Error fetching subscriber data");
-        const data = response.data;
+        const data = response.data.result;
+        const device = response.data.deviceDetails
+
         if (data) {
           setColonyName(data.colonyName);
           setEmail(data.email);
           setInstallationAddress(data.installationAddress);
           setMobileNo(data.mobile);
           setAlternateNo(data.alternate);
+        }
+
+        if (device) {
+          setHardwareInfo({
+            manufature: device.manufacturer,
+            mac: device.mac,
+            serial: device.serialNumber,
+            status: device.onlineStatus
+          })
         }
       } catch (e) {
         console.log(e);
@@ -93,6 +112,21 @@ export default function SubscriberPersonal() {
     fetchConnectivityInfo();
     fetchsubsdata();
   }, [username]);
+
+  const addMAC = async () => {
+    try {
+      const res = API.post("/subscriber/addmacaddress", {
+        subscriberId: username,
+        deviceMAC: macAddress
+      });
+
+      console.log(res);
+    } catch (e) {
+
+    }
+
+
+  }
 
   return (
     <div className="personal-info-grid">
@@ -193,16 +227,20 @@ export default function SubscriberPersonal() {
           <div className="device-row">
             <label className="info-label">MANUFACTURER</label>
             <p className="value-text fw-bold text-dark">
-              {deviceMaker || "N/A"}
+              {hardwareinfo.manufature || "N/A"}
             </p>
           </div>
           <div className="device-row mt-3">
             <label className="info-label">SERIAL NUMBER (S/N)</label>
-            <code className="sn-badge">{deviceSerialNumber || "N/A"}</code>
+            <code className="sn-badge">{hardwareinfo.serial || "N/A"}</code>
           </div>
           <div className="device-row mt-3">
             <label className="info-label">MAC ADDRESS</label>
-            <code className="sn-badge">{deviceSerialNumber || "N/A"}</code>
+            <code className="sn-badge">{hardwareinfo.mac || "N/A"}</code>
+          </div>
+          <div className="device-row mt-3">
+            <label className="info-label">STATUS</label>
+            <code className={hardwareinfo.status === "Connected" ? "sn-badge green" : "sn-badge red"}>{hardwareinfo.status || "N/A"}</code>
           </div>
         </div>
       </div>
@@ -343,6 +381,16 @@ export default function SubscriberPersonal() {
           font-family: 'Monaco', monospace;
         }
 
+        .green{
+          background: #affcb3;
+          color: #475569;
+        }
+
+        .red{
+          background: #fa9a9a;
+          color: #475569;
+        }
+
         .lottie-wrapper {
           width: 180px;
           height: 180px;
@@ -387,6 +435,7 @@ export default function SubscriberPersonal() {
             <div className="col-md ms-3 me-3">
               <label className="crm-label-sm">MAC Address *</label>
               <input
+                onChange={(e) => setmacAddress(e.target.value)}
                 placeholder="xx:xx:xx:xx:xx:xx"
                 className="form-control crm-input"
                 type="text"
@@ -399,7 +448,7 @@ export default function SubscriberPersonal() {
             <button className="btn btn-light fw-bold flex-grow-1 py-2">
               Cancel
             </button>
-            <button className="btn crm-btn-gradient fw-bold flex-grow-1 py-2">
+            <button onClick={addMAC} className="btn crm-btn-gradient fw-bold flex-grow-1 py-2">
               Add Device
             </button>
           </div>

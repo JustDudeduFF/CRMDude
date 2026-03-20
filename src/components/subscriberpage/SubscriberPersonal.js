@@ -1,14 +1,24 @@
-import Lottie from 'lottie-react'
-import React, { useState, useEffect } from 'react'
-import LocationAnimation from './drawables/locationanimation.json'
-import { API } from '../../FirebaseConfig';
-import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaServer, FaMicrochip, FaNetworkWired } from 'react-icons/fa';
+import Lottie from "lottie-react";
+import React, { useState, useEffect } from "react";
+import LocationAnimation from "./drawables/locationanimation.json";
+import { API } from "../../FirebaseConfig";
+import {
+  FaMapMarkerAlt,
+  FaPhoneAlt,
+  FaEnvelope,
+  FaServer,
+  FaMicrochip,
+  FaNetworkWired,
+  FaPlus,
+} from "react-icons/fa";
+import { Modal } from "react-bootstrap";
+import { m } from "framer-motion";
 
 export default function SubscriberPersonal() {
-  const username = localStorage.getItem('susbsUserid')
+  const username = localStorage.getItem("susbsUserid");
   const jcNumber = "0_25_2_1735305031195";
   const [mobileNo, setMobileNo] = useState("");
-  const [alternateNo, setAlternateNo] = useState('');
+  const [alternateNo, setAlternateNo] = useState("");
   const [email, setEmail] = useState("");
   const [installationAddress, setInstallationAddress] = useState("");
   const [colonyName, setColonyName] = useState("");
@@ -23,12 +33,14 @@ export default function SubscriberPersonal() {
   const [connectedPortNo, setConnectedPortNo] = useState("");
   const [uniqueJCNo, setUniqueJCNo] = useState("");
   const [connectedOlt, setConnectedOlt] = useState("");
+  const [modalAddMAC, setModalAddMAC] = useState(false);
 
   useEffect(() => {
     const fetchsubsdata = async () => {
       try {
         const response = await API.get(`/subscriber/?id=${username}`);
-        if (response.status !== 200) return console.log("Error fetching subscriber data");
+        if (response.status !== 200)
+          return console.log("Error fetching subscriber data");
         const data = response.data;
         if (data) {
           setColonyName(data.colonyName);
@@ -40,12 +52,15 @@ export default function SubscriberPersonal() {
       } catch (e) {
         console.log(e);
       }
-    }
+    };
 
     const fetchConnectivityInfo = async () => {
       try {
-        const response = await API.get(`/subscriber/connectivityinfo/${username}`);
-        if (response.status !== 200) return console.log("Error fetching connectivity info");
+        const response = await API.get(
+          `/subscriber/connectivityinfo/${username}`,
+        );
+        if (response.status !== 200)
+          return console.log("Error fetching connectivity info");
         const data = response.data;
         if (data) {
           setConnectedFMS(data.connectedFMS);
@@ -57,7 +72,7 @@ export default function SubscriberPersonal() {
       } catch (e) {
         console.log(e);
       }
-    }
+    };
 
     // const fetchDeviceInfo = async () => {
     //   try {
@@ -88,17 +103,19 @@ export default function SubscriberPersonal() {
         </div>
         <div className="card-content">
           <label className="info-label">INSTALLATION ADDRESS</label>
-          <p className="address-text">{installationAddress || 'No address provided'}</p>
-          
+          <p className="address-text">
+            {installationAddress || "No address provided"}
+          </p>
+
           <div className="divider"></div>
-          
+
           <label className="info-label">COLONY / AREA</label>
-          <p className="value-text">{colonyName || 'N/A'}</p>
+          <p className="value-text">{colonyName || "N/A"}</p>
 
           <label className="info-label mt-3">CONTACT NUMBERS</label>
           <div className="d-flex align-items-center mb-1">
             <FaPhoneAlt size={12} className="text-primary me-2" />
-            <p className="value-text mb-0">+91 {mobileNo || 'N/A'}</p>
+            <p className="value-text mb-0">+91 {mobileNo || "N/A"}</p>
           </div>
           {alternateNo && (
             <div className="d-flex align-items-center">
@@ -110,7 +127,7 @@ export default function SubscriberPersonal() {
           <label className="info-label mt-3">EMAIL ADDRESS</label>
           <div className="d-flex align-items-center">
             <FaEnvelope size={12} className="text-primary me-2" />
-            <p className="value-text mb-0">{email || 'N/A'}</p>
+            <p className="value-text mb-0">{email || "N/A"}</p>
           </div>
         </div>
       </div>
@@ -126,28 +143,34 @@ export default function SubscriberPersonal() {
               <span className="dot"></span>
               <div className="stack-body">
                 <small>OLT DEVICE</small>
-                <h6>{connectedOlt || 'Not Assigned'}</h6>
+                <h6>{connectedOlt || "Not Assigned"}</h6>
               </div>
             </div>
             <div className="stack-item">
               <span className="dot"></span>
               <div className="stack-body">
                 <small>FMS NAME / PORT</small>
-                <h6>{connectedFMS ? `${connectedFMS} (Port: ${connectedPortNo})` : 'N/A'}</h6>
+                <h6>
+                  {connectedFMS
+                    ? `${connectedFMS} (Port: ${connectedPortNo})`
+                    : "N/A"}
+                </h6>
               </div>
             </div>
             <div className="stack-item">
               <span className="dot"></span>
               <div className="stack-body">
                 <small>JC BOX NUMBER</small>
-                <h6>{uniqueJCNo || 'N/A'}</h6>
+                <h6>{uniqueJCNo || "N/A"}</h6>
               </div>
             </div>
             <div className="stack-item">
               <span className="dot last"></span>
               <div className="stack-body">
                 <small>OPTICAL POWER (RX/TX)</small>
-                <h6 className="text-info">{connectionPowerInfo || 'Unknown'}</h6>
+                <h6 className="text-info">
+                  {connectionPowerInfo || "Unknown"}
+                </h6>
               </div>
             </div>
           </div>
@@ -158,19 +181,28 @@ export default function SubscriberPersonal() {
       <div className="info-card shadow-sm">
         <div className="card-header-accent">
           <FaMicrochip className="me-2" /> Hardware Details
+          <FaPlus
+            onClick={() => setModalAddMAC(true)}
+            style={{ cursor: "pointer" }}
+            size={12}
+            className="text-muted text-primary ms-5"
+            title="Add MAC Address"
+          />
         </div>
         <div className="card-content">
           <div className="device-row">
             <label className="info-label">MANUFACTURER</label>
-            <p className="value-text fw-bold text-dark">{deviceMaker || 'N/A'}</p>
+            <p className="value-text fw-bold text-dark">
+              {deviceMaker || "N/A"}
+            </p>
           </div>
           <div className="device-row mt-3">
             <label className="info-label">SERIAL NUMBER (S/N)</label>
-            <code className="sn-badge">{deviceSerialNumber || 'N/A'}</code>
+            <code className="sn-badge">{deviceSerialNumber || "N/A"}</code>
           </div>
           <div className="device-row mt-3">
             <label className="info-label">MAC ADDRESS</label>
-            <code className="sn-badge">{deviceSerialNumber || 'N/A'}</code>
+            <code className="sn-badge">{deviceSerialNumber || "N/A"}</code>
           </div>
         </div>
       </div>
@@ -189,8 +221,6 @@ export default function SubscriberPersonal() {
           </button>
         </div>
       </div>
-
-      
 
       <style>{`
         .personal-info-grid {
@@ -340,6 +370,79 @@ export default function SubscriberPersonal() {
           }
         }
       `}</style>
+
+      <Modal
+        show={modalAddMAC}
+        onHide={() => setModalAddMAC(false)}
+        centered
+        className="crm-modern-modal"
+      >
+        <Modal.Header closeButton className="border-0 pb-0">
+          <Modal.Title className="fw-bold text-dark">
+            <FaMicrochip className="me-2 text-primary" /> Enable SSID Access
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="pt-3">
+          <div className="container-fluid px-0">
+            <div className="col-md ms-3 me-3">
+              <label className="crm-label-sm">MAC Address *</label>
+              <input
+                placeholder="xx:xx:xx:xx:xx:xx"
+                className="form-control crm-input"
+                type="text"
+              />
+            </div>
+          </div>
+        </Modal.Body>
+        <Modal.Footer className="border-0 pt-0">
+          <div className="d-flex w-100 gap-2">
+            <button className="btn btn-light fw-bold flex-grow-1 py-2">
+              Cancel
+            </button>
+            <button className="btn crm-btn-gradient fw-bold flex-grow-1 py-2">
+              Add Device
+            </button>
+          </div>
+        </Modal.Footer>
+        <style>{`
+                .crm-modern-modal .modal-content {
+                  border-radius: 20px;
+                  border: none;
+                  box-shadow: 0 15px 50px rgba(0,0,0,0.1);
+                }
+                .crm-label-sm {
+                  font-size: 0.7rem;
+                  font-weight: 800;
+                  color: #94a3b8;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                  margin-bottom: 5px;
+                  display: block;
+                }
+                .crm-input {
+                  border-radius: 10px;
+                  padding: 10px 15px;
+                  border: 1px solid #e2e8f0;
+                  font-weight: 500;
+                  color: #1e293b;
+                }
+                .crm-input:focus {
+                  border-color: #667eea;
+                  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                }
+                .crm-btn-gradient {
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  color: white;
+                  border: none;
+                  transition: transform 0.2s;
+                }
+                .crm-btn-gradient:hover {
+                  color: white;
+                  transform: translateY(-2px);
+                  opacity: 0.9;
+                }
+              `}</style>
+      </Modal>
     </div>
-  )
+  );
 }

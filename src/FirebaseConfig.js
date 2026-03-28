@@ -18,11 +18,11 @@ const app = initializeApp(firebaseConfig);
 export const db = getDatabase(app);
 export const storage = getStorage(app);
 
-export const api2 = "https://api.justdude.in:5002/api";
-export const mobile_api = "https://api.justdude.in:5002/mobile";
+export const api2 = "https://dudeapi.justdude.in/api";
+export const mobile_api = "https://dudeapi.justdude.in/mobile";
 
 export const API = axios.create({
-  baseURL: "https://api.justdude.in:5002/api",
+  baseURL: "https://dudeapi.justdude.in/api",
 });
 
 // Request Interceptor: Attach Token automatically

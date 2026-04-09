@@ -657,7 +657,7 @@ export default function PayrollandAttendence() {
                   <div className="d-flex justify-content-between mb-2">
                     <span>Days Present:</span>
                     <span className="badge bg-primary">
-                      {selectedUserDetails?.presentDays} Days
+                      {selectedUserDetails?.attendance.present} Days
                     </span>
                   </div>
                   <div className="d-flex justify-content-between text-muted small">

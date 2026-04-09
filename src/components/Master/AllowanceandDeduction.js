@@ -9,6 +9,8 @@ import {
   FaCalendarAlt,
   FaHashtag,
   FaInfoCircle,
+  FaEdit,
+  FaTrash,
 } from "react-icons/fa";
 
 export default function AllowanceAndDeduction() {
@@ -65,7 +67,7 @@ export default function AllowanceAndDeduction() {
           }
           className="dc-add-btn"
         >
-          <FaPlus /> <span>Add Concern</span>
+          <FaPlus /> <span>Add Category</span>
         </button>
       </div>
 
@@ -100,6 +102,7 @@ export default function AllowanceAndDeduction() {
                   <FaCalendarAlt className="me-2" />
                   Added On
                 </th>
+                <th>Action</th>
               </tr>
             </thead>
 
@@ -128,6 +131,7 @@ export default function AllowanceAndDeduction() {
                           year: "numeric",
                         })}
                       </td>
+                      <td><FaEdit/> <FaTrash className="ms-4"/></td>
                     </tr>
                   ),
                 )

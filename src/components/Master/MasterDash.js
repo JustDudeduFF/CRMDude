@@ -12,7 +12,8 @@ import {
   FaMapMarkedAlt,
   FaLayerGroup,
   FaCogs,
-  FaArrowLeft
+  FaArrowLeft,
+  FaPlusCircle
 } from "react-icons/fa";
 
 import BroadBandPlans from "./BroadBandPlans";
@@ -26,6 +27,7 @@ import TicketConcerns from "./TicketConcerns";
 import DebitCreditNotesConcern from "./DebitCreditNotesConcern";
 import RemarksFollow from "./RemarksFollow";
 import PlanProvider from "./PlanProvider";
+import AllowanceandDeduction from "./AllowanceandDeduction";
 
 export default function MasterDash() {
   const navigate = useNavigate();
@@ -47,6 +49,7 @@ export default function MasterDash() {
       icon: <FaRegMoneyBillAlt />,
     },
     { name: "Remark or Follow UP", path: "remarkfollow", icon: <FaHistory /> },
+    { name:"Allowance or Deduction", path:"allowancededuction", icon:<FaPlusCircle /> }
   ];
 
   const currentPath = location.pathname.split("/").pop();
@@ -103,6 +106,7 @@ export default function MasterDash() {
             <Route path="dbparticular" element={<DebitCreditNotesConcern />} />
             <Route path="remarkfollow" element={<RemarksFollow />} />
             <Route path="planprovider" element={<PlanProvider />} />
+            <Route path="allowancededuction" element={<AllowanceandDeduction />} />
           </Routes>
         </div>
       </main>

@@ -13,6 +13,8 @@ import {
   ChevronRight,
   Download,
 } from "lucide-react";
+import { toast } from "react-toastify";
+import { all } from "axios";
 
 export default function PayrollandAttendence() {
   const [payoutArray, setPayoutArray] = useState([]);
@@ -42,6 +44,7 @@ export default function PayrollandAttendence() {
   const [selectedUserDetails, setSelectedUserDetails] = useState(null);
   const [showAdvanceDetails, setShowAdvanceDetails] = useState(false);
   const [advanceDetails, setAdvanceDetails] = useState([]);
+  const [allowanceDeductionTitles, setAllowanceDeductionTitles] = useState([]);
 
   const daysInMonth = (year, month) => new Date(year, month, 0).getDate();
 
@@ -74,29 +77,45 @@ export default function PayrollandAttendence() {
 
   const handleContextMenu = (e, userId) => {
     e.preventDefault();
+    fetchAllowanceDeductionTitles();
     setSelectedUserId(userId);
     setAllowanceInput({ amount: "", description: "", type: "" });
     setShowAllowanceModal(true);
   };
 
   const handleAllowanceSubmit = () => {
-    if (selectedUserId) {
-      const time = new Date().getTime();
-      const allowanceRef = ref(
-        db,
-        `Payroll/Attendence/${selectedUserId}/${selectedYear}/${selectedMonth}/allowance/${time}`,
-      );
-      if (allowanceInput.amount !== "" && allowanceInput.description !== "") {
-        set(allowanceRef, {
-          amount: Number(allowanceInput.amount) || 0,
-          description: allowanceInput.description,
-          type: allowanceInput.type,
-          date: new Date().toLocaleDateString(),
-        });
+    if (!selectedUserId) {
+      toast.error("User not selected. Please try again.");
+      return;
+    }
+
+    if(!allowanceInput.type || !allowanceInput.amount){
+      toast.error("Please fill in all the fields before submitting.");
+      return;
+    }
+
+    try{
+      const response = API.post("/payroll/allowance-deduction", {
+        employeeId: selectedUserId,
+        month: `${selectedYear}-${String(selectedMonth).padStart(2, "0")}`,
+        allowances: [
+          {"title": allowanceInput.type, "amount": Number(allowanceInput.amount) || 0, "remark": allowanceInput.description }
+        ]
+      });
+      
+      if(response.status === 200){
+        toast.success("Allowance credited successfully!");
+        setShowAllowanceModal(false);
+        setAllowanceInput({ amount: "", description: "", type: "" });
+        setSelectedUserId(null);
+        fetchPayoutData(); // Refresh data to reflect changes
+      } else {
+        toast.error("Failed to credit allowance. Please try again.");
       }
-      setShowAllowanceModal(false);
-      setSelectedUserId(null);
-      setAllowanceInput({ amount: "", description: "", type: "" });
+    }catch(error){
+      toast.error("An error occurred while processing the allowance. Please try again.");
+      console.error("Allowance Submission Error:", error);
+      return;
     }
   };
 
@@ -123,137 +142,40 @@ export default function PayrollandAttendence() {
 
   const handleDeductionBodyClick = (e, userId) => {
     e.preventDefault();
+    fetchAllowanceDeductionTitles();
     setShowDeductionDetailsModal(true);
     setSelectedUserId(userId);
   };
 
   const fetchPayoutData = async () => {
-    const PayoutRef = await API.get(
-      `/payroll/summary?month=${selectedYear}-${String(selectedMonth).padStart(2, "0")}&partnerId=${localStorage.getItem("partnerId")}`,
-    );
-    setPayoutArray(PayoutRef.data.data);
+    try {
+      const PayoutRef = await API.get(
+        `/payroll/summary?month=${selectedYear}-${String(selectedMonth).padStart(2, "0")}&partnerId=${localStorage.getItem("partnerId")}`,
+      );
+      setPayoutArray(PayoutRef.data.data);
+    } catch (error) {
+      console.error("Error fetching payout data:", error);
+    }
+  };
+
+  const fetchAllowanceDeductionTitles = async () => {
+    const partnerId = localStorage.getItem("partnerId");
+    try {
+      const response = await API.get(
+        `/master/allowance-deduction?partnerId=${partnerId}`,
+      );
+      if (response.status === 200) {
+        setAllowanceDeductionTitles(response.data);
+        console.log("Fetched Allowance/Deduction Titles:", response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching allowance/deduction titles:", error);
+      return { allowance: {}, deduction: {} };
+    }
   };
 
   useEffect(() => {
     fetchPayoutData();
-    const PayoutRef = ref(db, "Payroll/Attendence");
-    const userRef = ref(db, "users");
-    const fetchData = async () => {
-      onValue(userRef, (usersSnap) => {
-        const newUsersMap = new Map();
-        usersSnap.forEach((userSnap) => {
-          const userData = userSnap.val();
-          const monthlySalary = Number(userData.salary) || 0;
-          const daysInCurrentMonth = new Date(
-            selectedYear,
-            selectedMonth,
-            0,
-          ).getDate();
-          const dailySalary = monthlySalary / daysInCurrentMonth;
-
-          newUsersMap.set(userSnap.key, {
-            fullname: userData.FULLNAME,
-            contact: userData.MOBILE,
-            basicSalary: monthlySalary,
-            dailySalary: dailySalary,
-            userId: userSnap.key,
-            presentDays: 0,
-            amount: 0,
-          });
-        });
-
-        onValue(PayoutRef, (attendenceSnap) => {
-          const attendenceArray = [];
-          newUsersMap.forEach((userData) => {
-            attendenceArray.push({ ...userData });
-          });
-
-          attendenceSnap.forEach((childSnap) => {
-            const yearData = childSnap.child(String(selectedYear));
-            const monthData = yearData.child(
-              String(selectedMonth).padStart(2, "0"),
-            );
-
-            let allowanceData = [];
-            let attendenceAllData = [];
-            let presentDays = 0;
-            let allowanceAmount = 0;
-            let totals = { petrol: 0, rapido: 0, conveyance: 0, other: 0 };
-            let deductionAmount = 0;
-            let dTotals = { advance: 0, wifi: 0, mobileRecharge: 0, other: 0 };
-            let deductionData = [];
-
-            monthData.forEach((dateSnap) => {
-              const attendanceData = dateSnap.val();
-              attendenceAllData.push(monthData.val());
-              if (
-                attendanceData.status === "Half Day" ||
-                attendanceData.status === "Present"
-              )
-                presentDays++;
-            });
-
-            const allowanceRef = ref(
-              db,
-              `Payroll/Attendence/${childSnap.key}/${selectedYear}/${selectedMonth}/allowance`,
-            );
-            onValue(allowanceRef, (snap) => {
-              snap.forEach((s) => {
-                const val = s.val();
-                allowanceAmount += val.amount;
-                allowanceData.push(val);
-                if (val.type === "Petrol") totals.petrol += Number(val.amount);
-                else if (val.type === "Rapido")
-                  totals.rapido += Number(val.amount);
-                else if (val.type === "Conveyance")
-                  totals.conveyance += Number(val.amount);
-                else totals.other += Number(val.amount);
-              });
-            });
-
-            const deductionRef = ref(
-              db,
-              `Payroll/Attendence/${childSnap.key}/${selectedYear}/${selectedMonth}/deduction`,
-            );
-            onValue(deductionRef, (snap) => {
-              snap.forEach((s) => {
-                const val = s.val();
-                deductionAmount += val.amount;
-                deductionData.push(val);
-                if (val.type === "Advance")
-                  dTotals.advance += Number(val.amount);
-                else if (val.type === "Wifi")
-                  dTotals.wifi += Number(val.amount);
-                else if (val.type === "Mobile Recharge")
-                  dTotals.mobileRecharge += Number(val.amount);
-                else dTotals.other += Number(val.amount);
-              });
-            });
-
-            const userIndex = attendenceArray.findIndex(
-              (item) => item.userId === childSnap.key,
-            );
-            if (userIndex !== -1) {
-              const userData = attendenceArray[userIndex];
-              attendenceArray[userIndex] = {
-                ...userData,
-                presentDays,
-                amount: presentDays * userData.dailySalary,
-                allowanceAmount,
-                allowanceTotals: totals,
-                deductionAmount,
-                deductionTotals: dTotals,
-                deductionAllData: deductionData,
-                allowanceAllData: allowanceData,
-                attendenceAllData,
-              };
-            }
-          });
-          setPayoutArray(attendenceArray);
-        });
-      });
-    };
-    // fetchData();
   }, [selectedYear, selectedMonth]);
 
   return (
@@ -492,7 +414,14 @@ export default function PayrollandAttendence() {
         className="rounded-4"
       >
         <Modal.Header closeButton className="border-0 pb-0">
-          <Modal.Title className="fw-bold">Adjust Allowance <PlusCircle className="ms-3 mb-1 text-primary" title="Add Allowance" style={{cursor:"pointer"}}/></Modal.Title>
+          <Modal.Title className="fw-bold">
+            Adjust Allowance{" "}
+            <PlusCircle
+              className="ms-3 mb-1 text-primary"
+              title="Add Allowance"
+              style={{ cursor: "pointer" }}
+            />
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body className="pt-3">
           <div className="mb-3">
@@ -505,10 +434,13 @@ export default function PayrollandAttendence() {
               className="form-select bg-light border-0 py-2"
             >
               <option value="">Select Type</option>
-              <option value="Petrol">Petrol</option>
-              <option value="Rapido">Rapido</option>
-              <option value="Conveyance">Conveyance</option>
-              <option value="Other">Other</option>
+              {allowanceDeductionTitles
+                .filter((item) => item.type === "allowance")
+                .map((item, index) => (
+                  <option key={index} value={item.title}>
+                    {item.title}
+                  </option>
+                ))}
             </select>
           </div>
           <div className="mb-3">
@@ -564,7 +496,14 @@ export default function PayrollandAttendence() {
         centered
       >
         <Modal.Header closeButton className="border-0 pb-0">
-          <Modal.Title className="fw-bold">Process Deduction <PlusCircle className="ms-3 mb-1 text-primary" title="Add Allowance" style={{cursor:"pointer"}}/></Modal.Title>
+          <Modal.Title className="fw-bold">
+            Process Deduction{" "}
+            <PlusCircle
+              className="ms-3 mb-1 text-primary"
+              title="Add Allowance"
+              style={{ cursor: "pointer" }}
+            />
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body className="pt-3">
           <div className="mb-3">
@@ -577,10 +516,13 @@ export default function PayrollandAttendence() {
               className="form-select bg-light border-0 py-2"
             >
               <option value="">Select Reason</option>
-              <option value="Advance">Salary Advance</option>
-              <option value="Wifi">Wifi/Internet</option>
-              <option value="Mobile Recharge">Mobile Recharge</option>
-              <option value="Other">Other</option>
+              {allowanceDeductionTitles
+                .filter((item) => item.type === "deduction")
+                .map((item, index) => (
+                  <option key={index} value={item.title}>
+                    {item.title}
+                  </option>
+                ))}
             </select>
           </div>
           <div className="mb-3">
@@ -635,7 +577,18 @@ export default function PayrollandAttendence() {
         size="lg"
         centered
       >
-        <Modal.Header style={{background:"linear-gradient(135deg, #667eea 0%, #764ba2 100%)", fontSize:"1.25rem", fontWeight:"800", color:"white", lineHeight:"1.5", whiteSpace:"nowrap"}} closeButton className=" border-0">
+        <Modal.Header
+          style={{
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            fontSize: "1.25rem",
+            fontWeight: "800",
+            color: "white",
+            lineHeight: "1.5",
+            whiteSpace: "nowrap",
+          }}
+          closeButton
+          className=" border-0"
+        >
           <Modal.Title className="fw-bold">
             Payment Summary - {selectedUserDetails?.name}
           </Modal.Title>
@@ -742,7 +695,13 @@ export default function PayrollandAttendence() {
               </Card>
             </div>
             <div className="col-12">
-              <div style={{background:"linear-gradient(135deg, #667eea 0%, #764ba2 100%)"}} className="text-white p-3 rounded-4 d-flex justify-content-between align-items-center">
+              <div
+                style={{
+                  background:
+                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                }}
+                className="text-white p-3 rounded-4 d-flex justify-content-between align-items-center"
+              >
                 <div>
                   <div className="small text-white-50 uppercase">
                     Total Net Payable

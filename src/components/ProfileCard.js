@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Modal } from "react-bootstrap";
-import { User, Calendar, Lock, LogOut, ChevronRight } from "lucide-react";
+import { User, Calendar, Lock, LogOut, ChevronRight, Users } from "lucide-react";
 import "./Profile_Card.css";
+import { usePermissions } from "./PermissionProvider";
 
 export default function Profile_Card({ onClose }) {
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
   const cardRef = useRef(null); // Reference to the card container
   const [passmodal, setShowPassModal] = useState(false);
 
@@ -50,6 +52,14 @@ export default function Profile_Card({ onClose }) {
         setShowPassModal(true);
       },
     },
+    ...(hasPermission("VIEW_PAYOUT") ? [{
+      text: "Payroll",
+      icon: <Users size={18} />,
+      onClick: () => {
+        navigate("/dashboard/payrollandattendence");
+        onClose();
+      },
+    }] : []),
     {
       text: "Logout",
       icon: <LogOut size={18} />,

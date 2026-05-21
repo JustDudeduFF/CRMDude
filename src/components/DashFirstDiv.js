@@ -654,16 +654,16 @@ export default function DashFirstDiv() {
             <DashExpandView
               show={showExpanView}
               datatype={expandDataType}
-              modalShow={() => setShowExpandView(false)}
+              modalShow={() => {setShowExpandView(false); setExpandDataType("");}}
             />
             <ExpandTickets
               viewShow={showTicketExpand}
               ticketType={ticketsType}
-              closeView={() => setShowTicketExpand(false)}
+              closeView={() => {setShowTicketExpand(false); setTicketType("");}}
             />
             <ExpandRevenue
               show={showrevenueexpand}
-              modalShow={() => setRevenueExpand(false)}
+              modalShow={() => {setRevenueExpand(false)}}
             />
 
             <Modal

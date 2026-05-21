@@ -35,7 +35,7 @@ export default function EmpDetails() {
   const [leadpermission, setLeadPermission] = useState({ ADD_LEAD: false, CANCEL_LEAD: false, EDIT_LEAD: false, CONVERT_TO_LEAD: false });
   const [paymentpermission, setPaymentPermission] = useState({ COLLECT_PAYMENT: false, PAYMENT_AUTHORIZATION: false, EDIT_PAYMENT: false, CREATE_DEBIT: false, CREATE_CREDIT: false, DOWNLOAD_INVOICE: false, CANCEL_RECEIPT: false });
   const [networkpermission, setNetworkPermission] = useState({ VIEW_RACK: false, UPDATE_RACK: false, ADD_JC: false, ADD_RACK_DEVICE: false });
-  const [attendencepermission, setAttendencePermission] = useState({ MARK_ATTENDENCE: false, MARK_ANYWHERE: false, VIEW_ATTENDENCE: false });
+  const [attendencepermission, setAttendencePermission] = useState({ MARK_ATTENDENCE: false, MARK_ANYWHERE: false, VIEW_ATTENDENCE: false, VIEW_PAYOUT: false });
   const [payoutpermission, setPayoutPermission] = useState({ VIEW_PAYOUT: false });
   const [messagepermission, setMessagePermission] = useState({ MSG_DUE: false, MSG_EXPIRING: false, MSG_EXPIRED: false, MSG_BULK: false, MSG_PROMOTIONAL: false });
   const [inventorypermission, setInventoryPermission] = useState({ VIEW_INVENTORY: false, CHANGE_DEVICE_STATUS: false, ASSIGN_DEVICE: false, ADD_DEVICE: false });

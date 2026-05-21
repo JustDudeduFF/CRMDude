@@ -53,7 +53,7 @@ export default function Company() {
       if (response.status !== 200)
         return toast.error("Failed to load Companies");
 
-      const data = await response.json();
+      const data = response.data
       setArraycompany(data);
     } catch (e) {
       console.log(e);

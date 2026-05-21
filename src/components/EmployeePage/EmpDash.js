@@ -20,7 +20,7 @@ export default function EmpDash() {
   return (
     <div className="container-fluid p-0">
       {/* Welcome Header */}
-      <div className="d-flex align-items-center mb-4">
+      {/* <div className="d-flex align-items-center mb-4">
         <div className="p-2 bg-white shadow-sm rounded-3 me-3">
           <LayoutDashboard className="text-primary" size={24} />
         </div>
@@ -28,10 +28,10 @@ export default function EmpDash() {
           <h4 className="fw-bold mb-0">Employee Overview</h4>
           <p className="text-muted small mb-0">Select an employee from the sidebar to view details</p>
         </div>
-      </div>
+      </div> */}
 
       {/* Summary Mini-Cards */}
-      <div className="row g-3 mb-4">
+      {/* <div className="row g-3 mb-4">
         {summaryStats.map((stat, idx) => (
           <div className="col-md-4" key={idx}>
             <div className="card border-0 shadow-sm rounded-4 p-3">
@@ -50,7 +50,7 @@ export default function EmpDash() {
             </div>
           </div>
         ))}
-      </div>
+      </div> */}
 
       {/* Animation Section */}
       <div className="card border-0 shadow-sm rounded-4 p-5 bg-white d-flex justify-content-center align-items-center">

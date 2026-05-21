@@ -1,217 +1,380 @@
-import { useEffect, useState, useCallback } from 'react';
-import * as XLSX from 'xlsx';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState, useCallback } from "react";
+import * as XLSX from "xlsx";
+import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
-import { API } from '../FirebaseConfig';
-import { Download, X, ChevronLeft, ChevronRight, Filter, User, MapPin, CreditCard } from 'lucide-react';
+import { API } from "../FirebaseConfig";
+import {
+  Download,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  User,
+  MapPin,
+  CreditCard,
+  MessageCircle,
+  Send,
+  Loader2,
+} from "lucide-react";
+import { MessagePreviewModal } from "./MessagePreviewModal";
 
 const DashExpandView = ({ show, datatype, modalShow }) => {
-    const navigate = useNavigate();
-    const partnerId = localStorage.getItem('partnerId');
-    const [heading, setHeading] = useState('');
-    const [arrayData, setArrayData] = useState([]);
-    const [loader, setLoader] = useState(false);
-    const [companyArray, setCompanyArray] = useState([]);
-    const [selectCompany, setSelectCompany] = useState('All');
-    const [filteredArray, setFilteredArray] = useState([]);
+  const navigate = useNavigate();
+  const partnerId = localStorage.getItem("partnerId");
+  const [heading, setHeading] = useState("");
+  const [arrayData, setArrayData] = useState([]);
+  const [loader, setLoader] = useState(false);
+  const [companyArray, setCompanyArray] = useState([]);
+  const [selectCompany, setSelectCompany] = useState("All");
+  const [filteredArray, setFilteredArray] = useState([]);
+  const [messagePreviewOpen, setMessagePreviewOpen] = useState(false);
+  const [deliveryData, setDeliveryData] = useState({
+    delivered: 12,
+    pending: 6,
+    isSending: false,
+  });
 
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isSending, setIsSending] = useState(false); // Add this line
+  const itemsPerPage = 10;
 
-    const downloadExcel = () => {
-        const workbook = XLSX.utils.book_new();
-        const worksheet = XLSX.utils.json_to_sheet(arrayData);
-        XLSX.utils.book_append_sheet(workbook, worksheet, heading);
-        XLSX.writeFile(workbook, `${heading} Data.xlsx`);
+  const downloadExcel = () => {
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(arrayData);
+    XLSX.utils.book_append_sheet(workbook, worksheet, heading);
+    XLSX.writeFile(workbook, `${heading} Data.xlsx`);
+  };
+
+  const fetchData = async () => {
+    setLoader(true);
+    const dataFor = datatype.split(" ")[0];
+    try {
+      let response;
+      if (dataFor === "Expiring") {
+        const date = datatype.split(" ")[1];
+        response = await API.get(
+          `/dashboard-data/chart?date=${date}&partnerId=${partnerId}`,
+        );
+      } else if (dataFor === "Due") {
+        const type = datatype.split(" ")[1];
+        response = await API.get(
+          `/dashboard-data/due?dataFor=${type}&partnerId=${partnerId}`,
+        );
+      }
+
+      if (response.status !== 200) return toast.error("Failed to Load Data");
+
+      const data = response.data.data;
+      const companys = [...new Set(data.map((d) => d.company))];
+
+      setCompanyArray(companys);
+      setArrayData(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoader(false);
     }
+  };
 
-    const fetchData = async () => {
-        setLoader(true);
-        const dataFor = datatype.split(' ')[0];
-        try {
-            let response;
-            if (dataFor === 'Expiring') {
-                const date = datatype.split(' ')[1];
-                response = await API.get(`/dashboard-data/chart?date=${date}&partnerId=${partnerId}`);
-            } else if (dataFor === 'Due') {
-                const type = datatype.split(' ')[1];
-                response = await API.get(`/dashboard-data/due?dataFor=${type}&partnerId=${partnerId}`);
-            }
+  const handleSendMessage = async () => {
+    setIsSending(true);
+    console.log("Simulating message send...");  
+    // setMessagePreviewOpen(true);
 
-            if (response.status !== 200) return toast.error('Failed to Load Data');
-
-            const data = response.data.data;
-            const companys = [...new Set(data.map((d) => d.company))];
-
-            setCompanyArray(companys);
-            setArrayData(data);
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setLoader(false);
-        }
+    try {
+      // Simulate or place your actual API call / response logic here
+      // await api.sendWhatsAppMessage();
+    } catch (error) {
+      console.error("Failed to send message:", error);
     }
+  };
 
-    const fetchExpandData = useCallback(() => {
-        setHeading(datatype);
-        fetchData();
-        setCurrentPage(1);
-    }, [datatype]);
+  const fetchExpandData = useCallback(() => {
+    setHeading(datatype);
+    fetchData();
+    setCurrentPage(1);
+  }, [datatype]);
 
-    useEffect(() => {
-        if (show) fetchExpandData();
-    }, [show, fetchExpandData]);
+  useEffect(() => {
+    if (show) fetchExpandData();
+  }, [show, fetchExpandData]);
 
-    useEffect(() => {
-        let filterArray = arrayData;
-        if (selectCompany !== 'All') {
-            filterArray = filterArray.filter((data) => data.company === selectCompany);
-        }
-        setFilteredArray(filterArray);
-        setCurrentPage(1);
-    }, [selectCompany, arrayData]);
+  useEffect(() => {
+    let filterArray = arrayData;
+    if (selectCompany !== "All") {
+      filterArray = filterArray.filter(
+        (data) => data.company === selectCompany,
+      );
+    }
+    setFilteredArray(filterArray);
+    setCurrentPage(1);
+  }, [selectCompany, arrayData]);
 
-    if (!show) return null;
+  if (!show) return null;
 
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = filteredArray.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(filteredArray.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredArray.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredArray.length / itemsPerPage);
 
-    return (
-        <div className={`expanded-view-overlay ${show ? 'active' : ''}`}>
-            <ToastContainer />
-            <div className="expanded-view-container">
-                {/* Header Section */}
-                <header className="ev-header">
-                    <div className="ev-title-section">
-                        <h2>{heading}</h2>
-                        <span className="badge-count">{filteredArray.length} Records</span>
-                    </div>
+  return (
+    <div className={`expanded-view-overlay ${show ? "active" : ""}`}>
+      <ToastContainer />
+      <div className="expanded-view-container">
+        {/* Header Section */}
+        <header className="ev-header">
+          <div className="ev-title-section">
+            <h2>{heading}</h2>
+            <span className="badge-count">{filteredArray.length} Records</span>
+          </div>
 
-                    <div className="ev-controls">
-                        <div className="filter-box">
-                            <Filter size={16} />
-                            <select onChange={(e) => setSelectCompany(e.target.value)} value={selectCompany}>
-                                <option value='All'>All Companies</option>
-                                {companyArray.map((data, index) => (
-                                    <option key={index} value={data}>{data}</option>
-                                ))}
-                            </select>
-                        </div>
-                        
-                        <button className="ev-icon-btn excel" onClick={downloadExcel} title="Download Excel">
-                            <Download size={20} />
-                        </button>
-
-                        <button className="ev-icon-btn close" onClick={() => { setSelectCompany('All'); modalShow() }}>
-                            <X size={20} />
-                        </button>
-                    </div>
-                </header>
-
-                <main className="ev-content">
-                    {loader ? (
-                        <div className="ev-loader">
-                            <div className="spinner"></div>
-                            <p>Analyzing Data...</p>
-                        </div>
-                    ) : (
-                        <>
-                            {/* Desktop Table */}
-                            <div className="ev-table-wrapper desktop-only">
-                                <table className="ev-table">
-                                    <thead>
-                                        <tr>
-                                            <th>#</th>
-                                            <th>Customer Details</th>
-                                            <th>Contact</th>
-                                            <th>Address</th>
-                                            <th>Plan</th>
-                                            <th>Amount</th>
-                                            <th>Date</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {currentItems.length > 0 ? (
-                                            currentItems.map((item, index) => (
-                                                <tr key={index}>
-                                                    <td>{indexOfFirstItem + index + 1}</td>
-                                                    <td>
-                                                        <div className="td-user">
-                                                            <strong>{item.fullName}</strong>
-                                                            <span>{item.username}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td>{item.mobile}</td>
-                                                    <td className="td-truncate">{item.installationAddress}</td>
-                                                    <td>{item.planName}</td>
-                                                    <td className="text-bold">₹{heading.split(' ')[0] === 'Expiring' ? item.planAmount : item.dueAmount}</td>
-                                                    <td>{new Date(heading.split(' ')[0] === 'Expiring' ? item.expiryDate : item.activationDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-                                                    <td>
-                                                        <button onClick={() => {
-                                                            localStorage.setItem("susbsUserid", item._id)
-                                                            navigate('/dashboard/subscriber');
-                                                        }} className='ev-btn-action'>
-                                                            {heading.split(' ')[0] === 'Expiring' ? 'Renew' : 'Collect'}
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        ) : (
-                                            <tr><td colSpan={8} className="no-data">No subscribers found for this filter.</td></tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {/* Mobile Cards */}
-                            <div className="ev-mobile-list mobile-only">
-                                {currentItems.map((item, index) => (
-                                    <div className="ev-card" key={index}>
-                                        <div className="ev-card-header">
-                                            <User size={16} />
-                                            <strong>{item.fullName}</strong>
-                                            <span className="ev-card-id">{item.username}</span>
-                                        </div>
-                                        <div className="ev-card-body">
-                                            <p><MapPin size={14} /> {item.installationAddress}</p>
-                                            <div className="ev-card-row">
-                                                <span><CreditCard size={14} /> {item.planName}</span>
-                                                <span className="price-tag">₹{heading.split(' ')[0] === 'Expiring' ? item.planAmount : item.dueAmount}</span>
-                                            </div>
-                                        </div>
-                                        <button onClick={() => {
-                                            localStorage.setItem("susbsUserid", item._id)
-                                            navigate('/dashboard/subscriber');
-                                        }} className="ev-mobile-btn">
-                                            {heading.split(' ')[0] === 'Expiring' ? 'Renew Plan' : 'Collect Payment'}
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Custom Pagination */}
-                            {totalPages > 1 && (
-                                <footer className="ev-pagination">
-                                    <button className="pag-btn" onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1}>
-                                        <ChevronLeft size={18} />
-                                    </button>
-                                    <div className="pag-info">
-                                        Page <strong>{currentPage}</strong> of {totalPages}
-                                    </div>
-                                    <button className="pag-btn" onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages}>
-                                        <ChevronRight size={18} />
-                                    </button>
-                                </footer>
-                            )}
-                        </>
-                    )}
-                </main>
+          <div className="ev-controls">
+            <div className="filter-box">
+              <Filter size={16} />
+              <select
+                onChange={(e) => setSelectCompany(e.target.value)}
+                value={selectCompany}
+              >
+                <option value="All">All Companies</option>
+                {companyArray.map((data, index) => (
+                  <option key={index} value={data}>
+                    {data}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            <style>{`
+            <button
+              className="ev-icon-btn excel"
+              onClick={() => setMessagePreviewOpen(true)}
+              title="Send Whatsapp Message"
+            >
+              <MessageCircle size={20} />
+            </button>
+
+            <button
+              className="ev-icon-btn excel"
+              onClick={downloadExcel}
+              title="Download Excel"
+            >
+              <Download size={20} />
+            </button>
+
+            <button
+              className="ev-icon-btn close"
+              onClick={() => {
+                setSelectCompany("All");
+                modalShow();
+              }}
+            >
+              <X size={20} />
+            </button>
+          </div>
+        </header>
+
+        <main className="ev-content">
+          {loader ? (
+            <div className="ev-loader">
+              <div className="spinner"></div>
+              <p>Analyzing Data...</p>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table */}
+              <div className="ev-table-wrapper desktop-only">
+                <table className="ev-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Customer Details</th>
+                      <th>Contact</th>
+                      <th>Address</th>
+                      <th>Plan</th>
+                      <th>Amount</th>
+                      <th>Date</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentItems.length > 0 ? (
+                      currentItems.map((item, index) => (
+                        <tr key={index}>
+                          <td>{indexOfFirstItem + index + 1}</td>
+                          <td>
+                            <div className="td-user">
+                              <strong>{item.fullName}</strong>
+                              <span>{item.username}</span>
+                            </div>
+                          </td>
+                          <td>{item.mobile}</td>
+                          <td className="td-truncate">
+                            {item.installationAddress}
+                          </td>
+                          <td>{item.planName}</td>
+                          <td className="text-bold">
+                            ₹
+                            {heading.split(" ")[0] === "Expiring"
+                              ? item.planAmount
+                              : item.dueAmount}
+                          </td>
+                          <td>
+                            {new Date(
+                              heading.split(" ")[0] === "Expiring"
+                                ? item.expiryDate
+                                : item.activationDate,
+                            ).toLocaleDateString("en-GB", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </td>
+                          <td>
+                            <div className="d-flex flex-row">
+                              <button
+                                onClick={() => {
+                                  localStorage.setItem("susbsUserid", item._id);
+                                  navigate("/dashboard/subscriber");
+                                }}
+                                className="ev-btn-action"
+                              >
+                                {heading.split(" ")[0] === "Expiring"
+                                  ? "Renew"
+                                  : "Collect"}
+                              </button>
+                              <button
+                                className="ev-icon-btn excel ms-3"
+                                onClick={handleSendMessage}
+                                title={
+                                  isSending
+                                    ? "Sending..."
+                                    : "Send Whatsapp Message"
+                                }
+                                disabled={isSending}
+                                style={{
+                                  opacity: isSending ? 0.6 : 1,
+                                  cursor: isSending ? "not-allowed" : "pointer",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                {isSending ? (
+                                  <Loader2
+                                    size={20}
+                                    style={{
+                                      animation: "spin 1s linear infinite",
+                                      color: "black" // Rotates the icon continuously
+                                    }}
+                                  />
+                                ) : (
+                                  <Send size={20} />
+                                )}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={8} className="no-data">
+                          No subscribers found for this filter.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="ev-mobile-list mobile-only">
+                {currentItems.map((item, index) => (
+                  <div className="ev-card" key={index}>
+                    <div className="ev-card-header">
+                      <User size={16} />
+                      <strong>{item.fullName}</strong>
+                      <span className="ev-card-id">{item.username}</span>
+                    </div>
+                    <div className="ev-card-body">
+                      <p>
+                        <MapPin size={14} /> {item.installationAddress}
+                      </p>
+                      <div className="ev-card-row">
+                        <span>
+                          <CreditCard size={14} /> {item.planName}
+                        </span>
+                        <span className="price-tag">
+                          ₹
+                          {heading.split(" ")[0] === "Expiring"
+                            ? item.planAmount
+                            : item.dueAmount}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        localStorage.setItem("susbsUserid", item._id);
+                        navigate("/dashboard/subscriber");
+                      }}
+                      className="ev-mobile-btn"
+                    >
+                      {heading.split(" ")[0] === "Expiring"
+                        ? "Renew Plan"
+                        : "Collect Payment"}
+                    </button>
+                    <button
+                      className="ev-icon-btn excel"
+                      onClick={() => setMessagePreviewOpen(true)}
+                      title="Send Whatsapp Message"
+                    >
+                      <MessageCircle size={20} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Custom Pagination */}
+              {totalPages > 1 && (
+                <footer className="ev-pagination">
+                  <button
+                    className="pag-btn"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  <div className="pag-info">
+                    Page <strong>{currentPage}</strong> of {totalPages}
+                  </div>
+                  <button
+                    className="pag-btn"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </footer>
+              )}
+            </>
+          )}
+        </main>
+
+        <MessagePreviewModal
+          isOpen={messagePreviewOpen}
+          onClose={() => setMessagePreviewOpen(false)}
+          recipientCount={18}
+          messageTemplate={
+            "Your subscription is expiring soon. Please renew to continue enjoying our services."
+          }
+          deliveryStatus={deliveryData}
+          onConfirmSend={"simulateSend"}
+        />
+      </div>
+
+      <style>{`
                 .expanded-view-overlay {
                     position: fixed;
                     top: 0; left: 0; width: 100%; height: 100%;
@@ -310,8 +473,8 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                     .expanded-view-container { height: 100%; width: 100%; border-radius: 0; }
                 }
             `}</style>
-        </div>
-    );
+    </div>
+  );
 };
 
 export default DashExpandView;

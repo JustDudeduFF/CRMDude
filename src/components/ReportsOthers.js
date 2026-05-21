@@ -22,7 +22,7 @@ export default function Reports_Others({ onCloseSidebar }) {
 
   const handleNavigation = (item) => {
     // List of paths that are currently under development
-    const lockedPaths = ["/dashboard/networkrack", "/dashboard/leadmanagment", "/dashboard/setting"];
+    const lockedPaths = ["/dashboard/networkrack", "/dashboard/leadmanagment"];
 
     if (lockedPaths.includes(item.path)) {
       setPendingFeature(item.label);

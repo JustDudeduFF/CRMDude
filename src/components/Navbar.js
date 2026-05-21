@@ -132,7 +132,7 @@ export default function Navbar() {
   }, [showMobileSearch]);
 
   useEffect(() => {
-    socketRef.current = io("https://api.justdude.in:5000", {
+    socketRef.current = io("https://dudeapi.justdude.in", {
       auth: {
         partnerId,
       },

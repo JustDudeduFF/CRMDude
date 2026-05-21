@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Due_Icon from "./drawables/rupeenew.png";
 import Cust_Ledger from "./Cust_Ledger";
 import {
@@ -101,7 +107,7 @@ export default function Subscriber() {
   }, [username]);
 
   useEffect(() => {
-    socketRef.current = io("https://api.justdude.in:5000", {
+    socketRef.current = io("https://dudeapi.justdude.in", {
       auth: {
         partnerId, // or actual partnerId
       },
@@ -119,7 +125,17 @@ export default function Subscriber() {
     };
   }, [username]);
 
-  const fetchUserData = async () => {
+  const filteredPlans = useMemo(
+    () =>
+      plans.filter(
+        (p) =>
+          changePlanData.provider === "All" ||
+          p.provider === changePlanData.provider,
+      ),
+    [plans, changePlanData.provider],
+  );
+
+  const fetchUserData = useCallback(async () => {
     try {
       const response = await API.get(`/subscriber?id=${username}`);
       if (response.data.result) {
@@ -140,7 +156,7 @@ export default function Subscriber() {
     } catch (e) {
       console.error(e);
     }
-  };
+  }, [username]);
 
   useEffect(() => {
     if (expiryDate) {
@@ -155,23 +171,24 @@ export default function Subscriber() {
     }
   }, [expiryDate, isTerminated]);
 
-  const updateExpirationDate = (newActivationDate, duration, unit) => {
-    const date = new Date(newActivationDate);
+  const updateExpirationDate = useCallback(
+    (newActivationDate, duration, unit) => {
+      const date = new Date(newActivationDate);
 
-    // Extend the date based on the unit from Firebase
-    if (unit === "Months") {
-      date.setMonth(date.getMonth() + Number(duration));
-    } else if (unit === "Years") {
-      date.setFullYear(date.getFullYear() + Number(duration));
-    } else if (unit === "Days") {
-      date.setDate(date.getDate() + Number(duration));
-    }
+      if (unit === "Months") {
+        date.setMonth(date.getMonth() + Number(duration));
+      } else if (unit === "Years") {
+        date.setFullYear(date.getFullYear() + Number(duration));
+      } else if (unit === "Days") {
+        date.setDate(date.getDate() + Number(duration));
+      }
 
-    const expDate = new Date(date.setDate(date.getDate() - 1))
-      .toISOString()
-      .split("T")[0];
-    return expDate;
-  };
+      return new Date(date.setDate(date.getDate() - 1))
+        .toISOString()
+        .split("T")[0];
+    },
+    [],
+  );
 
   const savePlan = async (text) => {
     if (
@@ -249,7 +266,7 @@ export default function Subscriber() {
     }
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const ispResponse = await API.get(
         `/subscriber/isps?partnerId=${partnerId}`,
@@ -263,32 +280,26 @@ export default function Subscriber() {
         return;
       }
 
-      const ispData = ispResponse.data;
-      if (ispData) {
-        setIspArray(ispData);
+      if (ispResponse.data) {
+        setIspArray(ispResponse.data);
       }
 
       const planData = planResponse.data.plans;
 
       if (planData) {
-        const array = [];
-        Object.keys(planData).forEach((key) => {
-          const plans = planData[key];
-          const planKey = key;
-          array.push({ ...plans, planKey });
-        });
+        const array = Object.keys(planData).map((key) => ({
+          ...planData[key],
+          planKey: key,
+        }));
 
-        const provider = [...new Set(array.map((data) => data.provider))];
-        const isp = [...new Set(array.map((data) => data.isp))];
-
-        setProvide(provider);
-        setIsps(isp);
+        setProvide([...new Set(array.map((data) => data.provider))]);
+        setIsps([...new Set(array.map((data) => data.isp))]);
         setPlans(array);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
     }
-  };
+  }, [partnerId]);
 
   const handleRenew = () => {
     if (!hasPermission("RENEW_PLAN")) return toast.error("Permission Denied!");
@@ -1017,12 +1028,7 @@ export default function Subscriber() {
                 >
                   <option>Choose...</option>
                   {/* Note: I'm using plans.filter as a fallback for filterPlan logic */}
-                  {plans
-                    .filter(
-                      (p) =>
-                        changePlanData.provider === "All" ||
-                        p.provider === changePlanData.provider,
-                    )
+                  {filteredPlans
                     .map((data, index) => (
                       <option key={index} value={data.code}>
                         {data.planname} ({data.bandwidth})

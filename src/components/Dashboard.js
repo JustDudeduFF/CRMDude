@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Modal, Button, Form, Row, Col, Badge, Table } from "react-bootstrap";
 import { API } from "../FirebaseConfig";
 import { toast, ToastContainer } from "react-toastify";
-import "./Dashboard.css"; 
+import * as XLSX from "xlsx";
+import "./Dashboard.css";
 
 const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -13,6 +14,8 @@ const Dashboard = () => {
   const [uploadFile, setUploadFile] = useState(false);
   const [datatoUpload, setDataToUpload] = useState(null);
   const [partnerId, setPartnerId] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const [selectedUploadPartner, setSelectedUploadPartner] = useState(null);
 
   const [partnerData, setPartnerData] = useState({
     name: "",
@@ -57,17 +60,57 @@ const Dashboard = () => {
     });
   };
 
+  const downloadBulkTemplate = () => {
+    const sampleRow = {
+      BBUSERNAME: "SUB001",
+      "Subscriber ID": "SUB001",
+      "Full Name": "Rahul Sharma",
+      "Primary Mobile": "9876543210",
+      "Alternate Mobile": "",
+      Email: "rahul@example.com",
+      Address: "House No. 12, Main Road",
+      City: "Delhi",
+      State: "Delhi",
+      "Company Name": "Demo Company",
+      Pincode: "110001",
+      "Created At": "2026-05-11",
+      "Plan Name": "50 Mbps Unlimited",
+      "Plan Amount": 599,
+      "Activation Date": "2026-05-11",
+      "Expiry Date": "2026-06-11",
+      "Due Amount": 0,
+      ISP: "Demo ISP",
+      "Plan Code": "PLAN50",
+      Bandwidth: "50 Mbps",
+      "Security Deposit": 0,
+      "Connection Type": "FTTH",
+      "Installed By": "Admin",
+      "Lead By": "",
+      "Action By": "Admin",
+    };
+
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet([sampleRow]);
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Bulk Subscribers");
+    XLSX.writeFile(workbook, "bulk-subscriber-upload-template.xlsx");
+  };
+
   const handleSaveplan = async () => {
     if (selectedPartner) {
       try {
-        const response = await API.put(`/partner/${selectedPartner}`, { partnerData });
+        const response = await API.put(`/partner/${selectedPartner}`, {
+          partnerData,
+        });
         if (response.status === 200) {
           toast.success(`${partnerData.companyname} updated successfully`);
           setIsModalOpen(false);
           fetchData();
           resetForm();
         }
-      } catch (e) { console.log(e); }
+      } catch (e) {
+        console.log(e);
+      }
       return;
     }
     try {
@@ -78,27 +121,51 @@ const Dashboard = () => {
         fetchData();
         resetForm();
       }
-    } catch (e) { console.log(e); }
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   const uploadData = async () => {
-    if (!datatoUpload) {
-      alert("Please select an Excel file");
+    if (!partnerId) {
+      toast.error("Please select a partner");
       return;
     }
+
+    if (!datatoUpload) {
+      toast.error("Please select an Excel file");
+      return;
+    }
+
     try {
+      setIsUploading(true);
+
       const formData = new FormData();
       formData.append("file", datatoUpload);
       formData.append("partnerId", partnerId);
+
       const response = await API.post(`/subscriber/bulkuserupload`, formData, {
-        headers: { "Content-Type": "multipart/form-data" }
+        headers: { "Content-Type": "multipart/form-data" },
       });
-      alert(`Upload completed: ${response.data.inserted} users added`);
-    } catch (error) {
-      console.error("Upload failed:", error.response?.data || error.message);
-      alert("Upload failed.");
-    } finally {
+
+      toast.success(`Upload completed: ${response.data.inserted} users added`);
       setUploadFile(false);
+      setDataToUpload(null);
+      setPartnerId("");
+      setSelectedUploadPartner(null);
+    } catch (error) {
+      const failedRows = error.response?.data?.failedRows || [];
+      const message = error.response?.data?.message || "Upload failed";
+
+      toast.error(message);
+
+      if (failedRows.length) {
+        console.table(failedRows);
+      }
+
+      console.error("Upload failed:", error.response?.data || error.message);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -106,20 +173,34 @@ const Dashboard = () => {
     try {
       const response = await API.get(`/partner`);
       setTableData(response.data);
-    } catch (e) { console.log(e); }
+    } catch (e) {
+      console.log(e);
+    }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const filteredData = tableData.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch =
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.companyname.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterStatus === "all" || item.status.toLowerCase() === filterStatus.toLowerCase();
+    const matchesFilter =
+      filterStatus === "all" ||
+      item.status.toLowerCase() === filterStatus.toLowerCase();
     return matchesSearch && matchesFilter;
   });
 
-  const getInitials = (name) => name ? name.split(" ").map((n) => n[0]).join("").toUpperCase() : "??";
+  const getInitials = (name) =>
+    name
+      ? name
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+      : "??";
 
   const handleEdit = (id) => {
     setSelectedPartner(id);
@@ -136,23 +217,42 @@ const Dashboard = () => {
         toast.success("Partner Deleted");
         fetchData();
       }
-    } catch (e) { console.log(e); }
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   return (
     <div className="dashboard-wrapper bg-light min-vh-100 pb-5">
       <ToastContainer />
-      
+
       {/* Header Section */}
       <div className="bg-white border-bottom py-4 mb-4">
         <div className="container-fluid px-4">
           <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <div>
               <h4 className="fw-bold mb-1">Partner Management</h4>
-              <p className="text-muted small mb-0">Monitor and update your business ecosystem</p>
+              <p className="text-muted small mb-0">
+                Monitor and update your business ecosystem
+              </p>
             </div>
-            <Button variant="primary" className="d-flex align-items-center gap-2 shadow-sm" onClick={() => setIsModalOpen(true)}>
+            <Button
+              variant="primary"
+              className="d-flex align-items-center gap-2 shadow-sm"
+              onClick={() => setIsModalOpen(true)}
+            >
               <span className="fs-5">+</span> Add New Partner
+            </Button>
+            <Button
+              variant="outline-primary"
+              className="d-flex align-items-center gap-2 shadow-sm"
+              onClick={() => {
+                setPartnerId("");
+                setSelectedUploadPartner(null);
+                setUploadFile(true);
+              }}
+            >
+              Bulk Upload
             </Button>
           </div>
         </div>
@@ -162,18 +262,37 @@ const Dashboard = () => {
         {/* Stats Section */}
         <Row className="g-3 mb-4">
           {[
-            { title: "Total Partners", count: tableData.length, icon: "👥", color: "blue" },
-            { title: "Active Partners", count: "142", icon: "✅", color: "green" },
-            { title: "Total Revenue", count: "$25,236", icon: "💰", color: "purple" }
+            {
+              title: "Total Partners",
+              count: tableData.length,
+              icon: "👥",
+              color: "blue",
+            },
+            {
+              title: "Active Partners",
+              count: "142",
+              icon: "✅",
+              color: "green",
+            },
+            {
+              title: "Total Revenue",
+              count: "$25,236",
+              icon: "💰",
+              color: "purple",
+            },
           ].map((card, i) => (
             <Col key={i} xs={12} md={4}>
               <div className="stats-card p-3 shadow-sm border-0 h-100 bg-white rounded-3">
                 <div className="d-flex justify-content-between align-items-start">
                   <div className={`icon-box ${card.color}`}>{card.icon}</div>
-                  <Badge bg="soft-success" className="text-success">+12%</Badge>
+                  <Badge bg="soft-success" className="text-success">
+                    +12%
+                  </Badge>
                 </div>
                 <div className="mt-3">
-                  <p className="text-muted small fw-medium mb-1">{card.title}</p>
+                  <p className="text-muted small fw-medium mb-1">
+                    {card.title}
+                  </p>
                   <h3 className="fw-bold mb-0">{card.count}</h3>
                 </div>
               </div>
@@ -187,19 +306,21 @@ const Dashboard = () => {
             <Row className="g-3 align-items-center">
               <Col xs={12} md={6} lg={4}>
                 <div className="input-group">
-                  <span className="input-group-text bg-transparent border-end-0 text-muted">🔍</span>
-                  <input 
-                    type="text" 
-                    className="form-control border-start-0" 
-                    placeholder="Search name, company, email..." 
+                  <span className="input-group-text bg-transparent border-end-0 text-muted">
+                    🔍
+                  </span>
+                  <input
+                    type="text"
+                    className="form-control border-start-0"
+                    placeholder="Search name, company, email..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
               </Col>
               <Col xs={12} md={4} lg={2} className="ms-auto text-end">
-                <Form.Select 
-                  value={filterStatus} 
+                <Form.Select
+                  value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
                   className="form-select"
                 >
@@ -227,23 +348,52 @@ const Dashboard = () => {
                   <tr key={index}>
                     <td className="ps-4">
                       <div className="d-flex align-items-center gap-3">
-                        <div className="avatar-circle">{getInitials(row.name)}</div>
+                        <div className="avatar-circle">
+                          {getInitials(row.name)}
+                        </div>
                         <div className="fw-semibold text-dark">{row.name}</div>
                       </div>
                     </td>
                     <td>{row.companyname}</td>
                     <td className="text-muted small">{row.email}</td>
                     <td>
-                      <Badge className={`status-pill ${row.status.toLowerCase()}`}>
+                      <Badge
+                        className={`status-pill ${row.status.toLowerCase()}`}
+                      >
                         {row.status}
                       </Badge>
                     </td>
                     <td className="text-end pe-4">
                       <div className="d-flex justify-content-end gap-2">
-                        <button className="btn-icon view" onClick={() => console.log(row._id)}>👁️</button>
-                        <button className="btn-icon edit" onClick={() => handleEdit(row._id)}>✏️</button>
-                        <button className="btn-icon delete" onClick={() => handleDelete(row._id)}>🗑️</button>
-                        <button className="btn-icon more" onClick={() => setUploadFile(true)}>📊</button>
+                        <button
+                          className="btn-icon view"
+                          onClick={() => console.log(row._id)}
+                        >
+                          👁️
+                        </button>
+                        <button
+                          className="btn-icon edit"
+                          onClick={() => handleEdit(row._id)}
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          className="btn-icon delete"
+                          onClick={() => handleDelete(row._id)}
+                        >
+                          🗑️
+                        </button>
+                        <button
+                          className="btn-icon more"
+                          onClick={() => {
+                            setPartnerId(row._id);
+                            setSelectedUploadPartner(row);
+                            setUploadFile(true);
+                          }}
+                          title="Bulk upload subscribers"
+                        >
+                          📊
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -255,96 +405,308 @@ const Dashboard = () => {
       </div>
 
       {/* Add/Edit Modal */}
-      <Modal show={isModalOpen} onHide={() => { setIsModalOpen(false); resetForm(); }} size="lg" centered>
+      <Modal
+        show={isModalOpen}
+        onHide={() => {
+          setIsModalOpen(false);
+          resetForm();
+        }}
+        size="lg"
+        centered
+      >
         <Modal.Header closeButton className="border-0">
-          <Modal.Title className="fw-bold">{selectedPartner ? "Edit Partner" : "Add New Partner"}</Modal.Title>
+          <Modal.Title className="fw-bold">
+            {selectedPartner ? "Edit Partner" : "Add New Partner"}
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body className="px-4">
           <Form>
             <Row className="g-3">
               <Col md={6}>
                 <Form.Label className="small fw-bold">Partner Name</Form.Label>
-                <Form.Control type="text" value={partnerData.name} onChange={(e) => setPartnerData({...partnerData, name: e.target.value})} />
+                <Form.Control
+                  type="text"
+                  value={partnerData.name}
+                  onChange={(e) =>
+                    setPartnerData({ ...partnerData, name: e.target.value })
+                  }
+                />
               </Col>
               <Col md={6}>
                 <Form.Label className="small fw-bold">Company Name</Form.Label>
-                <Form.Control type="text" value={partnerData.companyname} onChange={(e) => setPartnerData({...partnerData, companyname: e.target.value})} />
+                <Form.Control
+                  type="text"
+                  value={partnerData.companyname}
+                  onChange={(e) =>
+                    setPartnerData({
+                      ...partnerData,
+                      companyname: e.target.value,
+                    })
+                  }
+                />
               </Col>
               <Col md={6}>
                 <Form.Label className="small fw-bold">Mobile</Form.Label>
-                <Form.Control type="text" value={partnerData.phone} onChange={(e) => setPartnerData({...partnerData, phone: e.target.value})} />
+                <Form.Control
+                  type="text"
+                  value={partnerData.phone}
+                  onChange={(e) =>
+                    setPartnerData({ ...partnerData, phone: e.target.value })
+                  }
+                />
               </Col>
               <Col md={6}>
                 <Form.Label className="small fw-bold">Email</Form.Label>
-                <Form.Control type="email" value={partnerData.email} onChange={(e) => setPartnerData({...partnerData, email: e.target.value})} />
+                <Form.Control
+                  type="email"
+                  value={partnerData.email}
+                  onChange={(e) =>
+                    setPartnerData({ ...partnerData, email: e.target.value })
+                  }
+                />
               </Col>
               <Col md={12}>
                 <Form.Label className="small fw-bold">Address</Form.Label>
-                <Form.Control type="text" value={partnerData.address} onChange={(e) => setPartnerData({...partnerData, address: e.target.value})} />
+                <Form.Control
+                  type="text"
+                  value={partnerData.address}
+                  onChange={(e) =>
+                    setPartnerData({ ...partnerData, address: e.target.value })
+                  }
+                />
               </Col>
               <Col md={6}>
                 <Form.Label className="small fw-bold">State</Form.Label>
-                <Form.Control type="text" value={partnerData.state} onChange={(e) => setPartnerData({...partnerData, state: e.target.value})} />
+                <Form.Control
+                  type="text"
+                  value={partnerData.state}
+                  onChange={(e) =>
+                    setPartnerData({ ...partnerData, state: e.target.value })
+                  }
+                />
               </Col>
               <Col md={6}>
                 <Form.Label className="small fw-bold">Pincode</Form.Label>
-                <Form.Control type="text" value={partnerData.pincode} onChange={(e) => setPartnerData({...partnerData, pincode: e.target.value})} />
+                <Form.Control
+                  type="text"
+                  value={partnerData.pincode}
+                  onChange={(e) =>
+                    setPartnerData({ ...partnerData, pincode: e.target.value })
+                  }
+                />
               </Col>
             </Row>
 
             <hr className="my-4" />
             <h6 className="fw-bold mb-3">Service Settings</h6>
-            
+
             <div className="service-grid">
-              <Form.Check type="switch" label="WhatsApp Service" checked={partnerData.isWhatsapp} onChange={(e) => setPartnerData({...partnerData, isWhatsapp: e.target.checked})} />
+              <Form.Check
+                type="switch"
+                label="WhatsApp Service"
+                checked={partnerData.isWhatsapp}
+                onChange={(e) =>
+                  setPartnerData({
+                    ...partnerData,
+                    isWhatsapp: e.target.checked,
+                  })
+                }
+              />
               {partnerData.isWhatsapp && (
-                <Form.Control className="mt-2" placeholder="API Key" value={partnerData.whatsappApi} onChange={(e) => setPartnerData({...partnerData, whatsappApi: e.target.value})} />
+                <Form.Control
+                  className="mt-2"
+                  placeholder="API Key"
+                  value={partnerData.whatsappApi}
+                  onChange={(e) =>
+                    setPartnerData({
+                      ...partnerData,
+                      whatsappApi: e.target.value,
+                    })
+                  }
+                />
               )}
-              
-              <Form.Check type="switch" className="mt-3" label="Email Service" checked={partnerData.isEmail} onChange={(e) => setPartnerData({...partnerData, isEmail: e.target.checked})} />
+
+              <Form.Check
+                type="switch"
+                className="mt-3"
+                label="Email Service"
+                checked={partnerData.isEmail}
+                onChange={(e) =>
+                  setPartnerData({ ...partnerData, isEmail: e.target.checked })
+                }
+              />
               {partnerData.isEmail && (
                 <Row className="g-2 mt-1">
-                  <Col><Form.Control placeholder="Host" value={partnerData.emailhost} onChange={(e) => setPartnerData({...partnerData, emailhost: e.target.value})} /></Col>
-                  <Col><Form.Control placeholder="Port" value={partnerData.emailport} onChange={(e) => setPartnerData({...partnerData, emailport: e.target.value})} /></Col>
+                  <Col>
+                    <Form.Control
+                      placeholder="Host"
+                      value={partnerData.emailhost}
+                      onChange={(e) =>
+                        setPartnerData({
+                          ...partnerData,
+                          emailhost: e.target.value,
+                        })
+                      }
+                    />
+                  </Col>
+                  <Col>
+                    <Form.Control
+                      placeholder="Port"
+                      value={partnerData.emailport}
+                      onChange={(e) =>
+                        setPartnerData({
+                          ...partnerData,
+                          emailport: e.target.value,
+                        })
+                      }
+                    />
+                  </Col>
                 </Row>
               )}
 
-              <Form.Check type="switch" className="mt-3" label="Online Payments" checked={partnerData.isPayment} onChange={(e) => setPartnerData({...partnerData, isPayment: e.target.checked})} />
+              <Form.Check
+                type="switch"
+                className="mt-3"
+                label="Online Payments"
+                checked={partnerData.isPayment}
+                onChange={(e) =>
+                  setPartnerData({
+                    ...partnerData,
+                    isPayment: e.target.checked,
+                  })
+                }
+              />
               {partnerData.isPayment && (
                 <Row className="g-2 mt-1">
-                  <Col><Form.Control placeholder="Key ID" value={partnerData.keyid} onChange={(e) => setPartnerData({...partnerData, keyid: e.target.value})} /></Col>
-                  <Col><Form.Control placeholder="Key Secret" value={partnerData.keysecret} onChange={(e) => setPartnerData({...partnerData, keysecret: e.target.value})} /></Col>
+                  <Col>
+                    <Form.Control
+                      placeholder="Key ID"
+                      value={partnerData.keyid}
+                      onChange={(e) =>
+                        setPartnerData({
+                          ...partnerData,
+                          keyid: e.target.value,
+                        })
+                      }
+                    />
+                  </Col>
+                  <Col>
+                    <Form.Control
+                      placeholder="Key Secret"
+                      value={partnerData.keysecret}
+                      onChange={(e) =>
+                        setPartnerData({
+                          ...partnerData,
+                          keysecret: e.target.value,
+                        })
+                      }
+                    />
+                  </Col>
                 </Row>
               )}
             </div>
           </Form>
         </Modal.Body>
         <Modal.Footer className="border-0">
-          <Button variant="light" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-          <Button variant="primary" onClick={handleSaveplan}>{selectedPartner ? "Update Partner" : "Save Partner"}</Button>
+          <Button variant="light" onClick={() => setIsModalOpen(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleSaveplan}>
+            {selectedPartner ? "Update Partner" : "Save Partner"}
+          </Button>
         </Modal.Footer>
       </Modal>
 
       {/* Upload Modal */}
-      <Modal show={uploadFile} onHide={() => setUploadFile(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title className="fw-bold">Bulk Upload</Modal.Title>
+      <Modal
+        show={uploadFile}
+        onHide={() => setUploadFile(false)}
+        centered
+        size="lg"
+      >
+        <Modal.Header closeButton className="bulk-modal-header">
+          <Modal.Title className="fw-bold">Bulk Subscriber Upload</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <Form.Group className="mb-3">
-            <Form.Label className="small fw-bold">Target Partner</Form.Label>
-            <Form.Select onChange={(e) => setPartnerId(e.target.value)}>
-              <option value="">Select Partner</option>
-              {tableData.map((p) => <option key={p._id} value={p._id}>{p.companyname}</option>)}
-            </Form.Select>
-          </Form.Group>
-          <Form.Group>
-            <Form.Label className="small fw-bold">Excel File</Form.Label>
-            <Form.Control type="file" onChange={(e) => setDataToUpload(e.target.files[0])} />
-          </Form.Group>
+
+        <Modal.Body className="bulk-modal-body">
+          <div className="bulk-upload-hero">
+            <div>
+              <h6>Upload subscribers by partner</h6>
+              <p>
+                Use the predefined Excel format so every column matches your
+                backend importer.
+              </p>
+            </div>
+
+            <Button variant="outline-primary" onClick={downloadBulkTemplate}>
+              Download Template
+            </Button>
+          </div>
+
+          {selectedUploadPartner && (
+            <div className="selected-partner-box">
+              <span>Selected Partner</span>
+              <strong>{selectedUploadPartner.companyname}</strong>
+            </div>
+          )}
+
+          <Row className="g-3 mt-2">
+            <Col md={6}>
+              <Form.Group>
+                <Form.Label className="small fw-bold">
+                  Target Partner
+                </Form.Label>
+                <Form.Select
+                  value={partnerId}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    setPartnerId(id);
+                    setSelectedUploadPartner(
+                      tableData.find((p) => p._id === id) || null,
+                    );
+                  }}
+                >
+                  <option value="">Select Partner</option>
+                  {tableData.map((p) => (
+                    <option key={p._id} value={p._id}>
+                      {p.companyname}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+
+            <Col md={6}>
+              <Form.Group>
+                <Form.Label className="small fw-bold">Excel File</Form.Label>
+                <Form.Control
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={(e) => setDataToUpload(e.target.files[0])}
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+
+          <div className="bulk-upload-note">
+            Required columns: <strong>Subscriber ID</strong>,{" "}
+            <strong>Full Name</strong>,<strong> Primary Mobile</strong>,{" "}
+            <strong>Activation Date</strong>, and
+            <strong> Expiry Date</strong>.
+          </div>
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="primary" className="w-100" onClick={uploadData}>Start Upload</Button>
+
+        <Modal.Footer className="border-0">
+          <Button variant="light" onClick={() => setUploadFile(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={uploadData}
+            disabled={isUploading || !partnerId || !datatoUpload}
+          >
+            {isUploading ? "Uploading..." : "Start Upload"}
+          </Button>
         </Modal.Footer>
       </Modal>
     </div>

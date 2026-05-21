@@ -18,15 +18,17 @@ const TemplateManager = () => {
     sendInvoice: false,
   });
 
-  const categories = ["Payment Collection", "Renewal", "Welcome", "Ticket", "Ticket Employee", "Ticket ReAssign"];
+  const categories = ["Payment Collection", "Renewal", "Welcome", "Ticket", "Ticket Employee", "Ticket ReAssign", "Renewal Reminder", "Due Amount Reminder", "Greeting"];
 
   const variablesByCategory = {
     common: ["{customeruserid}", "{customername}", "{customermobile}", "{customeremail}", "{customeraddress}", "{companyname}", "{companyaddress}", "{companyemail}", "{companymobile}"],
-    plan: ["{planname}", "{planamount}", "{dueamount}", "{discount}", "{receiptno}", "{planperiod}", "{paymentmode}"],
+    plan: ["{planname}", "{planamount}", "{dueamount}", "{discount}", "{receiptno}", "{planperiod}", "{paymentmode}", "{receiptdate}"],
     ticket: ["{ticketconcern}", "{ticketassignto}", "{ticketassigntomobile}", "{ticketcreatedate}", "{ticketassigndate_time}", "{happycode}"],
     renewal: ["{planname}", "{planamount}", "{dueamount}", "{activationdate}", "{expirationdate}"],
     emp_ticket: ["{ticketconcern}", "{ticketassignto}", "{ticketassigntomobile}", "{ticketcreatedate}", "{ticketassigndate_time}", "{description}"],
     reassign_ticket: ["{ticketconcern}", "{ticketassignto}", "{ticketassigntomobile}", "{ticketcreatedate}", "{ticketassigndate_time}"],
+    renewal_reminder: ["{planname}", "{planamount}", "{dueamount}", "{activationdate}", "{expirationdate}"],
+    due_amount_reminder: ["{planname}", "{planamount}", "{dueamount}", "{activationdate}", "{expirationdate}"],
   };
 
   // Logic remains identical to original
@@ -60,6 +62,9 @@ const TemplateManager = () => {
     if (formData.category === "Renewal") vars = [...vars, ...variablesByCategory.renewal];
     if (formData.category === "Ticket Employee") vars = [...vars, ...variablesByCategory.emp_ticket];
     if (formData.category === "Ticket ReAssign") vars = [...vars, ...variablesByCategory.reassign_ticket];
+    if (formData.category === "Renewal Reminder") vars = [...vars, ...variablesByCategory.renewal_reminder];
+    if (formData.category === "Due Amount Reminder") vars = [...vars, ...variablesByCategory.due_amount_reminder];
+    if (formData.category === "Greeting") vars = [...vars, ...variablesByCategory.renewal_reminder];
     return vars;
   };
 

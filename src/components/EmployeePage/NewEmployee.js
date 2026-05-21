@@ -39,7 +39,7 @@ export default function NewEmployee() {
   const [leadpermission, setLeadPermission] = useState({ ADD_LEAD: false, CANCEL_LEAD: false, EDIT_LEAD: false, CONVERT_TO_LEAD: false });
   const [paymentpermission, setPaymentPermission] = useState({ COLLECT_PAYMENT: false, PAYMENT_AUTHORIZATION: false, EDIT_PAYMENT: false, CREATE_DEBIT: false, CREATE_CREDIT: false, DOWNLOAD_INVOICE: false, CANCEL_RECEIPT: false });
   const [networkpermission, setNetworkPermission] = useState({ VIEW_RACK: false, UPDATE_RACK: false, ADD_JC: false, ADD_RACK_DEVICE: false });
-  const [attendencepermission, setAttendencePermission] = useState({ MARK_ATTENDENCE: false, MARK_ANYWHERE: false, VIEW_ATTENDENCE: false });
+  const [attendencepermission, setAttendencePermission] = useState({ MARK_ATTENDENCE: false, MARK_ANYWHERE: false, VIEW_ATTENDENCE: false, VIEW_PAYOUT: false });
   const [payoutpermission, setPayoutPermission] = useState({ VIEW_PAYOUT: false });
   const [messagepermission, setMessagePermission] = useState({ MSG_DUE: false, MSG_EXPIRING: false, MSG_EXPIRED: false, MSG_BULK: false, MSG_PROMOTIONAL: false });
   const [inventorypermission, setInventoryPermission] = useState({ VIEW_INVENTORY: false, CHANGE_DEVICE_STATUS: false, ASSIGN_DEVICE: false, ADD_DEVICE: false });
@@ -119,7 +119,7 @@ export default function NewEmployee() {
 
   // --- Sub-Component for Permissions ---
   const PermissionCard = ({ title, state, setter }) => (
-    <div className="card border-0 shadow-sm mb-3 rounded-3">
+    <div className="card border-0 shadow-sm ms-2 me-2 mb-3 rounded-3">
       <div className="card-header bg-white d-flex justify-content-between align-items-center py-3">
         <h6 className="mb-0 fw-bold">{title}</h6>
         <div className="form-check form-switch">
@@ -157,7 +157,7 @@ export default function NewEmployee() {
       <ToastContainer />
       
       {/* --- Sticky Header --- */}
-      <div className="bg-white sticky-top shadow-sm border-bottom p-3">
+      <div className="bg-white sticky-top shadow-sm border-bottom p-3 rounded-3">
         <div className="container">
           <div className="d-flex justify-content-between align-items-center">
             <div className="d-flex align-items-center gap-3">

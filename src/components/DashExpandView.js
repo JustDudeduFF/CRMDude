@@ -76,16 +76,22 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
     }
   };
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = async (subsId) => {
     setIsSending(true);
-    console.log("Simulating message send...");  
     // setMessagePreviewOpen(true);
 
     try {
-      // Simulate or place your actual API call / response logic here
-      // await api.sendWhatsAppMessage();
+      const response = await API.post("/dashboard-data/w_message", {
+        partnerId: partnerId,
+        message_req: datatype.split(" ")[0] === "Due" ? "Due Amount Reminder" : "Renewal Reminder",
+        subscriberId: subsId,
+      });
+      toast.success("Messages sent successfully!");
     } catch (error) {
       console.error("Failed to send message:", error);
+      toast.error("Failed to send messages.");
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -144,13 +150,13 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
               </select>
             </div>
 
-            <button
+            {/* <button
               className="ev-icon-btn excel"
               onClick={() => setMessagePreviewOpen(true)}
               title="Send Whatsapp Message"
             >
               <MessageCircle size={20} />
-            </button>
+            </button> */}
 
             <button
               className="ev-icon-btn excel"
@@ -243,7 +249,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                               </button>
                               <button
                                 className="ev-icon-btn excel ms-3"
-                                onClick={handleSendMessage}
+                                onClick={() => handleSendMessage(item._id)}
                                 title={
                                   isSending
                                     ? "Sending..."

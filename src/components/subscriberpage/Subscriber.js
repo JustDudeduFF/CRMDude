@@ -147,7 +147,7 @@ export default function Subscriber() {
         setPlanName(u.planName || "");
         setPlanAmount(u.planAmount || "");
         setActivationDate(u.activationDate || "");
-        setExpiryDate(u.expiryDate || "");
+        setExpiryDate(u.expiryDate || "01-01-1900");
         setIsp(u.isp || "");
         setDueAmount(u.dueAmount || 0);
         setCuPlanCode({ isPlanCode: !!u.plancode, plancode: u.plancode || "" });
@@ -428,9 +428,15 @@ export default function Subscriber() {
                     </small>
 
                     <h6>
-                      {expiryDate
-                        ? new Date(expiryDate).toLocaleDateString("en-GB")
-                        : "---"}
+                      {(() => {
+                        if (!expiryDate) return "---";
+
+                        const date = new Date(expiryDate);
+
+                        return isNaN(date.getTime())
+                          ? "---"
+                          : date.toLocaleDateString("en-GB");
+                      })()}
                     </h6>
                   </div>
                 </div>
@@ -1028,12 +1034,11 @@ export default function Subscriber() {
                 >
                   <option>Choose...</option>
                   {/* Note: I'm using plans.filter as a fallback for filterPlan logic */}
-                  {filteredPlans
-                    .map((data, index) => (
-                      <option key={index} value={data.code}>
-                        {data.planname} ({data.bandwidth})
-                      </option>
-                    ))}
+                  {filteredPlans.map((data, index) => (
+                    <option key={index} value={data.code}>
+                      {data.planname} ({data.bandwidth})
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -1065,7 +1070,7 @@ export default function Subscriber() {
                   value={changePlanData.expiryDate}
                   className="form-control crm-input bg-light"
                   type="date"
-                  disabled
+                  
                 />
               </div>
 

@@ -33,7 +33,7 @@ const CloseTicketModal = ({ show, ticketno, closeModal }) => {
 
     try {
       const response = await axios.put(
-        `https://api.justdude.in:5000/mobile/updateticket/${ticketno._id}`,
+        `https://dudeapi.justdude.in/mobile/updateticket/${ticketno._id}`,
         {
           status: "Completed",
           closeby: closeby,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Edit2,
   Save,
@@ -16,11 +16,14 @@ import {
 } from "lucide-react";
 import { API } from "../FirebaseConfig";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const CompanyManagement = () => {
   const partnerId = localStorage.getItem("partnerId");
   const [isEditing, setIsEditing] = useState(false);
   const [showQR, setShowQR] = useState(false);
+
+  const isChecking = useRef(false);
 
   const [companyData, setCompanyData] = useState({
     name: "---  ---",
@@ -35,8 +38,13 @@ const CompanyManagement = () => {
     isOnline: false,
     token: "",
     whatsappIntegration: "Checking...",
+    whatsappNumber: "",
+    whatsappName: "",
+    whatsappEngine: "",
+    whatsappVersion: "",
+    whatsappPresence: "",
   });
-
+  const [restartCooldown, setRestartCooldown] = useState(0);
   const [whatsappQRData, setwhatsappQRData] = useState("");
   const [editData, setEditData] = useState({ ...companyData });
 
@@ -44,9 +52,38 @@ const CompanyManagement = () => {
     setIsEditing(true);
     setEditData({ ...companyData });
   };
-  const handleSave = () => {
-    setCompanyData({ ...editData });
-    setIsEditing(false);
+  const handleSave = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await API.put(`/partner/my/${partnerId}`, {
+        partnerData: {
+          companyname: editData.name,
+          phone: editData.mobile,
+          email: editData.email,
+          address: editData.address,
+          website: editData.website,
+          gstin: editData.gstin,
+          description: editData.description,
+        },
+      });
+
+      if (response.status === 200) {
+        setCompanyData({ ...editData });
+        setIsEditing(false);
+        toast.success("Company profile updated successfully!", {
+          autoClose: 2000,
+        });
+      } else {
+        toast.error("Failed to update company profile.", {
+          autoClose: 2000,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating company profile:", error);
+      toast.error("Failed to update company profile.", {
+        autoClose: 2000,
+      });
+    }
   };
   const handleCancel = () => {
     setEditData({ ...companyData });
@@ -74,48 +111,108 @@ const CompanyManagement = () => {
           ? "Service Running"
           : "Not Activated",
         token: data.whatsappApi,
+        whatsappPort: data.whatsappPort || "",
       };
       setCompanyData(updated);
-      if (data.isWhatsapp) fetchWhatsppStatus(data.whatsappApi);
+      if (data.isWhatsapp)
+        fetchWhatsppStatus(data.whatsappApi, data.whatsappPort);
     } catch (e) {
       console.log(e);
     }
   };
 
-  const fetchWhatsppStatus = async (apiKey) => {
-    try {
-      const baseURL = "https://dudeapi.justdude.in:4492";
+  const checkWhatsapp = async () => {
+    if (isChecking.current) return;
 
-      // 1. Check session status
-      const statusRes = await axios.get(`${baseURL}/api/sessions/default`, {
+    isChecking.current = true;
+
+    try {
+      await fetchWhatsppStatus(companyData.token, companyData.whatsappPort);
+    } finally {
+      isChecking.current = false;
+    }
+  };
+
+  const fetchWhatsppStatus = async (apiKey, port) => {
+    try {
+      const baseURL = `https://dudeapi.justdude.in:${port}`;
+
+      const { data } = await axios.get(`${baseURL}/api/sessions/default`, {
         headers: {
           "X-Api-Key": apiKey,
         },
       });
 
-      if (statusRes.data.status !== "WORKING") {
-        // 2. Get QR (image)
-        const qrRes = await axios.get(
-          `${baseURL}/api/default/auth/qr?format=image`,
-          {
-            headers: {
-              "X-Api-Key": apiKey,
-              accept: "image/png",
-            },
-            responseType: "blob", // IMPORTANT
-          },
-        );
+      const connected =
+        data.status === "WORKING" && data.engine?.state === "CONNECTED";
 
-        // Convert blob → URL for image
-        const qrImageUrl = URL.createObjectURL(qrRes.data);
+      setCompanyData((prev) => ({
+        ...prev,
+        whatsappIntegration: connected
+          ? "Connected"
+          : data.status || "Disconnected",
+        whatsappNumber: data.me?.id ? data.me.id.replace("@c.us", "") : "",
+        whatsappName: data.me?.pushName || "",
+        whatsappEngine: data.engine?.engine || "",
+        whatsappVersion: data.engine?.WWebVersion || "",
+        whatsappPresence: data.presence || "",
+      }));
 
-        setwhatsappQRData(qrImageUrl);
-        setShowQR(true);
-      } else {
+      if (connected) {
         setShowQR(false);
+        setwhatsappQRData("");
+        return;
       }
-    } catch (e) {
-      console.log("WAHA Error:", e?.response?.data || e.message);
+
+      // Get QR only when not connected
+      const qr = await axios.get(
+        `${baseURL}/api/default/auth/qr?format=image`,
+        {
+          headers: {
+            "X-Api-Key": apiKey,
+            Accept: "image/png",
+          },
+          responseType: "blob",
+        },
+      );
+
+      const qrUrl = URL.createObjectURL(qr.data);
+
+      setwhatsappQRData(qrUrl);
+      setShowQR(true);
+    } catch (err) {
+      console.log(err);
+
+      setCompanyData((prev) => ({
+        ...prev,
+        whatsappIntegration: "Offline",
+      }));
+
+      setShowQR(false);
+    }
+  };
+
+  const restartSession = async (apiKey, port) => {
+    try {
+      const baseURL = `https://dudeapi.justdude.in:${port}`;
+
+      await axios.post(
+        `${baseURL}/api/sessions/default/restart`,
+        {},
+        {
+          headers: {
+            "X-Api-Key": apiKey,
+          },
+        },
+      );
+
+      // Start 45s cooldown
+      setRestartCooldown(45);
+
+      // After restarting, check the status again
+      checkWhatsapp();
+    } catch (err) {
+      console.log("Error restarting session:", err);
     }
   };
 
@@ -124,11 +221,30 @@ const CompanyManagement = () => {
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (companyData.token) fetchWhatsppStatus(companyData.token);
-    }, 5000);
+    if (restartCooldown <= 0) return;
+
+    const timer = setInterval(() => {
+      setRestartCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [restartCooldown]);
+
+  useEffect(() => {
+    if (!companyData.token || !companyData.whatsappPort) return;
+
+    checkWhatsapp();
+
+    const interval = setInterval(checkWhatsapp, 5000);
+
     return () => clearInterval(interval);
-  }, [companyData.token]);
+  }, [companyData.token, companyData.whatsappPort]);
 
   return (
     <div className="mgmt-wrapper">
@@ -344,7 +460,9 @@ const CompanyManagement = () => {
 
               <div className="status-banner mb-4">
                 <span
-                  className={`status-dot ${showQR ? "offline" : "online"}`}
+                  className={`status-dot ${companyData.whatsappIntegration
+                    .toLowerCase()
+                    .replace(/ /g, "_")}`}
                 ></span>
                 <span className="fw-bold">
                   {companyData.whatsappIntegration}
@@ -352,7 +470,52 @@ const CompanyManagement = () => {
               </div>
 
               <div className="qr-container text-center">
-                {showQR ? (
+                {/* Connected */}
+                {companyData.whatsappIntegration === "Connected" && (
+                  <div className="qr-placeholder">
+                    <div className="success-icon-wrap">
+                      <SquareCheckBig size={64} className="text-success" />
+                    </div>
+
+                    <h5 className="mt-3 fw-bold">WhatsApp Connected</h5>
+
+                    <p className="text-muted small">
+                      Your WhatsApp instance is connected and active.
+                    </p>
+
+                    <div className="mt-3">
+                      <div className="data-display">
+                        <strong>Status:</strong> Connected
+                      </div>
+
+                      <div className="data-display mt-2">
+                        <strong>Number:</strong>{" "}
+                        {companyData.whatsappNumber || "--"}
+                      </div>
+
+                      <div className="data-display mt-2">
+                        <strong>Name:</strong>{" "}
+                        {companyData.whatsappName || "--"}
+                      </div>
+
+                      <div className="data-display mt-2">
+                        <strong>Presence:</strong>{" "}
+                        {companyData.whatsappPresence}
+                      </div>
+
+                      <div className="data-display mt-2">
+                        <strong>Engine:</strong> {companyData.whatsappEngine}
+                      </div>
+
+                      <div className="data-display mt-2">
+                        <strong>Version:</strong> {companyData.whatsappVersion}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Need QR */}
+                {companyData.whatsappIntegration === "SCAN_QR_CODE" && (
                   <div className="qr-active">
                     <div className="qr-frame">
                       <img
@@ -361,35 +524,59 @@ const CompanyManagement = () => {
                         className="qr-img"
                       />
                     </div>
+
                     <p className="mt-3 text-muted small">
-                      Scan this code with WhatsApp Linked Devices
+                      Scan this QR code from WhatsApp Linked Devices.
                     </p>
-                    <button
-                      onClick={() => setShowQR(false)}
-                      className="btn btn-link text-danger text-decoration-none"
-                    >
-                      Dismiss QR
-                    </button>
                   </div>
-                ) : (
+                )}
+
+                {/* Offline */}
+                {(companyData.whatsappIntegration === "FAILED" ||
+                  companyData.whatsappIntegration === "Offline") && (
                   <div className="qr-placeholder">
                     <div className="success-icon-wrap">
-                      <SquareCheckBig size={64} className="text-success" />
+                      <X size={64} className="text-danger" />
                     </div>
-                    <h5 className="mt-3 fw-bold">System Ready</h5>
-                    <p className="text-muted small">
-                      Your WhatsApp instance is connected and active.
+
+                    <h5 className="mt-3 fw-bold text-danger">
+                      WhatsApp Offline
+                    </h5>
+
+                    <p className="text-muted">
+                      WhatsApp server is not reachable or the session has
+                      stopped.
                     </p>
                     <button
-                      disabled={!whatsappQRData}
-                      onClick={() => fetchWhatsppStatus(companyData.token)}
-                      className="btn-modern btn-success-modern w-100 mt-2"
+                      className="btn-modern btn-primary-modern mt-3"
+                      disabled={restartCooldown > 0}
+                      onClick={() =>
+                        restartSession(
+                          companyData.token,
+                          companyData.whatsappPort,
+                        )
+                      }
                     >
-                      <QrCode size={18} />{" "}
-                      <span>
-                        {whatsappQRData ? "Refresh QR" : "Instance Active"}
-                      </span>
+                      {restartCooldown > 0
+                        ? `Retry in ${restartCooldown}s`
+                        : "Restart Connection"}
                     </button>
+                  </div>
+                )}
+
+                {/* Starting */}
+                {companyData.whatsappIntegration === "STARTING" && (
+                  <div className="qr-placeholder">
+                    <div
+                      className="spinner-border text-primary"
+                      role="status"
+                    />
+
+                    <h5 className="mt-3">Starting WhatsApp...</h5>
+
+                    <p className="text-muted">
+                      Please wait while WhatsApp starts.
+                    </p>
                   </div>
                 )}
               </div>
@@ -462,8 +649,10 @@ const CompanyManagement = () => {
           padding: 8px 16px; background: #f8fafc; border-radius: 30px; width: fit-content;
         }
         .status-dot { width: 10px; height: 10px; border-radius: 50%; }
-        .status-dot.online { background: #10b981; box-shadow: 0 0 8px #10b981; }
-        .status-dot.offline { background: #ef4444; }
+        .status-dot.connected { background: #10b981; box-shadow: 0 0 8px #10b981; }
+        .status-dot.failed { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+        .status-dot.stopped { background: #424242; box-shadow: 0 0 8px #424242; }
+        .status-dot.scanqrcode { background: #facc15; box-shadow: 0 0 8px #facc15; }
 
         .qr-frame {
           padding: 15px; background: white; border-radius: 20px;

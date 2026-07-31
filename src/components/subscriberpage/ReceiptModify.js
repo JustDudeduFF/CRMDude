@@ -49,8 +49,7 @@ export default function ReceiptModify() {
         amount === 0 ||
         collectedBy === "" ||
         paymentMode === "" ||
-        billingPeriod === "" ||
-        discount === 0
+        billingPeriod === ""
       ) {
         toast.error("Please Fill Details", {
           autoClose: 2000,

@@ -7,7 +7,7 @@ import RevenueDash from "./ExpiredData/RevenueDash";
 import ExpiredDash from "./ExpiredData/ExpiredDash";
 import DueDash from "./ExpiredData/DueDash";
 import { toast } from "react-toastify";
-import { FaTicketAlt, FaMoneyBillWave, FaHistory, FaUserClock, FaRedoAlt, FaChevronRight, FaChartLine } from "react-icons/fa";
+import { FaTicketAlt, FaMoneyBillWave, FaHistory, FaUserClock, FaRedoAlt, FaChevronRight, FaChartLine, FaGlobe } from "react-icons/fa";
 import "./Reports.css";
 
 export default function Reports() {
@@ -66,7 +66,8 @@ export default function Reports() {
     { label: "Due Amount", value: `₹${formatRevenue(data.due)}`, path: "/dueamount", icon: <FaMoneyBillWave />, color: "#e74a3b" },
     { label: "Payment Revenue", value: `₹${formatRevenue(data.revenue)}`, path: "/revenue", icon: <FaChartLine />, color: "#1cc88a" },
     { label: "Expire User Report", value: `Expired: ${data.expire}`, path: "/expired", icon: <FaUserClock />, color: "#f6c23e" },
-    { label: "Online Renew List", value: `Renewals: 0`, path: "/renews", icon: <FaRedoAlt />, color: "#36b9cc" },
+    { label: "Renewal Report", value: `This Month: 0`, path: "/renews", icon: <FaHistory />, color: "#121de0" },
+    { label: "Online Renew List", value: `Renewals: 0`, path: "/renews", icon: <FaGlobe />, color: "#36b9cc" },
   ];
 
   return (
@@ -83,7 +84,7 @@ export default function Reports() {
           {/* Enhanced Sidebar */}
           <aside className={`reports-sidebar-nav ${isSpecificReport ? "is-collapsed" : ""}`}>
             <div className="sidebar-header" onClick={() => { setText(1.1); navigate("/dashboard/reports"); }}>
-              <div className="header-icon"><FaHistory /></div>
+              <div className="header-icon"></div>
               <div className="header-text">
                 <h4>Subscriber Reports</h4>
                 <span>Partner Portal</span>

@@ -28,6 +28,7 @@ const Dashboard = () => {
     isEmail: false,
     isPayment: false,
     whatsappApi: "",
+    whatsappPort: "",
     emailhost: "",
     emailport: "",
     keyid: "",
@@ -513,17 +514,32 @@ const Dashboard = () => {
                 }
               />
               {partnerData.isWhatsapp && (
-                <Form.Control
-                  className="mt-2"
-                  placeholder="API Key"
-                  value={partnerData.whatsappApi}
-                  onChange={(e) =>
-                    setPartnerData({
-                      ...partnerData,
-                      whatsappApi: e.target.value,
-                    })
-                  }
-                />
+                <>
+                  <Form.Control
+                    className="mt-2"
+                    placeholder="API Key"
+                    value={partnerData.whatsappApi}
+                    onChange={(e) =>
+                      setPartnerData({
+                        ...partnerData,
+                        whatsappApi: e.target.value,
+                      })
+                    }
+                  />
+
+                  <Form.Control
+                    className="mt-2"
+                    type="text"
+                    placeholder="Running Port"
+                    value={partnerData.whatsappPort}
+                    onChange={(e) =>
+                      setPartnerData({
+                        ...partnerData,
+                        whatsappPort: e.target.value,
+                      })
+                    }
+                  />
+                </>
               )}
 
               <Form.Check

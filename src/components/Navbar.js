@@ -61,6 +61,7 @@ export default function Navbar() {
     type: "success",
     message: {},
   });
+  const [navigating, setNavigating] = useState(false);
 
   useEffect(() => {
     fetchCompanies();
@@ -139,10 +140,8 @@ export default function Navbar() {
       transports: ["websocket"],
     });
 
-
     socketRef.current.on("online-renew-list", (data) => {
       const { eventType, change } = data;
-
 
       // Option 1: Simple refetch (safe but heavier)
       fetchRenewals();
@@ -152,10 +151,9 @@ export default function Navbar() {
         setShowAlert({
           show: true,
           type: "success",
-          message: {...data},
-      });
-    }
-
+          message: { ...data },
+        });
+      }
     });
 
     socketRef.current.on("disconnect", () => {
@@ -462,62 +460,90 @@ export default function Navbar() {
       </nav>
       {isVisible && <ProfileCard onClose={() => setIsVisible(false)} />}
 
+      {navigating && (
+        <div className="nav-loading-overlay">
+          <Loader2 className="spinner" size={32} />
+          <span>Opening subscriber...</span>
+          <style>{`
+            .nav-loading-overlay {
+              position: fixed;
+              inset: 0;
+              background: rgba(255, 255, 255, 0.9);
+              backdrop-filter: blur(2px);
+              z-index: 2000;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 12px;
+              color: #1a1a1a;
+              font-size: 0.9rem;
+              font-weight: 600;
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            }
+            .nav-loading-overlay .spinner {
+              animation: spin 0.8s linear infinite;
+              color: #666;
+            }
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+      )}
+
       {issearcfocused && (
         <div className="search-results-overlay">
           <div className="search-results-header">
-            <div className="d-flex align-items-center">
-              <h6 className="mb-0 fw-bold me-3">
-                Results ({arrayuser.length})
-              </h6>
-            </div>
+            <h6 className="results-count">
+              {arrayuser.length} {arrayuser.length === 1 ? "Result" : "Results"}
+            </h6>
             <button
               className="btn-close-custom"
               onClick={() => {
                 setIsSearchFocused(false);
                 setShowMobileSearch(false);
               }}
+              aria-label="Close search results"
             >
-              &times;
+              <X size={18} />
             </button>
           </div>
 
-          {/* NEW: Filter Bar Section */}
-          <div className="filter-bar bg-white px-3 py-2 border-bottom shadow-sm">
-            <div className="row g-2">
-              <div className="col-6">
-                <label className="filter-label">Filter by Company</label>
-                <select
-                  className="form-select form-select-sm"
-                  value={filterCompany}
-                  onChange={(e) => setFilterCompany(e.target.value)}
-                >
-                  <option value="All">All Companies</option>
-                  {[...new Set(arrayuser.map((u) => u.company))]
-                    .filter(Boolean)
-                    .map((comp, i) => (
-                      <option key={i} value={comp}>
-                        {comp}
-                      </option>
-                    ))}
-                </select>
-              </div>
-              <div className="col-6">
-                <label className="filter-label">Min. Due Amount</label>
-                <input
-                  type="number"
-                  className="form-select form-select-sm"
-                  placeholder="Min ₹"
-                  onChange={(e) => setMinDue(Number(e.target.value))}
-                />
-              </div>
+          <div className="filter-bar">
+            <div className="filter-group">
+              <label className="filter-label">Company</label>
+              <select
+                className="filter-select"
+                value={filterCompany}
+                onChange={(e) => setFilterCompany(e.target.value)}
+              >
+                <option value="All">All Companies</option>
+                {[...new Set(arrayuser.map((u) => u.company))]
+                  .filter(Boolean)
+                  .map((comp, i) => (
+                    <option key={i} value={comp}>
+                      {comp}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            <div className="filter-group">
+              <label className="filter-label">Min. Due (₹)</label>
+              <input
+                type="number"
+                className="filter-input"
+                placeholder="0"
+                onChange={(e) => setMinDue(Number(e.target.value))}
+              />
             </div>
           </div>
 
           <div className="search-results-body">
             {searchLoading ? (
               <div className="search-loading">
-                <Loader2 className="spinner" size={32} />
-                <div className="mt-2">Searching...</div>
+                <Loader2 className="spinner" size={28} />
+                <span>Searching...</span>
               </div>
             ) : arrayuser.length > 0 ? (
               <div className="user-cards-container">
@@ -540,7 +566,7 @@ export default function Navbar() {
                       status,
                       expiryDate,
                       dueAmount,
-                      installationAddress,
+                      address,
                       company,
                     } = user;
 
@@ -553,47 +579,39 @@ export default function Navbar() {
 
                     return (
                       <div
-                        className={`user-result-card ${statusClass}`}
+                        className="user-result-card"
                         key={index}
                         onClick={() => handleSubsView(userKey, username)}
                       >
                         <div className="card-top">
-                          <span className="company-tag">
-                            {company || "No Company"}
+                          <span className="company-tag">{company || "—"}</span>
+                          <span className={`status-pill ${statusClass}`}>
+                            {status || "Active"}
                           </span>
-                          <div className="due-highlight">
-                            <span className="due-label">DUE</span>
-                            <span className="due-value">₹{dueAmount || 0}</span>
-                          </div>
                         </div>
 
                         <div className="card-main">
                           <div className="user-info">
                             <div className="fullname">{fullname}</div>
-                            <div className="username-id">ID: {username}</div>
+                            <div className="username-id">
+                              User ID: {username}
+                            </div>
                           </div>
-                          <span className={`status-pill`}>
-                            {status || "Active"}
-                          </span>
+                          <div className="due-amount">
+                            <span className="due-label">Due</span>
+                            <span className="due-value">₹{dueAmount || 0}</span>
+                          </div>
                         </div>
 
-                        <div className="address-section">
-                          <div className="address-text">
-                            <strong>Address:</strong>{" "}
-                            {installationAddress || "N/A"}
-                          </div>
+                        <div className="address-text">
+                          {address || "No address on file"}
                         </div>
 
                         <div className="card-footer">
-                          <div className="footer-item">
-                            <small>Mob:</small> <span>{mobile}</span>
-                          </div>
-                          <div className="footer-item text-end">
-                            <small>Exp:</small>{" "}
-                            <span>
-                              {expiryDate ? formatDate(expiryDate) : "-"}
-                            </span>
-                          </div>
+                          <span>Mobile: {mobile || "—"}</span>
+                          <span>
+                            Expiry: {expiryDate ? formatDate(expiryDate) : "—"}
+                          </span>
                         </div>
                       </div>
                     );
@@ -601,7 +619,8 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="no-data-found">
-                No data matches your criteria.
+                <Search size={28} strokeWidth={1.5} />
+                <p>No results match your filters</p>
               </div>
             )}
           </div>
@@ -609,57 +628,216 @@ export default function Navbar() {
           <style>{`
       .search-results-overlay {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: #f4f7f6;
+        inset: 0;
+        background: #fafafa;
         z-index: 1050;
         display: flex;
         flex-direction: column;
-        /* Add these two lines */
-        overflow-y: hidden; 
-        overscroll-behavior: contain; 
+        overflow-y: hidden;
+        overscroll-behavior: contain;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .search-results-header {
+        background: #fff;
+        padding: 14px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #ececec;
+      }
+
+      .results-count {
+        margin: 0;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        letter-spacing: -0.01em;
+      }
+
+      .btn-close-custom {
+        background: #f2f2f2;
+        border: none;
+        border-radius: 8px;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #666;
+        transition: background 0.15s ease, color 0.15s ease;
+      }
+      .btn-close-custom:hover {
+        background: #e8e8e8;
+        color: #1a1a1a;
+      }
+
+      .filter-bar {
+        background: #fff;
+        padding: 12px 20px;
+        display: flex;
+        gap: 12px;
+        border-bottom: 1px solid #ececec;
+      }
+
+      .filter-group {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .filter-label {
+        font-size: 0.68rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: #999;
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .filter-select,
+      .filter-input {
+        width: 100%;
+        border: 1px solid #e2e2e2;
+        border-radius: 8px;
+        padding: 7px 10px;
+        font-size: 0.85rem;
+        color: #1a1a1a;
+        background: #fff;
+        outline: none;
+        transition: border-color 0.15s ease;
+      }
+      .filter-select:focus,
+      .filter-input:focus {
+        border-color: #999;
       }
 
       .search-results-body {
         flex: 1;
-        overflow-y: auto; /* This allows ONLY this section to scroll */
-        -webkit-overflow-scrolling: touch; /* Smooth scroll for iOS */
-        padding: 10px;
-      }
-      .filter-bar { z-index: 10; }
-      .filter-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: #6c757d; display: block; margin-bottom: 2px; }
-      
-      .company-tag { 
-        background: #e9ecef; color: #495057; font-size: 0.7rem; 
-        font-weight: 700; padding: 2px 8px; border-radius: 4px;
-        text-transform: uppercase; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 16px;
       }
 
-      .search-results-header { background: #fff; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; }
-      .btn-close-custom { background: #eee; border: none; border-radius: 50%; width: 30px; height: 30px; font-weight: bold; }
-      
+      .search-loading,
+      .no-data-found {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 60px 20px;
+        color: #999;
+        font-size: 0.9rem;
+      }
+      .spinner { animation: spin 0.8s linear infinite; color: #999; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      .user-cards-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 640px;
+        margin: 0 auto;
+      }
+
       .user-result-card {
-        background: #fff; border-radius: 12px; padding: 12px; margin-bottom: 12px;
-        border-left: 6px solid #07b1f5; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        background: #fff;
+        border: 1px solid #ececec;
+        border-radius: 10px;
+        padding: 14px 16px;
+        cursor: pointer;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
       }
-      
-      .status-terminated { border-left-color: #fa5252; }
-      .status-inactive { border-left-color: #868e96; }
+      .user-result-card:hover {
+        border-color: #d4d4d4;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      }
 
-      .due-highlight { background: #fff5f5; border: 1px solid #ffc9c9; padding: 2px 8px; border-radius: 6px; display: flex; align-items: center; gap: 4px; }
-      .due-label { font-size: 0.65rem; color: #fa5252; font-weight: 800; }
-      .due-value { font-size: 0.9rem; color: #c92a2a; font-weight: 800; }
+      .card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
 
-      .fullname { font-weight: 700; font-size: 1.05rem; color: #212529; }
-      .username-id { color: #07b1f5; font-size: 0.85rem; font-weight: 600; }
-      
-      .address-section { background: #f8f9fa; border-radius: 6px; padding: 6px 10px; margin: 8px 0; border: 1px solid #e9ecef; }
-      .address-text { font-size: 0.75rem; color: #495057; }
+      .company-tag {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+      }
 
-      .card-footer { display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid #f1f3f5; }
-      .footer-item span { font-weight: 700; font-size: 0.8rem; }
+      .status-pill {
+        font-size: 0.68rem;
+        font-weight: 600;
+        padding: 2px 9px;
+        border-radius: 20px;
+        text-transform: capitalize;
+      }
+      .status-active { background: #eaf7ee; color: #1e8e3e; }
+      .status-inactive { background: #ffd4d4; color: #e00000;; }
+      .status-terminated { background: #fac0f7; color: #d800c6; }
+
+      .card-main {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 8px;
+      }
+
+      .fullname {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #1a1a1a;
+        line-height: 1.3;
+      }
+
+      .username-id {
+        font-size: 0.78rem;
+        color: #999;
+        margin-top: 1px;
+      }
+
+      .due-amount {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+      }
+
+      .due-label {
+        font-size: 0.65rem;
+        color: #aaa;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      .due-value {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #1a1a1a;
+      }
+
+      .address-text {
+        font-size: 0.8rem;
+        color: #777;
+        line-height: 1.4;
+        margin-bottom: 10px;
+      }
+
+      .card-footer {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.78rem;
+        color: #999;
+        padding-top: 8px;
+        border-top: 1px solid #f2f2f2;
+      }
+
+      @media (max-width: 480px) {
+        .filter-bar { flex-direction: column; }
+      }
     `}</style>
         </div>
       )}

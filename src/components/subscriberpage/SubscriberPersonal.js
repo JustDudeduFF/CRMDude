@@ -10,6 +10,7 @@ import {
   FaMicrochip,
   FaNetworkWired,
   FaPlus,
+  FaWifi,
 } from "react-icons/fa";
 import { Modal } from "react-bootstrap";
 import { m } from "framer-motion";
@@ -36,12 +37,18 @@ export default function SubscriberPersonal() {
   const [modalAddMAC, setModalAddMAC] = useState(false);
   const [macAddress, setmacAddress] = useState("");
 
+  const [modalChangeSSID, setModalChangeSSID] = useState(false);
+  const [newSSID, setNewSSID] = useState("");
+
   const [hardwareinfo, setHardwareInfo] = useState({
     manufature: "",
     mac: "",
     serial: "",
-    status: ""
-  })
+    status: "",
+    rx: "",
+    tx: "",
+    lastUpdated: "",
+  });
 
   useEffect(() => {
     const fetchsubsdata = async () => {
@@ -50,7 +57,7 @@ export default function SubscriberPersonal() {
         if (response.status !== 200)
           return console.log("Error fetching subscriber data");
         const data = response.data.result;
-        const device = response.data.deviceDetails
+        const device = response.data.deviceDetails;
 
         if (data) {
           setColonyName(data.colonyName);
@@ -60,13 +67,16 @@ export default function SubscriberPersonal() {
           setAlternateNo(data.alternate);
         }
 
-        if (device) {
+        if (device.device) {
           setHardwareInfo({
-            manufature: device.manufacturer,
+            manufature: device.device.manufacturer,
             mac: device.mac,
-            serial: device.serialNumber,
-            status: device.onlineStatus
-          })
+            serial: device.device.serialNumber,
+            status: device.device.status.onboardingStatus,
+            rx: device.device.optical.rxPowerDbm,
+            tx: device.device.optical.txPowerDbm,
+            lastUpdated: device.device.status.lastSeenAt,
+          });
         }
       } catch (e) {
         console.log(e);
@@ -115,18 +125,21 @@ export default function SubscriberPersonal() {
 
   const addMAC = async () => {
     try {
-      const res = API.post("/subscriber/addmacaddress", {
+      const res = await API.post("/subscriber/addmacaddress", {
         subscriberId: username,
-        deviceMAC: macAddress
+        deviceMAC: macAddress,
       });
 
-      console.log(res);
+      if (res.status === 200) {
+        alert("MAC address added successfully!");
+        setModalAddMAC(false);
+      } else {
+        alert("Failed to add MAC address. Please try again.");
+      }
     } catch (e) {
-
+      console.error("Error adding MAC address:", e);
     }
-
-
-  }
+  };
 
   return (
     <div className="personal-info-grid">
@@ -213,36 +226,82 @@ export default function SubscriberPersonal() {
 
       {/* SECTION 3: DEVICE INFO */}
       <div className="info-card shadow-sm">
-        <div className="card-header-accent">
-          <FaMicrochip className="me-2" /> Hardware Details
-          <FaPlus
-            onClick={() => setModalAddMAC(true)}
-            style={{ cursor: "pointer" }}
-            size={12}
-            className="text-muted text-primary ms-5"
-            title="Add MAC Address"
-          />
+        <div className="card-header-accent d-flex justify-content-between align-items-center">
+          <div>
+            <FaMicrochip className="me-2" />
+            Hardware Details
+          </div>
+
+          <div className="d-flex align-items-center gap-3">
+            <FaPlus
+              onClick={() => setModalAddMAC(true)}
+              style={{ cursor: "pointer" }}
+              size={14}
+              className="text-primary"
+              title="Add MAC Address"
+            />
+
+            <FaWifi
+              style={{ cursor: "pointer" }}
+              title="Enable SSID Access"
+              className="text-primary"
+              size={16}
+            />
+          </div>
         </div>
+
         <div className="card-content">
-          <div className="device-row">
-            <label className="info-label">MANUFACTURER</label>
-            <p className="value-text fw-bold text-dark">
-              {hardwareinfo.manufature || "N/A"}
-            </p>
+          <div className="d-flex justify-content-between">
+            <div className="device-row">
+              <label className="info-label">MANUFACTURER</label>
+              <p className="value-text fw-bold text-dark">
+                {hardwareinfo.manufature || "N/A"}
+              </p>
+            </div>
+
+            <div className="device-rows">
+              <label className="info-label">SERIAL NUMBER (S/N)</label>
+              <code className="sn-badge">{hardwareinfo.serial || "N/A"}</code>
+            </div>
           </div>
-          <div className="device-row mt-3">
-            <label className="info-label">SERIAL NUMBER (S/N)</label>
-            <code className="sn-badge">{hardwareinfo.serial || "N/A"}</code>
+
+          <div className="d-flex justify-content-between mt-2">
+            <div className="device-row">
+              <label className="info-label">MAC ADDRESS</label>
+              <code className="sn-badge">{hardwareinfo.mac || "N/A"}</code>
+            </div>
+
+            <div className="device-row">
+              <label className="info-label">STATUS</label>
+              <code
+                className={`sn-badge ${
+                  hardwareinfo.status === "online" ? "green" : "red"
+                }`}
+              >
+                {hardwareinfo.status || "N/A"}
+              </code>
+            </div>
           </div>
+
           <div className="device-row mt-3">
-            <label className="info-label">MAC ADDRESS</label>
-            <code className="sn-badge">{hardwareinfo.mac || "N/A"}</code>
-          </div>
-          <div className="device-row mt-3">
-            <label className="info-label">STATUS</label>
-            <code className={hardwareinfo.status === "Connected" ? "sn-badge green" : "sn-badge red"}>{hardwareinfo.status || "N/A"}</code>
+            <label className="info-label">OPTICAL POWER (RX/TX)</label>
+            <code className="sn-badge">
+              {hardwareinfo.rx + " dBm" || "N/A"} /{" "}
+              {hardwareinfo.tx + " dBm" || "N/A"}
+            </code>
           </div>
         </div>
+        <p className="paragraph-text ms-4 mt-3">
+          last seen:{" "}
+          {new Date(hardwareinfo.lastUpdated).toLocaleString("en-IN", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          }) || "N/A"}
+        </p>
       </div>
 
       {/* SECTION 4: LOCATION VISUAL */}
@@ -302,6 +361,13 @@ export default function SubscriberPersonal() {
           color: #94a3b8;
           margin-bottom: 4px;
           text-transform: uppercase;
+        }
+
+        .paragraph-text {
+          font-size: 0.7rem;
+          color: #334155;
+          line-height: 1.5;
+          font-weight: 500;
         }
 
         .address-text {
@@ -427,16 +493,16 @@ export default function SubscriberPersonal() {
       >
         <Modal.Header closeButton className="border-0 pb-0">
           <Modal.Title className="fw-bold text-dark">
-            <FaMicrochip className="me-2 text-primary" /> Enable SSID Access
+            <FaMicrochip className="me-2 text-primary" /> Enable Device Access
           </Modal.Title>
         </Modal.Header>
         <Modal.Body className="pt-3">
           <div className="container-fluid px-0">
             <div className="col-md ms-3 me-3">
-              <label className="crm-label-sm">MAC Address *</label>
+              <label className="crm-label-sm">Serial Number *</label>
               <input
                 onChange={(e) => setmacAddress(e.target.value)}
-                placeholder="xx:xx:xx:xx:xx:xx"
+                placeholder="xxxxxxxxxxxx"
                 className="form-control crm-input"
                 type="text"
               />
@@ -448,7 +514,87 @@ export default function SubscriberPersonal() {
             <button className="btn btn-light fw-bold flex-grow-1 py-2">
               Cancel
             </button>
-            <button onClick={addMAC} className="btn crm-btn-gradient fw-bold flex-grow-1 py-2">
+            <button
+              onClick={addMAC}
+              className="btn crm-btn-gradient fw-bold flex-grow-1 py-2"
+            >
+              Add Device
+            </button>
+          </div>
+        </Modal.Footer>
+        <style>{`
+                .crm-modern-modal .modal-content {
+                  border-radius: 20px;
+                  border: none;
+                  box-shadow: 0 15px 50px rgba(0,0,0,0.1);
+                }
+                .crm-label-sm {
+                  font-size: 0.7rem;
+                  font-weight: 800;
+                  color: #94a3b8;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                  margin-bottom: 5px;
+                  display: block;
+                }
+                .crm-input {
+                  border-radius: 10px;
+                  padding: 10px 15px;
+                  border: 1px solid #e2e8f0;
+                  font-weight: 500;
+                  color: #1e293b;
+                }
+                .crm-input:focus {
+                  border-color: #667eea;
+                  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                }
+                .crm-btn-gradient {
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  color: white;
+                  border: none;
+                  transition: transform 0.2s;
+                }
+                .crm-btn-gradient:hover {
+                  color: white;
+                  transform: translateY(-2px);
+                  opacity: 0.9;
+                }
+              `}</style>
+      </Modal>
+
+      <Modal
+        show={modalAddMAC}
+        onHide={() => setModalAddMAC(false)}
+        centered
+        className="crm-modern-modal"
+      >
+        <Modal.Header closeButton className="border-0 pb-0">
+          <Modal.Title className="fw-bold text-dark">
+            <FaMicrochip className="me-2 text-primary" /> Change SSID and Password
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="pt-3">
+          <div className="container-fluid px-0">
+            <div className="col-md ms-3 me-3">
+              <label className="crm-label-sm">SSID 2.4G</label>
+              <input
+                onChange={(e) => setmacAddress(e.target.value)}
+                placeholder="xxxxxxxxxxxx"
+                className="form-control crm-input"
+                type="text"
+              />
+            </div>
+          </div>
+        </Modal.Body>
+        <Modal.Footer className="border-0 pt-0">
+          <div className="d-flex w-100 gap-2">
+            <button className="btn btn-light fw-bold flex-grow-1 py-2">
+              Cancel
+            </button>
+            <button
+              onClick={addMAC}
+              className="btn crm-btn-gradient fw-bold flex-grow-1 py-2"
+            >
               Add Device
             </button>
           </div>

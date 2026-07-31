@@ -205,6 +205,7 @@ export default function Subscriber() {
         draggable: true,
         progress: undefined,
       });
+      console.log("Invalid plan data:", changePlanData);
       return;
     }
 
@@ -223,6 +224,7 @@ export default function Subscriber() {
         isp: changePlanData.isp,
         planname: changePlanData.planname,
         planamount: changePlanData.planAmount,
+        company: company,
       };
 
       const response = await API.put(
@@ -466,7 +468,6 @@ export default function Subscriber() {
             {/* DESKTOP ONLY DUE & ACTIONS (Keep as is) */}
             <div className="col-md-4 col-lg-3 text-end d-none d-md-block">
               <div className="crm-due-badge mb-3">
-                <img src={Due_Icon} className="due-icon" alt="Due" />
                 <div className="text-start ms-2">
                   <small className="d-block opacity-75 text-white">
                     Total Due
@@ -867,7 +868,12 @@ export default function Subscriber() {
                   value={changePlanData.expiryDate}
                   className="form-control crm-input bg-light"
                   type="date"
-                  disabled
+                  onChange={(e) =>
+                    setChangePlanData({
+                      ...changePlanData,
+                      expiryDate: e.target.value,
+                    })
+                  }
                 />
               </div>
 
@@ -1070,6 +1076,12 @@ export default function Subscriber() {
                   value={changePlanData.expiryDate}
                   className="form-control crm-input bg-light"
                   type="date"
+                  onChange={(e) =>
+                    setChangePlanData({
+                      ...changePlanData,
+                      expiryDate: e.target.value,
+                    })
+                  }
                   
                 />
               </div>

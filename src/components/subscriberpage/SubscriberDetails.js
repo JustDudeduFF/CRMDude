@@ -7,6 +7,7 @@ import { API } from "../../FirebaseConfig";
 import { toast } from "react-toastify";
 import { FaUserEdit, FaReceipt, FaInfoCircle, FaIdBadge } from "react-icons/fa";
 import "./SubscriberDetails.css";
+import { X } from "lucide-react";
 
 export default function SubscriberDetails() {
   const userid = localStorage.getItem("susbsUserid");
@@ -34,7 +35,7 @@ export default function SubscriberDetails() {
       try {
         const userRes = await API.get(`/subscriber/?id=${userid}`);
         if (userRes.status === 200 && userRes.data) {
-          const userData = userRes.data;
+          const userData = userRes.data.result;
           const info = {
             name: userData.fullname || userData.fullName || "",
             address: userData.installationAddress || "",
@@ -162,39 +163,48 @@ export default function SubscriberDetails() {
         fullscreen="md-down"
         size="lg"
         centered
-        className="crm-theme-modal"
+        className="subscriber-edit-modal"
       >
-        <Modal.Header closeButton className="modal-gradient-header text-white">
-          <Modal.Title className="fw-bold">
-            Update Subscriber Details
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="p-4 bg-light">
-          <div className="row g-3">
-            <div className="col-12 col-md-6">
-              <label className="form-theme-label">Full Name</label>
+        <div className="se-header">
+          <div>
+            <h3 className="se-title">Update Subscriber Details</h3>
+            <p className="se-subtitle">
+              Edit contact and installation information
+            </p>
+          </div>
+          <button className="se-close-btn" onClick={() => setShowModal(false)}>
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="se-body">
+          <div className="se-grid">
+            <div className="se-field">
+              <label className="se-label">Full Name</label>
               <input
-                className="form-control theme-input"
+                className="se-input"
                 value={subsDetail.name}
                 onChange={(e) =>
                   setSubsDetail({ ...subsDetail, name: e.target.value })
                 }
               />
             </div>
-            <div className="col-12 col-md-6">
-              <label className="form-theme-label">User ID</label>
+
+            <div className="se-field">
+              <label className="se-label">User ID</label>
               <input
-                className="form-control theme-input"
+                className="se-input"
                 value={subsDetail.username}
                 onChange={(e) =>
                   setSubsDetail({ ...subsDetail, username: e.target.value })
                 }
               />
             </div>
-            <div className="col-12 col-md-6">
-              <label className="form-theme-label">Mobile Number</label>
+
+            <div className="se-field">
+              <label className="se-label">Mobile Number</label>
               <input
-                className="form-control theme-input"
+                className="se-input"
                 type="number"
                 value={subsDetail.mobile}
                 onChange={(e) =>
@@ -202,10 +212,11 @@ export default function SubscriberDetails() {
                 }
               />
             </div>
-            <div className="col-12 col-md-6">
-              <label className="form-theme-label">Alternate Number</label>
+
+            <div className="se-field">
+              <label className="se-label">Alternate Number</label>
               <input
-                className="form-control theme-input"
+                className="se-input"
                 type="number"
                 value={subsDetail.alternate}
                 onChange={(e) =>
@@ -213,22 +224,23 @@ export default function SubscriberDetails() {
                 }
               />
             </div>
-            <div className="col-12 col-md-6">
-              <label className="form-theme-label">Email</label>
+
+            <div className="se-field">
+              <label className="se-label">Email</label>
               <input
-                className="form-control theme-input"
-                type="mail"
+                className="se-input"
+                type="email"
                 value={subsDetail.email}
                 onChange={(e) =>
                   setSubsDetail({ ...subsDetail, email: e.target.value })
                 }
               />
             </div>
-            <div className="col-12 col-md-6">
-              <label className="form-theme-label">Connection Type</label>
+
+            <div className="se-field">
+              <label className="se-label">Connection Type</label>
               <select
-                className="form-control theme-input"
-                type="mail"
+                className="se-input se-select"
                 value={subsDetail.conectiontyp}
                 onChange={(e) =>
                   setSubsDetail({ ...subsDetail, conectiontyp: e.target.value })
@@ -240,28 +252,36 @@ export default function SubscriberDetails() {
                 <option value="Cable">Cable</option>
               </select>
             </div>
-            <div className="col-12 col-md-6">
-              <label className="form-theme-label">Colony Name</label>
+
+            <div className="se-field">
+              <label className="se-label">Colony Name</label>
               <select
-                className="form-control theme-input"
-                type="text"
+                className="se-input se-select"
                 value={subsDetail.colonyname}
-                onChange={(e) =>
-                  setSubsDetail({ ...subsDetail, colonyname: e.target.value })
-                }
+                onChange={(e) => {
+                  const selectedColony = arrayColony.find(
+                    (colony) => colony.name === e.target.value,
+                  );
+                  setSubsDetail({
+                    ...subsDetail,
+                    colonyname: e.target.value,
+                    companyname: selectedColony?.undercompany || "",
+                  });
+                }}
               >
                 <option value="">Select Colony...</option>
-                {arrayColony.map((colony, index) => (
-                  <option key={index} value={colony.name}>
+                {arrayColony.map((colony) => (
+                  <option key={colony._id} value={colony.name}>
                     {colony.name}
                   </option>
                 ))}
               </select>
             </div>
-            <div className="col-12">
-              <label className="form-theme-label">Installation Address</label>
+
+            <div className="se-field se-field-full">
+              <label className="se-label">Installation Address</label>
               <textarea
-                className="form-control theme-input"
+                className="se-input se-textarea"
                 rows="2"
                 value={subsDetail.address}
                 onChange={(e) =>
@@ -269,20 +289,174 @@ export default function SubscriberDetails() {
                 }
               />
             </div>
-            {/* Colony and other fields follow the same theme-input class */}
           </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <button
-            className="btn btn-light border px-4"
-            onClick={() => setShowModal(false)}
-          >
-            Close
+        </div>
+
+        <div className="se-footer">
+          <button className="se-btn-cancel" onClick={() => setShowModal(false)}>
+            Cancel
           </button>
-          <button className="btn theme-btn-submit px-4" onClick={handleUpdate}>
+          <button className="btn theme-btn-submit" onClick={handleUpdate}>
             Save Changes
           </button>
-        </Modal.Footer>
+        </div>
+
+        <style>{`
+    .subscriber-edit-modal .modal-content {
+      border: none;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px -12px rgba(15, 23, 42, 0.2);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .se-header {
+      background: #fff;
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid #ececec;
+    }
+
+    .se-title {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      letter-spacing: -0.01em;
+    }
+
+    .se-subtitle {
+      margin: 2px 0 0;
+      font-size: 0.82rem;
+      color: #999;
+    }
+
+    .se-close-btn {
+      background: #f2f2f2;
+      border: none;
+      border-radius: 8px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      flex-shrink: 0;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .se-close-btn:hover {
+      background: #e8e8e8;
+      color: #1a1a1a;
+    }
+
+    .se-body {
+      background: #fafafa;
+      padding: 22px 24px;
+      max-height: 65vh;
+      overflow-y: auto;
+    }
+
+    .se-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .se-field-full {
+      grid-column: 1 / -1;
+    }
+
+    .se-field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .se-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #999;
+      margin-bottom: 6px;
+    }
+
+    .se-input {
+      width: 100%;
+      border: 1px solid #e2e2e2;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 0.9rem;
+      color: #1a1a1a;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .se-input:focus {
+      border-color: #999;
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .se-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23999'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 30px;
+    }
+
+    .se-textarea {
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    .se-footer {
+      background: #fff;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      border-top: 1px solid #ececec;
+    }
+
+    .se-btn-cancel {
+      border: 1px solid #e2e2e2;
+      background: #fff;
+      color: #666;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 9px 20px;
+      border-radius: 8px;
+      transition: all 0.15s ease;
+    }
+    .se-btn-cancel:hover {
+      background: #f5f5f5;
+      color: #1a1a1a;
+    }
+
+    .se-btn-save {
+      border: none;
+      background: #1a1a1a;
+      color: #fff;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 9px 22px;
+      border-radius: 8px;
+      transition: all 0.15s ease;
+    }
+    .se-btn-save:hover {
+      background: #333;
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 576px) {
+      .se-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  `}</style>
       </Modal>
 
       <style>{`

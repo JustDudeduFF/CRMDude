@@ -1,52 +1,75 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { API } from "../FirebaseConfig";
 
+// Create a custom event for permission refresh
+const PermissionRefreshEvent = new Event('permissionRefresh');
+
 const PermissionContext = createContext();
 
 export const PermissionProvider = ({ children }) => {
   const [permissions, setPermissions] = useState([]);
   const username = localStorage.getItem("empid");
 
-const fetchPermissions = async () => {
-  try {
-    const response = await API.get(`/employees/${username}`);
-    const data = response.data;
+  const fetchPermissions = async () => {
+    try {
+      const response = await API.get(`/employees/${username}`);
+      const data = response.data;
 
-    // find all permission groups
-    const permissionGroups = Object.keys(data).filter((k) =>
-      k.endsWith("permission")
-    );
+      // find all permission groups
+      const permissionGroups = Object.keys(data).filter((k) =>
+        k.endsWith("permission")
+      );
 
-    let userPermissions = [];
+      let userPermissions = [];
 
-    permissionGroups.forEach((group) => {
-      const permissions = data[group];
-      Object.entries(permissions).forEach(([key, value]) => {
-        if (typeof value === "boolean" && value === true) {
-          userPermissions.push(key);
-        }
+      permissionGroups.forEach((group) => {
+        const permissions = data[group];
+        Object.entries(permissions).forEach(([key, value]) => {
+          if (typeof value === "boolean" && value === true) {
+            userPermissions.push(key);
+          }
+        });
       });
-    });
 
-    // ✅ remove duplicates correctly
-    const uniquePermissions = [...new Set(userPermissions)];
+      // ✅ remove duplicates correctly
+      const uniquePermissions = [...new Set(userPermissions)];
 
-    setPermissions(uniquePermissions);
-  } catch (error) {
-    console.error("Error fetching permissions:", error);
-  }
-};
+      setPermissions(uniquePermissions);
+    } catch (error) {
+      console.error("Error fetching permissions:", error);
+    }
+  };
 
+  // Add a method to manually refresh permissions
+  const refreshPermissions = () => {
+    fetchPermissions();
+  };
+
+  // Listen for permission refresh events
+  useEffect(() => {
+    const handlePermissionRefresh = () => {
+      if (username) {
+        fetchPermissions();
+      }
+    };
+
+    window.addEventListener('permissionRefresh', handlePermissionRefresh);
+    return () => {
+      window.removeEventListener('permissionRefresh', handlePermissionRefresh);
+    };
+  }, [username]);
 
   useEffect(() => {
-    fetchPermissions();
+    if (username) {
+      fetchPermissions();
+    }
   }, [username]);
 
   const hasPermission = (permission) => permissions.includes(permission);
 
   return (
     <PermissionContext.Provider
-      value={{ permissions, setPermissions, hasPermission }}
+      value={{ permissions, setPermissions, hasPermission, refreshPermissions }}
     >
       {children}
     </PermissionContext.Provider>
@@ -54,3 +77,8 @@ const fetchPermissions = async () => {
 };
 
 export const usePermissions = () => useContext(PermissionContext);
+
+// Function to trigger permission refresh from anywhere in the app
+export const triggerPermissionRefresh = () => {
+  window.dispatchEvent(PermissionRefreshEvent);
+};

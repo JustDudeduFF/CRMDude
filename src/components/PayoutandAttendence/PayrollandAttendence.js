@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { all } from "axios";
+import { eachWeekOfInterval } from "date-fns";
 
 export default function PayrollandAttendence() {
   const [payoutArray, setPayoutArray] = useState([]);
@@ -83,27 +84,31 @@ export default function PayrollandAttendence() {
     setShowAllowanceModal(true);
   };
 
-  const handleAllowanceSubmit = () => {
+  const handleAllowanceSubmit = async () => {
     if (!selectedUserId) {
       toast.error("User not selected. Please try again.");
       return;
     }
 
-    if(!allowanceInput.type || !allowanceInput.amount){
+    if (!allowanceInput.type || !allowanceInput.amount) {
       toast.error("Please fill in all the fields before submitting.");
       return;
     }
 
-    try{
-      const response = API.post("/payroll/allowance-deduction", {
+    try {
+      const response = await API.post("/payroll/allowance-deduction", {
         employeeId: selectedUserId,
         month: `${selectedYear}-${String(selectedMonth).padStart(2, "0")}`,
         allowances: [
-          {"title": allowanceInput.type, "amount": Number(allowanceInput.amount) || 0, "remark": allowanceInput.description }
-        ]
+          {
+            title: allowanceInput.type,
+            amount: Number(allowanceInput.amount) || 0,
+            remark: allowanceInput.description,
+          },
+        ],
       });
-      
-      if(response.status === 200){
+
+      if (response.status === 200) {
         toast.success("Allowance credited successfully!");
         setShowAllowanceModal(false);
         setAllowanceInput({ amount: "", description: "", type: "" });
@@ -112,32 +117,39 @@ export default function PayrollandAttendence() {
       } else {
         toast.error("Failed to credit allowance. Please try again.");
       }
-    }catch(error){
-      toast.error("An error occurred while processing the allowance. Please try again.");
+    } catch (error) {
+      toast.error(
+        "An error occurred while processing the allowance. Please try again.",
+      );
       console.error("Allowance Submission Error:", error);
       return;
     }
   };
 
-  const handleDeductionSubmit = () => {
-    if (selectedUserId) {
-      const time = new Date().getTime();
-      const deductionRef = ref(
-        db,
-        `Payroll/Attendence/${selectedUserId}/${selectedYear}/${selectedMonth}/deduction/${time}`,
-      );
-      if (deductionInput.amount !== "" && deductionInput.description !== "") {
-        set(deductionRef, {
-          amount: Number(deductionInput.amount) || 0,
-          description: deductionInput.description,
-          type: deductionInput.type,
-          date: new Date().toLocaleDateString(),
-        });
+  const handleDeductionSubmit = async () => {
+    try {
+      const response = await API.post("/payroll/allowance-deduction", {
+        employeeId: selectedUserId,
+        month: `${selectedYear}-${String(selectedMonth).padStart(2, "0")}`,
+        deductions: [
+          {
+            title: deductionInput.type,
+            amount: Number(deductionInput.amount) || 0,
+            remark: deductionInput.description,
+          },
+        ],
+      });
+
+      if (response.status === 200) {
+        setShowDeductionDetailsModal(false);
+        setDeductionInput({ amount: "", description: "", type: "" });
+        setSelectedUserId(null);
+      }else{
+        toast.error("Failed!");
       }
+    } catch (e) {
+      toast.error("some thing went wrong!");
     }
-    setShowDeductionDetailsModal(false);
-    setDeductionInput({ amount: "", description: "", type: "" });
-    setSelectedUserId(null);
   };
 
   const handleDeductionBodyClick = (e, userId) => {
@@ -166,7 +178,6 @@ export default function PayrollandAttendence() {
       );
       if (response.status === 200) {
         setAllowanceDeductionTitles(response.data);
-        console.log("Fetched Allowance/Deduction Titles:", response.data);
       }
     } catch (error) {
       console.error("Error fetching allowance/deduction titles:", error);
@@ -299,16 +310,14 @@ export default function PayrollandAttendence() {
                       </td>
                       <td className="fw-semibold">₹{item.baseSalary}</td>
                       <td
-                        onContextMenu={(e) =>
-                          handleContextMenu(e, item.employeeId)
-                        }
+                        onClick={(e) => handleContextMenu(e, item.employeeId)}
                         className="cursor-pointer text-success fw-bold"
                       >
                         <PlusCircle size={14} className="me-1" />₹
                         {item.netSalary.totalAllowance}
                       </td>
                       <td
-                        onContextMenu={(e) =>
+                        onClick={(e) =>
                           handleDeductionBodyClick(e, item.employeeId)
                         }
                         className="cursor-pointer text-danger fw-bold"
@@ -370,7 +379,7 @@ export default function PayrollandAttendence() {
                         className="sticky-left bg-white fw-bold small z-2"
                         style={{ borderRight: "2px solid #e2e8f0" }}
                       >
-                        {item.fullname}
+                        {item.name}
                       </td>
                       {Array.from(
                         { length: daysInMonth(selectedYear, selectedMonth) },

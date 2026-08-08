@@ -1,0 +1,10 @@
+{
+    "env": {
+        "ANTHROPIC_BASE_URL": "https://router.bynara.id",
+        "ANTHROPIC_AUTH_TOKEN": "sk-nry-7s9FOuYXrmbJZ6Q-n6CTEw_Rr-C3zuSl_zcS5ez3s6s",
+        "ANTHROPIC_MODEL": "mistral-large",
+        "ANTHROPIC_DEFAULT_OPUS_MODEL": "mistral-large",
+        "ANTHROPIC_DEFAULT_SONNET_MODEL": "mistral-large",
+        "ANTHROPIC_DEFAULT_HAIKU_MODEL": "mistral-large"
+    }
+}

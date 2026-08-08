@@ -44,7 +44,12 @@ export default function Login() {
         localStorage.setItem('Name', data.user.name);
         localStorage.setItem('Designation', data.user.role);
         localStorage.setItem('partnerId', data.user.partnerId);
-        navigate('/dashboard');
+
+        // Trigger permission refresh event
+        setTimeout(() => {
+          window.dispatchEvent(new Event('permissionRefresh'));
+          navigate('/dashboard');
+        }, 100);
       } else {
         toast.error(data.message || 'Invalid Credentials');
       }

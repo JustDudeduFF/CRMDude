@@ -1,4 +1,4 @@
-// src/components/DueData/DueDash.js
+// src/components/ExpiredData/RenewalReport.js
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Added for navigation
 import * as XLSX from "xlsx";
@@ -14,7 +14,7 @@ import {
   FaArrowLeft, // Added for back button
 } from "react-icons/fa";
 
-export default function DueDash() {
+export default function RenewalReport() {
   const partnerId = localStorage.getItem("partnerId");
   const navigate = useNavigate(); // Hook for back button
 
@@ -69,7 +69,7 @@ export default function DueDash() {
     setIsLoading(true);
     try {
       const response = await API.get(
-        `/reports/dueAmount?partnerId=${partnerId}&startDate=${
+        `/reports/renewalReport?partnerId=${partnerId}&startDate=${
           new Date(filter.startDate).toISOString().split("T")[0]
         }&endDate=${new Date(filter.endDate).toISOString().split("T")[0]}`,
       );
@@ -78,19 +78,19 @@ export default function DueDash() {
       const arrayData = response.data;
 
       if (arrayData) {
-        setArrayData(arrayData.dueArray);
+        setArrayData(arrayData.renewalArray);
         setTotalDue(arrayData.total.totalAmount);
         setUniqueUser([
-          ...new Set(arrayData.dueArray.map((data) => data.lastrenew)),
+          ...new Set(arrayData.renewArray.map((data) => data.lastrenew)),
         ]);
         setUniqueColony([
-          ...new Set(arrayData.dueArray.map((data) => data.colony)),
+          ...new Set(arrayData.renewArray.map((data) => data.colony)),
         ]);
         setUniqueCompany([
-          ...new Set(arrayData.dueArray.map((data) => data.company)),
+          ...new Set(arrayData.renewArray.map((data) => data.company)),
         ]);
         setUniqueStatus([
-          ...new Set(arrayData.dueArray.map((data) => data.status)),
+          ...new Set(arrayData.renewArray.map((data) => data.status)),
         ]);
       }
     } catch (error) {
@@ -153,7 +153,7 @@ export default function DueDash() {
           >
             <FaArrowLeft />
           </button>
-          <h5 className="ms-3 mb-0 fw-bold text-dark">Outstanding Dues</h5>
+          <h5 className="ms-3 mb-0 fw-bold text-dark">Renewal Report</h5>
         </div>
         <div className="due-dash-stats">
           <div className="stat-card">
@@ -161,16 +161,7 @@ export default function DueDash() {
               <FaRupeeSign />
             </div>
             <div className="stat-info">
-              <span className="stat-label">Total Outstanding Due</span>
-              <h3 className="stat-value">₹{formatRevenue(totalDue)}</h3>
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon users">
-              <FaUserTie />
-            </div>
-            <div className="stat-info">
-              <span className="stat-label">Total Debtors</span>
+              <span className="stat-label">Total Renewals</span>
               <h3 className="stat-value">{filterData.length} Customers</h3>
             </div>
           </div>
@@ -396,9 +387,9 @@ export default function DueDash() {
         .back-btn-ui:hover { background: #4f46e5; color: #fff; }
 
         /* Stats Section */
-        .due-dash-stats { display: flex; flex-wrap: wrap; gap: 15px; }
+        .due-dash-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
         .stat-card { background: #fff; padding: 8px; border-radius: 16px; display: flex; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-        .stat-icon { width: 35px; height: 35px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-right: 15px; }
+        .stat-icon { width: 35px; height: 35px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; margin-right: 15px; margin-left: 5px; }
         .stat-icon.due { background: #fee2e2; color: #ef4444; }
         .stat-icon.users { background: #e0e7ff; color: #4f46e5; }
         .stat-label { font-size: 10px; color: #64748b; font-weight: 500; }

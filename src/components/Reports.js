@@ -6,6 +6,7 @@ import TicketdataDash from "./TicketData/TicketdataDash";
 import RevenueDash from "./ExpiredData/RevenueDash";
 import ExpiredDash from "./ExpiredData/ExpiredDash";
 import DueDash from "./ExpiredData/DueDash";
+import RenewalReport from "./ExpiredData/RenewalReport";
 import { toast } from "react-toastify";
 import { FaTicketAlt, FaMoneyBillWave, FaHistory, FaUserClock, FaRedoAlt, FaChevronRight, FaChartLine, FaGlobe } from "react-icons/fa";
 import "./Reports.css";
@@ -121,6 +122,7 @@ export default function Reports() {
                 <Route path="/revenue/*" element={<RevenueDash />} />
                 <Route path="/expired/*" element={<ExpiredDash />} />
                 <Route path="/dueamount/*" element={<DueDash />} />
+                <Route path="/renews/*" element={<RenewalReport />} />
               </Routes>
             </div>
           </main>

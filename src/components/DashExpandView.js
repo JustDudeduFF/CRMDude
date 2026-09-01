@@ -15,6 +15,7 @@ import {
   MessageCircle,
   Send,
   Loader2,
+  CalendarSearch,
 } from "lucide-react";
 import { MessagePreviewModal } from "./MessagePreviewModal";
 
@@ -26,6 +27,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
   const [loader, setLoader] = useState(false);
   const [companyArray, setCompanyArray] = useState([]);
   const [selectCompany, setSelectCompany] = useState("All");
+  const [selectMonth, setSelectMonth] = useState("All");
   const [filteredArray, setFilteredArray] = useState([]);
   const [messagePreviewOpen, setMessagePreviewOpen] = useState(false);
   const [deliveryData, setDeliveryData] = useState({
@@ -83,7 +85,10 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
     try {
       const response = await API.post("/dashboard-data/w_message", {
         partnerId: partnerId,
-        message_req: datatype.split(" ")[0] === "Due" ? "Due Amount Reminder" : "Renewal Reminder",
+        message_req:
+          datatype.split(" ")[0] === "Due"
+            ? "Due Amount Reminder"
+            : "Renewal Reminder",
         subscriberId: subsId,
       });
       toast.success("Messages sent successfully!");
@@ -112,9 +117,19 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
         (data) => data.company === selectCompany,
       );
     }
+    if (selectMonth !== "All") {
+      filterArray = filterArray.filter((data) => {
+        const dateField =
+          datatype.split(" ")[0] === "Expiring"
+            ? data.expiryDate
+            : data.activationDate;
+        const month = new Date(dateField).toLocaleString("default", { month: "long" });
+        return month === selectMonth;
+      });
+    }
     setFilteredArray(filterArray);
     setCurrentPage(1);
-  }, [selectCompany, arrayData]);
+  }, [selectCompany, selectMonth, arrayData]);
 
   if (!show) return null;
 
@@ -135,6 +150,32 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
           </div>
 
           <div className="ev-controls">
+
+
+            {datatype.split(" ")[1] === "All" && (
+              <div className="filter-box">
+                <CalendarSearch size={16} />
+                <select
+                  onChange={(e) => setSelectMonth(e.target.value)}
+                  value={selectMonth}
+                >
+                  <option value="All">All Months</option>
+                  <option value="January">January</option>
+                  <option value="February">February</option>
+                  <option value="March">March</option>
+                  <option value="April">April</option>
+                  <option value="May">May</option>
+                  <option value="June">June</option>
+                  <option value="July">July</option>
+                  <option value="August">August</option>
+                  <option value="September">September</option>
+                  <option value="October">October</option>
+                  <option value="November">November</option>
+                  <option value="December">December</option>
+                </select>
+              </div>
+            )}
+
             <div className="filter-box">
               <Filter size={16} />
               <select
@@ -170,6 +211,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
               className="ev-icon-btn close"
               onClick={() => {
                 setSelectCompany("All");
+                setSelectMonth("All");
                 modalShow();
               }}
             >
@@ -269,7 +311,7 @@ const DashExpandView = ({ show, datatype, modalShow }) => {
                                     size={20}
                                     style={{
                                       animation: "spin 1s linear infinite",
-                                      color: "black" // Rotates the icon continuously
+                                      color: "black", // Rotates the icon continuously
                                     }}
                                   />
                                 ) : (

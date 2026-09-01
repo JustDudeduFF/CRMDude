@@ -22,7 +22,7 @@ const TemplateManager = () => {
 
   const variablesByCategory = {
     common: ["{customeruserid}", "{customername}", "{customermobile}", "{customeremail}", "{customeraddress}", "{companyname}", "{companyaddress}", "{companyemail}", "{companymobile}"],
-    plan: ["{planname}", "{planamount}", "{dueamount}", "{discount}", "{receiptno}", "{planperiod}", "{paymentmode}", "{receiptdate}"],
+    plan: ["{planname}", "{planamount}", "{dueamount}", "{discount}", "{receiptno}", "{planperiod}", "{paymentmode}", "{receiptdate}", "{collectedamount}"],
     ticket: ["{ticketconcern}", "{ticketassignto}", "{ticketassigntomobile}", "{ticketcreatedate}", "{ticketassigndate_time}", "{happycode}"],
     renewal: ["{planname}", "{planamount}", "{dueamount}", "{activationdate}", "{expirationdate}"],
     emp_ticket: ["{ticketconcern}", "{ticketassignto}", "{ticketassigntomobile}", "{ticketcreatedate}", "{ticketassigndate_time}", "{description}"],

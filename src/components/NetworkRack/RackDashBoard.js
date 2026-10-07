@@ -62,7 +62,7 @@ export default function RackDashBoard() {
     };
 
     const showRackView = (name) => {
-        navigate('rackview', { state: { officename: name } });
+        navigate('/dashboard/networkrack/rackview', { state: { officename: name } });
         setIsSidebarOpen(false); // Close drawer on mobile after selection
     };
 
@@ -130,7 +130,7 @@ export default function RackDashBoard() {
                     <div className="viewport-card shadow-sm">
                         <Routes>
                             <Route path='/' element={<RackDash />} />
-                            <Route path='rackview' element={<RackView />} />
+                            <Route path='/rackview' element={<RackView />} />
                         </Routes>
                     </div>
                 </main>
@@ -156,6 +156,7 @@ export default function RackDashBoard() {
                             className="form-select form-select-lg"
                         >
                             <option>Choose Office...</option>
+                            <option value={"Demo Room"}>Demo Room</option>
                             {arrayoffice.map((name, index) => (
                                 <option key={index} value={name}>{name}</option>
                             ))}

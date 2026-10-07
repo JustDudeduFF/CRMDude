@@ -4,14 +4,14 @@ import { getStorage } from "firebase/storage";
 import axios from "axios";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA_JRjCsNIVWO9unUcMNa8XorckOtqjAmU",
-  authDomain: "loginandsignup-7a86c.firebaseapp.com",
-  databaseURL: "https://loginandsignup-7a86c-default-rtdb.firebaseio.com",
-  projectId: "loginandsignup-7a86c",
-  storageBucket: "loginandsignup-7a86c.appspot.com",
-  messagingSenderId: "203331983028",
-  appId: "1:203331983028:web:3a884509fb8e8a9f3669e1",
-  measurementId: "G-GS3SD0V0L4",
+  apiKey: "AIzaSyBAu9aTelNjuHFlpdtrZeMsrE_lQKdq9hw",
+  authDomain: "crmdude-adeeb.firebaseapp.com",
+  databaseURL: "https://crmdude-adeeb-default-rtdb.firebaseio.com",
+  projectId: "crmdude-adeeb",
+  storageBucket: "crmdude-adeeb.firebasestorage.app",
+  messagingSenderId: "1002510519386",
+  appId: "1:1002510519386:web:f842ae59ad7419f530dc63",
+  measurementId: "G-JLTFZ8DD85"
 };
 const app = initializeApp(firebaseConfig);
 

@@ -1,703 +1,714 @@
-import React, {useEffect, useState} from 'react'
-import PONPort from './drawables/port.png'
-import { Modal, Button } from 'react-bootstrap'
-import EthernetPort from './drawables/ethernet.png'
-import { get, onValue, ref, set } from 'firebase/database'
-import { db } from '../../FirebaseConfig'
-import { usePermissions } from '../PermissionProvider'
-import './SYOLT.css'
+import React, { useState, useEffect } from "react";
+import { Modal, Button } from "react-bootstrap";
+import { API } from "../../FirebaseConfig";
+import { usePermissions } from "../PermissionProvider";
+import PONPort from "./drawables/port.png";
+import EthernetPort from "./drawables/ethernet.png";
 
-const SYOLT =({pons, sfps, ethernet, show, deviceIndex, officename}) => {
-  const {hasPermission} = usePermissions();
-  
-    const PON_RANGE = pons; // Set PON range dynamically
-    const SFP_RANGE = sfps; // Set SFP range dynamically
-    const ETHERNET_RANGE = ethernet;
-    const isTwoRows = ETHERNET_RANGE > 7; // Determines if two rows are needed
-    const lowerRowPorts = Array.from({ length: Math.ceil(ETHERNET_RANGE / 2) }).map((_, index) => 2 * index + 1); // 1, 3, 5...
-    const upperRowPorts = Array.from({ length: Math.floor(ETHERNET_RANGE / 2) }).map((_, index) => 2 * index + 2); // 2, 4, 6...
+const SYOLT = ({
+  rackId,
+  officeKey,
+  deviceId,
+  deviceIndex,
+  officename,
+  pons = 4,
+  sfps = 4,
+  ethernet = 4,
+  portsData = {},
+  show = true,
+  onPortUpdate,
+}) => {
+  const { hasPermission } = usePermissions();
 
-    const [showModal, setShowModal] = useState(false);
-    const [showModal2, setShowModal2] = useState(false);
-    const [showModal3, setShowModal3] = useState(false);
-    const [selectedPON, setSelectedPON] = useState(null);
-    const [selectedSFP, setSelectedSFP] = useState(null);
-    const [selectedEth, setSelectedEth] = useState(null);
-    const [ponDetails, setPONDetails] = useState({ connectedTo: '', connectedPort: '', assignedArea:'' });
-    const [sfpDetails, setSFPDetails] = useState({connectedTo:'', connectedPort:'', assignedArea:''});
-    const [ethDetails, setEthDetails] = useState({connectedTo:'', connectedPort:''});
-    const [arrayfms, setArrayFMS] = useState([]);
-    const [arrayolt, setArrayOlt] = useState([]);
-    const [arrayswitch, setArraySwitch] = useState([]);
-    const [oltdata, setOldData] = useState([]);
-    const [selectDevice, setSelectDevice] = useState([]);
-    const [deviceselect, setDeviceSelect] = useState('');
+  const PON_RANGE = Number(pons) || 4;
+  const SFP_RANGE = Number(sfps) || 4;
+  const ETHERNET_RANGE = Number(ethernet) || 4;
 
-    const [showAux, setShowAux] = useState(false);
+  const isTwoRows = ETHERNET_RANGE > 7;
+  const lowerRowPorts = Array.from({
+    length: Math.ceil(ETHERNET_RANGE / 2),
+  }).map((_, i) => 2 * i + 1);
+  const upperRowPorts = Array.from({
+    length: Math.floor(ETHERNET_RANGE / 2),
+  }).map((_, i) => 2 * i + 2);
 
-    const [ponStatus, setPonStatus] = useState(Array(PON_RANGE).fill(false));
-    const [sfpStatus, setSfpStatus] = useState(Array(SFP_RANGE).fill(false));
-    const [ethernetStatus, setEthernetStatus] = useState(Array(ETHERNET_RANGE).fill(false));
+  const isSFPTwoRows = SFP_RANGE > 7;
+  const SFPlowerRowPorts = Array.from({ length: Math.ceil(SFP_RANGE / 2) }).map(
+    (_, i) => 2 * i + 1,
+  );
+  const SFPupperRowPorts = Array.from({
+    length: Math.floor(SFP_RANGE / 2),
+  }).map((_, i) => 2 * i + 2);
 
-    const [fmsmaxrange, setFmsMaxRange] = useState(0);
-    const [fmskey, setFmsKey] = useState(undefined);
-    
-    // Handle right-click on PON
-    const handlePONRightClick = (e, index) => {
-      e.preventDefault(); // Prevent the default right-click menu
-      if(hasPermission("UPDATE_RACK")){
-        setSelectedPON(index + 1); // Set the selected PON (index starts from 1)
-        setShowModal(true);
-      } else{
-        alert("Permission Denied")
+  const isTwoPONRows = PON_RANGE > 15;
+  const lowerPONPorts = Array.from({ length: Math.ceil(PON_RANGE / 2) }).map(
+    (_, i) => 2 * i + 1,
+  );
+  const upperPONPorts = Array.from({ length: Math.floor(PON_RANGE / 2) }).map(
+    (_, i) => 2 * i + 2,
+  );
+
+  const [activeModal, setActiveModal] = useState(null); // 'PONs' | 'SFPs' | 'Ethernet'
+  const [selectedPortNumber, setSelectedPortNumber] = useState(null);
+
+  const [formState, setFormState] = useState({
+    connectedTo: "",
+    connectedPort: "",
+    assignedArea: "",
+  });
+
+  const [availableDevices, setAvailableDevices] = useState([]);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const getPortData = (sectionName, portNum) => {
+    console.log(
+      `Fetching port data for section: ${sectionName}, port number: ${portNum}`,
+      "from portsData:",
+      portsData,
+    );
+    const list = portsData[sectionName] || [];
+    return list.find((p) => Number(p.port) === Number(portNum)) || null;
+  };
+
+  useEffect(() => {
+    const loadOfficeDevices = async () => {
+      if (!rackId || !officeKey) return;
+      try {
+        const res = await API.get(`/rackinfo/${rackId}/offices/${officeKey}`);
+        const devices = res.data?.data?.devices || {};
+
+        const formatted = Object.entries(devices)
+          .filter(([id]) => id !== deviceId)
+          .map(([id, dev]) => ({
+            deviceId: id,
+            deviceKey: dev.deviceKey,
+            deviceType: dev.device,
+            serialNo: dev.serialNo || "",
+            fmsname: dev.fmsname || "",
+            swisp: dev.swisp || "",
+            oltType: dev.oltType || "",
+          }));
+
+        setAvailableDevices(formatted);
+      } catch (err) {
+        console.error("Failed to load office devices:", err);
       }
     };
 
-    // Handle right-click on Ethernet
-    const handleETHRightClick = (e, index) => {
-      e.preventDefault(); // Prevent the default right-click menu
-      if(hasPermission("UPDATE_RACK")){
-        setSelectedEth(index + 1); // Set the selected PON (index starts from 1)
-        setShowModal3(true);
-      }else{
-        alert("Permission Denied")
-      } // Show the modal
-    };
+    loadOfficeDevices();
+  }, [rackId, officeKey, deviceId]);
 
-    //Handle Right Click on SFP
-    const handleSFPRightClick = (e, index) => {
-      e.preventDefault(); // Prevent the default right-click menu
-      if(hasPermission("UPDATE_RACK")){
-        setSelectedSFP(index + 1); // Set the selected PON (index starts from 1)
-        setShowModal2(true);
-      }else{
-        alert("Permisison Denide")
-      } // Show the modal
-    };
+  // Restrict candidate devices based on active OLT section
+  const eligibleDevices = availableDevices.filter((dev) => {
+    if (activeModal === "Ethernet") {
+      // Ethernet cannot connect to FMS
+      return dev.deviceType === "Switch" || dev.deviceType === "OLT";
+    }
+    if (activeModal === "PONs") {
+      // PON ports can only link to optical distribution patch panels (FMS)
+      return dev.deviceType === "FMS";
+    }
+    if (activeModal === "SFPs") {
+      // SFPs can connect to Switch, FMS, or other OLTs
+      return (
+        dev.deviceType === "Switch" ||
+        dev.deviceType === "FMS" ||
+        dev.deviceType === "OLT"
+      );
+    }
+    return true;
+  });
 
-    const saveETHDetails = async () => {
-      const FmsRef = ref(db, `Rack Info/${officename}/${fmskey}/Ethernet/${ethDetails.connectedPort}`);
-      const oltPort = {
-        connectedTo : fmskey,
-        connectedPort: ethDetails.connectedPort,
-       }
-
-       const FmsPort = {
-        connectedTo : deviceIndex,
-        connectedPort: selectedEth,
-  
-       }
-
-       const snapshot = await get(FmsRef);
-      if (snapshot.exists()){
-        const connectedTo = snapshot.child('connectedTo').val();
-        const connectedPort = snapshot.child('connectedPort').val();
-        alert(`That Port is Already Connected to ${connectedTo} with Port ${connectedPort}`);
-      }else{
-        if (parseInt(ethDetails.connectedPort) > fmsmaxrange || (!ethDetails.connectedTo || ethDetails.connectedTo === '')) {
-          alert(`Port Number ${ethDetails.connectedPort} does not Exist in Device`);
-        }else{
-          try{
-            
-            await set(ref(db,  `Rack Info/${officename}/${deviceIndex}/Ethernet/${selectedEth}`), oltPort);
-            await set(ref(db,  `Rack Info/${officename}/${fmskey}/Ethernet/${ethDetails.connectedPort}`), FmsPort);
-            setShowModal(false);
-            alert(`Ethernet ${selectedEth} Details are Saved to Device ID ${fmskey} on Port ${ethDetails.connectedPort}`);
-  
-          }catch(error) {
-            console.log('Failed to Upload Data ' + error);
-          }
-        }
-        setShowModal2(false);
-       }
+  const handlePortRightClick = (e, section, portNumber) => {
+    e.preventDefault();
+    if (!hasPermission("UPDATE_RACK")) {
+      alert("Permission Denied");
+      return;
     }
 
-    const saveSFPDetails = async () => {
-      let FmsRef = '';
-      if (deviceselect === 'FMS'){
-        FmsRef = ref(db, `Rack Info/${officename}/${fmskey}/Ports/${sfpDetails.connectedPort}`);
-      }else{
-        FmsRef = ref(db, `Rack Info/${officename}/${fmskey}/SFPs/${sfpDetails.connectedPort}`);
+    const currentPort = getPortData(section, portNumber);
+    setSelectedPortNumber(portNumber);
+    setFormState({
+      connectedTo: currentPort?.connectedTo || "",
+      connectedPort: currentPort?.connectedPort
+        ? String(currentPort.connectedPort)
+        : "",
+      assignedArea: currentPort?.assignedArea || "",
+    });
+
+    setActiveModal(section);
+  };
+
+  const handleSavePort = async (section) => {
+    if (!rackId || !officeKey || !deviceId || !selectedPortNumber) return;
+
+    try {
+      setIsSaving(true);
+      const isDisconnect = !formState.connectedTo;
+
+      // Determine correct portType and targetSection based on the OLT section
+      let portType = "OTHER";
+      let targetSection = section;
+
+      if (section === "Ethernet") {
+        portType = "ETHERNET";
+        targetSection = "Ethernet";
+      } else if (section === "PONs") {
+        portType = "PON";
+        targetSection = "Ports"; // PON connects to FMS Ports
+      } else if (section === "SFPs") {
+        portType = "SFP";
+        targetSection = "SFPs";
       }
-      const oltPort = {
-        connectedTo : fmskey,
-        connectedPort: sfpDetails.connectedPort,
-       }
 
-       const FmsPort = {
-        connectedTo : deviceIndex,
-        connectedPort: selectedSFP,
-        portType: 'SFP',
-        assignedArea: sfpDetails.assignedArea
-  
-       }
-
-       const snapshot = await get(FmsRef);
-      if (snapshot.exists()){
-        const connectedTo = snapshot.child('connectedTo').val();
-        const connectedPort = snapshot.child('connectedPort').val();
-        alert(`That Port is Already Connected to ${connectedTo} with Port ${connectedPort}`);
-      }else{
-        if (parseInt(sfpDetails.connectedPort) > fmsmaxrange || (!sfpDetails.connectedTo || sfpDetails.connectedTo === '')) {
-          alert(`Port Number ${sfpDetails.connectedPort} does not Exist in Device/FMS`);
-        }else{
-          try{
-            
-            await set(ref(db,  `Rack Info/${officename}/${deviceIndex}/SFPs/${selectedSFP}`), oltPort);
-            await set(FmsRef, FmsPort);
-            setShowModal(false);
-            alert(`SFP ${selectedSFP} Details are Saved to Device/FMS ID ${fmskey} on Port ${sfpDetails.connectedPort}`);
-  
-          }catch(error) {
-            console.log('Failed to Upload Data ' + error);
-          }
-        }
-        setShowModal2(false);
-       }
-    }
-
-    // Handle form submission to save PON details
-    const savePONDetails = async() => {
-     const FmsRef = ref(db, `Rack Info/${officename}/${fmskey}/Ports/${ponDetails.connectedPort}`);
-
-     const oltPort = {
-      connectedTo : fmskey,
-      connectedPort: ponDetails.connectedPort,
-     }
-
-     const FmsPort = {
-      connectedTo : deviceIndex,
-      connectedPort: selectedPON,
-      portType: 'PON',
-      assignedArea: ponDetails.assignedArea
-
-     }
-     
-     const snapshot = await get(FmsRef);
-     if (snapshot.exists()){
-      const connectedTo = snapshot.child('connectedTo').val();
-      const connectedPort = snapshot.child('connectedPort').val();
-      alert(`That Port is Already Connected to ${connectedTo} with Port ${connectedPort}`);
-     }else{
-      if (parseInt(ponDetails.connectedPort) > fmsmaxrange || (!ponDetails.connectedTo || ponDetails.connectedTo === '')) {
-        alert(`Port Number ${ponDetails.connectedPort} does not exist in FMS`);
-      }else{
-        try{
-          
-          await set(ref(db,  `Rack Info/${officename}/${deviceIndex}/PONs/${selectedPON}`), oltPort);
-          await set(ref(db,  `Rack Info/${officename}/${fmskey}/Ports/${ponDetails.connectedPort}`), FmsPort);
-          setShowModal(false);
-          alert(`Pon ${selectedPON} Details are Saved to fms ID ${fmskey} on Port ${ponDetails.connectedPort}`);
-
-        }catch(error) {
-          console.log('Failed to Upload Data ' + error);
-        }
-      }
-     }
-      setShowModal(false); // Close the modal after saving
-    };
-
-    useEffect(() => {
-      
-        const RackRef = ref(db, `Rack Info/${officename}`);
-        // Setup the real-time listener
-        const unsubscribe = onValue(RackRef, (snapshots) => {
-          if (snapshots.exists()) {
-            const FMSArray = [];
-            const SwitchArray = [];
-            const OltArray = [];
-
-            const alloltdata = [];
-
-            
-            snapshots.forEach((snaps) => {
-              const device = snaps.val().device;
-              const fmsrange = snaps.val().fmsrange;
-              const fmsname = snaps.val().fmsname;
-              const serialNo = snaps.val().serialNo;
-              const devicekey = snaps.key;
-
-              const swisp = snaps.val().swisp;
-              const swethernetrange = snaps.val().swethernetrange;
-              const swsfpsrange = snaps.val().swsfpsrange;
-              
-              const ethernetRange = snaps.val().ethernetRange;
-              const sfpRange = snaps.val().sfpRange;
-              const manufacturer = snaps.val().manufacturer;
-              const oltType = snaps.val().oltType;
-  
-              if (device === 'FMS') {
-                FMSArray.push({ fmsrange, fmsname, serialNo, devicekey });
-              }else if(device === 'Switch'){
-                SwitchArray.push({swisp, swethernetrange, swsfpsrange, serialNo, devicekey});
-              }else if(device === 'OLT' && parseInt(devicekey) === deviceIndex){
-                OltArray.push({ethernetRange, sfpRange, manufacturer, oltType, serialNo});
-              }
-
-              if (device === 'OLT' && !deviceIndex){
-                alloltdata.push({oltType, devicekey, serialNo, sfpRange});
-              }
-
-            });
-
-            setOldData(alloltdata);
-            setArrayFMS(FMSArray);
-            setArrayOlt(OltArray);
-            setArraySwitch(SwitchArray);
-            
-          }
-        });
-  
-        // Cleanup the listener when component unmounts or `show` changes
-        return () => unsubscribe();
-      
-    }, [officename]);
-
-    useEffect(() => {
-      const fetchData = async () => {
-        try {
-          const portsRef = ref(db, `Rack Info/${officename}/${deviceIndex}`);
-          const snapshot = await get(portsRef);
-          
-          if (snapshot.exists()) {
-            const data = snapshot.val();
-            // Check if the PONs, SFPs, and Ethernet ports have connectedTo
-            const ponPorts = data.PONs || {};
-            const sfpPorts = data.SFPs || {};
-            const ethernetPorts = data.Ethernet || {};
-            
-            // Mark ports with connectedTo
-            const ponStatus = Array.from({ length: PON_RANGE }).map((_, index) => !!ponPorts[index + 1]?.connectedTo);
-            const sfpStatus = Array.from({ length: SFP_RANGE }).map((_, index) => !!sfpPorts[index + 1]?.connectedTo);
-            const ethernetStatus = Array.from({ length: ETHERNET_RANGE }).map((_, index) => !!ethernetPorts[index + 1]?.connectedTo);
-            
-            setPonStatus(ponStatus);
-            setSfpStatus(sfpStatus);
-            setEthernetStatus(ethernetStatus);
-          }
-        } catch (error) {
-          console.error("Error fetching data:", error);
-        }
+      const payload = {
+        section,
+        connectedTo: isDisconnect ? null : formState.connectedTo,
+        connectedPort: isDisconnect ? null : String(formState.connectedPort),
+        assignedArea: isDisconnect ? "" : formState.assignedArea,
+        portType: isDisconnect ? undefined : portType,
+        targetSection: isDisconnect ? undefined : targetSection,
       };
-    
-      fetchData();
-    }, [officename, deviceIndex, PON_RANGE, SFP_RANGE, ETHERNET_RANGE]);
-    
 
-    if (!show) return null
+      await API.put(
+        `/rackinfo/${rackId}/offices/${officeKey}/devices/${deviceId}/ports/${selectedPortNumber}`,
+        payload,
+      );
+
+      setActiveModal(null);
+      if (typeof onPortUpdate === "function") {
+        onPortUpdate();
+      }
+    } catch (err) {
+      alert(`Error: ${err.response?.data?.message || err.message}`);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (!show) return null;
 
   return (
-    <>
-      <div className="olt-container">
-        <div className="olt-device-panel">
-          
-          {/* Device Info Header */}
-          <div className="device-info-header">
-            {arrayolt.map(({manufacturer, serialNo, oltType}, index) => (
-              <div key={index} className="device-info">
-                <div className="device-brand">{manufacturer}</div>
-                <div className="device-model">{oltType}</div>
-                <div className="device-serial">{serialNo}</div>
-              </div>
-            ))}
-            
-            <div className="device-indicator">
-              <div className="power-led active"></div>
-              <span className="led-label">PWR</span>
-            </div>
+    <div
+      style={{
+        display: "inline-flex",
+        flexDirection: "column",
+        width: "fit-content",
+        maxWidth: "100%",
+        padding: "10px",
+        borderRadius: "14px",
+        backgroundColor: "#d97706",
+        boxShadow: "0 6px 14px rgba(0,0,0,0.35)",
+        margin: "12px auto",
+      }}
+    >
+      <div
+        style={{
+          display: "inline-flex",
+          flexDirection: "row",
+          width: "fit-content",
+          minHeight: "96px",
+          border: "2px solid #1a202c",
+          padding: "8px 16px",
+          alignItems: "center",
+          backgroundColor: "#f8fafc",
+          borderRadius: "8px",
+          gap: "18px",
+          overflowX: "auto",
+        }}
+      >
+        {/* Device Information */}
+        <div
+          style={{
+            minWidth: "125px",
+            borderRight: "1px solid #cbd5e1",
+            paddingRight: "12px",
+          }}
+        >
+          <div
+            style={{ fontSize: "12px", fontWeight: "700", color: "#0f172a" }}
+          >
+            OLT: {deviceId}
           </div>
+          <div style={{ fontSize: "11px", color: "#475569" }}>
+            Key: {deviceIndex}
+          </div>
+          <div style={{ fontSize: "11px", color: "#64748b" }}>{officename}</div>
+        </div>
 
-          {/* Ports Section */}
-          <div className="ports-container">
-            
-            {/* PON Ports Section */}
-            <div className="port-section pon-section">
-              <div className="section-label">PON PORTS</div>
-              <div className="ports-grid">
-                {Array.from({ length: PON_RANGE }).map((_, index) => (
-                  <div 
-                    key={index} 
-                    className={`port-item pon-port ${ponStatus[index] ? 'connected' : 'disconnected'}`}
-                    onContextMenu={(e) => handlePONRightClick(e, index)}
+        {/* PON Section */}
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <span
+            style={{
+              fontSize: "10px",
+              fontWeight: "700",
+              color: "#334155",
+              marginBottom: "3px",
+            }}
+          >
+            PON
+          </span>
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <div style={{ display: "flex", flexDirection: "row", gap: "2px" }}>
+              {(isTwoPONRows
+                ? upperPONPorts
+                : Array.from({ length: PON_RANGE }, (_, i) => i + 1)
+              ).map((portNum) => {
+                const portObj = getPortData("PONs", portNum);
+                const isConnected = Boolean(portObj?.connectedTo);
+                return (
+                  <div
+                    key={portNum}
+                    onContextMenu={(e) =>
+                      handlePortRightClick(e, "PONs", portNum)
+                    }
+                    style={{
+                      width: "26px",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      cursor: "pointer",
+                    }}
+                    title={
+                      isConnected
+                        ? `Connected to: ${portObj.connectedTo} (Port ${portObj.connectedPort})`
+                        : `PON ${portNum} (Available)`
+                    }
                   >
-                    <img 
-                      alt="" 
-                      src={PONPort} 
-                      className="port-image"
+                    <img
+                      alt={`PON ${portNum}`}
+                      src={PONPort}
+                      style={{
+                        width: "20px",
+                        height: "20px",
+                        backgroundColor: isConnected ? "#16a34a" : "#e2e8f0",
+                        borderRadius: "2px",
+                        padding: "1px",
+                      }}
                     />
-                    <span className="port-number">{index + 1}</span>
-                    {ponStatus[index] && <div className="connection-indicator"></div>}
+                    <span
+                      style={{
+                        fontSize: "7.5px",
+                        color: "#334155",
+                        marginTop: "1px",
+                      }}
+                    >
+                      {portNum}
+                    </span>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
 
-            {/* SFP Ports Section */}
-            <div className="port-section sfp-section">
-              <div className="section-label">SFP+ PORTS</div>
-              <div className="ports-grid">
-                {Array.from({ length: SFP_RANGE }).map((_, index) => (
-                  <div 
-                    key={index} 
-                    className={`port-item sfp-port ${sfpStatus[index] ? 'connected' : 'disconnected'}`}
-                    onContextMenu={(e) => handleSFPRightClick(e, index)}
-                  >
-                    <div className="sfp-slot"></div>
-                    <span className="port-number">GE {index + 1}</span>
-                    {sfpStatus[index] && <div className="connection-indicator"></div>}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Ethernet Ports Section */}
-            <div className="port-section ethernet-section">
-              <div className="section-label">ETHERNET PORTS</div>
-              <div className={`ethernet-container ${isTwoRows ? 'two-rows' : 'single-row'}`}>
-                
-                {ETHERNET_RANGE < 8 ? (
-                  <div className="ethernet-row">
-                    {Array.from({ length: ETHERNET_RANGE }).map((_, index) => (
-                      <div 
-                        key={index} 
-                        className={`port-item ethernet-port ${ethernetStatus[index] ? 'connected' : 'disconnected'}`}
-                        onContextMenu={(e) => handleETHRightClick(e, index)}
+            {isTwoPONRows && (
+              <div
+                style={{ display: "flex", flexDirection: "row", gap: "2px" }}
+              >
+                {lowerPONPorts.map((portNum) => {
+                  const portObj = getPortData("PONs", portNum);
+                  const isConnected = Boolean(portObj?.connectedTo);
+                  return (
+                    <div
+                      key={portNum}
+                      onContextMenu={(e) =>
+                        handlePortRightClick(e, "PONs", portNum)
+                      }
+                      style={{
+                        width: "26px",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        cursor: "pointer",
+                      }}
+                      title={
+                        isConnected
+                          ? `Connected to: ${portObj.connectedTo} (Port ${portObj.connectedPort})`
+                          : `PON ${portNum} (Available)`
+                      }
+                    >
+                      <img
+                        alt={`PON ${portNum}`}
+                        src={PONPort}
+                        style={{
+                          width: "20px",
+                          height: "20px",
+                          backgroundColor: isConnected ? "#16a34a" : "#e2e8f0",
+                          borderRadius: "2px",
+                          padding: "1px",
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontSize: "7.5px",
+                          color: "#334155",
+                          marginTop: "1px",
+                        }}
                       >
-                        <img
-                          alt=""
-                          src={EthernetPort}
-                          className={`port-image ${!isTwoRows ? 'rotated' : ''}`}
-                        />
-                        <span className="port-number">GE {index + 1}</span>
-                        {ethernetStatus[index] && <div className="connection-indicator"></div>}
-                      </div>
-                    ))}
+                        {portNum}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* SFP Section */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            borderLeft: "1px solid #cbd5e1",
+            paddingLeft: "14px",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "10px",
+              fontWeight: "700",
+              color: "#334155",
+              marginBottom: "3px",
+            }}
+          >
+            SFP
+          </span>
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <div style={{ display: "flex", flexDirection: "row", gap: "6px" }}>
+              {(isSFPTwoRows
+                ? SFPupperRowPorts
+                : Array.from({ length: SFP_RANGE }, (_, i) => i + 1)
+              ).map((portNum) => {
+                const portObj = getPortData("SFPs", portNum);
+                const isConnected = Boolean(portObj?.connectedTo);
+                return (
+                  <div
+                    key={portNum}
+                    onContextMenu={(e) =>
+                      handlePortRightClick(e, "SFPs", portNum)
+                    }
+                    style={{
+                      width: "28px",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      cursor: "pointer",
+                    }}
+                    title={
+                      isConnected
+                        ? `Connected to: ${portObj.connectedTo} (Port ${portObj.connectedPort})`
+                        : `SFP ${portNum} (Available)`
+                    }
+                  >
+                    <div
+                      style={{
+                        width: "22px",
+                        height: "20px",
+                        backgroundColor: isConnected ? "#16a34a" : "#0f172a",
+                        borderRadius: "3px",
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: "7.5px",
+                        color: "#334155",
+                        marginTop: "2px",
+                      }}
+                    >
+                      GE {portNum}
+                    </span>
                   </div>
-                ) : (
-                  <>
-                    <div className="ethernet-row upper-row">
-                      {upperRowPorts.map((portNumber, index) => (
-                        <div 
-                          key={index} 
-                          className={`port-item ethernet-port ${ethernetStatus[portNumber - 1] ? 'connected' : 'disconnected'}`}
-                          onContextMenu={(e) => handleETHRightClick(e, portNumber - 1)}
-                        >
-                          <span className="port-number top">GE {portNumber}</span>
-                          <img
-                            alt=""
-                            src={EthernetPort}
-                            className="port-image rotated"
-                          />
-                          {ethernetStatus[portNumber - 1] && <div className="connection-indicator"></div>}
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="ethernet-row lower-row">
-                      {lowerRowPorts.map((portNumber, index) => (
-                        <div 
-                          key={index} 
-                          className={`port-item ethernet-port ${ethernetStatus[portNumber - 1] ? 'connected' : 'disconnected'}`}
-                          onContextMenu={(e) => handleETHRightClick(e, portNumber - 1)}
-                        >
-                          <img
-                            alt=""
-                            src={EthernetPort}
-                            className="port-image"
-                          />
-                          <span className="port-number bottom">GE {portNumber}</span>
-                          {ethernetStatus[portNumber - 1] && <div className="connection-indicator"></div>}
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
+                );
+              })}
             </div>
 
-            {/* Management Ports */}
-            <div className="port-section management-section">
-              <div className="section-label">MGMT</div>
-              <div className="mgmt-ports">
-                <div className="port-item mgmt-port">
-                  <span className="port-number top">Console</span>
-                  <img alt="" src={EthernetPort} className="port-image rotated" />
-                </div>
-
-                <div className="port-item mgmt-port">
-                  <img alt="" src={EthernetPort} className="port-image" />
-                  <span className="port-number bottom">AUX</span>
-                </div>
+            {isSFPTwoRows && (
+              <div
+                style={{ display: "flex", flexDirection: "row", gap: "6px" }}
+              >
+                {SFPlowerRowPorts.map((portNum) => {
+                  const portObj = getPortData("SFPs", portNum);
+                  const isConnected = Boolean(portObj?.connectedTo);
+                  return (
+                    <div
+                      key={portNum}
+                      onContextMenu={(e) =>
+                        handlePortRightClick(e, "SFPs", portNum)
+                      }
+                      style={{
+                        width: "28px",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        cursor: "pointer",
+                      }}
+                      title={
+                        isConnected
+                          ? `Connected to: ${portObj.connectedTo} (Port ${portObj.connectedPort})`
+                          : `SFP ${portNum} (Available)`
+                      }
+                    >
+                      <div
+                        style={{
+                          width: "22px",
+                          height: "20px",
+                          backgroundColor: isConnected ? "#16a34a" : "#0f172a",
+                          borderRadius: "3px",
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontSize: "7.5px",
+                          color: "#334155",
+                          marginTop: "2px",
+                        }}
+                      >
+                        GE {portNum}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
+            )}
+          </div>
+        </div>
+
+        {/* Ethernet Section */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            borderLeft: "1px solid #cbd5e1",
+            paddingLeft: "14px",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "10px",
+              fontWeight: "700",
+              color: "#334155",
+              marginBottom: "3px",
+            }}
+          >
+            Ethernet
+          </span>
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <div style={{ display: "flex", flexDirection: "row", gap: "2px" }}>
+              {(isTwoRows
+                ? upperRowPorts
+                : Array.from({ length: ETHERNET_RANGE }, (_, i) => i + 1)
+              ).map((portNum) => {
+                const portObj = getPortData("Ethernet", portNum);
+                const isConnected = Boolean(portObj?.connectedTo);
+                return (
+                  <div
+                    key={portNum}
+                    onContextMenu={(e) =>
+                      handlePortRightClick(e, "Ethernet", portNum)
+                    }
+                    style={{
+                      width: "26px",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      cursor: "pointer",
+                    }}
+                    title={
+                      isConnected
+                        ? `Connected to: ${portObj.connectedTo} (Port ${portObj.connectedPort})`
+                        : `ETH ${portNum} (Available)`
+                    }
+                  >
+                    <img
+                      alt={`ETH ${portNum}`}
+                      src={EthernetPort}
+                      style={{
+                        width: "20px",
+                        height: "20px",
+                        transform: "rotate(180deg)",
+                        backgroundColor: isConnected ? "#16a34a" : "#e2e8f0",
+                        borderRadius: "2px",
+                        padding: "1px",
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: "7.5px",
+                        color: "#334155",
+                        marginTop: "1px",
+                      }}
+                    >
+                      GE {portNum}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
 
+            {isTwoRows && (
+              <div
+                style={{ display: "flex", flexDirection: "row", gap: "2px" }}
+              >
+                {lowerRowPorts.map((portNum) => {
+                  const portObj = getPortData("Ethernet", portNum);
+                  const isConnected = Boolean(portObj?.connectedTo);
+                  return (
+                    <div
+                      key={portNum}
+                      onContextMenu={(e) =>
+                        handlePortRightClick(e, "Ethernet", portNum)
+                      }
+                      style={{
+                        width: "26px",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        cursor: "pointer",
+                      }}
+                      title={
+                        isConnected
+                          ? `Connected to: ${portObj.connectedTo} (Port ${portObj.connectedPort})`
+                          : `ETH ${portNum} (Available)`
+                      }
+                    >
+                      <img
+                        alt={`ETH ${portNum}`}
+                        src={EthernetPort}
+                        style={{
+                          width: "20px",
+                          height: "20px",
+                          backgroundColor: isConnected ? "#16a34a" : "#e2e8f0",
+                          borderRadius: "2px",
+                          padding: "1px",
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontSize: "7.5px",
+                          color: "#334155",
+                          marginTop: "1px",
+                        }}
+                      >
+                        GE {portNum}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Modal for Editing PON Details */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} className="custom-modal">
+      {/* Modal */}
+      <Modal
+        show={Boolean(activeModal)}
+        onHide={() => setActiveModal(null)}
+        centered
+      >
         <Modal.Header closeButton>
-          <Modal.Title>Configure PON Port {selectedPON}</Modal.Title>
+          <Modal.Title>
+            Edit OLT {activeModal} Port {selectedPortNumber}
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <form className='modal-form'>
-            <div className="form-group">
-              <label className="form-label">Connected To</label>
-              <select 
-                onChange={(e) => {
-                  const selectedfms = e.target.value;
-                  setPONDetails({ ...ponDetails, connectedTo: selectedfms });
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSavePort(activeModal);
+            }}
+          >
+            <div className="alert alert-info py-2" style={{ fontSize: "12px" }}>
+              {activeModal === "Ethernet" &&
+                "Ethernet ports can only connect to Ethernet interfaces on Switches or OLTs (No FMS/PON/SFP)."}
+              {activeModal === "PONs" &&
+                "PON ports can only connect to optical patch panel ports (FMS)."}
+              {activeModal === "SFPs" &&
+                "SFP ports can connect to Switch SFPs, other OLT SFPs, or FMS patch ports (No PONs)."}
+            </div>
 
-                  const setSelectedFMS = arrayfms.find(fms => fms.fmsname === selectedfms);
-                  if (setSelectedFMS) {
-                    setFmsMaxRange(parseInt(setSelectedFMS.fmsrange));
-                    setFmsKey(setSelectedFMS.devicekey);
-                  }else{
-                    setFmsMaxRange(0);
-                    setFmsKey(undefined);
-                  }
-                }} 
-                className='form-select'
-              >
-                <option value=''>Choose FMS Device...</option>
-                {
-                  arrayfms.length > 0 ? (
-                    arrayfms.map(({ fmsname, serialNo }, index) => (
-                      <option key={index} value={fmsname}>{`${fmsname} : ${serialNo}` }</option>
-                    ))
-                  ) : (
-                    <option>Please Add FMS</option>
-                  )
+            {/* Target Device Dropdown */}
+            <div className="mb-3">
+              <label className="form-label">Connected Device</label>
+              <select
+                className="form-select"
+                value={formState.connectedTo}
+                onChange={(e) =>
+                  setFormState({
+                    ...formState,
+                    connectedTo: e.target.value,
+                    connectedPort: "",
+                  })
                 }
+              >
+                <option value="">-- Disconnected / None --</option>
+                {eligibleDevices.map((d) => (
+                  <option key={d.deviceId} value={d.deviceId}>
+                    {d.deviceId} ({d.deviceType} -{" "}
+                    {d.fmsname || d.swisp || d.oltType || d.serialNo})
+                  </option>
+                ))}
               </select>
-            </div>
-            
-            <div className="form-group">
-              <label className="form-label">Connected Port</label>
-              <input
-                type="number"
-                className="form-control"
-                placeholder="Enter port number"
-                value={ponDetails.connectedPort}
-                onChange={(e) => setPONDetails({ ...ponDetails, connectedPort: e.target.value })}
-              />
+              {eligibleDevices.length === 0 && (
+                <div className="text-danger mt-1" style={{ fontSize: "11px" }}>
+                  No compatible devices available in this office for{" "}
+                  {activeModal} ports.
+                </div>
+              )}
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Assigned Area/Name</label>
+            {/* Target Port Number */}
+            {formState.connectedTo && (
+              <div className="mb-3">
+                <label className="form-label">Connected Port Number</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="1000"
+                  required
+                  className="form-control"
+                  value={formState.connectedPort}
+                  onChange={(e) =>
+                    setFormState({
+                      ...formState,
+                      connectedPort: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            )}
+
+            {/* Assigned Area / Label */}
+            <div className="mb-3">
+              <label className="form-label">Assigned Area / Label</label>
               <input
                 type="text"
                 className="form-control"
-                placeholder="Enter area or description"
-                value={ponDetails.assignedArea}
-                onChange={(e) => setPONDetails({ ...ponDetails, assignedArea: e.target.value })}
-              />
-            </div>
-            
-            <Button variant="primary" onClick={savePONDetails} className="save-btn">
-              Save Configuration
-            </Button>
-          </form>
-        </Modal.Body>
-      </Modal>
-
-      {/* Modal for Editing SFP Details */}
-      <Modal show={showModal2} onHide={() => setShowModal2(false)} className="custom-modal">
-        <Modal.Header closeButton>
-          <Modal.Title>Configure SFP+ Port {selectedSFP}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <form className='modal-form'>
-            <div className='form-group'>
-              <label className='form-label'>Device Type</label>
-              <select 
-                onChange={(e) => {
-                  const selectedValue = e.target.value;
-                  setDeviceSelect(selectedValue);
-                  if (selectedValue === 'Switch'){
-                    setSelectDevice(arrayswitch);
-                  }else if(selectedValue === 'FMS'){
-                    setSelectDevice(arrayfms);
-                  }else if (selectedValue === 'OLT'){
-                    setSelectDevice(oltdata);
-                  }
-                }} 
-                className='form-select'
-              >
-                <option value=''>Choose Device Type...</option>
-                <option value='Switch'>Switch</option>
-                <option value='FMS'>FMS</option>
-                <option value='OLT'>OLT</option>
-              </select>
-            </div>
-            
-            <div className="form-group">
-              <label className="form-label">Connected To</label>
-              <select 
-                onChange={(e) => {
-                  const selectedDeviceKey = e.target.value;
-                  setSFPDetails({ ...sfpDetails, connectedTo: selectedDeviceKey });
-
-                  const selectedDevice = selectDevice.find(device => device.devicekey === selectedDeviceKey);
-                  
-                  if (selectedDevice) {
-                    const maxRange = selectedDevice.fmsrange || selectedDevice.sfpRange || selectedDevice.swsfpsrange;
-                    setFmsMaxRange(parseInt(maxRange) || 0);
-                    setFmsKey(selectedDevice.devicekey);
-                  } else {
-                    setFmsMaxRange(0);
-                    setFmsKey(undefined);
-                  }
-                }} 
-                className="form-select"
-              >
-                <option value=''>Choose Device...</option>
-                {
-                  selectDevice.length > 0 ? (
-                    selectDevice.map(({ fmsname, swisp, serialNo, oltType, devicekey }, index) => {
-                      let displayText = '';
-
-                      if (fmsname) {
-                        displayText = `${fmsname} : ${serialNo}`;
-                      } else if (swisp) {
-                        displayText = `${swisp} : ${serialNo}`;
-                      } else if (oltType) {
-                        displayText = `${oltType} : ${serialNo}`;
-                      }
-
-                      return (
-                        <option key={index} value={devicekey}>
-                          {displayText}
-                        </option>
-                      );
-                    })
-                  ) : (
-                    <option value=''>No Data</option>
-                  )
+                placeholder="e.g. Rack A - Uplink"
+                value={formState.assignedArea}
+                onChange={(e) =>
+                  setFormState({ ...formState, assignedArea: e.target.value })
                 }
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Connected Port</label>
-              <input
-                type="number"
-                className="form-control"
-                placeholder="Enter port number"
-                value={sfpDetails.connectedPort}
-                onChange={(e) => setSFPDetails({ ...sfpDetails, connectedPort: e.target.value })}
               />
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Assigned Area/Name</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Enter area or description"
-                value={sfpDetails.assignedArea}
-                onChange={(e) => setSFPDetails({ ...sfpDetails, assignedArea: e.target.value })}
-              />
+            <div className="d-flex justify-content-end gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => setActiveModal(null)}
+                disabled={isSaving}
+              >
+                Cancel
+              </Button>
+              <Button variant="primary" type="submit" disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Details"}
+              </Button>
             </div>
-            
-            <Button variant="primary" onClick={saveSFPDetails} className="save-btn">
-              Save Configuration
-            </Button>
           </form>
         </Modal.Body>
       </Modal>
+    </div>
+  );
+};
 
-      {/* Modal for Editing Ethernet Details */}
-      <Modal show={showModal3} onHide={() => setShowModal3(false)} className="custom-modal">
-        <Modal.Header closeButton>
-          <Modal.Title>Configure Ethernet Port {selectedEth}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <form className='modal-form'>
-            <div className='form-group'>
-              <label className='form-label'>Device Type</label>
-              <select 
-                onChange={(e) => {
-                  const selectedValue = e.target.value;
-                  if (selectedValue === 'Switch'){
-                    setSelectDevice(arrayswitch);
-                  }else if (selectedValue === 'OLT'){
-                    setSelectDevice(oltdata);
-                  }
-                }} 
-                className='form-select'
-              >
-                <option value=''>Choose Device Type...</option>
-                <option value='Switch'>Switch</option>
-                <option value='OLT'>OLT</option>
-              </select>
-            </div>
-            
-            <div className="form-group">
-              <label className="form-label">Connected To</label>
-              <select 
-                onChange={(e) => {
-                  const selectedDeviceKey = e.target.value;
-                  setEthDetails({ ...ethDetails, connectedTo: selectedDeviceKey });
-
-                  const selectedDevice = selectDevice.find(device => device.devicekey === selectedDeviceKey);
-                  
-                  if (selectedDevice) {
-                    const maxRange = selectedDevice.ethernetRange || selectedDevice.swethernetrange;
-                    setFmsMaxRange(parseInt(maxRange) || 0);
-                    setFmsKey(selectedDevice.devicekey);
-                  } else {
-                    setFmsMaxRange(0);
-                    setFmsKey(undefined);
-                  }
-                }} 
-                className="form-select"
-              >
-                <option value=''>Choose Device...</option>
-                {
-                  selectDevice.length > 0 ? (
-                    selectDevice.map(({ swisp, serialNo, oltType, devicekey }, index) => {
-                      let displayText = '';
-
-                     if (swisp) {
-                        displayText = `${swisp} : ${serialNo}`;
-                      } else if (oltType) {
-                        displayText = `${oltType} : ${serialNo}`;
-                      }
-
-                      return (
-                        <option key={index} value={devicekey}>
-                          {displayText}
-                        </option>
-                      );
-                    })
-                  ) : (
-                    <option value=''>No Data</option>
-                  )
-                }
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Connected Port</label>
-              <input
-                type="number"
-                className="form-control"
-                placeholder="Enter port number"
-                value={ethDetails.connectedPort}
-                onChange={(e) => setEthDetails({ ...ethDetails, connectedPort: e.target.value })}
-              />
-            </div>
-            
-            <Button variant="primary" onClick={saveETHDetails} className="save-btn">
-              Save Configuration
-            </Button>
-          </form>
-        </Modal.Body>
-      </Modal>
-    </>
-  )
-}
-
-export default SYOLT
+export default SYOLT;

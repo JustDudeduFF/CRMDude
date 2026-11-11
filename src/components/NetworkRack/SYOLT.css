@@ -52,7 +52,7 @@
 }
 
 .device-brand {
-  font-size: 1rem;
+  font-size: 16px;
   font-weight: 700;
   color: #ecf0f1;
   text-transform: uppercase;
@@ -60,13 +60,13 @@
 }
 
 .device-model {
-  font-size: 0.9rem;
+  font-size: 14px;
   font-weight: 600;
   color: #bdc3c7;
 }
 
 .device-serial {
-  font-size: 0.8rem;
+  font-size: 12px;
   color: #95a5a6;
   font-family: 'Courier New', monospace;
 }
@@ -96,7 +96,7 @@
 }
 
 .led-label {
-  font-size: 0.7rem;
+  font-size: 10px;
   color: #bdc3c7;
   font-weight: 600;
 }
@@ -125,7 +125,7 @@
 }
 
 .section-label {
-  font-size: 0.75rem;
+  font-size: 11px;
   font-weight: 700;
   color: #bdc3c7;
   text-transform: uppercase;
@@ -186,7 +186,7 @@
 }
 
 .port-number {
-  font-size: 0.65rem;
+  font-size: 9px;
   font-weight: 600;
   color: #ecf0f1;
   text-align: center;
@@ -316,7 +316,7 @@
 .custom-modal .modal-title {
   color: #ecf0f1;
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 18px;
 }
 
 .custom-modal .btn-close {
@@ -341,7 +341,7 @@
   margin-bottom: 8px;
   color: #bdc3c7;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 14px;
 }
 
 .form-control,
@@ -351,7 +351,7 @@
   border-radius: 8px;
   color: #ecf0f1;
   padding: 12px 15px;
-  font-size: 0.9rem;
+  font-size: 14px;
   transition: all 0.3s ease;
   width: 100%;
 }
@@ -453,7 +453,7 @@
   }
   
   .section-label {
-    font-size: 0.7rem;
+    font-size: 10px;
   }
   
   .port-item {
@@ -466,7 +466,7 @@
   }
   
   .port-number {
-    font-size: 0.6rem;
+    font-size: 8px;
   }
 }
 

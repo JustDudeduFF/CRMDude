@@ -14,7 +14,7 @@ import ReportsOthers from "./ReportsOthers";
 import { useNavigate } from "react-router-dom";
 import { Modal } from "react-bootstrap";
 import { toast, ToastContainer } from "react-toastify";
-import { API } from "../FirebaseConfig";
+import { API, SOCKET_URL } from "../FirebaseConfig";
 import "./Navbar.css";
 import {
   FiRefreshCw,
@@ -133,7 +133,7 @@ export default function Navbar() {
   }, [showMobileSearch]);
 
   useEffect(() => {
-    socketRef.current = io("https://dudeapi.justdude.in", {
+    socketRef.current = io(SOCKET_URL, {
       auth: {
         partnerId,
       },

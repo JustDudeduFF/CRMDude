@@ -1,3 +1,4 @@
+import { useRecordView, RecordToolbar, RecordFooter } from './SubscriberSection';
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePermissions } from "../PermissionProvider";
@@ -80,12 +81,15 @@ export default function TicketTable() {
     setActionModal(true);
   };
 
+  const recordView = useRecordView(arrayticket, { statusKey: 'status' });
+
   return (
     <div className="ticket-master-container">
       <ToastContainer className="mt-3" />
 
-      <div className="table-card shadow-sm border-0">
-        <div className="table-responsive">
+      <div className="table-card sub-record-panel">
+        <RecordToolbar view={recordView} label="tickets" filename="subscriber-tickets" loading={isLoading}/>
+      <div className="table-responsive">
           <table className="modern-ticket-table">
             <thead>
               <tr>
@@ -107,8 +111,8 @@ export default function TicketTable() {
                     <p className="mt-2 text-muted fw-bold">Fetching records...</p>
                   </td>
                 </tr>
-              ) : arrayticket.length > 0 ? (
-                arrayticket.map((ticket, index) => (
+              ) : recordView.count > 0 ? (
+                recordView.records.map((ticket, index) => (
                   <tr key={index} className={ticket.status === "Canceled" ? "row-muted" : ""}>
                     <td className="text-center">
                        <button 
@@ -159,6 +163,7 @@ export default function TicketTable() {
             </tbody>
           </table>
         </div>
+      <RecordFooter view={recordView} label="tickets"/>
       </div>
 
       {/* --- MAIN ACTION MODAL --- */}

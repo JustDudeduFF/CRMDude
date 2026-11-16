@@ -23,6 +23,7 @@ import {
 import * as XLSX from "xlsx";
 import ExpiredUsersBarChart from "./ExpiredUsersBarChart";
 import "./DashFirstDiv.css";
+import DailyAttendanceLogs from "./DailyAttendanceLogs";
 
 
 const api = process.env.REACT_APP_API_URL;
@@ -60,7 +61,6 @@ export default function DashFirstDiv() {
 
   const [arryadue, setDueArray] = useState(0);
 
-  const [attendenceArray, setAttendenceArray] = useState([]);
   const [state, setState] = useState({
     companyArray: [],
     installationArray: [],
@@ -167,9 +167,6 @@ export default function DashFirstDiv() {
     fetchData();
   }, []);
 
-  function openPayroll() {
-    navigate("/dashboard/payrollandattendence");
-  }
 
   const fetchData = async () => {
     try {
@@ -317,54 +314,7 @@ export default function DashFirstDiv() {
             <div className="dashboard-row">
               {/* Attendance Section */}
               {hasPermission("VIEW_ATTENDENCE") ? (
-                <div className="dashboard-card">
-                  <div className="card-header">
-                    <h3 className="card-title">
-                      <i className="fas fa-clock"></i>
-                      Daily Attendance Logs
-                    </h3>
-                    <img
-                      onClick={() => openPayroll()}
-                      alt="Expand"
-                      className="expand-icon"
-                      src={ExpandIcon}
-                    />
-                  </div>
-                  <div className="table-container">
-                    <table className="dashboard-table">
-                      <thead>
-                        <tr>
-                          <th>S. No.</th>
-                          <th>Full Name</th>
-                          <th>In Time</th>
-                          <th>Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {attendenceArray.map((item, index) => (
-                          <tr key={index}>
-                            <td>{index + 1}</td>
-                            <td>{item.fullname}</td>
-                            <td>{item.intime}</td>
-                            <td>
-                              <span
-                                className={`status-badge ${
-                                  item.status === "Absent"
-                                    ? "status-absent"
-                                    : item.status === "Present"
-                                    ? "status-present"
-                                    : "status-late"
-                                }`}
-                              >
-                                {item.status}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                <DailyAttendanceLogs />
               ) : (
                 <div className="dashboard-card">
                   <div className="charts-container">

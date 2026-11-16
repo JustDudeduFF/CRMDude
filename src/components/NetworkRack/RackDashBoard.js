@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { usePermissions } from "../PermissionProvider";
 import { API } from "../../FirebaseConfig";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import RackDash from "./RackDash";
@@ -18,6 +19,8 @@ import {
 } from "lucide-react";
 
 export default function RackDashBoard() {
+  const { hasPermission } = usePermissions();
+  const canView = hasPermission("VIEW_RACK");
   const partnerId = localStorage.getItem("partnerId");
   const [RackID, setRackId] = useState("");
   const [roomarray, setRoomArray] = useState([]);
@@ -32,10 +35,11 @@ export default function RackDashBoard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchRacks();
-  }, []);
+    if (canView) fetchRacks();
+  }, [canView]);
 
   const handleClick = async () => {
+    if (!hasPermission("VIEW_RACK") || !hasPermission("UPDATE_RACK")) return;
     try {
       const RoomData = {
         officeKey: rackname.trim().toLowerCase().replace(/\s+/g, "_"),
@@ -65,6 +69,7 @@ export default function RackDashBoard() {
   // Open Edit Modal
   const openEditOffice = (e, office) => {
     e.stopPropagation();
+    if (!hasPermission("UPDATE_RACK")) return;
     setEditingOffice({
       officeKey: office.officeKey,
       officename: office.name,
@@ -74,6 +79,7 @@ export default function RackDashBoard() {
 
   // Save Office Name (PUT /api/rackinfo/:id/offices/:officeKey)
   const handleUpdateOffice = async () => {
+    if (!hasPermission("VIEW_RACK") || !hasPermission("UPDATE_RACK")) return;
     if (!editingOffice.officename.trim()) {
       toast.error("Office name cannot be empty");
       return;
@@ -101,6 +107,7 @@ export default function RackDashBoard() {
   // Delete Office (DELETE /api/rackinfo/:id/offices/:officeKey)
   const handleDeleteOffice = async (e, officeKey, officename) => {
     e.stopPropagation();
+    if (!hasPermission("UPDATE_RACK")) return;
     if (!window.confirm(`Are you sure you want to delete rack/office "${officename}"? This will delete all devices inside it.`)) {
       return;
     }
@@ -166,6 +173,8 @@ export default function RackDashBoard() {
     }
   };
 
+  if (!hasPermission("VIEW_RACK")) return <div className="p-4" role="alert">You do not have permission to view network racks.</div>;
+
   return (
     <div className="rack-dashboard-container">
       <ToastContainer />
@@ -188,6 +197,7 @@ export default function RackDashBoard() {
           </div>
         </div>
         <button
+          disabled={!hasPermission("UPDATE_RACK")}
           onClick={() => setShowRoom(true)}
           className="btn btn-primary btn-add-room"
         >
@@ -231,6 +241,7 @@ export default function RackDashBoard() {
                       <button
                         className="btn-action edit"
                         title="Edit Name"
+                        disabled={!hasPermission("UPDATE_RACK")}
                         onClick={(e) => openEditOffice(e, room)}
                       >
                         <Pencil size={14} />
@@ -238,6 +249,7 @@ export default function RackDashBoard() {
                       <button
                         className="btn-action delete"
                         title="Delete Rack"
+                        disabled={!hasPermission("UPDATE_RACK")}
                         onClick={(e) => handleDeleteOffice(e, room.officeKey, room.name)}
                       >
                         <Trash2 size={14} />
@@ -305,7 +317,7 @@ export default function RackDashBoard() {
           <button
             onClick={handleClick}
             className="btn btn-primary px-4 shadow-sm"
-            disabled={!rackname.trim()}
+            disabled={!rackname.trim() || !hasPermission("UPDATE_RACK")}
           >
             Initialize Rack
           </button>
@@ -344,7 +356,7 @@ export default function RackDashBoard() {
             Cancel
           </button>
           <button
-            onClick={handleUpdateOffice}
+            disabled={!hasPermission("UPDATE_RACK")} onClick={handleUpdateOffice}
             className="btn btn-primary px-4 shadow-sm"
           >
             Save Changes

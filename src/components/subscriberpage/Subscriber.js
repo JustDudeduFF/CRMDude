@@ -5,16 +5,16 @@ import React, {
   useRef,
   useState,
 } from "react";
+import "./SubscriberWorkspace.css";
 import Due_Icon from "./drawables/rupeenew.png";
-import Cust_Ledger from "./Cust_Ledger";
+import CustomerLedger from "./Cust_Ledger";
 import {
   Routes,
   Route,
   Link,
-  useNavigate,
   useLocation,
 } from "react-router-dom";
-import Cust_PayRecpt from "./Cust_PayRecpt";
+import CustomerPayments from "./Cust_PayRecpt";
 import TicketsTable from "./TicketsTable";
 import InventoryTable from "./InventoryTable";
 import DebitCreditTable from "./DebitCreditTable";
@@ -26,7 +26,7 @@ import { ProgressBar } from "react-loader-spinner";
 import { toast, ToastContainer } from "react-toastify";
 import { usePermissions } from "../PermissionProvider";
 import { Modal } from "react-bootstrap";
-import { API } from "../../FirebaseConfig";
+import { API, SOCKET_URL } from "../../FirebaseConfig";
 import io from "socket.io-client"; // Fixed import
 import {
   FaUser,
@@ -34,7 +34,7 @@ import {
   FaReceipt,
   FaTicketAlt,
   FaBoxes,
-  FaFileInvoiceDollar,
+  FaRupeeSign,
   FaComments,
   FaFolderOpen,
   FaListUl,
@@ -51,7 +51,6 @@ export default function Subscriber() {
   const { hasPermission } = usePermissions();
   const socketRef = useRef(null);
   const username = localStorage.getItem("susbsUserid");
-  const navigate = useNavigate();
   const location = useLocation();
 
   const demoProfile = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
@@ -107,7 +106,7 @@ export default function Subscriber() {
   }, [username]);
 
   useEffect(() => {
-    socketRef.current = io("https://dudeapi.justdude.in", {
+    socketRef.current = io(SOCKET_URL, {
       auth: {
         partnerId, // or actual partnerId
       },
@@ -342,7 +341,7 @@ export default function Subscriber() {
   };
 
   return (
-    <div className="crm-main-container">
+    <div className="crm-main-container subscriber-workspace">
       <ToastContainer position="top-right" autoClose={3000} />
 
       {/* HEADER SECTION */}
@@ -493,85 +492,29 @@ export default function Subscriber() {
 
       {/* NAVIGATION & CONTENT */}
       <div className="container-fluid mt-3">
-        <div className="row g-3">
+        <div className="row g-3 subscriber-layout">
           {/* SIDEBAR / MOBILE NAV */}
-          <div className="col-12 col-lg-3">
+          <div className="col-12 col-lg-3 subscriber-sidebar">
             <div className="crm-nav-card shadow-sm">
-              <div className="crm-nav-wrapper">
-                <div className="nav-title d-none d-lg-block">MAIN MENU</div>
-                <Link
-                  to="/dashboard/subscriber"
-                  className={`crm-nav-link ${location.pathname === "/dashboard/subscriber" ? "active" : ""}`}
-                >
-                  <FaListUl className="me-2" /> Summary
-                </Link>
-                <div
-                  onClick={() =>
-                    navigate("/dashboard/subscriber/ledger", {
-                      state: { username },
-                    })
-                  }
-                  className={`crm-nav-link ${location.pathname.includes("ledger") ? "active" : ""}`}
-                >
-                  <FaHistory className="me-2" /> Ledger
-                </div>
-                <div
-                  onClick={() =>
-                    navigate("/dashboard/subscriber/paymentreceipt", {
-                      state: { username },
-                    })
-                  }
-                  className={`crm-nav-link ${location.pathname.includes("paymentreceipt") ? "active" : ""}`}
-                >
-                  <FaReceipt className="me-2" /> Payments
-                </div>
-                <Link
-                  to="/dashboard/subscriber/tickets"
-                  className={`crm-nav-link ${location.pathname.includes("tickets") ? "active" : ""}`}
-                >
-                  <FaTicketAlt className="me-2" /> Tickets
-                </Link>
-                <Link
-                  to="/dashboard/subscriber/inventory"
-                  className={`crm-nav-link ${location.pathname.includes("inventory") ? "active" : ""}`}
-                >
-                  <FaBoxes className="me-2" /> Inventory
-                </Link>
-                <Link
-                  to="/dashboard/subscriber/dcnote"
-                  className={`crm-nav-link ${location.pathname.includes("dcnote") ? "active" : ""}`}
-                >
-                  <FaFileInvoiceDollar className="me-2" /> DC Notes
-                </Link>
-                <Link
-                  to="/dashboard/subscriber/remarkfollow"
-                  className={`crm-nav-link ${location.pathname.includes("remarkfollow") ? "active" : ""}`}
-                >
-                  <FaComments className="me-2" /> Remarks
-                </Link>
-                <Link
-                  to="/dashboard/subscriber/documents"
-                  className={`crm-nav-link ${location.pathname.includes("documents") ? "active" : ""}`}
-                >
-                  <FaFolderOpen className="me-2" /> Documents
-                </Link>
-                <Link
-                  to="/dashboard/subscriber/logsubs"
-                  className={`crm-nav-link ${location.pathname.includes("logsubs") ? "active" : ""}`}
-                >
-                  <FaClipboardList className="me-2" /> Activity Logs
-                </Link>
-              </div>
+              <nav className="crm-nav-wrapper" aria-label="Subscriber sections">
+                <div className="nav-title d-none d-lg-block">SUBSCRIBER</div>
+                {[
+                  ['', 'Summary', FaListUl], ['ledger', 'Ledger', FaHistory], ['paymentreceipt', 'Payments', FaReceipt], ['tickets', 'Tickets', FaTicketAlt], ['inventory', 'Inventory', FaBoxes], ['dcnote', 'DC Notes', FaRupeeSign], ['remarkfollow', 'Remarks', FaComments], ['documents', 'Documents', FaFolderOpen], ['logsubs', 'Activity Logs', FaClipboardList],
+                ].map(([path, label, Icon]) => {
+                  const active = path ? location.pathname.includes(`/subscriber/${path}`) : location.pathname === '/dashboard/subscriber' || location.pathname === '/dashboard/subscriber/' || location.pathname.includes('/subscriber/rechargeinfo');
+                  return <Link key={label} to={`/dashboard/subscriber${path ? `/${path}` : ''}`} state={{ username }} className={`crm-nav-link ${active ? 'active' : ''}`} aria-current={active ? 'page' : undefined}><Icon aria-hidden="true"/>{label}</Link>;
+                })}
+              </nav>
             </div>
           </div>
 
           {/* VIEWPORT */}
-          <div className="col-12 col-lg-9">
+          <div className="col-12 col-lg-9 subscriber-content">
             <div className="crm-content-card shadow-sm bg-white">
               <Routes>
                 <Route path="/*" element={<SubscriberDetails />} />
-                <Route path="ledger/*" element={<Cust_Ledger />} />
-                <Route path="paymentreceipt/*" element={<Cust_PayRecpt />} />
+                <Route path="ledger/*" element={<CustomerLedger />} />
+                <Route path="paymentreceipt/*" element={<CustomerPayments />} />
                 <Route path="tickets/*" element={<TicketsTable />} />
                 <Route path="inventory/*" element={<InventoryTable />} />
                 <Route path="dcnote/*" element={<DebitCreditTable />} />

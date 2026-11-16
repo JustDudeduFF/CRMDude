@@ -140,6 +140,7 @@ const SYOLT = ({
   };
 
   const handleSavePort = async (section) => {
+    if (!hasPermission("VIEW_RACK") || !hasPermission("UPDATE_RACK")) return;
     if (!rackId || !officeKey || !deviceId || !selectedPortNumber) return;
 
     try {
@@ -700,7 +701,7 @@ const SYOLT = ({
               >
                 Cancel
               </Button>
-              <Button variant="primary" type="submit" disabled={isSaving}>
+              <Button variant="primary" type="submit" disabled={isSaving || !hasPermission("UPDATE_RACK")}>
                 {isSaving ? "Saving..." : "Save Details"}
               </Button>
             </div>

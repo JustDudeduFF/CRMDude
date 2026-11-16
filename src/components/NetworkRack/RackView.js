@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { Modal, Button } from "react-bootstrap";
+import { usePermissions } from "../PermissionProvider";
 import { API } from "../../FirebaseConfig";
 import RackDataModal from "./RackDataModal";
 import SYOLT from "./SYOLT";
@@ -8,6 +9,8 @@ import Switch from "./Switch";
 import FMS from "./FMS";
 
 export default function RackView() {
+  const { hasPermission } = usePermissions();
+  const canView = hasPermission("VIEW_RACK");
   const location = useLocation();
   const { rackId, officeKey, officename } = location.state || {};
 
@@ -26,6 +29,7 @@ export default function RackView() {
 
   // Fetch office and its devices
   const fetchRackDevices = useCallback(async () => {
+    if (!canView) { setLoading(false); return; }
     if (!rackId || !officeKey) {
       console.error("Rack ID or Office Key is missing");
       setLoading(false);
@@ -97,7 +101,7 @@ export default function RackView() {
     } finally {
       setLoading(false);
     }
-  }, [rackId, officeKey, officename]);
+  }, [rackId, officeKey, officename, canView]);
 
   useEffect(() => {
     fetchRackDevices();
@@ -105,6 +109,7 @@ export default function RackView() {
 
   // Open Edit Modal with selected device info
   const handleOpenEdit = (device) => {
+    if (!hasPermission("UPDATE_RACK")) return;
     setEditingDevice({
       deviceId: device.deviceId,
       deviceType: device.device,
@@ -126,7 +131,7 @@ export default function RackView() {
   // Submit Device Update (PUT)
   const handleSaveEdit = async (e) => {
     e.preventDefault();
-    if (!editingDevice) return;
+    if (!hasPermission("VIEW_RACK") || !hasPermission("UPDATE_RACK") || !editingDevice) return;
 
     try {
       setIsSubmitting(true);
@@ -164,6 +169,7 @@ export default function RackView() {
 
   // Delete Device (DELETE)
   const handleDeleteDevice = async (deviceId) => {
+    if (!hasPermission("VIEW_RACK") || !hasPermission("UPDATE_RACK")) return;
     if (!window.confirm(`Are you sure you want to delete device "${deviceId}"?`)) {
       return;
     }
@@ -180,6 +186,8 @@ export default function RackView() {
 
   const hasDevices = counts > 0;
 
+  if (!hasPermission("VIEW_RACK")) return <div className="p-4" role="alert">You do not have permission to view network racks.</div>;
+
   if (loading) {
     return <div className="p-4 text-center">Loading devices...</div>;
   }
@@ -190,7 +198,7 @@ export default function RackView() {
         <div className="d-flex flex-column w-100">
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h4>{officename}</h4>
-            <button onClick={() => setShowModal(true)} className="btn btn-primary">
+            <button disabled={!hasPermission("ADD_RACK_DEVICE")} onClick={() => setShowModal(true)} className="btn btn-primary">
               + Add Device
             </button>
           </div>
@@ -217,6 +225,7 @@ export default function RackView() {
                     onClick={() => handleOpenEdit(olt)}
                     className="btn btn-sm btn-outline-primary"
                     title="Edit Device"
+                    disabled={!hasPermission("UPDATE_RACK")}
                   >
                     Edit
                   </button>
@@ -224,6 +233,7 @@ export default function RackView() {
                     onClick={() => handleDeleteDevice(olt.deviceId)}
                     className="btn btn-sm btn-outline-danger"
                     title="Delete Device"
+                    disabled={!hasPermission("UPDATE_RACK")}
                   >
                     Delete
                   </button>
@@ -251,6 +261,7 @@ export default function RackView() {
                     onClick={() => handleOpenEdit(sw)}
                     className="btn btn-sm btn-outline-primary"
                     title="Edit Device"
+                    disabled={!hasPermission("UPDATE_RACK")}
                   >
                     Edit
                   </button>
@@ -258,6 +269,7 @@ export default function RackView() {
                     onClick={() => handleDeleteDevice(sw.deviceId)}
                     className="btn btn-sm btn-outline-danger"
                     title="Delete Device"
+                    disabled={!hasPermission("UPDATE_RACK")}
                   >
                     Delete
                   </button>
@@ -285,6 +297,7 @@ export default function RackView() {
                     onClick={() => handleOpenEdit(fms)}
                     className="btn btn-sm btn-outline-primary"
                     title="Edit Device"
+                    disabled={!hasPermission("UPDATE_RACK")}
                   >
                     Edit
                   </button>
@@ -292,6 +305,7 @@ export default function RackView() {
                     onClick={() => handleDeleteDevice(fms.deviceId)}
                     className="btn btn-sm btn-outline-danger"
                     title="Delete Device"
+                    disabled={!hasPermission("UPDATE_RACK")}
                   >
                     Delete
                   </button>
@@ -303,7 +317,7 @@ export default function RackView() {
       ) : (
         <div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "60vh" }}>
           <h5>No devices found for {officename || "this office"}</h5>
-          <button onClick={() => setShowModal(true)} className="btn btn-primary mt-3">
+          <button disabled={!hasPermission("ADD_RACK_DEVICE")} onClick={() => setShowModal(true)} className="btn btn-primary mt-3">
             + Add Device
           </button>
         </div>
@@ -444,10 +458,10 @@ export default function RackView() {
               )}
 
               <div className="d-flex justify-content-end gap-2 mt-4">
-                <Button variant="secondary" onClick={() => setShowEditModal(false)} disabled={isSubmitting}>
+                <Button variant="secondary" onClick={() => setShowEditModal(false)} disabled={isSubmitting || !hasPermission("UPDATE_RACK")}>
                   Cancel
                 </Button>
-                <Button variant="primary" type="submit" disabled={isSubmitting}>
+                <Button variant="primary" type="submit" disabled={isSubmitting || !hasPermission("UPDATE_RACK")}>
                   {isSubmitting ? "Saving..." : "Save Changes"}
                 </Button>
               </div>

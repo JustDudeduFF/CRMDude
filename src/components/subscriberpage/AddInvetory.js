@@ -1,273 +1,59 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { API } from "../../FirebaseConfig";
-import { toast, ToastContainer } from "react-toastify";
-import { FaIndustry, FaLayerGroup, FaBarcode, FaRupeeSign, FaEdit, FaTruckLoading, FaRulerCombined } from 'react-icons/fa';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Package, Search, CheckCircle2, ArrowLeft, RefreshCw } from 'lucide-react';
+import { API } from '../../FirebaseConfig';
+import { usePermissions } from '../PermissionProvider';
+import { apiError, isDevice } from '../InventryPage/inventoryUtils';
+import '../InventryPage/Inventory.css';
+import './InventoryAssignment.css';
 
 export default function AddInventory() {
-  const partnerId = localStorage.getItem("partnerId");
-  const subscriberId = localStorage.getItem("susbsUserid");
   const navigate = useNavigate();
-
-  const [makers, setMakers] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [devices, setDevices] = useState([]);
-  const [filteredDevices, setFilteredDevices] = useState([]);
-
-  const [deviceInfo, setDeviceInfo] = useState({
-    serial: "",
-    mac: "",
-    category: "",
-    maker: "",
-    amount: 0,
-    remarks: "",
-    date: "",
-    length: 0,
-    startReading: 0,
-    endReading: 0,
-    status: "Active",
-    model: "",
-  });
-
-  const isCableOrFiber = deviceInfo.category.toLowerCase() === "optical fiber" || deviceInfo.category.toLowerCase() === "cable";
-
+  const { hasPermission } = usePermissions();
+  const canAssign = hasPermission('ASSIGN_DEVICE') || hasPermission('ADD_DEVICE');
+  const partnerId = localStorage.getItem('partnerId'), subscriber = localStorage.getItem('susbsUserid');
+  const [maker, setMaker] = useState(''), [stock, setStock] = useState([]), [productId, setProductId] = useState(''), [serial, setSerial] = useState(''), [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState(''), [success, setSuccess] = useState(false), [refresh, setRefresh] = useState(0);
+  const [amount, setAmount] = useState('0'), [remarks, setRemarks] = useState('');
   useEffect(() => {
-    const fetchMakers = async () => {
-      try {
-        const res = await API.get(`/master/devicemaker?partnerId=${partnerId}`);
-        setMakers(res.data || []);
-      } catch (err) {
-        toast.error("Failed to fetch makers");
-      }
-    };
-    fetchMakers();
-  }, [partnerId]);
-
-  useEffect(() => {
-    if (!deviceInfo.maker) return;
-    const fetchData = async () => {
-      try {
-        const categoryRes = await API.get(`/subscriber/inventory/${deviceInfo.maker}?partnerId=${partnerId}`);
-        const category = categoryRes.data.map((item) => ({ category: item.category }));
-        setCategories(category || []);
-
-        const allDevices = categoryRes.data.flatMap((item) =>
-          item.devices.map((dev) => ({
-            serialno: dev.serialNumber,
-            macno: dev.macAddress,
-            category: item.category,
-            model: item.model,
-            status: dev.status,
-          }))
-        );
-        setDevices(allDevices);
-        setFilteredDevices(allDevices);
-      } catch (err) {
-        toast.error("Failed to load data");
-      }
-    };
-    fetchData();
-  }, [deviceInfo.maker, partnerId]);
-
-  useEffect(() => {
-    let array = devices;
-    if (deviceInfo.category) {
-      array = array.filter((d) => d.category === deviceInfo.category);
-    }
-    setFilteredDevices(array);
-  }, [deviceInfo.category, devices]);
-
-  const saveDevice = async () => {
-    if (!deviceInfo.maker || !deviceInfo.category || !deviceInfo.serial) {
-      toast.warn("Please fill all required fields");
-      return;
-    }
-
+    if (!canAssign) { setLoading(false); return; }
+    let active = true; setLoading(true); setError('');
+    API.get('/inventory/', { params: { partnerId } }).then(({ data }) => {
+      if (!Array.isArray(data)) throw new Error();
+      if (active) setStock(data.filter(product => isDevice(product.category)).map(product => ({ ...product, devices: (product.devices || []).filter(item => ['Free', 'Returned'].includes(item.status)) })).filter(product => product.devices.length));
+    }).catch(() => { if (active) setError('Unable to load available devices. Please try again.'); }).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [partnerId, canAssign, refresh]);
+  const makers = [...new Set(stock.map(product => product.maker))].sort();
+  const products = stock.filter(product => product.maker === maker);
+  const product = products.find(item => item._id === productId), device = product?.devices.find(item => item.serialNumber === serial);
+  const visibleDevices = (product?.devices || []).filter(item => `${item.serialNumber} ${item.macAddress}`.toLowerCase().includes(search.toLowerCase()));
+  const save = async event => {
+    event.preventDefault();
+    if (busy || success || !canAssign || !device) return;
+    if (!subscriber || !partnerId) { setError('Select a subscriber before assigning a device.'); return; }
+    const charge = Number(amount);
+    if (!Number.isFinite(charge) || charge < 0) { setError('Enter an amount of zero or more.'); return; }
+    setBusy(true); setError('');
     try {
-      const payload = {
-        itemModel: deviceInfo.model || "",
-        itemCategory: deviceInfo.category,
-        itemMaker: deviceInfo.maker,
-        serialNumber: deviceInfo.serial,
-        macAddress: deviceInfo.mac,
-        amount: parseFloat(deviceInfo.amount),
-        remarks: deviceInfo.remarks,
-        subscriber: subscriberId,
-        assignedBy: localStorage.getItem("contact"),
-        assignedAt: new Date().toISOString(),
-        date: new Date().toISOString(),
-        partnerId,
-        status: deviceInfo.status || "Active",
-        length: deviceInfo.length || 1,
-        startReading: deviceInfo.startReading || 0,
-        endReading: deviceInfo.endReading || 0,
-      };
-
-      const res = await API.post(`/subscriber/inventory`, payload);
-      if (res.status === 201) {
-        toast.success("Device assigned successfully");
-        setTimeout(() => navigate(-1), 1500);
-      }
-    } catch (err) {
-      toast.error("Error assigning device");
-    }
+      await API.post('/subscriber/inventory', { itemModel: product.model, itemCategory: product.category, itemMaker: product.maker, serialNumber: device.serialNumber, macAddress: device.macAddress, amount: charge, remarks: remarks.trim(), subscriber, partnerId, assignedBy: localStorage.getItem('contact'), assignedAt: new Date().toISOString(), date: new Date().toISOString(), status: 'Active', length: 1 });
+      setSuccess(true); setStock(previous => previous.map(item => ({ ...item, devices: item.devices.filter(row => row.serialNumber !== serial) })));
+    } catch (e) { setError(apiError(e)); } finally { setBusy(false); }
   };
-
-  return (
-    <div className="add-inventory-container">
-      <ToastContainer />
-      
-      <div className="inventory-card shadow-lg">
-        <div className="card-header-amber p-3 text-white d-flex align-items-center">
-          <FaTruckLoading className="me-2" />
-          <h5 className="mb-0 fw-bold">Inventory Assignment Form</h5>
-        </div>
-
-        <div className="card-body p-4">
-          <form className="row g-4">
-            
-            {/* CORE SELECTION */}
-            <div className="col-md-4">
-              <label className="modern-label"><FaIndustry className="me-1 text-warning"/> Product Maker *</label>
-              <select
-                className="modern-select"
-                value={deviceInfo.maker}
-                onChange={(e) => {
-                  setDeviceInfo({ ...deviceInfo, maker: e.target.value, category: "" });
-                  setCategories([]);
-                }}
-              >
-                <option value="">Choose Maker...</option>
-                {makers.map((maker, idx) => (
-                  <option key={idx} value={maker.name}>{maker.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="col-md-4">
-              <label className="modern-label"><FaLayerGroup className="me-1 text-warning"/> Product Category *</label>
-              <select
-                className="modern-select"
-                value={deviceInfo.category}
-                onChange={(e) => setDeviceInfo({ ...deviceInfo, category: e.target.value })}
-              >
-                <option value="">Choose Category...</option>
-                {categories.map((cat, idx) => (
-                  <option key={idx} value={cat.category}>{cat.category}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="col-md-4">
-              <label className="modern-label"><FaRupeeSign className="me-1 text-warning"/> Amount</label>
-              <input
-                type="number"
-                className="modern-input"
-                placeholder="0.00"
-                value={deviceInfo.amount}
-                onChange={(e) => setDeviceInfo({ ...deviceInfo, amount: e.target.value })}
-              />
-            </div>
-
-            <div className="col-12"><hr className="my-2 opacity-10" /></div>
-
-            {/* DYNAMIC IDENTIFIER FIELD */}
-            <div className="col-md-6">
-              <label className="modern-label">
-                <FaBarcode className="me-1 text-warning"/> 
-                {isCableOrFiber ? "Drum Number / Batch ID *" : "Serial No or MAC Address *"}
-              </label>
-              <input
-                list="deviceList"
-                className="modern-input"
-                placeholder={isCableOrFiber ? "Enter Drum ID" : "Enter Serial/MAC"}
-                onChange={(e) => {
-                  const selectedDevice = filteredDevices.find(d => d.serialno === e.target.value || d.macno === e.target.value);
-                  setDeviceInfo({
-                    ...deviceInfo,
-                    serial: selectedDevice ? selectedDevice.serialno : e.target.value,
-                    mac: selectedDevice ? selectedDevice.macno : "",
-                    model: selectedDevice ? selectedDevice.model : "",
-                  });
-                }}
-              />
-              <datalist id="deviceList">
-                {filteredDevices.map((d, idx) => (
-                  <option key={idx} value={d.serialno}>{d.serialno} : {d.macno}</option>
-                ))}
-              </datalist>
-            </div>
-
-            {/* CONDITIONAL METER READINGS FOR FIBER */}
-            {deviceInfo.category.toLowerCase() === "optical fiber" && (
-              <div className="col-md-6">
-                <div className="reading-box-grid">
-                  <div>
-                    <label className="field-label-sm">Total Length</label>
-                    <input type="number" className="modern-input" value={deviceInfo.length} onChange={(e) => setDeviceInfo({ ...deviceInfo, length: e.target.value })} />
-                  </div>
-                  <div>
-                    <label className="field-label-sm">Start (m)</label>
-                    <input type="number" className="modern-input" value={deviceInfo.startReading} onChange={(e) => setDeviceInfo({ ...deviceInfo, startReading: e.target.value })} />
-                  </div>
-                  <div>
-                    <label className="field-label-sm">End (m)</label>
-                    <input type="number" className="modern-input" value={deviceInfo.endReading} onChange={(e) => setDeviceInfo({ ...deviceInfo, endReading: e.target.value })} />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="col-md-12">
-              <label className="modern-label"><FaEdit className="me-1 text-warning"/> Remarks</label>
-              <textarea
-                className="modern-input"
-                rows="2"
-                placeholder="Internal notes about this assignment..."
-                value={deviceInfo.remarks}
-                onChange={(e) => setDeviceInfo({ ...deviceInfo, remarks: e.target.value })}
-              />
-            </div>
-
-            <div className="col-12 mt-4 d-flex justify-content-end gap-3">
-              <button type="button" onClick={() => navigate(-1)} className="btn btn-light rounded-pill px-4 fw-bold">Cancel</button>
-              <button
-                type="button"
-                onClick={saveDevice}
-                className="btn-amber-gradient rounded-pill px-5 border-0 py-2 fw-bold text-white shadow-sm"
-              >
-                Assign Product
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <style>{`
-        .add-inventory-container { font-family: 'Inter', sans-serif; }
-        .inventory-card { background: #fff; border-radius: 20px; border: none; overflow: hidden; }
-        .card-header-amber { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
-        
-        .modern-label { font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 8px; display: block; }
-        .field-label-sm { font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block; }
-        
-        .modern-input, .modern-select {
-          width: 100%; padding: 12px 16px; border-radius: 12px; border: 2px solid #f1f5f9;
-          font-size: 0.95rem; font-weight: 500; outline: none; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          background-color: #f8fafc;
-        }
-        .modern-input:focus, .modern-select:focus { 
-          border-color: #f59e0b; background: #fff; box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1); 
-        }
-
-        .reading-box-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: #fff8eb; padding: 10px; border-radius: 14px; border: 1px dashed #f59e0b; }
-        
-        .btn-amber-gradient { 
-          background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%); 
-          transition: all 0.3s;
-        }
-        .btn-amber-gradient:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(234, 88, 12, 0.3) !important; }
-      `}</style>
-    </div>
-  );
+  if (!canAssign) return <div className="inv-alert inv-alert-error" role="alert">You do not have permission to assign devices.</div>;
+  return <section className="inv-assignment">
+    <div className="inv-assignment-intro"><span className="inv-metric-icon"><Package size={24}/></span><div><h2>Assign a device</h2><p>Choose available stock and review the charge before assigning it.</p></div></div>
+    {error && <div className="inv-alert inv-alert-error" role="alert">{error}<button type="button" className="inv-button" disabled={busy || loading} onClick={() => setRefresh(value => value + 1)}><RefreshCw size={14}/> Retry loading stock</button></div>}
+    {success ? <div className="inv-assignment-success" role="status"><CheckCircle2 size={42}/><h3>Device assigned</h3><p>The device is now listed in the subscriber’s inventory.</p><Link className="inv-button inv-button-primary" to="/dashboard/subscriber/inventory">View assigned devices</Link></div> : <form onSubmit={save}><fieldset disabled={busy}>
+      <div className="inv-assignment-layout"><div className="inv-assignment-fields">
+        <div className="inv-section-title"><h3><span className="inv-step">1</span> Choose your stock</h3></div>
+        <div className="inv-form-grid"><label>Manufacturer<select required value={maker} disabled={loading} onChange={e => { setMaker(e.target.value); setProductId(''); setSerial(''); setError(''); }}><option value="">{loading ? 'Loading stock…' : 'Select manufacturer'}</option>{makers.map(name => <option key={name} value={name}>{name}</option>)}</select></label><label>Product<select required value={productId} disabled={!maker || loading} onChange={e => { setProductId(e.target.value); setSerial(''); setSearch(''); }}><option value="">{loading ? 'Loading stock…' : 'Select product'}</option>{products.map(item => <option key={item._id} value={item._id}>{item.category} · {item.model} ({item.devices.length} available)</option>)}</select></label></div>
+        {!loading && !stock.length && !error && <div className="inv-assignment-hint">No devices are currently available. Add stock in Inventory, then refresh this list.</div>}
+        {maker && !loading && !products.length && !error && <div className="inv-assignment-hint">No available devices for this manufacturer. Choose another manufacturer or add stock in Inventory.</div>}
+        {product && <><label className="inv-search"><Search size={17}/><input aria-label="Search available devices" placeholder="Search serial or MAC address" value={search} onChange={e => setSearch(e.target.value)}/></label><div className="inv-assignment-devices" role="radiogroup" aria-label="Available devices">{visibleDevices.slice(0, 50).map(item => <label key={item._id || item.serialNumber} className={`inv-device-choice ${serial === item.serialNumber ? 'is-selected' : ''}`}><input type="radio" name="assignment-device" required checked={serial === item.serialNumber} onChange={() => setSerial(item.serialNumber)}/><span><strong>{item.serialNumber}</strong><small>{item.macAddress}</small></span><span className="inv-status inv-status-free">Available</span></label>)}{!visibleDevices.length && <p>No devices match this search.</p>}{visibleDevices.length > 50 && <p>Showing the first 50 devices. Search a serial or MAC to narrow the list.</p>}</div></>}
+        <div className="inv-section-title"><h3><span className="inv-step">2</span> Charge & notes</h3></div><div className="inv-form-grid"><label>Device charge (₹)<input required type="number" min="0" step="0.01" value={amount} onChange={e => setAmount(e.target.value)}/></label></div><label>Notes (optional)<textarea rows={3} value={remarks} onChange={e => setRemarks(e.target.value)} placeholder="Installation details or notes"/></label>
+      </div><aside className="inv-assignment-summary"><span className="inv-eyebrow">ASSIGNMENT SUMMARY</span><h3>{product ? `${product.maker} ${product.model}` : 'Choose a device'}</h3><dl><dt>Category</dt><dd>{product?.category || '—'}</dd><dt>Serial number</dt><dd>{device?.serialNumber || '—'}</dd><dt>MAC address</dt><dd>{device?.macAddress || '—'}</dd></dl><div className="inv-assignment-charge"><span>Charge to subscriber</span><strong>₹{Number(amount || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</strong></div><p>This amount will be added to the subscriber’s balance. Enter ₹0 for no charge.</p></aside></div>
+      <div className="inv-assignment-footer"><button type="button" className="inv-button" onClick={() => navigate(-1)}><ArrowLeft size={15}/> Cancel</button><button className="inv-button inv-button-primary" disabled={busy || loading || !device}>{busy ? 'Assigning…' : 'Assign device'}</button></div>
+    </fieldset></form>}
+  </section>;
 }

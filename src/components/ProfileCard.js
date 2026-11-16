@@ -44,7 +44,7 @@ export default function Profile_Card({ onClose }) {
         onClose();
       },
     },
-    { text: "My Attendance", icon: <Calendar size={18} />, onClick: () => {} },
+    { text: "My Attendance", icon: <Calendar size={18} />, onClick: () => { navigate("/dashboard/myprofile?tab=attendance"); onClose(); } },
     {
       text: "Change Password",
       icon: <Lock size={18} />,
@@ -52,7 +52,7 @@ export default function Profile_Card({ onClose }) {
         setShowPassModal(true);
       },
     },
-    ...(hasPermission("VIEW_PAYOUT") ? [{
+    ...((hasPermission("VIEW_PAYOUT") || hasPermission("ACCOUNT_SECTION")) ? [{
       text: "Payroll",
       icon: <Users size={18} />,
       onClick: () => {

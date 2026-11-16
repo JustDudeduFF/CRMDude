@@ -109,6 +109,7 @@ export default function NewEmployee() {
   });
   const [payoutpermission, setPayoutPermission] = useState({
     VIEW_PAYOUT: false,
+    ACCOUNT_SECTION: false,
   });
   const [messagepermission, setMessagePermission] = useState({
     MSG_DUE: false,
@@ -247,7 +248,7 @@ export default function NewEmployee() {
                   className="form-check-input mt-0"
                 />
                 <span className="text-truncate text-capitalize">
-                  {key.toLowerCase().replace(/_/g, " ")}
+                  {key === "ACCOUNT_SECTION" ? "Account Section" : key.toLowerCase().replace(/_/g, " ")}
                 </span>
               </label>
             </div>
@@ -569,6 +570,11 @@ export default function NewEmployee() {
               title="Attendance Settings"
               state={attendencepermission}
               setter={setAttendencePermission}
+            />
+            <PermissionCard
+              title="Account Section"
+              state={payoutpermission}
+              setter={setPayoutPermission}
             />
             <PermissionCard
               title="Employee & HR"

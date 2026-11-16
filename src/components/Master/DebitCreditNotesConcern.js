@@ -3,7 +3,7 @@ import { API } from "../../FirebaseConfig";
 import { toast, ToastContainer } from "react-toastify";
 import DebitCreditNoteModal from "./DebitCreditNoteModal";
 import { usePermissions } from "../PermissionProvider";
-import { FaFileInvoiceDollar, FaPlus, FaCalendarAlt, FaHashtag, FaInfoCircle } from 'react-icons/fa';
+import { FaRupeeSign, FaPlus, FaCalendarAlt, FaHashtag, FaInfoCircle } from 'react-icons/fa';
 
 export default function DebitCreditNotesConcern() {
   const partnerId = localStorage.getItem("partnerId");
@@ -37,7 +37,7 @@ export default function DebitCreditNotesConcern() {
       <div className="dc-header-card">
         <div className="dc-title-section">
           <div className="dc-icon-circle">
-            <FaFileInvoiceDollar />
+            <FaRupeeSign />
           </div>
           <div>
             <h5 className="dc-main-title">Debit & Credit Particulars</h5>

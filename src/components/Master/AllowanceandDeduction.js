@@ -4,7 +4,7 @@ import { toast, ToastContainer } from "react-toastify";
 import DebitCreditNoteModal from "./DebitCreditNoteModal";
 import { usePermissions } from "../PermissionProvider";
 import {
-  FaFileInvoiceDollar,
+  FaRupeeSign,
   FaPlus,
   FaCalendarAlt,
   FaHashtag,
@@ -49,7 +49,7 @@ export default function AllowanceAndDeduction() {
       <div className="dc-header-card">
         <div className="dc-title-section">
           <div className="dc-icon-circle">
-            <FaFileInvoiceDollar />
+            <FaRupeeSign />
           </div>
           <div>
             <h5 className="dc-main-title">Allowance & Deduction Particulars</h5>

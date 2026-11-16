@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import { ProgressBar } from "react-loader-spinner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { FaUser, FaLink, FaDatabase, FaFileUpload, FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
+import { usePermissions } from "./PermissionProvider";
 import { API } from "../FirebaseConfig";
 
 
 export default function NewUserAdd() {
   const partnerId = localStorage.getItem("partnerId");
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const leadId = searchParams.get('leadId');
+  const { hasPermission } = usePermissions();
+  const [leadLoading, setLeadLoading] = useState(!!leadId);
+  const [leadError, setLeadError] = useState('');
 
   // --- ALL ORIGINAL STATES PRESERVED ---
   const [company, setCompany] = useState("");
@@ -66,7 +72,7 @@ export default function NewUserAdd() {
       if (responsePlan.status !== 200 || responseColony.status !== 200 || responseUsers.status !== 200 || responseIsp.status !== 200) return;
       if (responseColony.data) setArraycolony(responseColony.data);
       if (responsePlan.data.plans) {
-        const array = Object.keys(responsePlan.data.plans).map(key => ({ ...responsePlan.data.plans[key], planKey: key }));
+        const array = Object.keys(responsePlan.data.plans).map(key => ({ ...responsePlan.data.plans[key], planKey: responsePlan.data.plans[key].code || key }));
         setArrayProvider([...new Set(array.map(d => d.provider))]);
         setArrayplan(array);
       }
@@ -82,6 +88,25 @@ export default function NewUserAdd() {
     } catch (e) { console.log(e); }
   };
 
+  useEffect(() => {
+    if (!leadId) { setLeadLoading(false); return; }
+    let active = true; setLeadLoading(true); setLeadError('');
+    Promise.all([API.get(`/leads/${encodeURIComponent(leadId)}`), API.get(`/addnew/broadbandplan?partnerId=${partnerId}`), API.get(`/subscriber/colonys?partnerId=${partnerId}`)])
+      .then(([{data: lead}, {data: catalogue}, {data: colonies}]) => {
+        if (!active) return;
+        if (lead.status !== 'confirmed') throw new Error('Only confirmed leads can be installed.');
+        setFullName(lead.name || ''); setMobileNo(lead.phone || ''); setEmail(lead.email || '');
+        setInstallationAddress([lead.address, lead.city].filter(Boolean).join(', '));
+        setColonyName(lead.colony || ''); setState(lead.state || ''); setPinCode(lead.pinCode || '');
+        setCompany(colonies.find(colony => colony.name === lead.colony)?.undercompany || '');
+        const plan = Object.values(catalogue.plans || {}).find(plan => plan.code === lead.planCode);
+        setPlanData(previous => ({...previous, leadby: lead.communicatedByName || '', ...(plan ? {provider:plan.provider,isp:plan.isp,plancode:plan.code,planname:plan.planname,bandwidth:plan.bandwidth} : {})}));
+        if (plan) { setPlanAmount(plan.planamount); setPlanDuration(plan.periodtime); setDurationUnit(plan.planperiod); updateExpirationDate(new Date().toISOString().split('T')[0],plan.periodtime,plan.planperiod); }
+      }).catch(error => {if(active) setLeadError(error.response?.data?.message || error.message || 'Unable to load lead.');})
+      .finally(() => {if(active)setLeadLoading(false);});
+    return () => {active=false;};
+  }, [leadId, partnerId]);
+
   const updateExpirationDate = (newActivationDate, duration, unit) => {
     const date = new Date(newActivationDate);
     if (unit === "Months") date.setMonth(date.getMonth() + parseInt(duration));
@@ -92,6 +117,8 @@ export default function NewUserAdd() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loader || leadLoading || leadError) return;
+    if (leadId && (!hasPermission('CONVERT_TO_LEAD') || !hasPermission('ADD_CUSTOMER'))) { window.alert('Permission denied'); return; }
     setLoader(true);
     if (!fullName || !username || !mobileNo || !company || !installationAddress || !conectiontyp || !planData.isp) {
       toast.error("Mandatory fields must not be empty");
@@ -138,6 +165,10 @@ export default function NewUserAdd() {
         headers: { "Content-Type": "multipart/form-data" }
       });
       if (resp.status === 200) {
+        if (leadId) {
+          try { await API.patch(`/leads/${encodeURIComponent(leadId)}/status`, {status:'installed'}); }
+          catch { window.alert('Customer created successfully, but lead status could not be updated. Do not create this customer again.'); navigate('/dashboard/leadmanagment'); return; }
+        }
         toast.success("Subscriber added successfully!");
         localStorage.setItem("susbsUserid", resp.data.message.split(" ")[2]);
         navigate("/dashboard/subscriber");
@@ -161,6 +192,8 @@ export default function NewUserAdd() {
   return (
     <div className="new-user-main" style={{ backgroundColor: "#f0f2f5", minHeight: "100vh", padding: "30px 0" }}>
       <ToastContainer />
+      {leadLoading && <div role="status" className="alert alert-info">Loading lead details…</div>}
+      {leadError && <div role="alert" className="alert alert-danger">{leadError}</div>}
       
       {loader && (
         <div className="custom-loader-overlay">
@@ -199,7 +232,7 @@ export default function NewUserAdd() {
                   </div>
                   <div className="col-md-6">
                     <label className="form-label small fw-bold">Colony Name *</label>
-                    <select onChange={(e) => {
+                    <select value={colonyName} onChange={(e) => {
                       const sel = e.target.value; setColonyName(sel);
                       const obj = arraycolony.find(c => c.name === sel);
                       setCompany(obj ? obj.undercompany : "");
@@ -210,7 +243,7 @@ export default function NewUserAdd() {
                   </div>
                   <div className="col-md-6">
                     <label className="form-label small fw-bold">Full Name *</label>
-                    <input onChange={(e) => setFullName(e.target.value)} type="text" className="form-control" placeholder="John Doe" />
+                    <input value={fullName} onChange={(e) => setFullName(e.target.value)} type="text" className="form-control" placeholder="John Doe" />
                   </div>
                   <div className="col-md-6">
                     <label className="form-label small fw-bold">Username *</label>
@@ -223,24 +256,24 @@ export default function NewUserAdd() {
                     <label className="form-label small fw-bold">Mobile No. *</label>
                     <div className="input-group">
                       <span className="input-group-text bg-light">+91</span>
-                      <input onChange={(e) => setMobileNo(e.target.value)} maxLength={10} type="text" className="form-control" />
+                      <input value={mobileNo} onChange={(e) => setMobileNo(e.target.value)} maxLength={10} type="text" className="form-control" />
                     </div>
                   </div>
                   <div className="col-md-6">
                     <label className="form-label small fw-bold">Email Address</label>
-                    <input onChange={(e) => setEmail(e.target.value)} type="email" className="form-control" placeholder="example@mail.com" />
+                    <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" className="form-control" placeholder="example@mail.com" />
                   </div>
                   <div className="col-12">
                     <label className="form-label small fw-bold">Installation Address *</label>
-                    <textarea onChange={(e) => setInstallationAddress(e.target.value)} className="form-control" rows="2"></textarea>
+                    <textarea value={installationAddress} onChange={(e) => setInstallationAddress(e.target.value)} className="form-control" rows="2"></textarea>
                   </div>
                   <div className="col-md-6">
                     <label className="form-label small fw-bold">State</label>
-                    <input onChange={(e) => setState(e.target.value)} type="text" className="form-control" />
+                    <input value={state} onChange={(e) => setState(e.target.value)} type="text" className="form-control" />
                   </div>
                   <div className="col-md-6">
                     <label className="form-label small fw-bold">PIN Code</label>
-                    <input onChange={(e) => setPinCode(e.target.value)} type="text" className="form-control" />
+                    <input value={pinCode} onChange={(e) => setPinCode(e.target.value)} type="text" className="form-control" />
                   </div>
                 </div>
               </div>
@@ -254,21 +287,21 @@ export default function NewUserAdd() {
                 <div className="row g-3">
                   <div className="col-md-4">
                     <label className="form-label small fw-bold">Select ISP *</label>
-                    <select onChange={(e) => setPlanData({...planData, isp: e.target.value})} className="form-select border-success-subtle">
+                    <select value={planData.isp} onChange={(e) => setPlanData({...planData, isp: e.target.value})} className="form-select border-success-subtle">
                       <option value="">Choose...</option>
                       {arrayisp.map((isp, i) => <option key={i} value={isp}>{isp}</option>)}
                     </select>
                   </div>
                   <div className="col-md-4">
                     <label className="form-label small fw-bold">Provider</label>
-                    <select onChange={(e) => setPlanData({...planData, provider: e.target.value})} className="form-select">
+                    <select value={planData.provider} onChange={(e) => setPlanData({...planData, provider: e.target.value})} className="form-select">
                       <option value="All">All Providers</option>
                       {arrayprovider.map((p, i) => <option key={i} value={p}>{p}</option>)}
                     </select>
                   </div>
                   <div className="col-md-4">
                     <label className="form-label small fw-bold">Plan Name *</label>
-                    <select onChange={(e) => {
+                    <select value={planData.plancode} onChange={(e) => {
                       const sel = e.target.value;
                       const obj = arrayplan.find(p => p.planKey === sel);
                       if (obj) {
@@ -359,7 +392,7 @@ export default function NewUserAdd() {
                 </div>
                 <div className="mb-0">
                   <label className="form-label small fw-bold">Lead By *</label>
-                  <select onChange={(e) => setPlanData({...planData, leadby: e.target.value})} className="form-select border-warning-subtle">
+                  <select value={planData.leadby} onChange={(e) => setPlanData({...planData, leadby: e.target.value})} className="form-select border-warning-subtle">
                     <option value="">Select Lead</option>
                     {arrayuser.map((u, i) => <option key={i} value={u.name}>{u.name}</option>)}
                   </select>
@@ -398,7 +431,7 @@ export default function NewUserAdd() {
           <div className="col-12">
             <div className="p-4 bg-white rounded-4 shadow-sm text-center border">
               <p className="text-muted small mb-3"><FaExclamationTriangle className="text-warning me-1" /> Please verify all details before uploading to the server.</p>
-              <button onClick={handleSubmit} className="btn btn-primary btn-lg px-3 py-3 rounded-3 fw-bold shadow-sm">
+              <button disabled={loader || leadLoading || !!leadError} onClick={handleSubmit} className="btn btn-primary btn-lg px-3 py-3 rounded-3 fw-bold shadow-sm">
                 <FaCheckCircle className="me-2" /> UPLOAD SUBSCRIBER DETAILS
               </button>
             </div>

@@ -114,6 +114,7 @@ const FMS = ({
   const handleSavePort = async (e) => {
     console.log("Saving port details:", portDetails);
     e.preventDefault();
+    if (!hasPermission("VIEW_RACK") || !hasPermission("UPDATE_RACK")) return;
     if (!rackId || !officeKey || !deviceId || !selectedPort) return;
 
     try {
@@ -501,7 +502,7 @@ const FMS = ({
               >
                 Cancel
               </Button>
-              <Button variant="primary" type="submit" disabled={isSaving}>
+              <Button variant="primary" type="submit" disabled={isSaving || !hasPermission("UPDATE_RACK")}>
                 {isSaving ? "Saving..." : "Save Details"}
               </Button>
             </div>

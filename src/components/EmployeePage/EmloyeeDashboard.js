@@ -9,9 +9,8 @@ import {
 } from "react-router-dom";
 import NewEmployee from "./NewEmployee";
 import EmpDash from "./EmpDash";
-import { API, api2 } from "../../FirebaseConfig";
+import { API } from "../../FirebaseConfig";
 import EmpDetails from "./EmpDetails";
-import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import {
   Users,
@@ -19,7 +18,6 @@ import {
   Search,
   ChevronRight,
   User,
-  Phone,
   Loader2,
   Menu,
   X,
@@ -35,6 +33,7 @@ export default function EmloyeeDashboard() {
   const partnerId = localStorage.getItem("partnerId");
   const navigate = useNavigate();
   const location = useLocation();
+  const selectedEmployeeId = location.pathname.includes("empdetail") ? location.state?.mobile : null;
 
   // Close sidebar when navigating on mobile
   useEffect(() => {
@@ -65,7 +64,7 @@ export default function EmloyeeDashboard() {
       employees.filter(
         (emp) =>
           emp.empname?.toLowerCase().includes(searchLower) ||
-          emp.empmobile?.toLowerCase().includes(searchLower),
+          String(emp.empmobile || "").toLowerCase().includes(searchLower),
       ),
     );
   }, [search, employees]);
@@ -122,7 +121,8 @@ export default function EmloyeeDashboard() {
                 </button>
               </div>
 
-              <div className="position-relative mb-1">
+              <div className="employee-directory-heading"><div><Users size={17} /><strong>Team directory</strong></div><span>{employees.length} staff</span></div>
+              <div className="position-relative mb-1 employee-directory-search">
                 <Search
                   className="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"
                   size={16}
@@ -133,7 +133,8 @@ export default function EmloyeeDashboard() {
                     border: "1px solid #004992",
                   }}
                   className="form-control ps-5 bg-light border-1 py-2 rounded-3 border-primary"
-                  placeholder="Search staff..."
+                  aria-label="Search employees"
+                  placeholder="Search name or mobile..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -146,12 +147,13 @@ export default function EmloyeeDashboard() {
                   </div>
                 ) : (
                   <ul className="list-unstyled m-1">
+                    {!filterEmployees.length && <li className="employee-directory-empty"><Users size={28}/><strong>{search ? 'No matching employees' : 'No employees yet'}</strong><span>{search ? 'Try another name or mobile number.' : 'Add an employee to start building your team.'}</span></li>}
                     {filterEmployees.map((emp) => (
                       <li
                         key={emp._id}
-                        onClick={() => showEmpDetail(emp._id)}
-                        className="employee-list-item px-3 py-3 border-bottom d-flex align-items-center justify-content-between cursor-pointer"
+                        className="employee-directory-entry"
                       >
+                        <button type="button" onClick={() => showEmpDetail(emp._id)} aria-current={selectedEmployeeId === emp._id ? "page" : undefined} className={`employee-list-item employee-directory-button ${selectedEmployeeId === emp._id ? "is-selected" : ""}`}>
                         <div className="d-flex align-items-center truncate">
                           <div className="avatar-sm bg-primary bg-opacity-10 text-primary rounded-3 p-2 me-3">
                             <User size={20} />
@@ -171,7 +173,8 @@ export default function EmloyeeDashboard() {
                             </div>
                           </div>
                         </div>
-                        <ChevronRight size={14} className="text-muted" />
+                        <ChevronRight size={14} className="text-muted flex-shrink-0" />
+                        </button>
                       </li>
                     ))}
                   </ul>
@@ -196,7 +199,7 @@ export default function EmloyeeDashboard() {
               </Link>
             </div> */}
 
-            <div style={{ backgroundColor: "#cecef4" }} className="p-1">
+            <div style={{ backgroundColor: "#cecef4" }} className="employee-view-content">
               <Routes>
                 <Route path="/" element={<EmpDash />} />
                 <Route path="empdetail/*" element={<EmpDetails />} />

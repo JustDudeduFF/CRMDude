@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Routes, Route, Link, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import SubscriberPersonal from "./SubscriberPersonal";
 import RechargeTable from "./RechargeTable";
 import { Modal } from "react-bootstrap";
 import { API } from "../../FirebaseConfig";
 import { toast } from "react-toastify";
-import { FaUserEdit, FaReceipt, FaInfoCircle, FaIdBadge } from "react-icons/fa";
+
 import "./SubscriberDetails.css";
-import { X } from "lucide-react";
+import { X, UserRound, Pencil, History } from "lucide-react";
+import SubscriberSection, { SectionAction } from "./SubscriberSection";
 
 export default function SubscriberDetails() {
   const userid = localStorage.getItem("susbsUserid");
@@ -110,51 +111,15 @@ export default function SubscriberDetails() {
 
   return (
     <div className="crm-details-page">
-      {/* Header Card with Gradient Theme */}
-      <div className="header-card shadow-sm">
-        <div className="note-container mb-3">
-          <FaInfoCircle className="theme-accent-purple me-2" />
-          <span>
-            <strong>Recent Note:</strong> Remarks Particular Only
-          </span>
-        </div>
-
-        <div className="action-grid">
-          <Link
-            to={
-              location.pathname.includes("rechargeinfo")
-                ? `/dashboard/subscriber/`
-                : "rechargeinfo"
-            }
-            className="w-100 text-decoration-none"
-          >
-            <button
-              className={`theme-btn ${location.pathname.includes("rechargeinfo") ? "active" : ""}`}
-            >
-              <FaReceipt className="me-2" />{" "}
-              {location.pathname.includes("rechargeinfo")
-                ? "Profile Info"
-                : "Recharges"}
-            </button>
-          </Link>
-          <button
-            className="theme-btn btn-outline-purple"
-            onClick={() => {
-              setPrevSubsDetail(subsDetail);
-              setShowModal(true);
-            }}
-          >
-            <FaUserEdit className="me-2" /> Edit Details
-          </button>
-        </div>
-      </div>
-
+      <SubscriberSection title={location.pathname.includes('rechargeinfo') ? 'Recharge history' : 'Summary'} description={location.pathname.includes('rechargeinfo') ? 'Plans, renewals and recharge history for this connection.' : 'Contact details, connection information and installed equipment.'} icon={UserRound} actions={<><SectionAction secondary to={location.pathname.includes('rechargeinfo') ? '/dashboard/subscriber' : 'rechargeinfo'}><History size={15}/>{location.pathname.includes('rechargeinfo') ? 'Back to summary' : 'Recharge history'}</SectionAction><SectionAction onClick={() => { setPrevSubsDetail(subsDetail); setShowModal(true); }}><Pencil size={15}/> Edit details</SectionAction></>}>
       <div className="content-section mt-3">
         <Routes>
           <Route path="/" element={<SubscriberPersonal />} />
           <Route path="rechargeinfo" element={<RechargeTable />} />
         </Routes>
       </div>
+
+      </SubscriberSection>
 
       {/* Styled Modal */}
       <Modal

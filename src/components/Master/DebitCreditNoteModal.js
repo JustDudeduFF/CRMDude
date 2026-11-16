@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { API } from "../../FirebaseConfig";
 import { toast, ToastContainer } from "react-toastify";
-import { FaMoneyBillWave, FaTimes, FaCheckCircle, FaFileInvoiceDollar } from 'react-icons/fa';
+import { FaMoneyBillWave, FaTimes, FaCheckCircle, FaRupeeSign } from 'react-icons/fa';
 
 const DebitCreditNoteModal = ({ show, notshow }) => {
   const partnerId = localStorage.getItem("partnerId");
@@ -45,7 +45,7 @@ const DebitCreditNoteModal = ({ show, notshow }) => {
         <div className="dc-modal-header">
           <div className="dc-header-left">
             <div className="dc-icon-box">
-              <FaFileInvoiceDollar />
+              <FaRupeeSign />
             </div>
             <div>
               <h5>Add Particulars</h5>

@@ -2,7 +2,6 @@ import { API } from "../../FirebaseConfig";
 import React, { useEffect, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import axios from "axios";
 import {
   User,
   ShieldCheck,
@@ -52,10 +51,12 @@ export default function EmpDetails() {
     DESIGNATION: "",
     USERTYPE: "",
     DOJ: "",
+    SALARY: 0,
     status: "active",
   });
 
-  const [arrayoffice, setArrayOffice] = useState([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedData, setSavedData] = useState(null);
   const [arraydesignation, setArraydesignation] = useState([]);
 
   // Permissions (Kept exactly as original)
@@ -111,6 +112,7 @@ export default function EmpDetails() {
   });
   const [payoutpermission, setPayoutPermission] = useState({
     VIEW_PAYOUT: false,
+    ACCOUNT_SECTION: false,
   });
   const [messagepermission, setMessagePermission] = useState({
     MSG_DUE: false,
@@ -159,6 +161,7 @@ export default function EmpDetails() {
       const u = response.data;
       if (u) {
         setEmpData({ ...u, FULLNAME: u.FULLNAME || "" });
+        setSavedData({ ...u, FULLNAME: u.FULLNAME || "" });
         if (u.customerpermission) setCustomerPermission(u.customerpermission);
         if (u.masterpermission) setMasterPermission(u.masterpermission);
         if (u.leadpermission) setLeadPermission(u.leadpermission);
@@ -166,7 +169,7 @@ export default function EmpDetails() {
         if (u.networkpermission) setNetworkPermission(u.networkpermission);
         if (u.attendencepermission)
           setAttendencePermission(u.attendencepermission);
-        if (u.payoutpermission) setPayoutPermission(u.payoutpermission);
+        if (u.payoutpermission) setPayoutPermission({ VIEW_PAYOUT: false, ACCOUNT_SECTION: false, ...u.payoutpermission });
         if (u.messagepermission) setMessagePermission(u.messagepermission);
         if (u.inventorypermission)
           setInventoryPermission(u.inventorypermission);
@@ -183,11 +186,9 @@ export default function EmpDetails() {
     getDetails();
     const fetchMasters = async () => {
       try {
-        const offRes = await API.get(`/master/offices?partnerId=${partnerId}`);
         const desRes = await API.get(
           `/master/designations?partnerId=${partnerId}`,
         );
-        setArrayOffice(offRes.data || []);
         setArraydesignation(desRes.data || []);
       } catch (err) {
         console.error(err);
@@ -197,6 +198,8 @@ export default function EmpDetails() {
   }, [getDetails, partnerId]);
 
   const handleSave = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
     try {
       const allData = {
         ...empData,
@@ -213,11 +216,21 @@ export default function EmpDetails() {
       };
       await API.put(`/employees/${mobile}`, allData);
       toast.success("Details updated successfully");
+      setSavedData({ ...empData });
       setIsEditing(false);
     } catch (e) {
       toast.error("Update failed");
+    } finally {
+      setIsSaving(false);
     }
   };
+
+  const profileField = (name, label, type = "text", column = "col-md-6") => (
+    <div className={column} key={name}>
+      <label htmlFor={`employee-${name}`} className="form-label small fw-bold text-uppercase text-muted">{label}</label>
+      <input id={`employee-${name}`} name={name} type={type} value={type === "date" ? String(empData[name] || "").slice(0, 10) : empData[name] ?? ""} onChange={handleChange} readOnly={!isEditing} min={type === "number" ? "0" : undefined} step={type === "number" ? "0.01" : undefined} className="form-control border-0 bg-light" />
+    </div>
+  );
 
   const PermissionSection = ({ title, state, setter, icon: Icon }) => (
     <div className="card border-0 shadow-sm mb-2 rounded-4 overflow-hidden">
@@ -258,7 +271,7 @@ export default function EmpDetails() {
                   <span
                     className={`small fw-medium text-capitalize text-truncate ${state[key] ? "text-dark" : "text-muted"}`}
                   >
-                    {key.toLowerCase().replace(/_/g, " ")}
+                    {key === "ACCOUNT_SECTION" ? "Account Section" : key.toLowerCase().replace(/_/g, " ")}
                   </span>
                 </div>
                 {state[key] && (
@@ -278,7 +291,7 @@ export default function EmpDetails() {
   return (
     <div
       style={{ backgroundColor: "#cecef4" }}
-      className="employee-details-page min-vh-100"
+      className={`employee-details-page min-vh-100 ${isEditing ? "is-editing" : "is-viewing"}`}
     >
       <ToastContainer position="bottom-center" />
 
@@ -288,7 +301,7 @@ export default function EmpDetails() {
         style={{ zIndex: 1020 }}
       >
         <div className="container-fluid px-3 px-md-4 py-3">
-          <div className="d-flex flex-row justify-content-between align-items-center">
+          <div className="employee-profile-header d-flex justify-content-between align-items-center">
             <div className="d-flex align-items-center gap-3">
               <div className="avatar-square bg-primary-subtle text-primary d-flex align-items-center justify-content-center rounded-3 shadow-sm">
                 <User size={24} />
@@ -312,7 +325,7 @@ export default function EmpDetails() {
               </div>
             </div>
 
-            <div className="d-flex gap-4 mt-3 mb-n3 nav-tabs-modern">
+            <div className="d-flex gap-4 nav-tabs-modern employee-profile-tabs">
               <button
                 className={`nav-tab-item ${activeTab === "profile" ? "active" : ""}`}
                 onClick={() => setActiveTab("profile")}
@@ -331,6 +344,7 @@ export default function EmpDetails() {
               {!isEditing ? (
                 <button
                   className="btn btn-primary rounded-3 px-3 px-md-4 d-flex align-items-center gap-2 shadow-sm"
+                  aria-label="Edit Profile"
                   onClick={() => setIsEditing(true)}
                 >
                   <Edit3 size={18} />{" "}
@@ -340,6 +354,7 @@ export default function EmpDetails() {
                 <div className="d-flex gap-2">
                   <button
                     className="btn btn-success rounded-3 px-3 px-md-4 d-flex align-items-center gap-2 shadow-sm"
+                    disabled={isSaving}
                     onClick={handleSave}
                   >
                     <Save size={18} />{" "}
@@ -347,7 +362,9 @@ export default function EmpDetails() {
                   </button>
                   <button
                     className="btn btn-outline-secondary rounded-3 px-3 shadow-sm"
-                    onClick={() => setIsEditing(false)}
+                    aria-label="Cancel editing"
+                    disabled={isSaving}
+                    onClick={() => { if (savedData) setEmpData({ ...savedData }); setIsEditing(false); }}
                   >
                     <X size={18} />
                   </button>
@@ -358,19 +375,19 @@ export default function EmpDetails() {
         </div>
       </header>
 
-      <main className="container-fluid mt-3 mt-lg-4 px-3 px-md-4">
+      <main className="container-fluid employee-profile-content">
         {isLoading ? (
           <div className="d-flex flex-column align-items-center justify-content-center p-5">
             <div className="spinner-border text-primary mb-3"></div>
             <p className="text-muted animate-pulse">Loading employee data...</p>
           </div>
         ) : (
-          <div className="row g-2 animate-fade-in">
+          <div className="row g-4 animate-fade-in">
             {activeTab === "profile" ? (
               <>
                 {/* Left Column: Core Data */}
                 <div className="col-12 col-lg-8">
-                  <section className="card border-0 shadow-sm rounded-4 p-4 mb-2">
+                  <section className="card border-0 shadow-sm rounded-4 p-4 mb-4">
                     <div className="d-flex align-items-center gap-2 mb-4">
                       <div className="p-2 bg-primary bg-opacity-10 rounded-2 text-primary">
                         <FileText size={20} />
@@ -476,6 +493,15 @@ export default function EmpDetails() {
                         </select>
                       </div>
 
+                      {profileField("DOJ", "Joining Date", "date")}
+                      <div className="col-md-6">
+                        <label htmlFor="employee-USERTYPE" className="form-label small fw-bold text-uppercase text-muted">User Access Type</label>
+                        <select id="employee-USERTYPE" name="USERTYPE" value={empData.USERTYPE || ""} onChange={handleChange} disabled={!isEditing} className="form-select border-0 bg-light">
+                          <option value="">Not assigned</option><option value="mobile">Mobile App</option><option value="web">Web Dashboard</option>
+                          {empData.USERTYPE && !['mobile', 'web'].includes(empData.USERTYPE) && <option value={empData.USERTYPE}>{empData.USERTYPE}</option>}
+                        </select>
+                      </div>
+                      <div className="col-md-6"><label className="form-label small fw-bold text-uppercase text-muted">Employee ID</label><div className="bg-light rounded-3 p-2 small text-break">{empData._id || '—'}</div></div>
                       <div className="col-md-4">
                         <label className="form-label small fw-bold text-uppercase text-muted">
                           Status
@@ -493,75 +519,6 @@ export default function EmpDetails() {
                         </select>
                       </div>
 
-                      <div className="col-md-4">
-                        <label className="form-label small fw-bold text-uppercase text-muted">
-                          (In-Time)
-                        </label>
-                        <div className="d-flex align-items-center gap-3">
-                          <div className="d-flex align-items-center flex-grow-1 bg-light rounded-3 px-3">
-                            <span className="input-group-text bg-light border-0">
-                              <Clock size={16} />
-                            </span>
-                            <input
-                              name="INTIME_H"
-                              value={empData.INTIME_H}
-                              onChange={handleChange}
-                              readOnly={!isEditing}
-                              className="form-control border-0 bg-transparent text-center"
-                              placeholder="HH"
-                              maxLength="2"
-                            />
-                            <span className="fw-bold">:</span>
-                            <input
-                              name="INTIME_M"
-                              value={empData.INTIME_M}
-                              onChange={handleChange}
-                              readOnly={!isEditing}
-                              className="form-control border-0 bg-transparent text-center"
-                              placeholder="MM"
-                              maxLength="2"
-                            />
-                          </div>
-                          <div className="small text-muted fst-italic">
-                            24hr format
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="col-md-4">
-                        <label className="form-label small fw-bold text-uppercase text-muted">
-                          (Out-Time)
-                        </label>
-                        <div className="d-flex align-items-center gap-3">
-                          <div className="d-flex align-items-center flex-grow-1 bg-light rounded-3 px-3">
-                            <span className="input-group-text bg-light border-0">
-                              <Clock size={16} />
-                            </span>
-                            <input
-                              name="OUTTIME_H"
-                              value={empData.OUTTIME_H}
-                              onChange={handleChange}
-                              readOnly={!isEditing}
-                              className="form-control border-0 bg-transparent text-center"
-                              placeholder="HH"
-                              maxLength="2"
-                            />
-                            <span className="fw-bold">:</span>
-                            <input
-                              name="OUTTIME_M"
-                              value={empData.OUTTIME_M}
-                              onChange={handleChange}
-                              readOnly={!isEditing}
-                              className="form-control border-0 bg-transparent text-center"
-                              placeholder="MM"
-                              maxLength="2"
-                            />
-                          </div>
-                          <div className="small text-muted fst-italic">
-                            24hr format
-                          </div>
-                        </div>
-                      </div>
                     </div>
                   </section>
                 </div>
@@ -606,6 +563,7 @@ export default function EmpDetails() {
                       />
                     </div>
 
+                    {[["ACCOUNTNAME", "Account Holder Name"], ["UPI", "UPI ID"]].map(([name, label]) => <div className="mb-3 border-bottom border-white border-opacity-25 pb-3" key={name}><label htmlFor={`employee-${name}`} className="small opacity-75 d-block mb-1">{label}</label><input id={`employee-${name}`} name={name} value={empData[name] || ""} onChange={handleChange} readOnly={!isEditing} className="form-control form-control-sm bg-white bg-opacity-10 border-0 text-white"/></div>)}
                     <div className="mb-0">
                       <label className="small opacity-75 d-block mb-1">
                         IFSC Code
@@ -625,17 +583,10 @@ export default function EmpDetails() {
                       <ShieldCheck size={18} className="text-primary" />{" "}
                       Verification
                     </h6>
-                    <div className="small p-3 bg-light rounded-3 mb-2 d-flex justify-content-between">
-                      <span className="text-muted">Aadhar:</span>
-                      <span className="fw-bold">
-                        {empData.AADHAR || "Pending"}
-                      </span>
-                    </div>
-                    <div className="small p-3 bg-light rounded-3 d-flex justify-content-between">
-                      <span className="text-muted">PAN Card:</span>
-                      <span className="fw-bold text-uppercase">
-                        {empData.PAN || "Pending"}
-                      </span>
+                    <div className="row g-3">
+                      {profileField("AADHAR", "Aadhaar Card", "text", "col-12")}
+                      {profileField("PAN", "PAN Card", "text", "col-12")}
+                      {profileField("DRIVING", "Driving Licence", "text", "col-12")}
                     </div>
                   </div>
                 </div>
@@ -695,6 +646,12 @@ export default function EmpDetails() {
                   icon={Clock}
                   state={attendencepermission}
                   setter={setAttendencePermission}
+                />
+                <PermissionSection
+                  title="Account Section"
+                  icon={CreditCard}
+                  state={payoutpermission}
+                  setter={setPayoutPermission}
                 />
                 <PermissionSection
                   title="HR & Employee"

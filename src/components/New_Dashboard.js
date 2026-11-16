@@ -86,7 +86,7 @@ function NewDashboard() {
               <ProtectedRoute permission="VIEW_RACK"><RackDashBoard /></ProtectedRoute>
             } />
             <Route path="/payrollandattendence/*" element={
-              <ProtectedRoute permission="VIEW_PAYOUT"><PayrollandAttendence /></ProtectedRoute>
+              <ProtectedRoute permission={["VIEW_PAYOUT", "ACCOUNT_SECTION"]}><PayrollandAttendence /></ProtectedRoute>
             } />
           </Routes>
         </Suspense>

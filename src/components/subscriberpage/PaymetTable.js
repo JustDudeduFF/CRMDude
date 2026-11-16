@@ -1,3 +1,4 @@
+import { useRecordView, RecordToolbar, RecordFooter } from './SubscriberSection';
 
 import React, { useEffect, useState } from "react";
 import { Modal, Button, Table, Badge, Spinner } from "react-bootstrap";
@@ -38,7 +39,7 @@ export default function PaymetTable() {
       setArrayPayment(paymentsArray);
     } catch (e) {
       console.log(e);
-    }
+    } finally { setIsLoading(false); }
   };
 
   const fetchUserData = async () => {
@@ -55,8 +56,6 @@ export default function PaymetTable() {
       setUserMap(maping);
     } catch (e) {
       console.log(e);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -155,6 +154,8 @@ export default function PaymetTable() {
     return <Badge className="status-pill status-paid">Paid</Badge>;
   };
 
+  const recordView = useRecordView(arraypayment, { statusKey: 'status' });
+
   return (
     <div className="payment-master-wrapper">
       
@@ -247,9 +248,10 @@ export default function PaymetTable() {
       </Modal>
 
       {/* Main Table Container */}
-      <div className="ledger-card shadow-sm border-0">
+      <div className="ledger-card sub-record-panel">
 
-        <div className="table-responsive">
+        <RecordToolbar view={recordView} label="payments" filename="subscriber-payments" loading={isLoading}/>
+      <div className="table-responsive">
           <Table hover className="ledger-modern-table mb-0">
             <thead>
               <tr>
@@ -266,10 +268,10 @@ export default function PaymetTable() {
             <tbody>
               {isLoading ? (
                 <tr><td colSpan="8" className="text-center py-5"><Spinner animation="border" variant="primary" size="sm" /></td></tr>
-              ) : arraypayment.length > 0 ? (
-                arraypayment.map((payment, index) => (
+              ) : recordView.count > 0 ? (
+                recordView.records.map((payment, index) => (
                   <tr key={index} className={payment.status?.toLowerCase() === "cancel" ? "row-is-canceled" : ""}>
-                    <td className="text-muted small">{index + 1}</td>
+                    <td className="text-muted small">{recordView.start + index + 1}</td>
                     <td>
                       <button 
                         className="receipt-id-btn"
@@ -292,6 +294,7 @@ export default function PaymetTable() {
             </tbody>
           </Table>
         </div>
+      <RecordFooter view={recordView} label="payments"/>
       </div>
 
       <style>{`

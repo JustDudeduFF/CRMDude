@@ -1,0 +1,11 @@
+const path = require('node:path');
+const { spawn } = require('node:child_process');
+const { loadEnvironment } = require('../config/env.cjs');
+const [mode, entry, ...args] = process.argv.slice(2);
+if (!entry) throw new Error('Usage: node scripts/run-env.cjs development|production entry.js [args]');
+const root = path.resolve(__dirname, '..');
+loadEnvironment(root, mode);
+const child = spawn(process.execPath, [entry, ...args], { cwd: root, env: process.env, stdio: 'inherit' });
+child.on('error', error => { console.error(error.message); process.exitCode = 1; });
+child.on('exit', code => { process.exitCode = code === null ? 1 : code; });
+for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => child.kill(signal));

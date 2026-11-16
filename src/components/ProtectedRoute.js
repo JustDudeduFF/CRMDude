@@ -11,7 +11,8 @@ const ProtectedRoute = ({ permission, children, Icon }) => {
   const [modalShow, setModalShow] = useState(false);
   const navigate = useNavigate();
 
-  if (!hasPermission(permission)) {
+  const requiredPermissions = Array.isArray(permission) ? permission : [permission];
+  if (!requiredPermissions.some(hasPermission)) {
     // Show the modal if permission is denied
     setTimeout(() => setModalShow(true), 0);
     
@@ -36,7 +37,7 @@ const ProtectedRoute = ({ permission, children, Icon }) => {
             <div className="denied-content">
               <h2 className="denied-title">Restricted Access</h2>
               <p className="denied-text">
-                Your current account doesn't have the <strong>{permission.replace(/_/g, ' ')}</strong> permission required to view this section.
+                Your current account doesn't have the <strong>{requiredPermissions.map(value => value.replace(/_/g, ' ')).join(' or ')}</strong> permission required to view this section.
               </p>
 
               <div className="lottie-wrapper">

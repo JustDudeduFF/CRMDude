@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { usePermissions } from "../PermissionProvider";
 import { API } from "../../FirebaseConfig";
 import {
   Cpu,
@@ -21,6 +22,7 @@ export default function RackDataModal({
   officeKey,
   onDeviceAdded,
 }) {
+  const { hasPermission } = usePermissions();
   const [device, setDevice] = useState("");
   const [deviceId, setDeviceId] = useState("");
   const [deviceKey, setDeviceKey] = useState(count + 1);
@@ -85,6 +87,7 @@ export default function RackDataModal({
   const handleDeploy = async (e) => {
     e.preventDefault();
 
+    if (!hasPermission("VIEW_RACK") || !hasPermission("ADD_RACK_DEVICE")) return;
     if (!rackId || !officeKey) {
       alert("Error: Rack ID or Office Key is missing.");
       return;
@@ -152,7 +155,7 @@ export default function RackDataModal({
     }
   };
 
-  if (!show) return null;
+  if (!show || !hasPermission("VIEW_RACK") || !hasPermission("ADD_RACK_DEVICE")) return null;
 
   return (
     <div className="custom-modal-overlay">

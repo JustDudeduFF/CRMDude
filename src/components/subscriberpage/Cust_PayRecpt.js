@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import Excel_Icon from "./drawables/xls.png";
-import PDF_Icon from "./drawables/pdf.png";
 import { API } from "../../FirebaseConfig";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import ReceiptModify from "./ReceiptModify";
@@ -8,20 +6,16 @@ import PaymetTable from "./PaymetTable";
 import ProtectedRoute from "../ProtectedRoute";
 import { Modal, Button } from "react-bootstrap";
 import { toast, ToastContainer } from "react-toastify";
-import {
-  FaLink,
-  FaPlusCircle,
-  FaFileInvoice,
-  FaArrowLeft,
-  FaReceipt
-} from "react-icons/fa";
+
 import "./Cust_PayRecpt.css";
+import SubscriberSection, { SectionAction } from "./SubscriberSection";
+import { Wallet, Plus, Link as LinkIcon } from "lucide-react";
 
 export default function Cust_PayRecpt() {
   const location = useLocation();
   const partnerId = localStorage.getItem("partnerId");
   const subsId = localStorage.getItem("susbsUserid");
-  const { userid } = location.state || {};
+  const { userid = subsId } = location.state || {};
   const [linkModal, setLinkModal] = useState(false);
   const [arrayblling, setBillingArray] = useState([]);
   const [LinkForm, setLinkForm] = useState({
@@ -91,70 +85,7 @@ export default function Cust_PayRecpt() {
     <div className="pay-receipt-wrapper">
       <ToastContainer />
 
-      {/* HEADER BAR */}
-      <div className="pay-receipt-nav shadow-sm">
-        <div className="nav-info">
-          {isCollectPage ? (
-            <>
-              <button className="back-btn" onClick={() => navigate(-1)}>
-                <FaArrowLeft />
-              </button>
-              <div className="receipt-header">
-                <div className="d-flex align-items-center ms-3">
-                  <div className="header-icon-circle">
-                    <FaReceipt />
-                  </div>
-                  <div className="ms-3">
-                    <h5 className="mb-0 fw-bold">Manual Receipt Collection</h5>
-                    <p className="text-muted small mb-0">
-                      Record customer payments and issue digital receipts
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="nav-icon-box">
-                <FaFileInvoice />
-              </div>
-              <div className="ms-3">
-                <h4 className="fw-bold mb-0">Payments & Receipts</h4>
-                <p className="text-muted small mb-0">
-                  Manage customer billing and collections
-                </p>
-              </div>
-            </>
-          )}
-        </div>
-
-        <div className="nav-actions">
-          {!isCollectPage && (
-            <>
-              <button
-                className="action-pill pill-link"
-                onClick={() => {
-                  setLinkModal(true);
-                  fetchbillingperiod();
-                }}
-              >
-                <FaLink /> <span>Payment Link</span>
-              </button>
-              <button
-                className="action-pill pill-receipt"
-                onClick={() => navigate("collect", { state: { userid } })}
-              >
-                <FaPlusCircle /> <span>Create Receipt</span>
-              </button>
-            </>
-          )}
-          <div className="export-icons ms-2">
-            <img src={Excel_Icon} alt="Excel" title="Export Excel" />
-            <img src={PDF_Icon} alt="PDF" title="Export PDF" />
-          </div>
-        </div>
-      </div>
-
+      <SubscriberSection title={isCollectPage ? 'Create a receipt' : 'Payments'} description={isCollectPage ? 'Record a payment and issue a subscriber receipt.' : 'Collections, receipts and payment history for this subscriber.'} icon={Wallet} backTo={isCollectPage ? '/dashboard/subscriber/paymentreceipt' : undefined} actions={!isCollectPage && <><SectionAction secondary onClick={() => { setLinkModal(true); fetchbillingperiod(); }}><LinkIcon size={15}/> Payment link</SectionAction><SectionAction onClick={() => navigate('collect', { state: { userid } })}><Plus size={15}/> Create receipt</SectionAction></>}>
       {/* CONTENT AREA */}
       <div className="pay-receipt-content mt-4">
         <Routes>
@@ -170,6 +101,8 @@ export default function Cust_PayRecpt() {
           <Route path="modify" element={<ReceiptModify />} />
         </Routes>
       </div>
+
+      </SubscriberSection>
 
       {/* LINK GENERATION MODAL */}
       <Modal

@@ -13,7 +13,7 @@ const MongoDBDashboard = () => {
     lastUpdated: null
   });
 
-  const [mongoUri, setMongoUri] = useState('mongodb://admin:MyDude%2323Admin009@api.justdude.in:27017/crmdude?authSource=admin');
+  const [mongoUri, setMongoUri] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [showUriInput, setShowUriInput] = useState(true);
 

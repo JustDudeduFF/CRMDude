@@ -1,17 +1,25 @@
+import { useRecordView, RecordToolbar, RecordFooter } from './SubscriberSection';
 import React, { useEffect, useState } from 'react'
 import DeleteIcon from './drawables/trash.png'
 import ExpandIcon from './drawables/eye.png'
-import { API } from '../../FirebaseConfig';
+import { API, API_ORIGIN } from '../../FirebaseConfig';
 import { FaFileAlt, FaHistory, FaUserCircle, FaTrashAlt, FaExternalLinkAlt } from 'react-icons/fa';
 
 export default function DocumetUploadTable() {
   const username = localStorage.getItem('susbsUserid');
   const [arraydocument, setArrayDocument] = useState([]);
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+
   const fetchdocs = async () => {
-    const response = await API.get(`/subscriber/documents/${username}`);
-    setArrayDocument(response.data);
-  }
+    setIsLoading(true); setLoadError('');
+    try {
+      const response = await API.get(`/subscriber/documents/${username}`);
+      setArrayDocument(Array.isArray(response.data) ? response.data : Object.values(response.data || {}));
+    } catch (error) { setLoadError('Unable to load documents. Please refresh to try again.'); }
+    finally { setIsLoading(false); }
+  };
 
   useEffect(() => {
     fetchdocs();
@@ -34,8 +42,12 @@ export default function DocumetUploadTable() {
     }
   };
 
+  const recordView = useRecordView(arraydocument, { statusKey: 'source' });
+
   return (
-    <div className="doc-table-wrapper shadow-sm">
+    <div className="doc-table-wrapper sub-record-panel">
+      {loadError && <div className="sub-record-alert" role="alert">{loadError}</div>}
+      <RecordToolbar view={recordView} label="documents" filename="subscriber-documents" loading={isLoading} exportDisabled={!!loadError} onRefresh={fetchdocs}/>
       <div className="table-responsive">
         <table className="doc-modern-table">
           <thead>
@@ -48,8 +60,8 @@ export default function DocumetUploadTable() {
             </tr>
           </thead>
           <tbody>
-            {arraydocument.length > 0 ? (
-              arraydocument.map(({ source, date, modifiedby, documentname, url, _id }, index) => (
+            {isLoading ? <tr><td colSpan={5} className="sub-record-empty" role="status">Loading documents…</td></tr> : loadError ? <tr><td colSpan={5} className="sub-record-empty">Refresh to reload documents.</td></tr> : recordView.count > 0 ? (
+              recordView.records.map(({ source, date, modifiedby, documentname, url, _id }, index) => (
                 <tr key={index}>
                   <td>
                     <span className={`source-badge ${source?.toLowerCase() === 'system' ? 'sys' : 'usr'}`}>
@@ -61,18 +73,20 @@ export default function DocumetUploadTable() {
                   <td className="doc-user-cell">{modifiedby}</td>
                   <td>
                     <div className="doc-action-btns">
-                      <a 
-                        href={url.includes('documentsCRM') ? `https://api.justdude.in:5000${url}` : url} 
-                        target='_blank' 
-                        rel="noreferrer"
+                      <a
+                        href={String(url || '').startsWith('/') ? `${API_ORIGIN}${url}` : url}
+                        target='_blank'
+                        rel="noopener noreferrer"
+                        aria-label={`View ${documentname}`}
                         className="action-link view"
                         title="View Document"
                       >
                         <img className='doc-icon-img' src={ExpandIcon} alt='expand' />
                       </a>
-                      <button 
-                        onClick={() => deleteFileFromUrl(documentname, _id)} 
+                      <button
+                        onClick={() => deleteFileFromUrl(documentname, _id)}
                         className="action-link delete"
+                        aria-label={`Delete ${documentname}`}
                         title="Delete Document"
                       >
                         <img className='doc-icon-img' src={DeleteIcon} alt='delete' />
@@ -93,6 +107,7 @@ export default function DocumetUploadTable() {
           </tbody>
         </table>
       </div>
+      <RecordFooter view={recordView} label="documents"/>
 
       <style>{`
         .doc-table-wrapper {

@@ -1,3 +1,4 @@
+import { useRecordView, RecordToolbar, RecordFooter } from './SubscriberSection';
 import { onValue, ref, off } from "firebase/database";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -59,8 +60,11 @@ export default function DebitCreditsTable() {
     fetchUserData();
   }, [username]);
 
+  const recordView = useRecordView([...arraynotes].reverse(), { statusKey: 'notetype' });
+
   return (
-    <div className="dc-table-container shadow-sm">
+    <div className="dc-table-container sub-record-panel">
+      <RecordToolbar view={recordView} label="notes" filename="subscriber-notes" loading={isLoading}/>
       <div className="table-responsive custom-scrollbar">
         <table className="table table-hover align-middle mb-0">
           <thead>
@@ -83,8 +87,8 @@ export default function DebitCreditsTable() {
                   <span className="text-muted fw-medium">Loading ledger entries...</span>
                 </td>
               </tr>
-            ) : arraynotes.length > 0 ? (
-              [...arraynotes].reverse().map((note, index) => (
+            ) : recordView.count > 0 ? (
+              recordView.records.map((note, index) => (
                 <tr key={index} className="dc-row">
                   <td className="ps-4">
                     <span 
@@ -133,6 +137,7 @@ export default function DebitCreditsTable() {
           </tbody>
         </table>
       </div>
+      <RecordFooter view={recordView} label="notes"/>
 
       <style>{`
         .dc-table-container {

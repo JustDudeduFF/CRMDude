@@ -1,3 +1,4 @@
+import { useRecordView, RecordToolbar, RecordFooter } from './SubscriberSection';
 import React, { useEffect, useState } from 'react';
 import { Modal } from 'react-bootstrap';
 import { toast, ToastContainer } from 'react-toastify';
@@ -13,14 +14,18 @@ export default function InventorysTable() {
   const [modify, setModify] = useState(false);
   const [updateInfo, setUpdateInfo] = useState({ amount: 0, status: 'Activated' });
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+
   const fetchInventory = async () => {
+    setIsLoading(true); setLoadError('');
     try {
       const res = await API.get(`/subscriber/inventorylist/${username}`);
       setInventoryArray(res.data || []);
     } catch (err) {
       console.error('Failed to fetch inventory:', err);
-      toast.error('Failed to load inventory');
-    }
+      setLoadError('Unable to load assigned inventory. Please refresh to try again.');
+    } finally { setIsLoading(false); }
   };
 
   useEffect(() => {
@@ -74,10 +79,14 @@ export default function InventorysTable() {
     }
   };
 
+  const recordView = useRecordView(inventoryArray, { statusKey: 'status' });
+
   return (
-    <div className="inventory-grid-container">
+    <div className="inventory-grid-container sub-record-panel">
       <ToastContainer />
       
+      {loadError && <div className="sub-record-alert" role="alert">{loadError}</div>}
+      <RecordToolbar view={recordView} label="inventory" filename="subscriber-inventory" loading={isLoading} exportDisabled={!!loadError} onRefresh={fetchInventory}/>
       <div className="table-responsive shadow-sm rounded-4 border bg-white">
         <table className="table table-hover align-middle mb-0">
           <thead className="bg-light">
@@ -92,8 +101,8 @@ export default function InventorysTable() {
             </tr>
           </thead>
           <tbody>
-            {inventoryArray.length ? (
-              inventoryArray.map((device, idx) => (
+            {isLoading ? <tr><td colSpan={7} className="sub-record-empty" role="status">Loading inventory…</td></tr> : loadError ? <tr><td colSpan={7} className="sub-record-empty">Refresh to reload inventory.</td></tr> : recordView.count ? (
+              recordView.records.map((device, idx) => (
                 <tr key={idx} className="inventory-row">
                   <td className="ps-4 fw-bold text-primary" style={{fontSize: '0.85rem'}}>
                     #{device.ledgerkey || device._id.slice(-6).toUpperCase()}
@@ -146,6 +155,7 @@ export default function InventorysTable() {
           </tbody>
         </table>
       </div>
+      <RecordFooter view={recordView} label="inventory"/>
 
       {/* MODAL REDESIGN */}
       <Modal show={modify} onHide={() => setModify(false)} centered className="modern-inventory-modal">

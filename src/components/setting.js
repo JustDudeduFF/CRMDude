@@ -14,7 +14,7 @@ import {
   Globe,
   Info,
 } from "lucide-react";
-import { API } from "../FirebaseConfig";
+import { API, whatsappServiceUrl } from "../FirebaseConfig";
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -135,7 +135,7 @@ const CompanyManagement = () => {
 
   const fetchWhatsppStatus = async (apiKey, port) => {
     try {
-      const baseURL = `https://dudeapi.justdude.in:${port}`;
+      const baseURL = whatsappServiceUrl(port);
 
       const { data } = await axios.get(`${baseURL}/api/sessions/default`, {
         headers: {
@@ -194,7 +194,7 @@ const CompanyManagement = () => {
 
   const restartSession = async (apiKey, port) => {
     try {
-      const baseURL = `https://dudeapi.justdude.in:${port}`;
+      const baseURL = whatsappServiceUrl(port);
 
       await axios.post(
         `${baseURL}/api/sessions/default/restart`,

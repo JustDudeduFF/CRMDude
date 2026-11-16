@@ -1,8 +1,9 @@
+import { useRecordView, RecordToolbar, RecordFooter } from './SubscriberSection';
 import React, { useEffect, useState } from "react";
 import { usePermissions } from "../PermissionProvider";
 import { API } from "../../FirebaseConfig";
 import { toast, ToastContainer } from "react-toastify";
-import { FaUndo, FaCalendarAlt, FaHistory, FaNetworkWired, FaUserCheck, FaInfoCircle } from 'react-icons/fa';
+import { FaUndo, FaCalendarAlt, FaNetworkWired, FaUserCheck, FaInfoCircle } from 'react-icons/fa';
 
 export default function RechargeTable() {
   const username = localStorage.getItem("susbsUserid");
@@ -53,24 +54,15 @@ export default function RechargeTable() {
     }
   };
 
+  const recordView = useRecordView(arrayplan, { statusKey: 'status' });
+
   return (
     <div className="recharge-master-container">
       <ToastContainer position="top-right" autoClose={2000} theme="colored" />
       
-      <div className="recharge-card shadow-sm">
-        <div className="recharge-header">
-          <div className="header-left">
-            <div className="icon-badge">
-              <FaHistory />
-            </div>
-            <div>
-              <h5 className="mb-0 fw-bold">Recharge History</h5>
-              <small className="text-muted">Tracking all plans and rollbacks for {username}</small>
-            </div>
-          </div>
-        </div>
-
-        <div className="table-responsive-wrapper">
+      <div className="recharge-card sub-record-panel">
+        <RecordToolbar view={recordView} label="recharges" filename="subscriber-recharges"/>
+      <div className="table-responsive-wrapper">
           <table className="recharge-modern-table">
             <thead>
               <tr>
@@ -85,10 +77,10 @@ export default function RechargeTable() {
               </tr>
             </thead>
             <tbody>
-              {arrayplan.length > 0 ? (
-                arrayplan.map((plan, index) => (
+              {recordView.count > 0 ? (
+                recordView.records.map((plan, index) => (
                   <tr key={index}>
-                    <td data-label="S.No." className="text-center-desktop text-muted fw-bold">{index + 1}</td>
+                    <td data-label="S.No." className="text-center-desktop text-muted fw-bold">{recordView.start + index + 1}</td>
                     
                     <td data-label="Plan Details">
                       <div className="dropdown">
@@ -151,6 +143,7 @@ export default function RechargeTable() {
             </tbody>
           </table>
         </div>
+      <RecordFooter view={recordView} label="recharges"/>
       </div>
 
       <style>{`

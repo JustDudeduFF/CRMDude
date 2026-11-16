@@ -1,3 +1,4 @@
+import { usePermissions } from "./PermissionProvider";
 import {useState} from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -19,10 +20,12 @@ export default function Reports_Others({ onCloseSidebar }) {
   const [pendingFeature, setPendingFeature] = useState("");
 
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
 
   const handleNavigation = (item) => {
+    if (item.path === "/dashboard/leadmanagment" && !["ADD_LEAD", "EDIT_LEAD", "CONVERT_TO_LEAD", "CANCEL_LEAD"].some(hasPermission)) { window.alert("Permission denied"); return; }
     // List of paths that are currently under development
-    const lockedPaths = ["/dashboard/network", "/dashboard/leadmanagment"];
+    const lockedPaths = ["/dashboard/network"];
 
     if (lockedPaths.includes(item.path)) {
       setPendingFeature(item.label);

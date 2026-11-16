@@ -1,3 +1,4 @@
+import { useRecordView, RecordToolbar, RecordFooter } from './SubscriberSection';
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { API } from '../../FirebaseConfig';
@@ -10,7 +11,11 @@ export default function RemarkFollowsTable() {
   const [arrayremark, setArrayRemark] = useState([]);
   const navigate = useNavigate();
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+
   const fetchData = async() => {
+    setIsLoading(true); setLoadError('');
     try {
       const response = await API.get(`/subscriber/remarksfollow?id=${username}`);
       if (response.status !== 200) return toast.error('Failed to get Remarks List', {
@@ -20,18 +25,22 @@ export default function RemarkFollowsTable() {
       const data = response.data;
       setArrayRemark(data);
     } catch (error) {
-      console.log(error)
-    }
+      setLoadError('Unable to load remarks. Please refresh to try again.');
+    } finally { setIsLoading(false); }
   }
 
   useEffect(() => {
     fetchData();
   }, [username]);
 
+  const recordView = useRecordView(arrayremark, { statusKey: 'type' });
+
   return (
-    <div className="rf-table-container shadow-sm">
+    <div className="rf-table-container sub-record-panel">
       <ToastContainer position="top-right" autoClose={2000} theme="colored" />
       
+      {loadError && <div className="sub-record-alert" role="alert">{loadError}</div>}
+      <RecordToolbar view={recordView} label="remarks" filename="subscriber-remarks" loading={isLoading} exportDisabled={!!loadError} onRefresh={fetchData}/>
       <div className="table-responsive">
         <table className="rf-modern-table">
           <thead>
@@ -45,8 +54,8 @@ export default function RemarkFollowsTable() {
             </tr>
           </thead>
           <tbody>
-            {arrayremark.length > 0 ? (
-              arrayremark.map(({remarkKey, type, date, description, modifiedon, modifiedBy, status}, index) => {
+            {isLoading ? <tr><td colSpan={7} className="sub-record-empty" role="status">Loading remarks…</td></tr> : loadError ? <tr><td colSpan={7} className="sub-record-empty">Refresh to reload remarks.</td></tr> : recordView.count > 0 ? (
+              recordView.records.map(({remarkKey, type, date, description, modifiedon, modifiedBy, status}, index) => {
                 const isFollowUp = type === 'Follow Up';
                 const isPending = status === 'pending';
 
@@ -95,6 +104,7 @@ export default function RemarkFollowsTable() {
           </tbody>
         </table>
       </div>
+      <RecordFooter view={recordView} label="remarks"/>
 
       <style>{`
         .rf-table-container {

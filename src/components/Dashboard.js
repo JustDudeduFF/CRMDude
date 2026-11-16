@@ -4,10 +4,12 @@ import { API } from "../FirebaseConfig";
 import { toast, ToastContainer } from "react-toastify";
 import * as XLSX from "xlsx";
 import "./Dashboard.css";
+import PayrollConnectionSettings from "./PayoutandAttendence/PayrollConnectionSettings";
 
 const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState(null);
+  const [viewPartner, setViewPartner] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [tableData, setTableData] = useState([]);
@@ -277,7 +279,7 @@ const Dashboard = () => {
             },
             {
               title: "Total Revenue",
-              count: "$25,236",
+              count: "₹25,236",
               icon: "💰",
               color: "purple",
             },
@@ -368,7 +370,10 @@ const Dashboard = () => {
                       <div className="d-flex justify-content-end gap-2">
                         <button
                           className="btn-icon view"
-                          onClick={() => console.log(row._id)}
+                          type="button"
+                          title="View partner details"
+                          aria-label={`View ${row.name || "partner"} details`}
+                          onClick={() => setViewPartner(row)}
                         >
                           👁️
                         </button>
@@ -622,6 +627,11 @@ const Dashboard = () => {
               )}
             </div>
           </Form>
+          {selectedPartner && (
+            String(selectedPartner) === String(localStorage.getItem("partnerId"))
+              ? <PayrollConnectionSettings key={selectedPartner} />
+              : <div className="alert alert-info mt-4 mb-0">DudePayroll integration is managed from this partner’s signed-in account. Sign in to that partner to connect or update payroll.</div>
+          )}
         </Modal.Body>
         <Modal.Footer className="border-0">
           <Button variant="light" onClick={() => setIsModalOpen(false)}>
@@ -630,6 +640,36 @@ const Dashboard = () => {
           <Button variant="primary" onClick={handleSaveplan}>
             {selectedPartner ? "Update Partner" : "Save Partner"}
           </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={!!viewPartner} onHide={() => setViewPartner(null)} centered size="lg" aria-labelledby="partner-details-title">
+        <Modal.Header closeButton className="border-0">
+          <Modal.Title id="partner-details-title" className="fw-bold">Partner Details</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="px-4">
+          {viewPartner && <>
+            <div className="d-flex align-items-center gap-3 mb-4">
+              <div className="avatar-circle">{getInitials(viewPartner.name)}</div>
+              <div><h5 className="fw-bold mb-1">{viewPartner.name || 'Unnamed partner'}</h5><span className="text-muted small">{viewPartner.companyname || '—'}</span></div>
+              <Badge className={`status-pill ms-auto ${(viewPartner.status || '').toLowerCase()}`}>{viewPartner.status || '—'}</Badge>
+            </div>
+            <Row as="dl" className="g-3 mb-4">
+              {[
+                ['Mobile', viewPartner.phone], ['Email', viewPartner.email],
+                ['Address', viewPartner.address], ['State', viewPartner.state],
+                ['Pincode', viewPartner.pincode], ['GSTIN', viewPartner.gstin],
+              ].map(([label, value]) => <Col sm={6} key={label}><dt className="small text-muted mb-1">{label}</dt><dd className="mb-0 text-break">{value || '—'}</dd></Col>)}
+            </Row>
+            <h6 className="fw-bold border-top pt-3">Service Settings</h6>
+            <div className="d-flex flex-wrap gap-2 mt-3">
+              {[['WhatsApp', viewPartner.isWhatsapp], ['Email', viewPartner.isEmail], ['Online Payments', viewPartner.isPayment]].map(([label, enabled]) => <span key={label} className="bg-light rounded px-3 py-2 small">{label}: <strong>{enabled ? 'Enabled' : 'Disabled'}</strong></span>)}
+            </div>
+          </>}
+        </Modal.Body>
+        <Modal.Footer className="border-0">
+          <Button variant="light" onClick={() => setViewPartner(null)}>Close</Button>
+          <Button variant="primary" onClick={() => { const id = viewPartner._id; setViewPartner(null); handleEdit(id); }}>Edit Partner</Button>
         </Modal.Footer>
       </Modal>
 

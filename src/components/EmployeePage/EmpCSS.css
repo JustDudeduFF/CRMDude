@@ -518,3 +518,46 @@
   from { transform: translateX(20px); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
+/* Employee directory and profile refinements; retain the existing app palette. */
+.employee-dashboard-wrapper .employee-sidebar { padding:16px 12px; }
+.employee-dashboard-wrapper .employee-sidebar > .sticky-top { padding:0 0 16px!important; }
+.employee-dashboard-wrapper .employee-sidebar .btn-primary { gap:8px; font-size:13px; padding:11px 12px!important; border-radius:10px!important; }
+.employee-directory-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:20px 4px 12px; font-size:12px; }
+.employee-directory-heading > div { display:flex; gap:7px; align-items:center; }
+.employee-directory-heading > span { color:#6c757d; font-size:11px; white-space:nowrap; }
+.employee-directory-search { margin-bottom:14px!important; }
+.employee-directory-search input { font-size:12px; min-height:42px; }
+.employee-directory-button { width:100%; border:1px solid transparent; border-radius:10px; background:transparent; text-align:left; padding:12px 10px; display:flex; align-items:center; justify-content:space-between; gap:6px; margin:4px 0; }
+.employee-directory-button > div { min-width:0; }
+.employee-directory-button .avatar-sm { margin-right:10px!important; flex-shrink:0; }
+.employee-directory-button.is-selected { background:var(--bs-primary-bg-subtle,#cfe2ff); border-color:var(--bs-primary-border-subtle,#9ec5fe); }
+.employee-directory-button:focus-visible { outline:2px solid var(--bs-primary); outline-offset:2px; }
+.employee-directory-empty { display:flex; flex-direction:column; align-items:center; gap:10px; padding:32px 10px; text-align:center; color:#6c757d; font-size:12px; }
+.employee-view-content { padding:24px; }
+.employee-welcome { padding:28px; min-height:calc(100vh - 110px); }
+.employee-welcome-heading { display:flex; gap:14px; align-items:center; padding-bottom:24px; border-bottom:1px solid #edf0f5; }
+.employee-welcome-body { display:grid; grid-template-columns:1fr 1fr; gap:36px; align-items:center; flex:1; padding:24px 0; }
+.employee-welcome-body .employee-animation-container { max-width:420px; width:100%; margin:auto; }
+.employee-welcome-body h3 { font-size:26px; line-height:1.35; }
+.employee-welcome-body > div > p { font-size:14px; line-height:1.7; max-width:420px; }
+.employee-welcome-features { display:grid; gap:20px; margin-top:28px; }
+.employee-welcome-features > div { display:flex; align-items:center; gap:12px; }
+.employee-welcome-features strong { font-size:13px; }
+.employee-welcome-features p { margin:4px 0 0; font-size:12px; color:#6c757d; }
+.employee-details-page .employee-profile-header { flex-wrap:wrap; gap:20px; }
+.employee-details-page .avatar-square { width:52px; height:52px; flex-shrink:0; }
+.employee-details-page .employee-profile-tabs { align-self:stretch; align-items:center; }
+.employee-details-page .nav-tab-item { padding:14px 2px; background:transparent; border:0; border-bottom:2px solid transparent; color:#6c757d; font-size:13px; font-weight:600; white-space:nowrap; }
+.employee-details-page .nav-tab-item.active { border-bottom-color:var(--bs-primary); color:var(--bs-primary); }
+.employee-profile-content { padding:24px 0; }
+.employee-details-page .card { overflow:hidden; }
+.employee-details-page .form-label { font-size:10px; letter-spacing:.6px; margin-bottom:8px; }
+.employee-details-page .form-control,.employee-details-page .form-select { min-height:42px; border-radius:8px; font-size:13px; }
+.employee-details-page .input-group { border-radius:8px; overflow:hidden; }
+.employee-details-page.is-viewing .form-control[readonly] { cursor:default; box-shadow:none; }
+.employee-details-page .col-md-4 .d-flex { min-width:0; gap:6px!important; }
+.employee-details-page .col-md-4 input { min-width:30px; padding:8px 3px; }
+.employee-details-page .col-md-4 .input-group-text { padding:6px; }
+.employee-details-page .col-md-4 .fst-italic { display:none; }
+@media (max-width:1199px) { .employee-dashboard-wrapper .employee-sidebar { padding:12px 8px; } .employee-view-content { padding:16px; } .employee-profile-tabs { order:3; width:100%; border-top:1px solid #edf0f5; } }
+@media (max-width:767px) { .employee-view-content { padding:12px; } .employee-welcome { padding:20px; min-height:auto; } .employee-welcome-body { grid-template-columns:1fr; gap:18px; } .employee-welcome-body .employee-animation-container { max-width:230px; } .employee-welcome-body h3 { font-size:22px; } .employee-welcome-heading h4 { font-size:19px; } .employee-profile-content { padding:16px 0; } .employee-details-page .card { padding:20px!important; } }

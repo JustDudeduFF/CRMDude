@@ -106,6 +106,7 @@ const Switch = ({
 
   const handleSavePort = async (e) => {
     e.preventDefault();
+    if (!hasPermission("VIEW_RACK") || !hasPermission("UPDATE_RACK")) return;
     if (!rackId || !officeKey || !deviceId || !selectedPortNumber || !activeModal) return;
 
     if (formState.connectedTo) {
@@ -393,7 +394,7 @@ const Switch = ({
               <Button variant="secondary" onClick={() => setActiveModal(null)} disabled={isSaving}>
                 Cancel
               </Button>
-              <Button variant="primary" type="submit" disabled={isSaving}>
+              <Button variant="primary" type="submit" disabled={isSaving || !hasPermission("UPDATE_RACK")}>
                 {isSaving ? "Saving..." : "Save Details"}
               </Button>
             </div>

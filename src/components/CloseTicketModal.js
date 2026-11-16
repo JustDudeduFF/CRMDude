@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { API } from "../FirebaseConfig";
+import { API, mobile_api } from "../FirebaseConfig";
 import { toast, ToastContainer } from "react-toastify";
 import { X, CheckCircle2, UserCircle2, ClipboardCheck, Hash } from "lucide-react";
 import axios from "axios";
@@ -33,7 +33,7 @@ const CloseTicketModal = ({ show, ticketno, closeModal }) => {
 
     try {
       const response = await axios.put(
-        `https://dudeapi.justdude.in/mobile/updateticket/${ticketno._id}`,
+        `${mobile_api}/updateticket/${ticketno._id}`,
         {
           status: "Completed",
           closeby: closeby,

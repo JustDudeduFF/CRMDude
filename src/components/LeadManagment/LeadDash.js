@@ -1,393 +1,94 @@
-import React, { useEffect, useState } from 'react';
-import { Line, Pie } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js';
-import EnquiryIcon from '../subscriberpage/drawables/enquiry.png';
-import CreateLeadForm from './CreateLeadForm';
-import { onValue, ref } from 'firebase/database';
-import { db } from '../../FirebaseConfig';
-import { isToday, isThisWeek, isThisMonth, subDays } from 'date-fns';
-import CreateEnquiry from './CreateEnquiry';
-import ExpandLeads from './ExpandLeads';
-import ExpandIcon from '../subscriberpage/drawables/expand-arrows.png'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Modal } from 'react-bootstrap';
+import { Plus, RefreshCw, Search, Phone, MapPin, UserCheck, ArrowRight, Pencil } from 'lucide-react';
+import { API } from '../../FirebaseConfig';
 import { usePermissions } from '../PermissionProvider';
-import { Plus, Filter, LayoutGrid, Users, Briefcase, TrendingUp } from 'lucide-react';
+import './LeadWorkflow.css';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend
-);
+const STATUSES = { in_progress: 'In Progress', confirmed: 'Confirmed', installed: 'Installed', cancelled: 'Cancelled' };
+const EMPTY = { name: '', phone: '', alternatePhone: '', email: '', address: '', colony: '', city: '', state: '', pinCode: '', planCode: '', communicatedBy: '', notes: '' };
+const money = value => `₹${Number(value || 0).toLocaleString('en-IN')}`;
+const date = value => { if (!value) return '—'; const d = new Date(value); return Number.isFinite(d.getTime()) ? `${String(d.getDate()).padStart(2, '0')}-${['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][d.getMonth()]}-${d.getFullYear()}` : '—'; };
+const errorMessage = error => error.response?.data?.message || error.message || 'Unable to complete lead request.';
 
 export default function LeadDash() {
+  const navigate = useNavigate();
   const { hasPermission } = usePermissions();
-  const [show, setShow] = useState(false);
-  const [show1, setShow1] = useState(false);
-  const [shoeExpand, setShowExpand] = useState(false);
-  const [arrayleads, setArrayLeads] = useState([]);
-  const [filteredLeads, setFilteredLeads] = useState([]);
-  const [filterType, setFilterType] = useState('All Time');
-  const [selectedCompany, setSelectedCompany] = useState('All');
-
-  const leadRef = ref(db, `Leadmanagment`);
-
-  useEffect(() => {
-    const fetchLeads = onValue(leadRef, (leadSnap) => {
-      const leadArray = [];
-      if (leadSnap.exists()) {
-        leadSnap.forEach((child) => {
-          const val = child.val();
-          const date = new Date(val.date);
-          const leadsource = val.leadsource;
-          const companyName = val.companyName;
-          const type = val.type;
-          leadArray.push({ date, leadsource, companyName, type });
-        });
-        setArrayLeads(leadArray);
-      }
-    });
-    return () => fetchLeads();
+  const canRead = ['ADD_LEAD','EDIT_LEAD','CONVERT_TO_LEAD','CANCEL_LEAD'].some(hasPermission);
+  const [leads, setLeads] = useState([]), [loading, setLoading] = useState(false), [error, setError] = useState('');
+  const [status, setStatus] = useState('all'), [search, setSearch] = useState('');
+  const [editor, setEditor] = useState(null), [selected, setSelected] = useState(null), [saving, setSaving] = useState(false);
+  const generation = useRef(0);
+  const load = useCallback(async () => {
+    const current = ++generation.current; setLoading(true); setError('');
+    try { const {data} = await API.get('/leads'); if (current === generation.current) setLeads(data); }
+    catch (error) { if (current === generation.current) setError(errorMessage(error)); }
+    finally { if (current === generation.current) setLoading(false); }
   }, []);
-
+  useEffect(() => { if (canRead) load(); return () => { generation.current++; }; }, [canRead, load]);
+  const permit = permission => { if (hasPermission(permission)) return true; window.alert('Permission denied'); return false; };
+  const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return leads.filter(lead => (status === 'all' || lead.status === status) && (!query || [lead.name,lead.phone,lead.address,lead.communicatedByName,lead.plan?.name].some(value => String(value || '').toLowerCase().includes(query))));
+  }, [leads,status,search]);
+  const saved = lead => { setLeads(previous => [lead, ...previous.filter(row => row._id !== lead._id)]); setEditor(null); if (selected?._id === lead._id) setSelected(lead); };
+  const progress = async lead => {
+    if (saving || !permit('CONVERT_TO_LEAD')) return;
+    if (lead.status === 'confirmed') { if (permit('ADD_CUSTOMER')) navigate(`/dashboard/adduser?leadId=${encodeURIComponent(lead._id)}`); return; }
+    setSaving(true); setError('');
+    try { const {data} = await API.patch(`/leads/${encodeURIComponent(lead._id)}/status`, { status: lead.status === 'in_progress' ? 'confirmed' : 'installed' }); setLeads(previous => previous.map(row => row._id === data._id ? data : row)); if (selected?._id === data._id) setSelected(data); }
+    catch (error) { setError(errorMessage(error)); }
+    finally { setSaving(false); }
+  };
+  const cancelLead = async lead => {
+    if (saving || !permit('CANCEL_LEAD')) return;
+    setSaving(true); setError('');
+    try { const {data} = await API.patch(`/leads/${encodeURIComponent(lead._id)}/cancel`); setLeads(previous => previous.map(row => row._id === data._id ? data : row)); if (selected?._id === data._id) setSelected(data); }
+    catch (error) { setError(errorMessage(error)); }
+    finally { setSaving(false); }
+  };
+  if (!canRead) return <main className="p-4"><div role="alert" className="alert alert-warning">Permission denied. Ask your administrator for lead access.</div></main>;
+  return <main className="lead-workflow p-3 p-md-4">
+    <header className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4"><div><div className="lead-eyebrow">CUSTOMER ACQUISITION</div><h2 className="mb-1">Lead Generation</h2><p className="text-muted mb-0">Track every conversation from first enquiry to installation.</p></div><div className="d-flex gap-2"><button className="btn btn-outline-secondary d-flex gap-2 align-items-center" disabled={loading} onClick={load}><RefreshCw size={16}/>Refresh</button><button className="btn btn-primary d-flex gap-2 align-items-center" onClick={() => { if (permit('ADD_LEAD')) setEditor({}); }}><Plus size={18}/>Add Lead</button></div></header>
+    <div className="row g-3 mb-4">{Object.entries(STATUSES).map(([key,label]) => <div className="col-12 col-sm-6 col-xl-3" key={key}><button className={`lead-stat ${status === key ? 'lead-stat-selected' : ''}`} onClick={() => setStatus(status === key ? 'all' : key)} aria-pressed={status === key}><span className={`lead-status-dot ${key}`}/><span>{label}</span><strong>{leads.filter(lead => lead.status === key).length}</strong></button></div>)}</div>
+    <div className="d-flex flex-wrap gap-3 align-items-center mb-4"><div className="lead-search"><Search size={18}/><input aria-label="Search leads" placeholder="Search name, mobile, address or plan" value={search} onChange={event => setSearch(event.target.value)}/></div><select className="form-select lead-status-select" aria-label="Filter lead status" value={status} onChange={event => setStatus(event.target.value)}><option value="all">All statuses ({leads.length})</option>{Object.entries(STATUSES).map(([key,label]) => <option key={key} value={key}>{label}</option>)}</select><span className="text-muted small">{filtered.length} leads</span></div>
+    {error && <div role="alert" className="alert alert-danger">{error}</div>}
+    {loading ? <p role="status">Loading leads…</p> : <div className="row g-3">{filtered.map(lead => <div className="col-12 col-md-6 col-xl-4" key={lead._id}><article className="lead-card h-100">
+      <button className="lead-card-main" onClick={() => setSelected(lead)}><div className="d-flex justify-content-between align-items-start gap-2"><h5>{lead.name}</h5><span className={`lead-status ${lead.status}`}>{STATUSES[lead.status]}</span></div><div className="lead-card-line"><Phone size={15}/>{lead.phone}</div><div className="lead-card-line"><MapPin size={15}/>{lead.address}</div><div className="lead-plan"><strong>{lead.plan?.name || 'Plan not specified'}</strong><span>{money(lead.plan?.amount)}</span></div><div className="lead-card-line small"><UserCheck size={15}/>Communicated by {lead.communicatedByName || '—'}</div><div className="text-muted small mt-2">Created {date(lead.createdAt)}</div></button>
+      <footer className="d-flex gap-2 border-top pt-3 mt-3"><button className="btn btn-sm btn-outline-secondary" onClick={() => { if (permit('EDIT_LEAD')) setEditor(lead); }}><Pencil size={14}/> Edit</button>{!['installed','cancelled'].includes(lead.status) && <button className="btn btn-sm btn-primary ms-auto" disabled={saving} onClick={() => progress(lead)}>{lead.status === 'in_progress' ? 'Confirm Lead' : 'Mark Installed'} <ArrowRight size={14}/></button>}{!['installed','cancelled'].includes(lead.status) && <button className="btn btn-sm btn-outline-danger" disabled={saving} onClick={() => cancelLead(lead)}>Cancel Lead</button>}</footer>
+    </article></div>)}{!filtered.length && <div className="col-12"><div className="lead-empty">No leads found. Add a lead to start tracking a customer enquiry.</div></div>}</div>}
+    <LeadEditor key={editor?._id || (editor ? 'new' : 'closed')} lead={editor} onClose={() => setEditor(null)} onSaved={saved}/>
+    <Modal show={!!selected} onHide={() => setSelected(null)} size="lg" centered><Modal.Header closeButton><Modal.Title>Lead Details</Modal.Title></Modal.Header><Modal.Body>{selected && <>
+      <div className="d-flex align-items-center justify-content-between mb-3"><h4>{selected.name}</h4><span className={`lead-status ${selected.status}`}>{STATUSES[selected.status]}</span></div>
+      <div className="row g-3">{[['Mobile',selected.phone],['Alternate',selected.alternatePhone],['Email',selected.email],['Home address',selected.address],['Colony',selected.colony],['City',selected.city],['State',selected.state],['PIN code',selected.pinCode],['Requested plan',selected.plan?.name],['Plan amount',money(selected.plan?.amount)],['Provider',selected.plan?.provider],['ISP',selected.plan?.isp],['Communicating employee',selected.communicatedByName],['Employee mobile',selected.communicatedByPhone],['Created by',selected.createdByName],['Created',date(selected.createdAt)],['Notes',selected.notes]].map(([label,value]) => <div className="col-12 col-sm-6" key={label}><div className="text-muted small">{label}</div><div className="text-break">{value || '—'}</div></div>)}</div>
+      <h6 className="mt-4">Status History</h6>{selected.statusHistory?.map((entry,index) => <div className="border-start ps-3 py-2" key={index}><strong>{STATUSES[entry.to] || entry.to}</strong><div className="text-muted small">{entry.employeeName} · {date(entry.date)}</div></div>)}
+    </>}</Modal.Body><Modal.Footer><button className="btn btn-secondary" onClick={() => setSelected(null)}>Close</button></Modal.Footer></Modal>
+  </main>;
+}
+function LeadEditor({lead,onClose,onSaved}) {
+  const [form,setForm] = useState(() => ({...EMPTY,...Object.fromEntries(Object.keys(EMPTY).map(key => [key,lead?.[key] || '']))}));
+  const [options,setOptions] = useState(null), [loading,setLoading] = useState(false), [saving,setSaving] = useState(false), [error,setError] = useState(''), [retry,setRetry] = useState(0);
+  const inFlight = useRef(false);
   useEffect(() => {
-    let filtered = arrayleads;
-    const currentDate = new Date();
-
-    switch (filterType) {
-      case 'Today':
-        filtered = arrayleads.filter((lead) => isToday(lead.date));
-        break;
-      case 'This Week':
-        filtered = arrayleads.filter((lead) => isThisWeek(lead.date));
-        break;
-      case 'This Month':
-        filtered = arrayleads.filter((lead) => isThisMonth(lead.date));
-        break;
-      case 'Last 7 Days':
-        filtered = arrayleads.filter((lead) => lead.date >= subDays(currentDate, 7));
-        break;
-      default:
-        filtered = arrayleads;
-    }
-
-    if (selectedCompany !== 'All') {
-      filtered = filtered.filter(lead => lead.companyName === selectedCompany);
-    }
-    setFilteredLeads(filtered);
-  }, [filterType, selectedCompany, arrayleads]);
-
-  const lastFiveDays = Array.from({ length: 5 }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() - (4 - i));
-    return date.toISOString().split('T')[0];
-  });
-
-  const leadCountByDate = filteredLeads.reduce((acc, lead) => {
-    const dateString = new Date(lead.date).toISOString().split('T')[0];
-    if (lastFiveDays.includes(dateString)) {
-      acc[dateString] = (acc[dateString] || 0) + 1;
-    }
-    return acc;
-  }, {});
-
-  const chartDataObject = lastFiveDays.reduce((acc, date) => {
-    acc[date] = leadCountByDate[date] || 0;
-    return acc;
-  }, {});
-
-  const leadCountBySource = filteredLeads.reduce((acc, lead) => {
-    const source = lead.leadsource;
-    acc[source] = (acc[source] || 0) + 1;
-    return acc;
-  }, {});
-
-  const leadCountByType = filteredLeads.reduce((acc, lead) => {
-    const source = lead.type;
-    acc[source] = (acc[source] || 0) + 1;
-    return acc;
-  }, {});
-
-  const pieData = {
-    labels: ['Employee', 'Sales Team', 'Customer'],
-    datasets: [{
-      data: [
-        leadCountBySource.employee || 0,
-        leadCountBySource.sales_team || 0,
-        leadCountBySource.customer || 0,
-      ],
-      backgroundColor: ['#3b82f6', '#f43f5e', '#f59e0b'],
-      borderWidth: 0,
-    }],
+    if (!lead) return;
+    let active=true;setLoading(true);setError('');
+    API.get('/leads/options').then(({data})=>{if(active){setOptions(data);setForm(previous=>({...previous,communicatedBy:previous.communicatedBy || data.currentEmployeeId}));}}).catch(error=>{if(active)setError(errorMessage(error));}).finally(()=>{if(active)setLoading(false);});
+    return()=>{active=false;};
+  },[lead,retry]);
+  const change = event => setForm(previous=>({...previous,[event.target.name]:event.target.value}));
+  const submit = async event => {
+    event.preventDefault();if(inFlight.current)return;inFlight.current=true;setSaving(true);setError('');
+    try { const {data}=lead._id ? await API.put(`/leads/${encodeURIComponent(lead._id)}`,form) : await API.post('/leads',form);onSaved(data); }
+    catch(error){setError(errorMessage(error));}finally{inFlight.current=false;setSaving(false);}
   };
-
-  const chartData = {
-    labels: Object.keys(chartDataObject).map(d => new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })),
-    datasets: [{
-      label: 'New Leads',
-      data: Object.values(chartDataObject),
-      fill: true,
-      backgroundColor: 'rgba(59, 130, 246, 0.1)',
-      borderColor: '#3b82f6',
-      tension: 0.4,
-      pointRadius: 4,
-    }],
-  };
-
-  const companyNames = ['All', ...new Set(arrayleads.map((lead) => lead.companyName))];
-
-  return (
-    <div className="dashboard-wrapper">
-      <div className="dashboard-content">
-        
-        {/* Header Section */}
-        <header className="dashboard-header">
-          <div className="title-block">
-            <h2 className="main-title">Lead Management</h2>
-            <p className="subtitle">Track and manage your business pipeline</p>
-          </div>
-          <div className="action-buttons">
-            <button onClick={() => setShow1(true)} className="btn-secondary-custom">
-              <Plus size={18} /> <span>Add Enquiry</span>
-            </button>
-            <button onClick={() => {
-              if (hasPermission("ADD_LEAD")) { setShow(true); } else { alert("Permission Denied") }
-            }} className="btn-primary-custom">
-              <Plus size={18} /> <span>Create Lead</span>
-            </button>
-          </div>
-        </header>
-
-        {/* Filters Section */}
-        <section className="filter-section card-custom">
-          <div className="filter-group">
-            <div className="select-wrapper">
-              <Filter size={16} className="select-icon" />
-              <select onChange={(e) => setFilterType(e.target.value)} className="select-custom">
-                <option>All Time</option>
-                <option>Today</option>
-                <option>Last 7 Days</option>
-                <option>This Week</option>
-                <option>This Month</option>
-              </select>
-            </div>
-            <div className="select-wrapper">
-              <Briefcase size={16} className="select-icon" />
-              <select onChange={(e) => setSelectedCompany(e.target.value)} className="select-custom">
-                {companyNames.map((company) => (
-                  <option key={company} value={company}>{company}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <button className="btn-convert-custom">
-            Enquiry to Lead Convert
-          </button>
-        </section>
-
-        {/* Stats Grid */}
-        <div className="stats-grid">
-          <div className="stat-card card-custom">
-            <div className="stat-header">
-              <div className="stat-info">
-                <span className="stat-label">Total Enquiries</span>
-                <h3 className="stat-value text-enquiry">{leadCountByType.enquiry || 0}</h3>
-              </div>
-              <div className="stat-icon-bg bg-enquiry">
-                <Users size={24} color="#92400e" />
-              </div>
-            </div>
-          </div>
-
-          <div className="stat-card card-custom">
-            <div className="stat-header">
-              <div className="stat-info">
-                <span className="stat-label">Total Leads</span>
-                <h3 className="stat-value text-lead">{leadCountByType.lead || 0}</h3>
-              </div>
-              <div className="stat-icon-bg bg-lead">
-                <TrendingUp size={24} color="#1e40af" />
-              </div>
-            </div>
-          </div>
-          
-          <div className="expand-stats-card card-custom" onClick={() => setShowExpand(true)}>
-            <img src={ExpandIcon} alt="expand" />
-            <span>Detailed Analysis</span>
-          </div>
-        </div>
-
-        {/* Analytics Section */}
-        <div className="analytics-grid">
-          <div className="card-custom chart-card">
-            <div className="card-header">
-              <h5 className="card-title">Leads Trend</h5>
-              <p className="card-subtitle">Performance over last 5 days</p>
-            </div>
-            <div className="chart-wrapper">
-              <Line data={chartData} options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
-              }} />
-            </div>
-          </div>
-
-          <div className="card-custom stats-detail-card">
-            <div className="card-header">
-              <h5 className="card-title">Generation Stats</h5>
-              <p className="card-subtitle">Distribution by source</p>
-            </div>
-            <div className="source-list">
-              <div className="source-item">
-                <div className="source-dot bg-blue"></div>
-                <span className="source-name">Employee</span>
-                <span className="source-count">{leadCountBySource.employee || 0}</span>
-              </div>
-              <div className="source-item">
-                <div className="source-dot bg-rose"></div>
-                <span className="source-name">Sales Team</span>
-                <span className="source-count">{leadCountBySource.sales_team || 0}</span>
-              </div>
-              <div className="source-item">
-                <div className="source-dot bg-amber"></div>
-                <span className="source-name">Customer</span>
-                <span className="source-count">{leadCountBySource.customer || 0}</span>
-              </div>
-            </div>
-            <div className="pie-wrapper">
-              <Pie data={pieData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }} />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <CreateLeadForm showModal={show} modalClose={() => setShow(false)} />
-      <CreateEnquiry showModal1={show1} modalClose1={() => setShow1(false)} />
-      <ExpandLeads showExpand={shoeExpand} closeExpand={() => setShowExpand(false)} />
-
-      <style>{`
-        .dashboard-wrapper {
-          background-color: #f8fafc;
-          min-height: 100vh;
-          padding: 20px 20px 20px 20px;
-        }
-        .dashboard-content {
-          max-width: 100%;
-          margin: 0 auto;
-        }
-        .dashboard-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 30px;
-          flex-wrap: wrap;
-          gap: 20px;
-        }
-        .main-title { font-weight: 800; color: #1e293b; margin: 0; font-size: 1.75rem; }
-        .subtitle { color: #64748b; margin: 5px 0 0 0; }
-        
-        .action-buttons { display: flex; gap: 12px; }
-        .btn-primary-custom, .btn-secondary-custom {
-          display: flex; align-items: center; gap: 8px;
-          padding: 10px 20px; border-radius: 10px; font-weight: 600;
-          transition: all 0.2s; border: none; cursor: pointer;
-        }
-        .btn-primary-custom { background: #3b82f6; color: white; }
-        .btn-primary-custom:hover { background: #2563eb; transform: translateY(-1px); }
-        .btn-secondary-custom { background: #fff; color: #3b82f6; border: 1px solid #e2e8f0; }
-        .btn-secondary-custom:hover { background: #f8fafc; }
-
-        .card-custom {
-          background: white; border-radius: 16px; 
-          border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-        }
-
-        .filter-section {
-          padding: 15px 20px; display: flex; justify-content: space-between;
-          align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 15px;
-        }
-        .filter-group { display: flex; gap: 12px; flex-wrap: wrap; }
-        .select-wrapper { position: relative; display: flex; align-items: center; }
-        .select-icon { position: absolute; left: 12px; color: #94a3b8; pointer-events: none; }
-        .select-custom {
-          padding: 8px 12px 8px 35px; border-radius: 8px; border: 1px solid #e2e8f0;
-          color: #475569; font-weight: 500; appearance: none; background: white;
-        }
-        .btn-convert-custom {
-          background: #f1f5f9; color: #475569; border: none; padding: 8px 16px;
-          border-radius: 8px; font-weight: 600; cursor: pointer;
-        }
-
-        .stats-grid {
-          display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 20px; margin-bottom: 24px;
-        }
-        .stat-card { padding: 20px; position: relative; overflow: hidden; }
-        .stat-header { display: flex; justify-content: space-between; align-items: center; }
-        .stat-label { color: #64748b; font-size: 0.875rem; font-weight: 600; }
-        .stat-value { font-size: 2rem; font-weight: 800; margin-top: 5px; }
-        .text-enquiry { color: #92400e; }
-        .text-lead { color: #1e40af; }
-        .stat-icon-bg { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
-        .bg-enquiry { background: #fef3c7; }
-        .bg-lead { background: #dbeafe; }
-
-        .expand-stats-card {
-          display: flex; align-items: center; justify-content: center; gap: 10px;
-          cursor: pointer; padding: 20px; background: #1e293b; color: white;
-          transition: 0.3s;
-        }
-        .expand-stats-card:hover { background: #0f172a; }
-        .expand-stats-card img { width: 24px; filter: invert(1); }
-
-        .analytics-grid {
-          display: grid; grid-template-columns: 2fr 1fr; gap: 24px;
-        }
-        .chart-card { padding: 24px; }
-        .stats-detail-card { padding: 24px; display: flex; flexDirection: column; }
-        .card-header { margin-bottom: 20px; }
-        .card-title { font-weight: 700; color: #1e293b; margin: 0; }
-        .card-subtitle { color: #94a3b8; font-size: 0.875rem; margin: 4px 0 0 0; }
-        
-        .chart-wrapper { height: 300px; position: relative; }
-        .pie-wrapper { height: 200px; margin-top: auto; }
-        
-        .source-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
-        .source-item { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
-        .source-dot { width: 8px; height: 8px; border-radius: 50%; }
-        .bg-blue { background: #3b82f6; }
-        .bg-rose { background: #f43f5e; }
-        .bg-amber { background: #f59e0b; }
-        .source-name { flex: 1; color: #475569; }
-        .source-count { font-weight: 700; color: #1e293b; }
-
-        /* Mobile Adjustments */
-        @media (max-width: 768px) {
-          .dashboard-wrapper { padding: 10px 8px 10px 8x; }
-          .dashboard-header { flex-direction: column; align-items: flex-start; }
-          .action-buttons { width: 100%; }
-          .btn-primary-custom, .btn-secondary-custom { flex: 1; justify-content: center; font-size: 0.9rem; }
-          .filter-section { flex-direction: column; align-items: stretch; }
-          .filter-group { flex-direction: column; }
-          .analytics-grid { grid-template-columns: 1fr; }
-          .chart-wrapper { height: 250px; }
-        }
-      `}</style>
-    </div>
-  );
+  const plans=[...(options?.plans || [])];
+  if(lead?.plan && !plans.some(plan=>plan.code===lead.planCode))plans.unshift({code:lead.planCode,planname:lead.plan.name,planamount:lead.plan.amount});
+  const employees=[...(options?.employees || [])];
+  if(lead?.communicatedBy && !employees.some(employee=>employee._id===lead.communicatedBy))employees.unshift({_id:lead.communicatedBy,FULLNAME:lead.communicatedByName,MOBILE:lead.communicatedByPhone});
+  return <Modal show={!!lead} onHide={()=>{if(!saving)onClose();}} size="lg" centered backdrop={saving?'static':true} keyboard={!saving}><form onSubmit={submit}><Modal.Header closeButton={!saving}><Modal.Title>{lead?._id?'Edit Lead':'Add Lead'}</Modal.Title></Modal.Header><Modal.Body>
+    <h6 className="mb-3">Customer details</h6><div className="row g-3">{[['name','Customer name',true],['phone','Mobile number',true],['alternatePhone','Alternate number'],['email','Email'],['address','Home address',true],['colony','Colony / area'],['city','City'],['state','State'],['pinCode','PIN code']].map(([key,label,required])=><div className={key==='address'?'col-12':'col-12 col-sm-6'} key={key}><label className="form-label w-100">{label}{required?' *':''}{key==='address'?<textarea className="form-control mt-1" rows={2} name={key} value={form[key]} onChange={change} required disabled={saving}/>:<input className="form-control mt-1" type={key==='email'?'email':key==='phone'||key==='alternatePhone'?'tel':'text'} name={key} value={form[key]} onChange={change} required={!!required} disabled={saving}/>}</label></div>)}</div>
+    <h6 className="mt-4 mb-3">Plan and communication</h6>{loading&&<p role="status">Loading plans and employees…</p>}<div className="row g-3"><div className="col-12 col-md-6"><label className="form-label w-100">Requested plan *<select className="form-select mt-1" name="planCode" value={form.planCode} onChange={change} required disabled={loading||saving}><option value="">Select a plan</option>{plans.filter(plan=>plan.code).map(plan=><option key={plan.code} value={plan.code}>{plan.planname} · {money(plan.planamount)}</option>)}</select></label></div><div className="col-12 col-md-6"><label className="form-label w-100">Communicating employee *<select className="form-select mt-1" name="communicatedBy" value={form.communicatedBy} onChange={change} required disabled={loading||saving}><option value="">Select employee</option>{employees.map(employee=><option key={employee._id} value={employee._id}>{employee.FULLNAME} · {employee.MOBILE}</option>)}</select></label></div><div className="col-12"><label className="form-label w-100">Communication notes<textarea className="form-control mt-1" rows={3} name="notes" value={form.notes} onChange={change} disabled={saving}/></label></div></div>
+    {error&&<div role="alert" className="alert alert-danger mt-3">{error}</div>}{!options&&!loading&&<button type="button" className="btn btn-outline-secondary" onClick={()=>setRetry(value=>value+1)}>Retry options</button>}
+  </Modal.Body><Modal.Footer><button type="button" className="btn btn-secondary" disabled={saving} onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={saving||loading||!options}>{saving?'Saving…':lead?._id?'Save Lead':'Create Lead'}</button></Modal.Footer></form></Modal>;
 }
